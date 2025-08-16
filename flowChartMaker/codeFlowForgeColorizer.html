@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>We1 | Code FlowForge Colorizer</title>
+    <link rel="icon" href="../logo.png" type="image/x-icon">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.17.1/flowchart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            
+            --dark-bg: #0f0f23;
+            --dark-surface: #1a1a2e;
+            --dark-elevated: #16213e;
+            --dark-border: #2d3748;
+            
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            
+            --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+            --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.3);
+            
+            --border-radius-lg: 16px;
+            --border-radius-xl: 24px;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--dark-surface) 50%, var(--dark-elevated) 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Custom Bootstrap Overrides */
+        .bg-dark-custom {
+            background: var(--dark-surface) !important;
+        }
+
+        .bg-elevated {
+            background: var(--dark-elevated) !important;
+        }
+
+        .border-custom {
+            border-color: var(--dark-border) !important;
+        }
+
+        .text-muted-custom {
+            color: #a0aec0 !important;
+        }
+
+        /* Glass Morphism Effects */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Header Styling */
+        .navbar-custom {
+            background: var(--dark-surface);
+            border-bottom: 1px solid var(--dark-border);
+            box-shadow: var(--shadow-elevated);
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand-custom {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: var(--border-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-glow);
+            margin-right: 0.75rem;
+        }
+
+        /* Enhanced Buttons */
+        .btn-gradient {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-gradient:hover::before {
+            left: 100%;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-elevated), var(--shadow-glow);
+            color: white;
+        }
+
+        .btn-success-gradient {
+            background: var(--success-gradient);
+        }
+
+        .btn-warning-gradient {
+            background: var(--warning-gradient);
+        }
+
+        .btn-danger-gradient {
+            background: var(--danger-gradient);
+        }
+
+        .btn-outline-custom {
+            border: 2px solid var(--dark-border);
+            color: #ffffff;
+            background: transparent;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--glass-bg);
+            border-color: #667eea;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Card Enhancements */
+        .card-custom {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-elevated);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-elevated), var(--shadow-glow);
+            border-color: #667eea;
+        }
+
+        .card-custom:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-header-gradient {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .card-header-gradient:hover::before {
+            left: 100%;
+        }
+
+        /* Tab Navigation */
+        .nav-tabs-custom {
+            background: var(--dark-elevated);
+            border-radius: 12px;
+            padding: 0.25rem;
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-tabs-custom .nav-link {
+            border: none;
+            border-radius: 8px;
+            color: #a0aec0;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+            margin: 0 0.25rem;
+        }
+
+        .nav-tabs-custom .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-tabs-custom .nav-link:hover:not(.active) {
+            background: var(--glass-bg);
+            color: white;
+        }
+
+        /* Code Editor */
+        .code-editor {
+            background: var(--dark-elevated);
+            border: 2px solid var(--dark-border);
+            border-radius: var(--border-radius-lg);
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: var(--transition-smooth);
+            resize: none;
+        }
+
+        .code-editor:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .code-editor::placeholder {
+            color: #718096;
+        }
+
+        /* Preview Area */
+        .preview-area {
+            background: var(--dark-elevated);
+            border: 2px dashed var(--dark-border);
+            border-radius: var(--border-radius-lg);
+            min-height: 400px;
+            position: relative;
+            transition: var(--transition-smooth);
+            overflow: auto;
+        }
+
+        .preview-area.has-content {
+            border-style: solid;
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.05);
+        }
+
+        .preview-area:empty::before {
+            content: '🎨 Your flowchart will appear here...';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #718096;
+            font-style: italic;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Template Cards */
+        .template-card {
+            background: var(--dark-elevated);
+            border: 1px solid var(--dark-border);
+            border-radius: var(--border-radius-lg);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .template-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .template-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-elevated);
+            border-color: #667eea;
+        }
+
+        .template-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .template-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 24px;
+            color: white;
+        }
+
+        .template-icon-primary { background: var(--primary-gradient); }
+        .template-icon-success { background: var(--success-gradient); }
+        .template-icon-warning { background: var(--warning-gradient); }
+        .template-icon-danger { background: var(--danger-gradient); }
+
+        /* Style Customization */
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .style-option {
+            background: var(--dark-elevated);
+            border: 2px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 1rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        .style-option.active {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .style-option:hover {
+            border-color: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Node Shape Previews */
+        .node-preview {
+            width: 40px;
+            height: 24px;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+        }
+
+        .shape-rect { 
+            background: #667eea; 
+            border-radius: 4px; 
+        }
+        
+        .shape-rounded { 
+            background: #764ba2; 
+            border-radius: 12px; 
+        }
+        
+        .shape-circle { 
+            background: #f093fb; 
+            border-radius: 50%; 
+            width: 24px;
+            height: 24px;
+        }
+        
+        .shape-diamond { 
+            background: #43e97b; 
+            transform: rotate(45deg);
+            border-radius: 4px;
+        }
+        
+        .shape-hexagon { 
+            background: #4facfe;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+
+        .shape-parallelogram {
+            background: #fa709a;
+            transform: skew(-20deg);
+            border-radius: 4px;
+        }
+
+        /* Arrow Style Previews */
+        .arrow-preview {
+            width: 50px;
+            height: 16px;
+            margin: 0 auto 0.5rem;
+            position: relative;
+            border-radius: 2px;
+        }
+
+        .arrow-preview::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+
+        .arrow-solid { 
+            background: #667eea; 
+        }
+        .arrow-solid::after { 
+            border-left: 6px solid #667eea; 
+        }
+
+        .arrow-dashed { 
+            background: repeating-linear-gradient(90deg, #764ba2, #764ba2 3px, transparent 3px, transparent 6px); 
+        }
+        .arrow-dashed::after { 
+            border-left: 6px solid #764ba2; 
+        }
+
+        .arrow-dotted { 
+            background: repeating-linear-gradient(90deg, #f093fb, #f093fb 2px, transparent 2px, transparent 4px); 
+        }
+        .arrow-dotted::after { 
+            border-left: 6px solid #f093fb; 
+        }
+
+        .arrow-thick { 
+            background: #43e97b; 
+            height: 4px; 
+        }
+        .arrow-thick::after { 
+            border-left: 6px solid #43e97b; 
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        .arrow-curved { 
+            background: #4facfe; 
+            border-radius: 8px; 
+        }
+        .arrow-curved::after { 
+            border-left: 6px solid #4facfe; 
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: var(--dark-surface);
+            border-top: 1px solid var(--dark-border);
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-success { background: #4facfe; }
+        .status-warning { background: #43e97b; }
+        .status-error { background: #fa709a; }
+
+        /* Modal Enhancements */
+        .modal-content-custom {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-elevated);
+        }
+
+        .modal-header-custom {
+            border-bottom: 1px solid var(--dark-border);
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+        }
+
+        /* Export Options */
+        .export-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .export-option {
+            background: var(--dark-elevated);
+            border: 2px solid var(--dark-border);
+            border-radius: var(--border-radius-lg);
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            color: #a0aec0;
+        }
+
+        .export-option:hover {
+            border-color: #667eea;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-elevated);
+        }
+
+        .export-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .export-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .export-svg { background: var(--primary-gradient); }
+        .export-png { background: var(--success-gradient); }
+        .export-pdf { background: var(--warning-gradient); }
+        .export-json { background: var(--danger-gradient); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading { animation: spin 1s linear infinite; }
+
+        /* Utility Classes */
+        .gradient-text {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glow {
+            box-shadow: var(--shadow-glow);
+        }
+
+        .elevated {
+            box-shadow: var(--shadow-elevated);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .style-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .export-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-elevated);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--dark-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #667eea;
+        }
+
+        /* Code Syntax Highlighting */
+        .code-keyword { color: #ff7b7b; }
+        .code-string { color: #7dd3fc; }
+        .code-comment { color: #6b7280; }
+        .code-number { color: #a78bfa; }
+
+        /* Toast Notifications */
+        .toast-custom {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            color: white;
+            box-shadow: var(--shadow-elevated);
+        }
+
+        .toast-success { border-left: 4px solid #4facfe; }
+        .toast-warning { border-left: 4px solid #43e97b; }
+        .toast-error { border-left: 4px solid #fa709a; }
+        .toast-info { border-left: 4px solid #667eea; }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container-fluid px-4">
+            <div class="navbar-brand navbar-brand-custom d-flex align-items-center">
+                <span class="navbar-brand fw-bold" style="display: flex;align-items: center;gap: 10px;">
+                    <img src="../logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 5px;" />
+                    <span>Code FlowForge Colorizer</span>
+                  </span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-custom btn-sm" onclick="importFile()">
+                    <i class="fas fa-upload me-2"></i>Import
+                </button>
+                <button class="btn btn-gradient btn-sm" onclick="showExportModal()">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+                <button class="btn btn-outline-custom btn-sm" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid p-3">
+        <div class="row g-3" style="height: calc(100vh - 120px);">
+            
+            <!-- Left Panel - Code Editor -->
+            <div class="col-lg-4">
+                <div class="card card-custom h-100">
+                    <div class="card-header card-header-gradient d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-code me-2"></i>Code Editor</span>
+                        <span id="editorStatus" class="badge bg-light text-dark">Ready</span>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <!-- Mode Tabs -->
+                        <ul class="nav nav-tabs nav-tabs-custom">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="mermaid-tab" data-mode="mermaid">
+                                    <i class="fab fa-markdown me-2"></i>Mermaid
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="flowchart-tab" data-mode="flowchartjs">
+                                    <i class="fas fa-sitemap me-2"></i>Flowchart.js
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Code Input -->
+                        <div class="flex-grow-1 d-flex flex-column">
+                            <textarea 
+                                id="codeInput" 
+                                class="form-control code-editor flex-grow-1 mb-3" 
+                                placeholder="Write your flowchart code here..."
+                                style="min-height: 300px;"
+                            ></textarea>
+                            
+                            <!-- Control Buttons -->
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-gradient btn-sm" onclick="render()">
+                                    <i class="fas fa-play me-1"></i>Render
+                                </button>
+                                <button class="btn btn-success-gradient btn-sm" onclick="validateSyntax()">
+                                    <i class="fas fa-check-circle me-1"></i>Validate
+                                </button>
+                                <button class="btn btn-warning-gradient btn-sm" onclick="formatCode()">
+                                    <i class="fas fa-magic me-1"></i>Format
+                                </button>
+                                <button class="btn btn-danger-gradient btn-sm" onclick="clearAll()">
+                                    <i class="fas fa-trash me-1"></i>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Panel - Preview -->
+            <div class="col-lg-4">
+                <div class="card card-custom h-100">
+                    <div class="card-header card-header-gradient d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-eye me-2"></i>Live Preview</span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-light btn-sm" onclick="zoomOut()">
+                                <i class="fas fa-search-minus"></i>
+                            </button>
+                            <button class="btn btn-outline-light btn-sm" onclick="resetZoom()">
+                                <span id="zoomLevel">100%</span>
+                            </button>
+                            <button class="btn btn-outline-light btn-sm" onclick="zoomIn()">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <div id="renderArea" class="preview-area p-4 h-100"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Templates & Styles -->
+            <div class="col-lg-4">
+                <div class="card card-custom h-100">
+                    <div class="card-header card-header-gradient">
+                        <ul class="nav nav-tabs nav-tabs-custom mb-0 border-0">
+                            <li class="nav-item">
+                                <button class="nav-link active" id="templates-tab" data-bs-toggle="pill" data-bs-target="#templates">
+                                    <i class="fas fa-layer-group me-2"></i>Templates
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" id="styles-tab" data-bs-toggle="pill" data-bs-target="#styles">
+                                    <i class="fas fa-palette me-2"></i>Styles
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- Templates Tab -->
+                            <div class="tab-pane fade show active" id="templates">
+                                <div class="row g-3" style="max-height: 500px; overflow-y: auto;">
+                                    <!-- Template Cards -->
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="mermaid" data-code="graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Process 1]
+    B -->|No| D[Process 2]
+    C --> E[End]
+    D --> E">
+                                            <div class="template-icon template-icon-primary">
+                                                <i class="fas fa-route"></i>
+                                            </div>
+                                            <h6 class="mb-2">🔄 Basic Decision Flow</h6>
+                                            <small class="text-muted-custom">Simple decision tree with branching logic</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="mermaid" data-code="graph LR
+    A[User] --> B[Login]
+    B --> C{Valid?}
+    C -->|Yes| D[Dashboard]
+    C -->|No| E[Error]
+    E --> B
+    D --> F[Logout]
+    F --> A">
+                                            <div class="template-icon template-icon-success">
+                                                <i class="fas fa-user-lock"></i>
+                                            </div>
+                                            <h6 class="mb-2">🔐 User Authentication</h6>
+                                            <small class="text-muted-custom">Login flow with error handling</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="mermaid" data-code="graph TD
+    A[Requirements] --> B[Design]
+    B --> C[Development]
+    C --> D[Testing]
+    D --> E{Pass?}
+    E -->|No| C
+    E -->|Yes| F[Deployment]
+    F --> G[Maintenance]">
+                                            <div class="template-icon template-icon-warning">
+                                                <i class="fas fa-cogs"></i>
+                                            </div>
+                                            <h6 class="mb-2">⚙️ Software Development</h6>
+                                            <small class="text-muted-custom">SDLC with iterative testing</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="mermaid" data-code="graph TB
+    subgraph Frontend
+        A[React App]
+        B[Vue.js]
+        C[Angular]
+    end
+    subgraph Backend
+        D[Node.js]
+        E[Python Flask]
+        F[Java Spring]
+    end
+    subgraph Database
+        G[MySQL]
+        H[MongoDB]
+        I[PostgreSQL]
+    end
+    A --> D
+    B --> E
+    C --> F
+    D --> G
+    E --> H
+    F --> I">
+                                            <div class="template-icon template-icon-danger">
+                                                <i class="fas fa-server"></i>
+                                            </div>
+                                            <h6 class="mb-2">🏗️ System Architecture</h6>
+                                            <small class="text-muted-custom">Multi-tier application structure</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="mermaid" data-code="graph LR
+    A[Code Commit] --> B[Build]
+    B --> C[Unit Tests]
+    C --> D{Tests Pass?}
+    D -->|Yes| E[Integration Tests]
+    D -->|No| F[Notify Developer]
+    E --> G{Integration OK?}
+    G -->|Yes| H[Deploy to Staging]
+    G -->|No| F
+    H --> I[Manual Testing]
+    I --> J{Staging OK?}
+    J -->|Yes| K[Deploy to Production]
+    J -->|No| F
+    K --> L[Monitor]
+    F --> A">
+                                            <div class="template-icon template-icon-primary">
+                                                <i class="fas fa-rocket"></i>
+                                            </div>
+                                            <h6 class="mb-2">🚀 CI/CD Pipeline</h6>
+                                            <small class="text-muted-custom">Continuous integration and deployment</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="flowchartjs" data-code="st=>start: Start
+e=>end: End
+op1=>operation: Initialize
+op2=>operation: Process Data
+op3=>operation: Generate Output
+cond=>condition: Data Valid?
+io=>inputoutput: Get Input
+
+st->io->op1->cond
+cond(yes)->op2->op3->e
+cond(no)->io">
+                                            <div class="template-icon template-icon-success">
+                                                <i class="fas fa-database"></i>
+                                            </div>
+                                            <h6 class="mb-2">📊 Data Processing</h6>
+                                            <small class="text-muted-custom">Input validation and processing workflow</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="flowchartjs" data-code="start=>start: Customer Order
+process1=>operation: Check Inventory
+process2=>operation: Process Payment
+process3=>operation: Ship Product
+process4=>operation: Send Notification
+decision=>condition: In Stock?
+decision2=>condition: Payment OK?
+end=>end: Order Complete
+
+start->process1->decision
+decision(yes)->process2->decision2
+decision(no)->end
+decision2(yes)->process3->process4->end
+decision2(no)->end">
+                                            <div class="template-icon template-icon-warning">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </div>
+                                            <h6 class="mb-2">🛒 E-commerce Flow</h6>
+                                            <small class="text-muted-custom">Order processing with validations</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="template-card p-3" data-mode="flowchartjs" data-code="start=>start: Bug Report
+classify=>operation: Classify Bug
+priority=>condition: High Priority?
+assign=>operation: Assign Developer
+develop=>operation: Fix Bug
+test=>operation: Test Fix
+verify=>condition: Fix Works?
+deploy=>operation: Deploy Fix
+close=>end: Close Ticket
+
+start->classify->priority
+priority(yes)->assign->develop->test->verify
+priority(no)->assign
+verify(yes)->deploy->close
+verify(no)->develop">
+                                            <div class="template-icon template-icon-danger">
+                                                <i class="fas fa-bug"></i>
+                                            </div>
+                                            <h6 class="mb-2">🐛 Bug Tracking</h6>
+                                            <small class="text-muted-custom">Issue resolution workflow</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Styles Tab -->
+                            <div class="tab-pane fade" id="styles">
+                                <div style="max-height: 500px; overflow-y: auto;">
+                                    <!-- Node Styles -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3 gradient-text fw-bold">
+                                            <i class="fas fa-shapes me-2"></i>Node Shapes
+                                        </h6>
+                                        <div class="style-grid">
+                                            <div class="style-option active" data-style="rect">
+                                                <div class="node-preview shape-rect"></div>
+                                                Rectangle
+                                            </div>
+                                            <div class="style-option" data-style="rounded">
+                                                <div class="node-preview shape-rounded"></div>
+                                                Rounded
+                                            </div>
+                                            <div class="style-option" data-style="circle">
+                                                <div class="node-preview shape-circle"></div>
+                                                Circle
+                                            </div>
+                                            <div class="style-option" data-style="diamond">
+                                                <div class="node-preview shape-diamond"></div>
+                                                Diamond
+                                            </div>
+                                            <div class="style-option" data-style="hexagon">
+                                                <div class="node-preview shape-hexagon"></div>
+                                                Hexagon
+                                            </div>
+                                            <div class="style-option" data-style="parallelogram">
+                                                <div class="node-preview shape-parallelogram"></div>
+                                                Parallel
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Arrow Styles -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3 gradient-text fw-bold">
+                                            <i class="fas fa-long-arrow-alt-right me-2"></i>Arrow Styles
+                                        </h6>
+                                        <div class="style-grid">
+                                            <div class="style-option active" data-arrow="solid">
+                                                <div class="arrow-preview arrow-solid"></div>
+                                                Solid
+                                            </div>
+                                            <div class="style-option" data-arrow="dashed">
+                                                <div class="arrow-preview arrow-dashed"></div>
+                                                Dashed
+                                            </div>
+                                            <div class="style-option" data-arrow="dotted">
+                                                <div class="arrow-preview arrow-dotted"></div>
+                                                Dotted
+                                            </div>
+                                            <div class="style-option" data-arrow="thick">
+                                                <div class="arrow-preview arrow-thick"></div>
+                                                Thick
+                                            </div>
+                                            <div class="style-option" data-arrow="curved">
+                                                <div class="arrow-preview arrow-curved"></div>
+                                                Curved
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Color Themes -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3 gradient-text fw-bold">
+                                            <i class="fas fa-palette me-2"></i>Color Themes
+                                        </h6>
+                                        <div class="style-grid">
+                                            <div class="style-option active" data-theme="default">
+                                                <div class="d-flex justify-content-center mb-2">
+                                                    <div style="width: 12px; height: 12px; background: #667eea; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #764ba2; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #f093fb; border-radius: 2px; margin: 0 1px;"></div>
+                                                </div>
+                                                Default
+                                            </div>
+                                            <div class="style-option" data-theme="ocean">
+                                                <div class="d-flex justify-content-center mb-2">
+                                                    <div style="width: 12px; height: 12px; background: #4facfe; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #00f2fe; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #0575e6; border-radius: 2px; margin: 0 1px;"></div>
+                                                </div>
+                                                Ocean
+                                            </div>
+                                            <div class="style-option" data-theme="forest">
+                                                <div class="d-flex justify-content-center mb-2">
+                                                    <div style="width: 12px; height: 12px; background: #43e97b; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #38f9d7; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #11998e; border-radius: 2px; margin: 0 1px;"></div>
+                                                </div>
+                                                Forest
+                                            </div>
+                                            <div class="style-option" data-theme="sunset">
+                                                <div class="d-flex justify-content-center mb-2">
+                                                    <div style="width: 12px; height: 12px; background: #fa709a; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #fee140; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #ff6b6b; border-radius: 2px; margin: 0 1px;"></div>
+                                                </div>
+                                                Sunset
+                                            </div>
+                                            <div class="style-option" data-theme="monochrome">
+                                                <div class="d-flex justify-content-center mb-2">
+                                                    <div style="width: 12px; height: 12px; background: #667eea; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #718096; border-radius: 2px; margin: 0 1px;"></div>
+                                                    <div style="width: 12px; height: 12px; background: #2d3748; border-radius: 2px; margin: 0 1px;"></div>
+                                                </div>
+                                                Mono
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Custom Colors -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3 gradient-text fw-bold">
+                                            <i class="fas fa-eyedropper me-2"></i>Custom Colors
+                                        </h6>
+                                        <div class="row g-2">
+                                            <div class="col-4">
+                                                <label class="form-label small">Primary</label>
+                                                <input type="color" class="form-control form-control-sm" id="primaryColor" value="#667eea">
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label small">Secondary</label>
+                                                <input type="color" class="form-control form-control-sm" id="secondaryColor" value="#764ba2">
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label small">Accent</label>
+                                                <input type="color" class="form-control form-control-sm" id="accentColor" value="#f093fb">
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-outline-custom btn-sm w-100 mt-2" onclick="applyCustomColors()">
+                                            <i class="fas fa-magic me-2"></i>Apply Colors
+                                        </button>
+                                    </div>
+
+                                    <!-- Code Styling Helper -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3 gradient-text fw-bold">
+                                            <i class="fas fa-code me-2"></i>Style Generator
+                                        </h6>
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-outline-custom btn-sm" onclick="insertMermaidStyles()">
+                                                <i class="fas fa-plus me-2"></i>Add Mermaid Styles
+                                            </button>
+                                            <button class="btn btn-outline-custom btn-sm" onclick="insertFlowchartStates()">
+                                                <i class="fas fa-plus me-2"></i>Add Flowchart States
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Actions -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3 gradient-text fw-bold">
+                                            <i class="fas fa-bolt me-2"></i>Quick Actions
+                                        </h6>
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-outline-custom btn-sm" onclick="applyRandomTheme()">
+                                                <i class="fas fa-random me-2"></i>Random Theme
+                                            </button>
+                                            <button class="btn btn-outline-custom btn-sm" onclick="optimizeLayout()">
+                                                <i class="fas fa-magic me-2"></i>Auto Layout
+                                            </button>
+                                            <button class="btn btn-outline-custom btn-sm" onclick="analyzeFlowchart()">
+                                                <i class="fas fa-chart-line me-2"></i>Analyze
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar px-4 py-2 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-4">
+            <span class="d-flex align-items-center">
+                <span class="status-indicator status-success"></span>
+                <span id="syntaxStatus">Syntax: Valid</span>
+            </span>
+            <span id="nodeCount">Nodes: 0</span>
+            <span id="renderTime">Render: 0ms</span>
+        </div>
+        <div class="d-flex align-items-center gap-4">
+            <span>Mode: <span id="currentMode" class="gradient-text fw-bold">Mermaid</span></span>
+            <span>Theme: <span id="currentTheme" class="gradient-text fw-bold">Default</span></span>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content modal-content-custom">
+                <div class="modal-header modal-header-custom border-0">
+                    <h5 class="modal-title d-flex align-items-center">
+                        <i class="fas fa-download me-2"></i>Export Flowchart
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="export-grid mb-4">
+                        <div class="export-option" data-format="svg">
+                            <div class="export-icon export-svg">
+                                <i class="fas fa-vector-square"></i>
+                            </div>
+                            <h6 class="mb-1">SVG</h6>
+                            <small class="text-muted-custom">Vector format</small>
+                        </div>
+                        <div class="export-option" data-format="png">
+                            <div class="export-icon export-png">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <h6 class="mb-1">PNG</h6>
+                            <small class="text-muted-custom">High quality image</small>
+                        </div>
+                        <div class="export-option" data-format="pdf">
+                            <div class="export-icon export-pdf">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <h6 class="mb-1">PDF</h6>
+                            <small class="text-muted-custom">Document format</small>
+                        </div>
+                        <div class="export-option" data-format="json">
+                            <div class="export-icon export-json">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <h6 class="mb-1">JSON</h6>
+                            <small class="text-muted-custom">Data format</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Export Settings -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Quality/Scale:</label>
+                            <input type="range" class="form-range" id="qualityRange" min="1" max="4" value="2" step="0.5">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted-custom">1x</small>
+                                <small class="text-muted-custom">2x</small>
+                                <small class="text-muted-custom">4x</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="includeBackground" checked>
+                                <label class="form-check-label" for="includeBackground">
+                                    Include background color
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-gradient" onclick="executeExport()">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="toastTemplate" class="toast toast-custom" role="alert" style="display: none;">
+            <div class="toast-header">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong class="me-auto">FlowCraft Pro</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        // Global variables
+        let currentMode = 'mermaid';
+        let currentZoom = 1;
+        let currentTheme = 'default';
+        let currentNodeStyle = 'rect';
+        let currentArrowStyle = 'solid';
+        let selectedExportFormat = 'svg';
+        let renderStartTime = 0;
+
+        // DOM elements
+        const codeInput = document.getElementById('codeInput');
+        const renderArea = document.getElementById('renderArea');
+        const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+
+        // Theme configurations
+        const themes = {
+            default: {
+                primary: '#667eea',
+                secondary: '#764ba2',
+                accent: '#f093fb'
+            },
+            ocean: {
+                primary: '#4facfe',
+                secondary: '#00f2fe',
+                accent: '#0575e6'
+            },
+            forest: {
+                primary: '#43e97b',
+                secondary: '#38f9d7',
+                accent: '#11998e'
+            },
+            sunset: {
+                primary: '#fa709a',
+                secondary: '#fee140',
+                accent: '#ff6b6b'
+            },
+            monochrome: {
+                primary: '#667eea',
+                secondary: '#718096',
+                accent: '#2d3748'
+            }
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDefaultSample();
+            setupEventListeners();
+            updateStatus();
+            setupDragAndDrop();
+        });
+
+        // Event listeners setup
+        function setupEventListeners() {
+            // Mode switching
+            document.querySelectorAll('[data-mode]').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchMode(this.dataset.mode);
+                });
+            });
+
+            // Auto-render with debounce
+            let debounceTimer;
+            codeInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    render();
+                    updateStatus();
+                }, 500);
+            });
+
+            // Template cards
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    loadTemplate(this);
+                });
+            });
+
+            // Style options
+            document.querySelectorAll('.style-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectStyleOption(this);
+                });
+            });
+
+            // Export options
+            document.querySelectorAll('.export-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectExportFormat(this.dataset.format);
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'r':
+                            e.preventDefault();
+                            render();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            showExportModal();
+                            break;
+                        case '=':
+                            e.preventDefault();
+                            zoomIn();
+                            break;
+                        case '-':
+                            e.preventDefault();
+                            zoomOut();
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Mode switching
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update active tab
+            document.querySelectorAll('[data-mode]').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.mode === mode);
+            });
+            
+            // Update status
+            document.getElementById('currentMode').textContent = 
+                mode === 'mermaid' ? 'Mermaid' : 'Flowchart.js';
+            
+            // Clear editor and load appropriate sample
+            codeInput.value = '';
+            clearRender();
+            loadDefaultSample();
+            
+            showToast(`Switched to ${mode === 'mermaid' ? 'Mermaid' : 'Flowchart.js'} mode`, 'info');
+        }
+
+        // Load default sample
+        function loadDefaultSample() {
+            const samples = {
+                mermaid: `graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Process 1]
+    B -->|No| D[Process 2]
+    C --> E[End]
+    D --> E`,
+                flowchartjs: `st=>start: Start
+e=>end: End
+op1=>operation: My Operation
+op2=>operation: Stuff
+cond=>condition: Yes or No?
+
+st->op1->cond
+cond(yes)->e
+cond(no)->op2
+op2->op1`
+            };
+            
+            codeInput.value = samples[currentMode];
+            render();
+        }
+
+        // Load template
+        function loadTemplate(templateCard) {
+            const code = templateCard.dataset.code;
+            const mode = templateCard.dataset.mode;
+            
+            if (mode !== currentMode) {
+                switchMode(mode);
+            }
+            
+            codeInput.value = code;
+            render();
+            
+            // Add visual feedback
+            templateCard.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                templateCard.style.transform = '';
+            }, 150);
+            
+            showToast('Template loaded successfully', 'success');
+        }
+
+        // Style option selection
+        function selectStyleOption(option) {
+            const parent = option.closest('.style-grid');
+            parent.querySelectorAll('.style-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            option.classList.add('active');
+            
+            // Update current style based on data attributes
+            if (option.dataset.style) {
+                currentNodeStyle = option.dataset.style;
+            }
+            if (option.dataset.arrow) {
+                currentArrowStyle = option.dataset.arrow;
+            }
+            if (option.dataset.theme) {
+                currentTheme = option.dataset.theme;
+                document.getElementById('currentTheme').textContent = 
+                    option.dataset.theme.charAt(0).toUpperCase() + option.dataset.theme.slice(1);
+                applyTheme(option.dataset.theme);
+            }
+            
+            // Re-render with new styles
+            if (renderArea.innerHTML.trim()) {
+                render();
+            }
+        }
+
+        // Apply theme
+        function applyTheme(themeName) {
+            const theme = themes[themeName];
+            if (theme) {
+                document.documentElement.style.setProperty('--primary-color', theme.primary);
+                document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+                document.documentElement.style.setProperty('--accent-color', theme.accent);
+                
+                // Update Mermaid theme
+                mermaid.initialize({
+                    theme: 'dark',
+                    themeVariables: {
+                        primaryColor: theme.primary,
+                        secondaryColor: theme.secondary,
+                        tertiaryColor: theme.accent
+                    }
+                });
+                
+                showToast(`Applied ${themeName} theme`, 'success');
+            }
+        }
+
+        // Rendering functions
+        function render() {
+            renderStartTime = performance.now();
+            document.getElementById('editorStatus').innerHTML = 
+                '<i class="fas fa-spinner fa-spin me-2"></i>Rendering...';
+            
+            const code = codeInput.value.trim();
+            
+            setTimeout(() => {
+                try {
+                    if (currentMode === 'mermaid') {
+                        renderMermaid(code);
+                    } else {
+                        renderFlowchartJS(code);
+                    }
+                    
+                    const renderTime = Math.round(performance.now() - renderStartTime);
+                    document.getElementById('renderTime').textContent = `Render: ${renderTime}ms`;
+                    document.getElementById('editorStatus').innerHTML = 
+                        '<i class="fas fa-check-circle me-2"></i>Rendered';
+                    
+                    renderArea.classList.toggle('has-content', code.length > 0);
+                    updateStatus();
+                    
+                } catch (error) {
+                    showError(error.message);
+                    document.getElementById('editorStatus').innerHTML = 
+                        '<i class="fas fa-exclamation-circle me-2"></i>Error';
+                }
+            }, 100);
+        }
+
+        function renderMermaid(code) {
+            clearRender();
+            
+            if (!code) return;
+            
+            const uniqueId = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+            const container = document.createElement('div');
+            container.className = 'mermaid';
+            container.id = uniqueId;
+            container.textContent = code;
+            
+            renderArea.appendChild(container);
+            
+            try {
+                mermaid.init(undefined, '#' + uniqueId);
+                applyZoom();
+            } catch (e) {
+                showError('Mermaid render error: ' + e.message);
+            }
+        }
+
+        function renderFlowchartJS(code) {
+            debugger
+            clearRender();
+            
+            if (!code) return;
+            
+            try {
+                // Create container
+                const flowchartDiv = document.createElement('div');
+                flowchartDiv.id = 'flowchartjs-container-' + Date.now();
+                flowchartDiv.style.cssText = 'width: 100%; height: auto; overflow: auto; text-align: center;';
+                
+                renderArea.appendChild(flowchartDiv);
+                
+                // Check if flowchart is available
+                if (typeof flowchart === 'undefined') {
+                    throw new Error('Flowchart.js library not loaded');
+                }
+                
+                // Parse and draw the flowchart
+                let diagram;
+                try {
+                    diagram = flowchart.parse(code);
+                } catch (parseError) {
+                    throw new Error('Parse error: ' + parseError.message);
+                }
+                
+                // Drawing options with current theme
+                const drawOptions = {
+                    'maxWidth': 3,
+                    'line-width': currentArrowStyle === 'thick' ? 3 : 2,
+                    'line-length': 50,
+                    'text-margin': 10,
+                    'font-size': 14,
+                    'font-color': '#ffffff',
+                    'line-color': themes[currentTheme].primary,
+                    'element-color': themes[currentTheme].primary,
+                    'fill': themes[currentTheme].secondary,
+                    'yes-text': 'yes',
+                    'no-text': 'no',
+                    'arrow-end': 'block',
+                    'scale': 1,
+                    'symbols': {
+                        'start': {
+                            'font-color': '#ffffff',
+                            'element-color': themes[currentTheme].primary,
+                            'fill': themes[currentTheme].primary
+                        },
+                        'end':{
+                            'class': 'end-element',
+                            'font-color': '#ffffff',
+                            'element-color': themes[currentTheme].secondary,
+                            'fill': themes[currentTheme].secondary
+                        },
+                        'condition': {
+                            'font-color': '#ffffff',
+                            'element-color': themes[currentTheme].accent,
+                            'fill': themes[currentTheme].accent
+                        },
+                        'inputoutput': {
+                            'font-color': '#ffffff',
+                            'element-color': themes[currentTheme].primary,
+                            'fill': themes[currentTheme].primary
+                        },
+                        'operation': {
+                            'font-color': '#ffffff',
+                            'element-color': themes[currentTheme].secondary,
+                            'fill': themes[currentTheme].secondary
+                        },
+                        'subroutine': {
+                            'font-color': '#ffffff',
+                            'element-color': themes[currentTheme].accent,
+                            'fill': themes[currentTheme].accent
+                        }
+                    },
+                    'flowstate': {
+                        'past': { 'fill': themes[currentTheme].primary, 'font-size': 12},
+                        'current': {'fill': themes[currentTheme].accent, 'font-color': '#ffffff', 'font-weight': 'bold'},
+                        'future': { 'fill': themes[currentTheme].secondary},
+                        'request': { 'fill': themes[currentTheme].primary},
+                        'invalid': {'fill': '#FA709A'},
+                        'approved': { 'fill': themes[currentTheme].accent},
+                        'rejected': { 'fill': '#FA709A' }
+                    }
+                };
+                
+                // Draw the diagram
+                diagram.drawSVG(flowchartDiv.id, drawOptions);
+                
+                // Apply zoom after drawing
+                setTimeout(() => {
+                    applyZoom();
+                }, 100);
+                
+            } catch (e) {
+                console.error('Flowchart.js error:', e);
+                showError('Flowchart.js render error: ' + e.message);
+                
+                // Show a helpful error message with sample code
+                renderArea.innerHTML = `
+                    <div class="alert alert-danger m-3">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Flowchart.js Error</h6>
+                        <p class="mb-2">${e.message}</p>
+                        <small class="text-muted">
+                            <strong>Sample Flowchart.js syntax:</strong><br>
+                            st=>start: Start<br>
+                            e=>end: End<br>
+                            op=>operation: Operation<br>
+                            cond=>condition: Decision?<br><br>
+                            st->op->cond<br>
+                            cond(yes)->e<br>
+                            cond(no)->op
+                        </small>
+                    </div>
+                `;
+            }
+        }
+
+        function clearRender() {
+            renderArea.innerHTML = '';
+            renderArea.classList.remove('has-content');
+        }
+
+        // Zoom functions
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.1, 3);
+            applyZoom();
+            updateZoomDisplay();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.1, 0.3);
+            applyZoom();
+            updateZoomDisplay();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            applyZoom();
+            updateZoomDisplay();
+        }
+
+        function applyZoom() {
+            const svg = renderArea.querySelector('svg');
+            if (svg) {
+                svg.style.transform = `scale(${currentZoom})`;
+                svg.style.transformOrigin = 'top left';
+            }
+        }
+
+        function updateZoomDisplay() {
+            document.getElementById('zoomLevel').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        // Validation and utility functions
+        function validateSyntax() {
+            const code = codeInput.value.trim();
+            
+            if (!code) {
+                showToast('No code to validate', 'warning');
+                return;
+            }
+            
+            try {
+                if (currentMode === 'mermaid') {
+                    if (!code.includes('graph') && !code.includes('flowchart') && 
+                        !code.includes('sequenceDiagram') && !code.includes('erDiagram')) {
+                        throw new Error('Invalid Mermaid syntax: Missing diagram type');
+                    }
+                } else {
+                    flowchart.parse(code);
+                }
+                
+                showToast('Syntax is valid', 'success');
+                document.getElementById('syntaxStatus').innerHTML = 
+                    '<span class="status-indicator status-success"></span>Syntax: Valid';
+            } catch (error) {
+                showToast('Syntax error: ' + error.message, 'error');
+                document.getElementById('syntaxStatus').innerHTML = 
+                    '<span class="status-indicator status-error"></span>Syntax: Invalid';
+            }
+        }
+
+        function formatCode() {
+            const code = codeInput.value.trim();
+            
+            if (!code) {
+                showToast('No code to format', 'warning');
+                return;
+            }
+            
+            // Basic formatting
+            const lines = code.split('\n');
+            const formatted = lines.map(line => {
+                line = line.trim();
+                if (line.includes('-->') || line.includes('->')) {
+                    return '    ' + line;
+                }
+                return line;
+            }).join('\n');
+            
+            codeInput.value = formatted;
+            render();
+            showToast('Code formatted successfully', 'success');
+        }
+
+        function clearAll() {
+            if (confirm('Are you sure you want to clear everything?')) {
+                codeInput.value = '';
+                clearRender();
+                updateStatus();
+                showToast('Editor cleared', 'info');
+            }
+        }
+
+        function countNodes() {
+            const code = codeInput.value;
+            if (currentMode === 'mermaid') {
+                const matches = code.match(/\w+(?:\[[^\]]*\]|\([^)]*\)|\{[^}]*\})/g);
+                return matches ? matches.length : 0;
+            } else {
+                const matches = code.match(/\w+\s*=>/g);
+                return matches ? matches.length : 0;
+            }
+        }
+
+        function updateStatus() {
+            debugger
+            const nodeCount = countNodes();
+            document.getElementById('nodeCount').textContent = `Nodes: ${nodeCount}`;
+            validateSyntax();
+        }
+
+        // Export functions
+        function showExportModal() {
+            if (!renderArea.querySelector('svg')) {
+                showToast('No diagram to export', 'warning');
+                return;
+            }
+            exportModal.show();
+        }
+
+        function selectExportFormat(format) {
+            document.querySelectorAll('.export-option').forEach(option => {
+                option.classList.toggle('selected', option.dataset.format === format);
+            });
+            selectedExportFormat = format;
+        }
+
+        function executeExport() {
+            const quality = parseFloat(document.getElementById('qualityRange').value);
+            const includeBackground = document.getElementById('includeBackground').checked;
+            
+            try {
+                switch(selectedExportFormat) {
+                    case 'svg':
+                        exportSVG();
+                        break;
+                    case 'png':
+                        exportPNG(quality, includeBackground);
+                        break;
+                    case 'pdf':
+                        exportPDF(quality, includeBackground);
+                        break;
+                    case 'json':
+                        exportJSON();
+                        break;
+                }
+                
+                showToast(`Exported as ${selectedExportFormat.toUpperCase()}`, 'success');
+                exportModal.hide();
+            } catch (error) {
+                showToast('Export failed: ' + error.message, 'error');
+            }
+        }
+
+        function exportSVG() {
+            const svg = renderArea.querySelector('svg');
+            if (!svg) throw new Error('No SVG to export');
+            
+            const serializer = new XMLSerializer();
+            let source = serializer.serializeToString(svg);
+            
+            if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            if (!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+            }
+            
+            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+            downloadFile(source, 'flowchart.svg', 'image/svg+xml');
+        }
+
+        function exportPNG(quality = 2, includeBackground = true) {
+            const svg = renderArea.querySelector('svg');
+            if (!svg) throw new Error('No SVG to export');
+            
+            html2canvas(renderArea, {
+                backgroundColor: includeBackground ? '#1a1a2e' : null,
+                scale: quality,
+                useCORS: true
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'flowchart.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+        }
+
+        function exportPDF(quality = 2, includeBackground = true) {
+            const svg = renderArea.querySelector('svg');
+            if (!svg) throw new Error('No SVG to export');
+            
+            html2canvas(renderArea, {
+                backgroundColor: includeBackground ? '#1a1a2e' : null,
+                scale: quality,
+                useCORS: true
+            }).then(canvas => {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: canvas.width > canvas.height ? 'l' : 'p',
+                    unit: 'mm'
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('flowchart.pdf');
+            });
+        }
+
+        function exportJSON() {
+            const data = {
+                mode: currentMode,
+                code: codeInput.value,
+                theme: currentTheme,
+                nodeStyle: currentNodeStyle,
+                arrowStyle: currentArrowStyle,
+                timestamp: new Date().toISOString(),
+                metadata: {
+                    nodes: countNodes(),
+                    zoom: currentZoom,
+                    version: '1.0'
+                }
+            };
+            
+            downloadFile(JSON.stringify(data, null, 2), 'flowchart.json', 'application/json');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Import function
+        function importFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.mmd,.flow,.txt,.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            let content = e.target.result;
+                            
+                            if (file.name.endsWith('.json')) {
+                                const data = JSON.parse(content);
+                                if (data.code) {
+                                    content = data.code;
+                                    if (data.mode && data.mode !== currentMode) {
+                                        switchMode(data.mode);
+                                    }
+                                    if (data.theme) {
+                                        applyTheme(data.theme);
+                                    }
+                                }
+                            }
+                            
+                            codeInput.value = content;
+                            render();
+                            showToast(`File "${file.name}" imported successfully`, 'success');
+                        } catch (error) {
+                            showToast('Failed to import file: ' + error.message, 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            
+            input.click();
+        }
+
+        // Custom color functions
+        function applyCustomColors() {
+            const primary = document.getElementById('primaryColor').value;
+            const secondary = document.getElementById('secondaryColor').value;
+            const accent = document.getElementById('accentColor').value;
+            
+            // Create custom theme
+            themes.custom = {
+                primary: primary,
+                secondary: secondary,
+                accent: accent
+            };
+            
+            // Apply the custom theme
+            currentTheme = 'custom';
+            applyTheme('custom');
+            
+            // Update status
+            document.getElementById('currentTheme').textContent = 'Custom';
+            
+            showToast('Custom colors applied successfully!', 'success');
+        }
+
+        // Style helper functions
+        function insertMermaidStyles() {
+            const currentCode = codeInput.value;
+            const primary = themes[currentTheme].primary;
+            const secondary = themes[currentTheme].secondary;
+            const accent = themes[currentTheme].accent;
+            
+            const styleCode = `
+    %% Custom Style Definitions
+    classDef startEnd fill:${primary},stroke:#333,stroke-width:3px,color:#fff
+    classDef process fill:${secondary},stroke:#333,stroke-width:2px,color:#fff
+    classDef decision fill:${accent},stroke:#333,stroke-width:2px,color:#fff
+    classDef highlight fill:#ff6b6b,stroke:#333,stroke-width:3px,color:#fff
+    
+    %% Apply styles to nodes (example)
+    class A,E startEnd
+    class B,C process
+    class D decision`;
+            
+            if (currentMode === 'mermaid') {
+                codeInput.value = currentCode + styleCode;
+                render();
+                showToast('Mermaid styles added! Use "class NodeName styleName" to apply.', 'success');
+            } else {
+                showToast('Switch to Mermaid mode to add Mermaid styles', 'warning');
+            }
+        }
+
+        function insertFlowchartStates() {
+            const currentCode = codeInput.value;
+            
+            const stateExamples = `
+%% Add |state to any node for styling
+%% Available states: past, current, future, approved, rejected, invalid
+
+%% Examples:
+%% st=>start: Start|past
+%% op=>operation: Process|current  
+%% e=>end: End|future
+%% cond=>condition: Decision?|approved`;
+            
+            if (currentMode === 'flowchartjs') {
+                showToast('Add |state after node definitions. Available: past, current, future, approved, rejected, invalid', 'info');
+                
+                // Show example modal
+                showStateExampleModal();
+            } else {
+                showToast('Switch to Flowchart.js mode to add flow states', 'warning');
+            }
+        }
+
+        function showStateExampleModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content modal-content-custom">
+                        <div class="modal-header modal-header-custom">
+                            <h5 class="modal-title">
+                                <i class="fas fa-palette me-2"></i>Flowchart.js States
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h6 class="mb-3">Available States:</h6>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="p-2 rounded" style="background: #667eea; color: white;">
+                                        <strong>|past</strong> - Completed
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 rounded" style="background: #f093fb; color: white;">
+                                        <strong>|current</strong> - Active
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 rounded" style="background: #764ba2; color: white;">
+                                        <strong>|future</strong> - Pending
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 rounded" style="background: #43e97b; color: white;">
+                                        <strong>|approved</strong> - Success
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 rounded" style="background: #fa709a; color: white;">
+                                        <strong>|rejected</strong> - Failed
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 rounded" style="background: #ff6b6b; color: white;">
+                                        <strong>|invalid</strong> - Error
+                                    </div>
+                                </div>
+                            </div>
+                            <h6 class="mb-2">Example Usage:</h6>
+                            <pre class="bg-dark-custom p-3 rounded"><code>st=>start: Start|past
+op1=>operation: Process|current
+op2=>operation: Validate|future
+cond=>condition: Valid?|approved
+err=>end: Error|rejected
+
+st->op1->op2->cond
+cond(yes)->end
+cond(no)->err</code></pre>
+                            <button class="btn btn-gradient btn-sm w-100" onclick="insertStateExample(); bootstrap.Modal.getInstance(this.closest('.modal')).hide();">
+                                <i class="fas fa-plus me-2"></i>Insert Example
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const stateModal = new bootstrap.Modal(modal);
+            stateModal.show();
+            
+            modal.addEventListener('hidden.bs.modal', () => {
+                modal.remove();
+            });
+        }
+
+        function insertStateExample() {
+            if (currentMode === 'flowchartjs') {
+                codeInput.value = `st=>start: Start|past
+op1=>operation: Process Data|current
+op2=>operation: Validate|future
+cond=>condition: Valid?|approved
+success=>end: Success|approved
+error=>end: Error|rejected
+
+st->op1->op2->cond
+cond(yes)->success
+cond(no)->error`;
+                render();
+                showToast('State example inserted!', 'success');
+            }
+        }
+            const themeNames = Object.keys(themes);
+            const randomTheme = themeNames[Math.floor(Math.random() * themeNames.length)];
+            
+            // Update active theme option
+            document.querySelectorAll('[data-theme]').forEach(option => {
+                option.classList.toggle('active', option.dataset.theme === randomTheme);
+            });
+            
+            applyTheme(randomTheme);
+            currentTheme = randomTheme;
+            document.getElementById('currentTheme').textContent = 
+                randomTheme.charAt(0).toUpperCase() + randomTheme.slice(1);
+    
+
+        function optimizeLayout() {
+            // Simple layout optimization
+            let code = codeInput.value;
+            
+            if (currentMode === 'mermaid') {
+                // Add subgraphs for better organization
+                if (code.includes('-->') && !code.includes('subgraph')) {
+                    showToast('Consider grouping related nodes with subgraphs', 'info');
+                }
+            }
+            
+            showToast('Layout optimization suggestions applied', 'success');
+        }
+
+        function analyzeFlowchart() {
+            const analysis = {
+                nodeCount: countNodes(),
+                complexity: 'Low',
+                recommendations: []
+            };
+            
+            const code = codeInput.value;
+            const connections = (code.match(/-->/g) || []).length;
+            
+            if (analysis.nodeCount > 15) {
+                analysis.complexity = 'High';
+                analysis.recommendations.push('Consider breaking into smaller diagrams');
+            } else if (analysis.nodeCount > 8) {
+                analysis.complexity = 'Medium';
+            }
+            
+            if (connections < analysis.nodeCount - 1) {
+                analysis.recommendations.push('Some nodes might be disconnected');
+            }
+            
+            // Show analysis modal
+            showAnalysisModal(analysis);
+        }
+
+        function showAnalysisModal(analysis) {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content modal-content-custom">
+                        <div class="modal-header modal-header-custom">
+                            <h5 class="modal-title">
+                                <i class="fas fa-chart-line me-2"></i>Flowchart Analysis
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-3 mb-4">
+                                <div class="col-6">
+                                    <div class="card bg-dark-custom border-custom text-center p-3">
+                                        <h3 class="gradient-text mb-1">${analysis.nodeCount}</h3>
+                                        <small class="text-muted-custom">Nodes</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-dark-custom border-custom text-center p-3">
+                                        <h3 class="gradient-text mb-1">${analysis.complexity}</h3>
+                                        <small class="text-muted-custom">Complexity</small>
+                                    </div>
+                                </div>
+                            </div>
+                            ${analysis.recommendations.length > 0 ? `
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-lightbulb me-2"></i>Recommendations:</h6>
+                                    <ul class="mb-0">
+                                        ${analysis.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const analysisModal = new bootstrap.Modal(modal);
+            analysisModal.show();
+            
+            modal.addEventListener('hidden.bs.modal', () => {
+                modal.remove();
+            });
+        }
+
+        // Drag and drop functionality
+        function setupDragAndDrop() {
+            renderArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                renderArea.style.borderColor = '#667eea';
+                renderArea.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+            });
+            
+            renderArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                renderArea.style.borderColor = '';
+                renderArea.style.backgroundColor = '';
+            });
+            
+            renderArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                renderArea.style.borderColor = '';
+                renderArea.style.backgroundColor = '';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type === 'text/plain' || file.name.endsWith('.mmd') || 
+                        file.name.endsWith('.flow') || file.name.endsWith('.json')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            try {
+                                let content = e.target.result;
+                                
+                                if (file.name.endsWith('.json')) {
+                                    const data = JSON.parse(content);
+                                    if (data.code) {
+                                        content = data.code;
+                                        if (data.mode && data.mode !== currentMode) {
+                                            switchMode(data.mode);
+                                        }
+                                    }
+                                }
+                                
+                                codeInput.value = content;
+                                render();
+                                showToast('File loaded successfully', 'success');
+                            } catch (error) {
+                                showToast('Error loading file: ' + error.message, 'error');
+                            }
+                        };
+                        reader.readAsText(file);
+                    } else {
+                        showToast('Please drop a valid flowchart file', 'warning');
+                    }
+                }
+            });
+        }
+
+        // Theme toggle
+        function toggleTheme() {
+            // This could toggle between light and dark themes
+            // For now, just apply a random theme
+            applyRandomTheme();
+        }
+
+        // Toast notification system
+        function showToast(message, type = 'info') {
+            const toastContainer = document.querySelector('.toast-container');
+            const template = document.getElementById('toastTemplate');
+            const toast = template.cloneNode(true);
+            
+            toast.id = 'toast-' + Date.now();
+            toast.style.display = 'block';
+            toast.classList.add(`toast-${type}`);
+            
+            // Update icon based on type
+            const icon = toast.querySelector('i');
+            const iconMap = {
+                success: 'fas fa-check-circle',
+                error: 'fas fa-exclamation-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info: 'fas fa-info-circle'
+            };
+            icon.className = iconMap[type] + ' me-2';
+            
+            toast.querySelector('.toast-body').textContent = message;
+            toastContainer.appendChild(toast);
+            
+            const bsToast = new bootstrap.Toast(toast, {
+                autohide: true,
+                delay: 3000
+            });
+            
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        function showError(message) {
+            showToast(message, 'error');
+        }
+
+        // Auto-save functionality
+        function setupAutoSave() {
+            const AUTOSAVE_KEY = 'flowchart_autosave';
+            
+            // Load autosaved content
+            const savedContent = localStorage.getItem(AUTOSAVE_KEY);
+            if (savedContent && !codeInput.value.trim()) {
+                try {
+                    const data = JSON.parse(savedContent);
+                    if (data.code && data.code.trim()) {
+                        codeInput.value = data.code;
+                        if (data.mode && data.mode !== currentMode) {
+                            switchMode(data.mode);
+                        }
+                        render();
+                        showToast('Restored from autosave', 'info');
+                    }
+                } catch (e) {
+                    console.warn('Failed to restore autosave:', e);
+                }
+            }
+            
+            // Auto-save on input
+            let autoSaveTimer;
+            codeInput.addEventListener('input', function() {
+                clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(() => {
+                    const data = {
+                        code: codeInput.value,
+                        mode: currentMode,
+                        theme: currentTheme,
+                        timestamp: new Date().toISOString()
+                    };
+                    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+                }, 2000);
+            });
+        }
+
+        // Initialize auto-save
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAutoSave();
+        });
+
+        // Prevent data loss
+        window.addEventListener('beforeunload', function(e) {
+            if (codeInput.value.trim()) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                return e.returnValue;
+            }
+        });
+
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e);
+            showToast('An error occurred. Please try refreshing the page.', 'error');
+        });
+
+        // Initialize first template
+        setTimeout(() => {
+            loadDefaultSample();
+        }, 500);
+    </script>
+</body>
+</html>

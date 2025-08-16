@@ -1,0 +1,2832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>We1 | UI Flow Forger Enhancer</title>
+    <link rel="icon" href="../logo.png" type="image/x-icon">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #7c3aed;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --dark: #1f2937;
+            --light: #f8fafc;
+            --orange: #f97316;
+            --pink: #ec4899;
+            --cyan: #0891b2;
+            --emerald: #059669;
+        }
+
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --bs-body-bg: #0f172a;
+            --bs-body-color: #e2e8f0;
+            --panel-bg: #1e293b;
+            --panel-border: #334155;
+            --canvas-bg: #0f172a;
+            --grid-color: #334155;
+            --node-bg: #1e293b;
+            --node-border: #475569;
+            --node-text: #e2e8f0;
+        }
+
+        /* Light Mode Variables */
+        [data-theme="light"] {
+            --bs-body-bg: #f1f5f9;
+            --bs-body-color: #1e293b;
+            --panel-bg: white;
+            --panel-border: #e2e8f0;
+            --canvas-bg: white;
+            --grid-color: #e2e8f0;
+            --node-bg: white;
+            --node-border: #e2e8f0;
+            --node-text: #1e293b;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--bs-body-bg);
+            color: var(--bs-body-color);
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .navbar {
+            background: var(--panel-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            height: calc(100vh - 76px);
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+        }
+
+        .panel-content {
+            padding: 1rem;
+            height: calc(100% - 60px);
+            overflow-y: auto;
+        }
+
+        .canvas-container {
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-area {
+            width: 100%;
+            height: calc(100% - 60px);
+            position: relative;
+            overflow: auto;
+            background-color: var(--canvas-bg);
+            background-image: radial-gradient(circle at 1px 1px, var(--grid-color) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        /* Flowchart Nodes */
+        .flowchart-node {
+            position: absolute;
+            min-width: min-content;
+            min-height: min-content;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid var(--node-border);
+            background: var(--node-bg);
+            color: var(--node-text);
+            cursor: move;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .flowchart-node:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .flowchart-node.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .flowchart-node.connecting {
+            border-color: var(--warning);
+            animation: pulse 1s infinite;
+        }
+
+        .node-content {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .node-tag {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Node Shapes */
+        .node-rectangle { border-radius: 8px; }
+        .node-rounded { border-radius: 25px; }
+        .node-circle { 
+            border-radius: 50%; 
+            width: 80px; 
+            height: 80px;
+            min-width: 80px;
+            min-height: 80px;
+        }
+        .node-diamond {
+            transform: rotate(45deg);
+            border-radius: 8px;
+        }
+        .node-diamond .node-inner {
+            transform: rotate(-45deg);
+        }
+        .node-hexagon {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            border-radius: 0;
+        }
+        .node-parallelogram {
+            transform: skew(-15deg);
+            border-radius: 8px;
+        }
+        .node-parallelogram .node-inner {
+            transform: skew(15deg);
+        }
+        .node-ellipse {
+            border-radius: 50%;
+        }
+        .node-star {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+        .node-triangle {
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+        .node-pentagon {
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+        }
+
+        /* Node Colors */
+        .color-primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .color-secondary { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .color-success { background: var(--success); color: white; border-color: var(--success); }
+        .color-warning { background: var(--warning); color: white; border-color: var(--warning); }
+        .color-danger { background: var(--danger); color: white; border-color: var(--danger); }
+        .color-info { background: var(--info); color: white; border-color: var(--info); }
+        .color-orange { background: var(--orange); color: white; border-color: var(--orange); }
+        .color-pink { background: var(--pink); color: white; border-color: var(--pink); }
+        .color-cyan { background: var(--cyan); color: white; border-color: var(--cyan); }
+        .color-emerald { background: var(--emerald); color: white; border-color: var(--emerald); }
+
+        /* Enhanced Connection Lines with SVG-based arrows */
+        .connection-line {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .connection-svg {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            overflow: visible;
+        }
+
+        /* Arrow Style Buttons Enhanced */
+        .arrow-style-btn {
+            border: 2px solid var(--panel-border);
+            background: var(--panel-bg);
+            color: var(--bs-body-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+        }
+
+        .arrow-style-btn:hover {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .arrow-style-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Arrow Size Controls */
+        .arrow-size-control {
+            margin: 10px 0;
+        }
+
+        .arrow-size-label {
+            font-size: 12px;
+            color: var(--bs-body-color);
+            margin-bottom: 5px;
+        }
+
+        /* Node Library */
+        .node-template {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--panel-bg);
+        }
+
+        .node-template:hover {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .template-icon {
+            width: 40px;
+            height: 30px;
+            border-radius: 4px;
+            margin-right: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+        }
+
+        /* Dark Mode Toggle */
+        .theme-toggle {
+            position: relative;
+            width: 50px;
+            height: 25px;
+            background: #ddd;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle.dark {
+            background: var(--primary);
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            width: 21px;
+            height: 21px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle.dark::after {
+            left: 27px;
+        }
+
+        /* Controls */
+        .canvas-controls {
+            float: inline-end;
+            position: relative;
+            display: flex;
+            gap: 0.5rem;
+            right: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: none;
+            background: var(--panel-bg);
+            color: var(--bs-body-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: absolute;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            min-width: 150px;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: var(--bs-body-color);
+        }
+
+        .context-menu-item:hover {
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        /* Form Controls */
+        .form-control {
+            background: var(--panel-bg);
+            border-color: var(--panel-border);
+            color: var(--bs-body-color);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+            background: var(--panel-bg);
+            color: var(--bs-body-color);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #3730a3;
+            border-color: #3730a3;
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #64748b;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 280px 1fr 280px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+            }
+            
+            .panel {
+                height: 250px;
+            }
+        }
+
+        /* Modal Dark Mode */
+        [data-theme="dark"] .modal-content {
+            background: var(--panel-bg);
+            color: var(--bs-body-color);
+            border-color: var(--panel-border);
+        }
+
+        [data-theme="dark"] .modal-header {
+            border-bottom-color: var(--panel-border);
+        }
+
+        [data-theme="dark"] .modal-footer {
+            border-top-color: var(--panel-border);
+        }
+
+        /* Dropdown Dark Mode */
+        [data-theme="dark"] .dropdown-menu {
+            background: var(--panel-bg);
+            border-color: var(--panel-border);
+        }
+
+        [data-theme="dark"] .dropdown-item {
+            color: var(--bs-body-color);
+        }
+
+        [data-theme="dark"] .dropdown-item:hover {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--bs-body-color);
+        }
+        [data-theme="dark"] .text-muted {
+            color: var(--bs-body-color) !important;
+        }
+
+        /* Enhanced Arrow Preview */
+        .arrow-preview {
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Connection Point Indicators */
+        .connection-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .flowchart-node:hover .connection-point,
+        .flowchart-node.connecting .connection-point {
+            opacity: 1;
+        }
+
+        .connection-point.top { top: -4px; left: 50%; transform: translateX(-50%); }
+        .connection-point.right { right: -4px; top: 50%; transform: translateY(-50%); }
+        .connection-point.bottom { bottom: -4px; left: 50%; transform: translateX(-50%); }
+        .connection-point.left { left: -4px; top: 50%; transform: translateY(-50%); }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold" style="display: flex;align-items: center;gap: 10px;">
+                <img src="../logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 5px;" />
+                <span>UI FlowForge Enhancer</span>
+            </span>
+            
+            <div class="d-flex align-items-center gap-2">
+                <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" onclick="newFile()">
+                    <i class="fas fa-file me-1"></i>New
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="saveProject()">
+                    <i class="fas fa-save me-1"></i>Save
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-download me-1"></i>Export
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="exportAsPNG()">
+                            <i class="fas fa-image me-2"></i>PNG Image
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAsPNGWithArrows()">
+                            <i class="fas fa-images me-2"></i>PNG Enhanced
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAsSVG()">
+                            <i class="fas fa-vector-square me-2"></i>SVG Vector
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAsJSON()">
+                            <i class="fas fa-code me-2"></i>JSON Data
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportAsPDF()">
+                            <i class="fas fa-file-pdf me-2"></i>PDF Document
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="printDiagram()">
+                            <i class="fas fa-print me-2"></i>Print
+                        </a></li>
+                    </ul>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" onclick="importProject()">
+                    <i class="fas fa-upload me-1"></i>Import
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="undoAction()" id="undoBtn" disabled>
+                    <i class="fas fa-undo me-1"></i>Undo
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="redoAction()" id="redoBtn" disabled>
+                    <i class="fas fa-redo me-1"></i>Redo
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="clearCanvas()">
+                    <i class="fas fa-trash me-1"></i>Clear
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel - Node Library -->
+        <div class="panel">
+            <div class="panel-header">
+                <i class="fas fa-shapes me-2"></i>Shape Library
+            </div>
+            <div class="panel-content">
+                <h6 class="text-muted mb-3">Basic Shapes</h6>
+                
+                <div class="node-template" onclick="createNodeFromTemplate('rectangle', 'primary', 'Process', 'Task')">
+                    <div class="template-icon color-primary">□</div>
+                    <div>
+                        <div class="fw-medium">Rectangle</div>
+                        <small class="text-muted">Process/Task</small>
+                    </div>
+                </div>
+                
+                <div class="node-template" onclick="createNodeFromTemplate('rounded', 'success', 'Start', 'Begin')">
+                    <div class="template-icon color-success node-rounded">◯</div>
+                    <div>
+                        <div class="fw-medium">Rounded</div>
+                        <small class="text-muted">Start/End</small>
+                    </div>
+                </div>
+                
+                <div class="node-template" onclick="createNodeFromTemplate('circle', 'info', 'Event', 'Trigger')">
+                    <div class="template-icon color-info node-circle1">●</div>
+                    <div>
+                        <div class="fw-medium">Circle</div>
+                        <small class="text-muted">Event/State</small>
+                    </div>
+                </div>
+                
+                <div class="node-template" onclick="createNodeFromTemplate('diamond', 'warning', 'Decision', 'Choice')">
+                    <div class="template-icon color-warning">◆</div>
+                    <div>
+                        <div class="fw-medium">Diamond</div>
+                        <small class="text-muted">Decision</small>
+                    </div>
+                </div>
+
+                <div class="node-template" onclick="createNodeFromTemplate('hexagon', 'secondary', 'Database', 'Storage')">
+                    <div class="template-icon color-secondary">⬢</div>
+                    <div>
+                        <div class="fw-medium">Hexagon</div>
+                        <small class="text-muted">Database</small>
+                    </div>
+                </div>
+
+                <div class="node-template" onclick="createNodeFromTemplate('parallelogram', 'orange', 'Input', 'Data')">
+                    <div class="template-icon color-orange">▱</div>
+                    <div>
+                        <div class="fw-medium">Parallelogram</div>
+                        <small class="text-muted">Input/Output</small>
+                    </div>
+                </div>
+
+                <div class="node-template" onclick="createNodeFromTemplate('ellipse', 'pink', 'Connector', 'Link')">
+                    <div class="template-icon color-pink node-ellipse">◯</div>
+                    <div>
+                        <div class="fw-medium">Ellipse</div>
+                        <small class="text-muted">Connector</small>
+                    </div>
+                </div>
+
+                <div class="node-template" onclick="createNodeFromTemplate('triangle', 'cyan', 'Warning', 'Alert')">
+                    <div class="template-icon color-cyan">▲</div>
+                    <div>
+                        <div class="fw-medium">Triangle</div>
+                        <small class="text-muted">Warning</small>
+                    </div>
+                </div>
+
+                <div class="node-template" onclick="createNodeFromTemplate('pentagon', 'emerald', 'System', 'Component')">
+                    <div class="template-icon color-emerald">⬟</div>
+                    <div>
+                        <div class="fw-medium">Pentagon</div>
+                        <small class="text-muted">System</small>
+                    </div>
+                </div>
+
+                <div class="node-template" onclick="createNodeFromTemplate('star', 'danger', 'Important', 'Key')">
+                    <div class="template-icon color-danger">★</div>
+                    <div>
+                        <div class="fw-medium">Star</div>
+                        <small class="text-muted">Important</small>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+                
+                <h6 class="text-muted mb-3">Templates</h6>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadTemplate('basic')">
+                        <i class="fas fa-play me-1"></i>Basic Flow
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadTemplate('decision')">
+                        <i class="fas fa-question me-1"></i>Decision Tree
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadTemplate('system')">
+                        <i class="fas fa-cogs me-1"></i>System Flow
+                    </button>
+                </div>
+
+                <hr class="my-3">
+                
+                <h6 class="text-muted mb-3">Saved Projects</h6>
+                <div id="savedProjects">
+                    <small class="text-muted">No saved projects</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel - Canvas -->
+        <div class="canvas-container">
+            <div class="panel-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-canvas me-2"></i>Design Canvas</span>
+                <div class="d-flex gap-3">
+                    <span class="badge bg-light text-dark" id="nodeCounter">0 nodes</span>
+                    <span class="badge bg-info" id="connectionCounter">0 connections</span>
+                    <span class="badge bg-secondary" id="currentProject">Untitled</span>
+                </div>
+            </div>
+            
+            <div class="canvas-controls">
+                <button class="control-btn" onclick="zoomIn()" title="Zoom In">
+                    <i class="fas fa-search-plus"></i>
+                </button>
+                <button class="control-btn" onclick="zoomOut()" title="Zoom Out">
+                    <i class="fas fa-search-minus"></i>
+                </button>
+                <button class="control-btn" onclick="resetZoom()" title="Reset Zoom">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="control-btn" onclick="toggleGrid()" title="Toggle Grid">
+                    <i class="fas fa-th"></i>
+                </button>
+            </div>
+
+            <div class="canvas-area" id="canvas">
+                <div id="welcomeMessage" class="welcome-message">
+                    <div>
+                        <i class="fas fa-mouse-pointer fa-3x mb-3"></i>
+                        <h5>Click shapes to add to canvas</h5>
+                        <p>Drag to move • Right-click for options • Connect with arrows</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Properties -->
+        <div class="panel">
+            <div class="panel-header">
+                <i class="fas fa-cog me-2"></i>Properties
+            </div>
+            <div class="panel-content">
+                <div id="noSelection" class="text-center py-4">
+                    <i class="fas fa-hand-pointer fa-2x mb-3 text-muted"></i>
+                    <p class="text-muted">Select a node to edit</p>
+                </div>
+
+                <div id="nodeProperties" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Text Content</label>
+                        <input type="text" id="nodeText" class="form-control" placeholder="Enter main text...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tag/Subtitle</label>
+                        <input type="text" id="nodeTag" class="form-control" placeholder="Enter tag or subtitle...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Shape</label>
+                        <div class="row g-1">
+                            <div class="col-3">
+                                <input type="radio" class="btn-check" name="nodeShape" id="shapeHex" value="hexagon">
+                                <label class="btn btn-outline-secondary btn-sm w-100" for="shapeHex">⬢</label>
+                            </div>
+                            <div class="col-3">
+                                <input type="radio" class="btn-check" name="nodeShape" id="shapePara" value="parallelogram">
+                                <label class="btn btn-outline-secondary btn-sm w-100" for="shapePara">▱</label>
+                            </div>
+                            <div class="col-3">
+                                <input type="radio" class="btn-check" name="nodeShape" id="shapeEllipse" value="ellipse">
+                                <label class="btn btn-outline-secondary btn-sm w-100" for="shapeEllipse">◯</label>
+                            </div>
+                            <div class="col-3">
+                                <input type="radio" class="btn-check" name="nodeShape" id="shapeTriangle" value="triangle">
+                                <label class="btn btn-outline-secondary btn-sm w-100" for="shapeTriangle">▲</label>
+                            </div>
+                            <div class="col-3">
+                                <input type="radio" class="btn-check" name="nodeShape" id="shapePentagon" value="pentagon">
+                                <label class="btn btn-outline-secondary btn-sm w-100" for="shapePentagon">⬟</label>
+                            </div>
+                            <div class="col-3">
+                                <input type="radio" class="btn-check" name="nodeShape" id="shapeStar" value="star">
+                                <label class="btn btn-outline-secondary btn-sm w-100" for="shapeStar">★</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <div class="row g-1">
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorPrimary" value="primary">
+                                <label class="btn btn-outline-primary btn-sm w-100" for="colorPrimary">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorSuccess" value="success">
+                                <label class="btn btn-outline-success btn-sm w-100" for="colorSuccess">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorWarning" value="warning">
+                                <label class="btn btn-outline-warning btn-sm w-100" for="colorWarning">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorDanger" value="danger">
+                                <label class="btn btn-outline-danger btn-sm w-100" for="colorDanger">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorInfo" value="info">
+                                <label class="btn btn-outline-info btn-sm w-100" for="colorInfo">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorSecondary" value="secondary">
+                                <label class="btn btn-outline-secondary btn-sm w-100" for="colorSecondary">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorOrange" value="orange">
+                                <label class="btn btn-sm w-100" for="colorOrange" style="color: var(--orange); border-color: var(--orange);">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorPink" value="pink">
+                                <label class="btn btn-sm w-100" for="colorPink" style="color: var(--pink); border-color: var(--pink);">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorCyan" value="cyan">
+                                <label class="btn btn-sm w-100" for="colorCyan" style="color: var(--cyan); border-color: var(--cyan);">●</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="radio" class="btn-check" name="nodeColor" id="colorEmerald" value="emerald">
+                                <label class="btn btn-sm w-100" for="colorEmerald" style="color: var(--emerald); border-color: var(--emerald);">●</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Size</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="range" id="nodeWidth" class="form-range" min="10" max="500" value="120">
+                                <small class="text-muted">Width: <span id="widthValue">120</span></small>
+                            </div>
+                            <div class="col-6">
+                                <input type="range" id="nodeHeight" class="form-range" min="10" max="500" value="50">
+                                <small class="text-muted">Height: <span id="heightValue">50</span></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="duplicateNode()">
+                            <i class="fas fa-copy me-1"></i>Duplicate
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="connectMode()">
+                            <i class="fas fa-link me-1"></i>Connect Nodes
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="deleteNode()">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- Enhanced Arrow Styles Section -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">
+                        <i class="fas fa-arrow-right me-2"></i>Arrow Styles
+                    </label>
+                    
+                    <!-- Basic Arrow Styles -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-2">Basic Arrows</small>
+                        <div class="row g-1">
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('solid')" data-style="solid">
+                                    <div class="arrow-preview">→</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('dashed')" data-style="dashed">
+                                    <div class="arrow-preview">⇢</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('dotted')" data-style="dotted">
+                                    <div class="arrow-preview">⋯→</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thick and Special Arrows -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-2">Thick & Special</small>
+                        <div class="row g-1">
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('thick')" data-style="thick">
+                                    <div class="arrow-preview">⟶</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('double')" data-style="double">
+                                    <div class="arrow-preview">⇒</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('curved')" data-style="curved">
+                                    <div class="arrow-preview">↷</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bidirectional Arrows -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-2">Bidirectional</small>
+                        <div class="row g-1">
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('bidirectional')" data-style="bidirectional">
+                                    <div class="arrow-preview">↔</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('bidirectional-thick')" data-style="bidirectional-thick">
+                                    <div class="arrow-preview">⟷</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('bidirectional-dashed')" data-style="bidirectional-dashed">
+                                    <div class="arrow-preview">⇠⇢</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Flow Arrows -->
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-2">Flow Types</small>
+                        <div class="row g-1">
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('data-flow')" data-style="data-flow">
+                                    <div class="arrow-preview">⤳</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('control-flow')" data-style="control-flow">
+                                    <div class="arrow-preview">⤏</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="arrow-style-btn" onclick="setArrowStyle('dependency')" data-style="dependency">
+                                    <div class="arrow-preview">⤜</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Arrow Size Controls -->
+                    <div class="arrow-size-control">
+                        <div class="arrow-size-label">Arrow Thickness</div>
+                        <input type="range" id="arrowThickness" class="form-range" min="1" max="80" value="3">
+                        <small class="text-muted">Thickness: <span id="thicknessValue">3</span>px</small>
+                    </div>
+
+                    <div class="arrow-size-control">
+                        <div class="arrow-size-label">Arrow Head Size</div>
+                        <input type="range" id="arrowHeadSize" class="form-range" min="6" max="20" value="12">
+                        <small class="text-muted">Head Size: <span id="headSizeValue">12</span>px</small>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="autoArrange()">
+                        <i class="fas fa-magic me-1"></i>Auto Arrange
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="copyCanvas()">
+                        <i class="fas fa-clipboard me-1"></i>Copy to Clipboard
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="alignNodes('horizontal')">
+                        <i class="fas fa-align-center me-1"></i>Align Horizontal
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="alignNodes('vertical')">
+                        <i class="fas fa-align-justify me-1"></i>Align Vertical
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="distributeNodes('horizontal')">
+                        <i class="fas fa-arrows-alt-h me-1"></i>Distribute H
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="distributeNodes('vertical')">
+                        <i class="fas fa-arrows-alt-v me-1"></i>Distribute V
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="editNodeText()">
+            <i class="fas fa-edit me-2"></i>Edit Text
+        </div>
+        <div class="context-menu-item" onclick="editNodeTag()">
+            <i class="fas fa-tag me-2"></i>Edit Tag
+        </div>
+        <div class="context-menu-item" onclick="duplicateNode()">
+            <i class="fas fa-copy me-2"></i>Duplicate
+        </div>
+        <div class="context-menu-item" onclick="connectMode()">
+            <i class="fas fa-link me-2"></i>Connect
+        </div>
+        <hr class="my-1">
+        <div class="context-menu-item" onclick="bringToFront()">
+            <i class="fas fa-layer-group me-2"></i>Bring to Front
+        </div>
+        <div class="context-menu-item" onclick="sendToBack()">
+            <i class="fas fa-layer-group me-2"></i>Send to Back
+        </div>
+        <hr class="my-1">
+        <div class="context-menu-item text-danger" onclick="deleteNode()">
+            <i class="fas fa-trash me-2"></i>Delete
+        </div>
+    </div>
+
+    <!-- Save Modal -->
+    <div class="modal fade" id="saveModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Save Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="projectName" class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="projectName" placeholder="Enter project name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="projectDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="projectDescription" rows="3" placeholder="Enter description (optional)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProjectWithName()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import File Input -->
+    <input type="file" id="importInput" accept=".json" style="display: none;">
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Global Variables
+        let selectedNode = null;
+        let isConnectMode = false;
+        let connectStart = null;
+        let nodeCounter = 0;
+        let connections = [];
+        let currentArrowStyle = 'solid';
+        let currentArrowThickness = 3;
+        let currentArrowHeadSize = 12;
+        let zoomLevel = 1;
+        let currentProjectName = 'Untitled';
+        let savedProjects = {};
+        let isDarkMode = false;
+        let selectedNodes = []; // For multi-selection
+        let undoStack = [];
+        let redoStack = [];
+        let maxUndoSteps = 20;
+
+        // Arrow style configurations
+        const arrowStyles = {
+            solid: { color: '#4f46e5', strokeDasharray: '', markerType: 'solid' },
+            dashed: { color: '#7c3aed', strokeDasharray: '8,4', markerType: 'dashed' },
+            dotted: { color: '#f59e0b', strokeDasharray: '3,3', markerType: 'dotted' },
+            thick: { color: '#06b6d4', strokeDasharray: '', markerType: 'thick' },
+            double: { color: '#ef4444', strokeDasharray: '', markerType: 'double' },
+            curved: { color: '#ec4899', strokeDasharray: '', markerType: 'curved' },
+            bidirectional: { color: '#10b981', strokeDasharray: '', markerType: 'bidirectional' },
+            'bidirectional-thick': { color: '#059669', strokeDasharray: '', markerType: 'bidirectional-thick' },
+            'bidirectional-dashed': { color: '#7c3aed', strokeDasharray: '8,4', markerType: 'bidirectional-dashed' },
+            'data-flow': { color: '#f97316', strokeDasharray: '12,3,3,3', markerType: 'data-flow' },
+            'control-flow': { color: '#1f2937', strokeDasharray: '', markerType: 'control-flow' },
+            dependency: { color: '#64748b', strokeDasharray: '6,6', markerType: 'dependency' }
+        };
+
+        // Initialize
+        $(document).ready(function() {
+            setupEventListeners();
+            updateCounters();
+            loadSavedProjectsList();
+            saveState(); // Initial state
+            initializeArrowStyles();
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                toggleTheme();
+            }
+
+            // Keyboard shortcuts
+            setupKeyboardShortcuts();
+        });
+
+        function initializeArrowStyles() {
+            // Set default arrow style
+            setArrowStyle('solid');
+            
+            // Initialize thickness and head size controls
+            $('#arrowThickness').on('input', function() {
+                currentArrowThickness = $(this).val();
+                $('#thicknessValue').text(currentArrowThickness);
+                updateAllConnections();
+            });
+
+            $('#arrowHeadSize').on('input', function() {
+                currentArrowHeadSize = $(this).val();
+                $('#headSizeValue').text(currentArrowHeadSize);
+                updateAllConnections();
+            });
+        }
+
+        function setArrowStyle(style) {
+            currentArrowStyle = style;
+            
+            // Update UI
+            $('.arrow-style-btn').removeClass('active');
+            $(`.arrow-style-btn[data-style="${style}"]`).addClass('active');
+            
+            // Update all existing connections
+            updateAllConnections();
+            
+            showToast(`Arrow style set to ${style.replace('-', ' ')}`, 'info');
+        }
+
+        function updateAllConnections() {
+            connections.forEach(conn => {
+                conn.style = currentArrowStyle;
+                conn.thickness = currentArrowThickness;
+                conn.headSize = currentArrowHeadSize;
+                drawConnection(conn);
+            });
+        }
+
+        function setupKeyboardShortcuts() {
+            $(document).on('keydown', function(e) {
+                // Ctrl/Cmd + Z for undo
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    undoAction();
+                }
+                // Ctrl/Cmd + Y or Ctrl/Cmd + Shift + Z for redo
+                else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                    e.preventDefault();
+                    redoAction();
+                }
+                // Ctrl/Cmd + A for select all
+                else if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+                    e.preventDefault();
+                    selectAll();
+                }
+                // Delete key for delete selected
+                else if (e.key === 'Delete') {
+                    e.preventDefault();
+                    deleteSelectedNodes();
+                }
+                // Escape to deselect
+                else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    deselectAll();
+                    exitConnectMode();
+                }
+                // Ctrl/Cmd + D for duplicate
+                else if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                    e.preventDefault();
+                    duplicateNode();
+                }
+                // Ctrl/Cmd + S for save
+                else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveProject();
+                }
+            });
+        }
+
+        // Undo/Redo System
+        function saveState() {
+            const state = {
+                nodes: $('.flowchart-node').map(function() {
+                    const $node = $(this);
+                    return {
+                        id: $node.data('id'),
+                        x: parseInt($node.css('left')),
+                        y: parseInt($node.css('top')),
+                        shape: $node.data('shape'),
+                        color: $node.data('color'),
+                        text: $node.find('.node-content').text(),
+                        tag: $node.find('.node-tag').text() || '',
+                        width: $node.width(),
+                        height: $node.height()
+                    };
+                }).get(),
+                connections: [...connections]
+            };
+            
+            undoStack.push(JSON.stringify(state));
+            if (undoStack.length > maxUndoSteps) {
+                undoStack.shift();
+            }
+            
+            redoStack = []; // Clear redo stack when new action is performed
+            updateUndoRedoButtons();
+        }
+
+        function undoAction() {
+            if (undoStack.length <= 1) return;
+            
+            const currentState = undoStack.pop();
+            redoStack.push(currentState);
+            
+            const previousState = JSON.parse(undoStack[undoStack.length - 1]);
+            restoreState(previousState);
+            updateUndoRedoButtons();
+            showToast('Undo successful', 'info');
+        }
+
+        function redoAction() {
+            if (redoStack.length === 0) return;
+            
+            const nextState = redoStack.pop();
+            undoStack.push(nextState);
+            
+            const state = JSON.parse(nextState);
+            restoreState(state);
+            updateUndoRedoButtons();
+            showToast('Redo successful', 'info');
+        }
+
+        function restoreState(state) {
+            // Clear current nodes and connections
+            $('.flowchart-node').remove();
+            $('.connection-svg').remove();
+            connections = [];
+            selectedNode = null;
+            selectedNodes = [];
+            
+            // Restore nodes
+            state.nodes.forEach(nodeData => {
+                const node = createNodeElement(nodeData);
+                makeDraggable(node[0]);
+                $('#canvas').append(node);
+            });
+            
+            // Restore connections
+            connections = [...state.connections];
+            setTimeout(() => {
+                connections.forEach(conn => drawConnection(conn));
+            }, 50);
+            
+            updateCounters();
+            hidePropertiesPanel();
+        }
+
+        function createNodeElement(nodeData) {
+            let nodeInner = '';
+            if (nodeData.shape === 'diamond' || nodeData.shape === 'parallelogram') {
+                nodeInner = `
+                    <div class="node-inner">
+                        <div class="node-content">${nodeData.text}</div>
+                        ${nodeData.tag ? `<div class="node-tag">${nodeData.tag}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                nodeInner = `
+                    <div class="node-content">${nodeData.text}</div>
+                    ${nodeData.tag ? `<div class="node-tag">${nodeData.tag}</div>` : ''}
+                `;
+            }
+
+            // Add connection points
+            const connectionPoints = `
+                <div class="connection-point top"></div>
+                <div class="connection-point right"></div>
+                <div class="connection-point bottom"></div>
+                <div class="connection-point left"></div>
+            `;
+
+            return $(`
+                <div class="flowchart-node node-${nodeData.shape} color-${nodeData.color}" 
+                     data-id="${nodeData.id}" data-shape="${nodeData.shape}" data-color="${nodeData.color}"
+                     style="left: ${nodeData.x}px; top: ${nodeData.y}px; width: ${nodeData.width}px; height: ${nodeData.height}px;">
+                    ${nodeInner}
+                    ${connectionPoints}
+                </div>
+            `);
+        }
+
+        function updateUndoRedoButtons() {
+            $('#undoBtn').prop('disabled', undoStack.length <= 1);
+            $('#redoBtn').prop('disabled', redoStack.length === 0);
+        }
+
+        function setupEventListeners() {
+            // Canvas events
+            $('#canvas').on('click', function(e) {
+                if (e.target === this) {
+                    deselectAll();
+                    exitConnectMode();
+                }
+            });
+
+            $('#canvas').on('contextmenu', function(e) {
+                e.preventDefault();
+                if (e.target === this) {
+                    hideContextMenu();
+                }
+            });
+
+            // Property events
+            $('#nodeText').on('input', function() {
+                if (selectedNode) {
+                    $(selectedNode).find('.node-content').text($(this).val());
+                }
+            });
+
+            $('#nodeTag').on('input', function() {
+                if (selectedNode) {
+                    let tagElement = $(selectedNode).find('.node-tag');
+                    if (tagElement.length === 0) {
+                        tagElement = $('<div class="node-tag"></div>');
+                        $(selectedNode).find('.node-inner, .flowchart-node').append(tagElement);
+                    }
+                    tagElement.text($(this).val());
+                    
+                    if ($(this).val() === '') {
+                        tagElement.remove();
+                    }
+                }
+            });
+
+            $('input[name="nodeShape"]').on('change', function() {
+                if (selectedNode) {
+                    updateNodeShape(selectedNode, $(this).val());
+                }
+            });
+
+            $('input[name="nodeColor"]').on('change', function() {
+                if (selectedNode) {
+                    updateNodeColor(selectedNode, $(this).val());
+                }
+            });
+
+            $('#nodeWidth').on('input', function() {
+                $('#widthValue').text($(this).val());
+                if (selectedNode) {
+                    $(selectedNode).css('width', $(this).val() + 'px');
+                    updateConnectionsForNode(selectedNode);
+                }
+            });
+
+            $('#nodeHeight').on('input', function() {
+                $('#heightValue').text($(this).val());
+                if (selectedNode) {
+                    $(selectedNode).css('height', $(this).val() + 'px');
+                    updateConnectionsForNode(selectedNode);
+                }
+            });
+
+            // Hide context menu on click
+            $(document).on('click', hideContextMenu);
+
+            // Import file
+            $('#importInput').on('change', handleFileImport);
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const theme = isDarkMode ? 'dark' : 'light';
+            $('body').attr('data-theme', theme);
+            $('.theme-toggle').toggleClass('dark', isDarkMode);
+            
+            // Save theme preference
+            localStorage.setItem('theme', theme);
+        }
+
+        // Node Creation with enhanced connection points
+        function createNodeFromTemplate(shape, color, text, tag) {
+            const x = 200 + Math.random() * 300;
+            const y = 100 + Math.random() * 200;
+            createNode(x, y, shape, color, text, tag);
+            hideWelcomeMessage();
+        }
+
+        function createNode(x, y, shape = 'rectangle', color = 'primary', text = 'New Node', tag = '') {
+            const nodeId = 'node-' + (++nodeCounter);
+            
+            let nodeInner = '';
+            if (shape === 'diamond' || shape === 'parallelogram') {
+                nodeInner = `
+                    <div class="node-inner">
+                        <div class="node-content">${text}</div>
+                        ${tag ? `<div class="node-tag">${tag}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                nodeInner = `
+                    <div class="node-content">${text}</div>
+                    ${tag ? `<div class="node-tag">${tag}</div>` : ''}
+                `;
+            }
+
+            // Add connection points
+            const connectionPoints = `
+                <div class="connection-point top"></div>
+                <div class="connection-point right"></div>
+                <div class="connection-point bottom"></div>
+                <div class="connection-point left"></div>
+            `;
+
+            const node = $(`
+                <div class="flowchart-node node-${shape} color-${color}" 
+                     data-id="${nodeId}" data-shape="${shape}" data-color="${color}"
+                     style="left: ${x}px; top: ${y}px;">
+                    ${nodeInner}
+                    ${connectionPoints}
+                </div>
+            `);
+
+            makeDraggable(node[0]);
+            $('#canvas').append(node);
+            
+            selectNode(node[0]);
+            updateCounters();
+            saveState(); // Save state after creating node
+            
+            showToast('Node created', 'success');
+            return node[0];
+        }
+
+        function makeDraggable(node) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            $(node).on('mousedown', function(e) {
+                if (e.button === 2) return; // Right click
+                
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialX = parseInt($(node).css('left')) || 0;
+                initialY = parseInt($(node).css('top')) || 0;
+                
+                // Multi-selection with Ctrl/Cmd
+                if (e.ctrlKey || e.metaKey) {
+                    toggleNodeSelection(node);
+                } else {
+                    selectNode(node);
+                }
+                e.preventDefault();
+            });
+
+            $(document).on('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                // Move all selected nodes
+                if (selectedNodes.includes(node)) {
+                    selectedNodes.forEach(selectedNode => {
+                        const $selectedNode = $(selectedNode);
+                        const currentX = parseInt($selectedNode.data('initialX') || $selectedNode.css('left'));
+                        const currentY = parseInt($selectedNode.data('initialY') || $selectedNode.css('top'));
+                        
+                        $selectedNode.css({
+                            left: (currentX + dx) + 'px',
+                            top: (currentY + dy) + 'px'
+                        });
+                        
+                        updateConnectionsForNode(selectedNode);
+                    });
+                } else {
+                    $(node).css({
+                        left: (initialX + dx) + 'px',
+                        top: (initialY + dy) + 'px'
+                    });
+                    updateConnectionsForNode(node);
+                }
+            });
+
+            $(document).on('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    
+                    // Store initial positions for multi-drag
+                    selectedNodes.forEach(selectedNode => {
+                        $(selectedNode).data('initialX', parseInt($(selectedNode).css('left')));
+                        $(selectedNode).data('initialY', parseInt($(selectedNode).css('top')));
+                    });
+                    
+                    saveState(); // Save state after dragging
+                }
+            });
+
+            // Context menu
+            $(node).on('contextmenu', function(e) {
+                e.preventDefault();
+                selectNode(node);
+                showContextMenu(e.clientX, e.clientY);
+            });
+
+            // Double click to edit
+            $(node).on('dblclick', editNodeText);
+
+            // Click to select or connect
+            $(node).on('click', function(e) {
+                e.stopPropagation();
+                if (isConnectMode) {
+                    handleConnection(node);
+                } else if (e.ctrlKey || e.metaKey) {
+                    toggleNodeSelection(node);
+                } else {
+                    selectNode(node);
+                }
+            });
+        }
+
+        // Multi-selection functions
+        function toggleNodeSelection(node) {
+            const index = selectedNodes.indexOf(node);
+            if (index > -1) {
+                selectedNodes.splice(index, 1);
+                $(node).removeClass('selected');
+            } else {
+                selectedNodes.push(node);
+                $(node).addClass('selected');
+            }
+            
+            selectedNode = selectedNodes.length > 0 ? selectedNodes[selectedNodes.length - 1] : null;
+            updatePropertiesPanel();
+        }
+
+        function selectNode(node) {
+            deselectAll();
+            selectedNode = node;
+            selectedNodes = [node];
+            $(node).addClass('selected');
+            updatePropertiesPanel();
+        }
+
+        function deselectAll() {
+            $('.flowchart-node').removeClass('selected');
+            selectedNode = null;
+            selectedNodes = [];
+            hidePropertiesPanel();
+        }
+
+        function selectAll() {
+            deselectAll();
+            $('.flowchart-node').each(function() {
+                selectedNodes.push(this);
+                $(this).addClass('selected');
+            });
+            selectedNode = selectedNodes.length > 0 ? selectedNodes[selectedNodes.length - 1] : null;
+            updatePropertiesPanel();
+            showToast(`${selectedNodes.length} nodes selected`, 'info');
+        }
+
+        // Enhanced node actions
+        function deleteSelectedNodes() {
+            if (selectedNodes.length === 0) return;
+            
+            selectedNodes.forEach(node => {
+                const nodeId = $(node).data('id');
+                
+                // Remove connections
+                connections = connections.filter(conn => {
+                    if (conn.start === nodeId || conn.end === nodeId) {
+                        $(`.connection-svg[data-connection="${conn.id}"]`).remove();
+                        return false;
+                    }
+                    return true;
+                });
+                
+                $(node).remove();
+            });
+            
+            selectedNodes = [];
+            selectedNode = null;
+            hidePropertiesPanel();
+            updateCounters();
+            saveState(); // Save state after deletion
+            
+            showToast('Selected nodes deleted', 'info');
+        }
+
+        function duplicateNode() {
+            if (selectedNodes.length === 0) return;
+            
+            const newNodes = [];
+            selectedNodes.forEach(node => {
+                const $node = $(node);
+                const offset = $node.offset();
+                const canvasOffset = $('#canvas').offset();
+                
+                const x = offset.left - canvasOffset.left + 50;
+                const y = offset.top - canvasOffset.top + 50;
+                
+                const newNode = createNodeWithoutState(x, y, $node.data('shape'), $node.data('color'), 
+                              $node.find('.node-content').text(), $node.find('.node-tag').text() || '');
+                newNodes.push(newNode);
+            });
+            
+            // Select duplicated nodes
+            deselectAll();
+            newNodes.forEach(node => {
+                selectedNodes.push(node);
+                $(node).addClass('selected');
+            });
+            selectedNode = newNodes[newNodes.length - 1];
+            updatePropertiesPanel();
+            saveState(); // Save state after duplication
+            
+            showToast(`${newNodes.length} nodes duplicated`, 'success');
+            hideContextMenu();
+        }
+
+        function createNodeWithoutState(x, y, shape, color, text, tag) {
+            const nodeId = 'node-' + (++nodeCounter);
+            
+            let nodeInner = '';
+            if (shape === 'diamond' || shape === 'parallelogram') {
+                nodeInner = `
+                    <div class="node-inner">
+                        <div class="node-content">${text}</div>
+                        ${tag ? `<div class="node-tag">${tag}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                nodeInner = `
+                    <div class="node-content">${text}</div>
+                    ${tag ? `<div class="node-tag">${tag}</div>` : ''}
+                `;
+            }
+
+            // Add connection points
+            const connectionPoints = `
+                <div class="connection-point top"></div>
+                <div class="connection-point right"></div>
+                <div class="connection-point bottom"></div>
+                <div class="connection-point left"></div>
+            `;
+
+            const node = $(`
+                <div class="flowchart-node node-${shape} color-${color}" 
+                     data-id="${nodeId}" data-shape="${shape}" data-color="${color}"
+                     style="left: ${x}px; top: ${y}px;">
+                    ${nodeInner}
+                    ${connectionPoints}
+                </div>
+            `);
+
+            makeDraggable(node[0]);
+            $('#canvas').append(node);
+            updateCounters();
+            
+            return node[0];
+        }
+
+        // Distribution functions
+        function distributeNodes(direction) {
+            if (selectedNodes.length < 3) {
+                showToast('Select at least 3 nodes to distribute', 'warning');
+                return;
+            }
+            
+            let sortedNodes;
+            if (direction === 'horizontal') {
+                sortedNodes = selectedNodes.sort((a, b) => 
+                    parseInt($(a).css('left')) - parseInt($(b).css('left'))
+                );
+                
+                const leftmost = parseInt($(sortedNodes[0]).css('left'));
+                const rightmost = parseInt($(sortedNodes[sortedNodes.length - 1]).css('left'));
+                const spacing = (rightmost - leftmost) / (sortedNodes.length - 1);
+                
+                sortedNodes.forEach((node, index) => {
+                    $(node).css('left', (leftmost + spacing * index) + 'px');
+                });
+            } else {
+                sortedNodes = selectedNodes.sort((a, b) => 
+                    parseInt($(a).css('top')) - parseInt($(b).css('top'))
+                );
+                
+                const topmost = parseInt($(sortedNodes[0]).css('top'));
+                const bottommost = parseInt($(sortedNodes[sortedNodes.length - 1]).css('top'));
+                const spacing = (bottommost - topmost) / (sortedNodes.length - 1);
+                
+                sortedNodes.forEach((node, index) => {
+                    $(node).css('top', (topmost + spacing * index) + 'px');
+                });
+            }
+            
+            setTimeout(() => {
+                connections.forEach(conn => drawConnection(conn));
+            }, 100);
+            
+            saveState(); // Save state after distribution
+            showToast(`Nodes distributed ${direction}ly`, 'success');
+        }
+
+        function updatePropertiesPanel() {
+            if (!selectedNode) return;
+
+            $('#noSelection').hide();
+            $('#nodeProperties').show();
+
+            const $node = $(selectedNode);
+            $('#nodeText').val($node.find('.node-content').text());
+            $('#nodeTag').val($node.find('.node-tag').text() || '');
+            
+            // Update shape radio
+            const shape = $node.data('shape');
+            $(`input[name="nodeShape"][value="${shape}"]`).prop('checked', true);
+            
+            // Update color radio
+            const color = $node.data('color');
+            $(`input[name="nodeColor"][value="${color}"]`).prop('checked', true);
+            
+            // Update size sliders
+            const width = parseInt($node.css('width')) || 120;
+            const height = parseInt($node.css('height')) || 50;
+            $('#nodeWidth').val(width);
+            $('#nodeHeight').val(height);
+            $('#widthValue').text(width);
+            $('#heightValue').text(height);
+        }
+
+        function hidePropertiesPanel() {
+            $('#noSelection').show();
+            $('#nodeProperties').hide();
+        }
+
+        function updateNodeShape(node, shape) {
+            const $node = $(node);
+            const text = $node.find('.node-content').text();
+            const tag = $node.find('.node-tag').text() || '';
+            
+            // Remove all shape classes
+            $node.removeClass('node-rectangle node-rounded node-circle node-diamond node-hexagon node-parallelogram node-ellipse node-star node-triangle node-pentagon');
+            $node.addClass(`node-${shape}`);
+            $node.data('shape', shape);
+            
+            // Update inner structure for shapes that need it
+            if (shape === 'diamond' || shape === 'parallelogram') {
+                $node.html(`
+                    <div class="node-inner">
+                        <div class="node-content">${text}</div>
+                        ${tag ? `<div class="node-tag">${tag}</div>` : ''}
+                    </div>
+                    <div class="connection-point top"></div>
+                    <div class="connection-point right"></div>
+                    <div class="connection-point bottom"></div>
+                    <div class="connection-point left"></div>
+                `);
+            } else {
+                $node.html(`
+                    <div class="node-content">${text}</div>
+                    ${tag ? `<div class="node-tag">${tag}</div>` : ''}
+                    <div class="connection-point top"></div>
+                    <div class="connection-point right"></div>
+                    <div class="connection-point bottom"></div>
+                    <div class="connection-point left"></div>
+                `);
+            }
+        }
+
+        function updateNodeColor(node, color) {
+            const $node = $(node);
+            $node.removeClass('color-primary color-secondary color-success color-warning color-danger color-info color-orange color-pink color-cyan color-emerald');
+            $node.addClass(`color-${color}`);
+            $node.data('color', color);
+        }
+
+        // Enhanced Connection System with SVG arrows
+        function connectMode() {
+            if (!selectedNode) {
+                showToast('Select a node first', 'warning');
+                return;
+            }
+            
+            isConnectMode = true;
+            connectStart = selectedNode;
+            $(selectedNode).addClass('connecting');
+            $('#canvas').addClass('connecting-mode');
+            showToast('Click another node to connect', 'info');
+        }
+
+        function handleConnection(targetNode) {
+            if (connectStart && targetNode !== connectStart) {
+                createConnection(connectStart, targetNode);
+                exitConnectMode();
+                showToast('Nodes connected', 'success');
+            }
+        }
+
+        function exitConnectMode() {
+            isConnectMode = false;
+            if (connectStart) {
+                $(connectStart).removeClass('connecting');
+            }
+            connectStart = null;
+            $('#canvas').removeClass('connecting-mode');
+        }
+
+        function createConnection(startNode, endNode) {
+            const connection = {
+                id: 'conn-' + Date.now(),
+                start: $(startNode).data('id'),
+                end: $(endNode).data('id'),
+                style: currentArrowStyle,
+                thickness: currentArrowThickness,
+                headSize: currentArrowHeadSize
+            };
+            
+            connections.push(connection);
+            drawConnection(connection);
+            updateCounters();
+            saveState();
+        }
+
+        function drawConnection(connection) {
+            const startNode = $(`[data-id="${connection.start}"]`)[0];
+            const endNode = $(`[data-id="${connection.end}"]`)[0];
+            
+            if (!startNode || !endNode) return;
+
+            // Remove existing connection
+            $(`.connection-svg[data-connection="${connection.id}"]`).remove();
+
+            const startPos = getNodeEdgePoint(startNode, endNode);
+            const endPos = getNodeEdgePoint(endNode, startNode);
+
+            const svgWidth = Math.abs(endPos.x - startPos.x) + 40;
+            const svgHeight = Math.abs(endPos.y - startPos.y) + 40;
+            const svgLeft = Math.min(startPos.x, endPos.x) - 20;
+            const svgTop = Math.min(startPos.y, endPos.y) - 20;
+
+            // Adjust coordinates relative to SVG
+            const relStartX = startPos.x - svgLeft;
+            const relStartY = startPos.y - svgTop;
+            const relEndX = endPos.x - svgLeft;
+            const relEndY = endPos.y - svgTop;
+
+            const style = arrowStyles[connection.style] || arrowStyles.solid;
+            const thickness = connection.thickness || currentArrowThickness;
+            const headSize = connection.headSize || currentArrowHeadSize;
+
+            // Create SVG with enhanced markers
+            const svg = $(`
+                <svg class="connection-svg" data-connection="${connection.id}" 
+                     style="position: absolute; left: ${svgLeft}px; top: ${svgTop}px; 
+                            width: ${svgWidth}px; height: ${svgHeight}px; z-index: 5; overflow: visible;">
+                    <defs>
+                        ${createArrowMarkers(style, thickness, headSize)}
+                    </defs>
+                    ${createArrowPath(relStartX, relStartY, relEndX, relEndY, style, thickness, connection.style)}
+                </svg>
+            `);
+
+            $('#canvas').append(svg);
+        }
+
+        function createArrowMarkers(style, thickness, headSize) {
+            const markerId = `marker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const markerStartId = `marker-start-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            
+            let markers = `
+                <marker id="${markerId}" markerWidth="${headSize}" markerHeight="${headSize}" 
+                        refX="${headSize - 2}" refY="${headSize/2}" orient="auto" markerUnits="strokeWidth">
+                    <polygon points="0,0 ${headSize},${headSize/2} 0,${headSize}" 
+                             fill="${style.color}" stroke="${style.color}" stroke-width="0.5"/>
+                </marker>
+            `;
+
+            // Add start marker for bidirectional arrows
+            if (style.markerType && style.markerType.includes('bidirectional')) {
+                markers += `
+                    <marker id="${markerStartId}" markerWidth="${headSize}" markerHeight="${headSize}" 
+                            refX="2" refY="${headSize/2}" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="${headSize},0 0,${headSize/2} ${headSize},${headSize}" 
+                                 fill="${style.color}" stroke="${style.color}" stroke-width="0.5"/>
+                    </marker>
+                `;
+            }
+
+            return markers;
+        }
+
+        function createArrowPath(startX, startY, endX, endY, style, thickness, styleType) {
+            const markerId = `marker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const markerStartId = `marker-start-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            
+            let pathAttrs = `stroke="${style.color}" stroke-width="${thickness}" fill="none"`;
+            
+            if (style.strokeDasharray) {
+                pathAttrs += ` stroke-dasharray="${style.strokeDasharray}"`;
+            }
+            
+            // Add markers based on arrow type
+            if (styleType && styleType.includes('bidirectional')) {
+                pathAttrs += ` marker-start="url(#${markerStartId})" marker-end="url(#${markerId})"`;
+            } else {
+                pathAttrs += ` marker-end="url(#${markerId})"`;
+            }
+
+            // Create path based on style
+            let pathElement;
+            if (styleType === 'curved') {
+                const midX = (startX + endX) / 2;
+                const midY = (startY + endY) / 2;
+                const offsetX = (endY - startY) * 0.2;
+                const offsetY = (startX - endX) * 0.2;
+                pathElement = `<path d="M ${startX} ${startY} Q ${midX + offsetX} ${midY + offsetY} ${endX} ${endY}" ${pathAttrs}/>`;
+            } else {
+                pathElement = `<line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" ${pathAttrs}/>`;
+            }
+
+            return pathElement;
+        }
+
+        function getNodeEdgePoint(fromNode, toNode) {
+            const $fromNode = $(fromNode);
+            const $toNode = $(toNode);
+            
+            const fromOffset = $fromNode.offset();
+            const toOffset = $toNode.offset();
+            const canvasOffset = $('#canvas').offset();
+            
+            const fromCenter = {
+                x: fromOffset.left - canvasOffset.left + $fromNode.width() / 2,
+                y: fromOffset.top - canvasOffset.top + $fromNode.height() / 2
+            };
+            
+            const toCenter = {
+                x: toOffset.left - canvasOffset.left + $toNode.width() / 2,
+                y: toOffset.top - canvasOffset.top + $toNode.height() / 2
+            };
+            
+            // Calculate direction vector
+            const dx = toCenter.x - fromCenter.x;
+            const dy = toCenter.y - fromCenter.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance === 0) return fromCenter;
+            
+            // Normalize direction vector
+            const unitX = dx / distance;
+            const unitY = dy / distance;
+            
+            // Calculate edge point based on node shape and size
+            const shape = $fromNode.data('shape');
+            let radius = Math.min($fromNode.width(), $fromNode.height()) / 2;
+            
+            if (shape === 'circle') {
+                radius = Math.min($fromNode.width(), $fromNode.height()) / 2;
+            } else if (shape === 'rectangle' || shape === 'rounded') {
+                // For rectangles, calculate intersection with edge
+                const halfWidth = $fromNode.width() / 2;
+                const halfHeight = $fromNode.height() / 2;
+                
+                // Determine which edge the line intersects
+                const absUnitX = Math.abs(unitX);
+                const absUnitY = Math.abs(unitY);
+                
+                if (absUnitX / halfWidth > absUnitY / halfHeight) {
+                    // Intersects left or right edge
+                    radius = halfWidth / absUnitX;
+                } else {
+                    // Intersects top or bottom edge
+                    radius = halfHeight / absUnitY;
+                }
+            } else {
+                // For other shapes, use approximate radius
+                radius = Math.min($fromNode.width(), $fromNode.height()) / 2.5;
+            }
+            
+            return {
+                x: fromCenter.x + unitX * radius,
+                y: fromCenter.y + unitY * radius
+            };
+        }
+
+        function updateConnectionsForNode(node) {
+            const nodeId = $(node).data('id');
+            connections.forEach(conn => {
+                if (conn.start === nodeId || conn.end === nodeId) {
+                    drawConnection(conn);
+                }
+            });
+        }
+
+        // Context Menu
+        function showContextMenu(x, y) {
+            $('#contextMenu').css({
+                display: 'block',
+                left: x + 'px',
+                top: y + 'px'
+            });
+        }
+
+        function hideContextMenu() {
+            $('#contextMenu').hide();
+        }
+
+        // Node Actions
+        function editNodeText() {
+            if (!selectedNode) return;
+            
+            const currentText = $(selectedNode).find('.node-content').text();
+            const newText = prompt('Enter new text:', currentText);
+            
+            if (newText !== null) {
+                $(selectedNode).find('.node-content').text(newText);
+                $('#nodeText').val(newText);
+            }
+            hideContextMenu();
+        }
+
+        function editNodeTag() {
+            if (!selectedNode) return;
+            
+            const currentTag = $(selectedNode).find('.node-tag').text() || '';
+            const newTag = prompt('Enter tag/subtitle:', currentTag);
+            
+            if (newTag !== null) {
+                let tagElement = $(selectedNode).find('.node-tag');
+                if (tagElement.length === 0 && newTag !== '') {
+                    tagElement = $('<div class="node-tag"></div>');
+                    $(selectedNode).find('.node-inner, .flowchart-node').append(tagElement);
+                }
+                
+                if (newTag === '') {
+                    tagElement.remove();
+                } else {
+                    tagElement.text(newTag);
+                }
+                
+                $('#nodeTag').val(newTag);
+            }
+            hideContextMenu();
+        }
+
+        function deleteNode() {
+            if (!selectedNode) return;
+            
+            const nodeId = $(selectedNode).data('id');
+            
+            // Remove connections
+            connections = connections.filter(conn => {
+                if (conn.start === nodeId || conn.end === nodeId) {
+                    $(`.connection-svg[data-connection="${conn.id}"]`).remove();
+                    return false;
+                }
+                return true;
+            });
+            
+            $(selectedNode).remove();
+            selectedNode = null;
+            hidePropertiesPanel();
+            updateCounters();
+            hideContextMenu();
+            saveState();
+            
+            showToast('Node deleted', 'info');
+        }
+
+        function bringToFront() {
+            if (!selectedNode) return;
+            $(selectedNode).css('z-index', '100');
+            hideContextMenu();
+        }
+
+        function sendToBack() {
+            if (!selectedNode) return;
+            $(selectedNode).css('z-index', '1');
+            hideContextMenu();
+        }
+
+        // Canvas Controls
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel + 0.1, 2);
+            applyZoom();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel - 0.1, 0.5);
+            applyZoom();
+        }
+
+        function resetZoom() {
+            zoomLevel = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            $('#canvas').css({
+                transform: `scale(${zoomLevel})`,
+                transformOrigin: 'top left'
+            });
+        }
+
+        function toggleGrid() {
+            const $canvas = $('#canvas');
+            if ($canvas.css('background-image').includes('radial-gradient')) {
+                $canvas.css('background-image', 'none');
+            } else {
+                $canvas.css('background-image', 'radial-gradient(circle at 1px 1px, var(--grid-color) 1px, transparent 0)');
+            }
+        }
+
+        // Templates
+        function loadTemplate(type) {
+            clearCanvas();
+            
+            if (type === 'basic') {
+                const start = createNode(200, 100, 'rounded', 'success', 'Start', 'Begin Process');
+                const process = createNode(200, 200, 'rectangle', 'primary', 'Process', 'Main Task');
+                const end = createNode(200, 300, 'rounded', 'danger', 'End', 'Complete');
+                
+                setTimeout(() => {
+                    createConnection(start, process);
+                    createConnection(process, end);
+                }, 100);
+            }
+            
+            if (type === 'decision') {
+                const start = createNode(200, 50, 'rounded', 'success', 'Start', 'Initialize');
+                const decision = createNode(200, 150, 'diamond', 'warning', 'Decision?', 'Check Condition');
+                const yes = createNode(100, 250, 'rectangle', 'success', 'Yes Path', 'Action A');
+                const no = createNode(300, 250, 'rectangle', 'danger', 'No Path', 'Action B');
+                const end = createNode(200, 350, 'rounded', 'info', 'End', 'Finish');
+                
+                setTimeout(() => {
+                    createConnection(start, decision);
+                    createConnection(decision, yes);
+                    createConnection(decision, no);
+                    createConnection(yes, end);
+                    createConnection(no, end);
+                }, 100);
+            }
+
+            if (type === 'system') {
+                const user = createNode(100, 100, 'ellipse', 'primary', 'User', 'Client');
+                const api = createNode(300, 100, 'hexagon', 'info', 'API Gateway', 'Entry Point');
+                const auth = createNode(500, 50, 'diamond', 'warning', 'Auth Check', 'Validate');
+                const service = createNode(500, 150, 'rectangle', 'success', 'Service', 'Process');
+                const db = createNode(500, 250, 'pentagon', 'secondary', 'Database', 'Storage');
+                
+                setTimeout(() => {
+                    createConnection(user, api);
+                    createConnection(api, auth);
+                    createConnection(auth, service);
+                    createConnection(service, db);
+                }, 100);
+            }
+            
+            hideWelcomeMessage();
+            showToast(`${type} template loaded`, 'success');
+        }
+
+        // Utility Functions
+        function updateCounters() {
+            const nodeCount = $('.flowchart-node').length;
+            const connectionCount = connections.length;
+            $('#nodeCounter').text(`${nodeCount} nodes`);
+            $('#connectionCounter').text(`${connectionCount} connections`);
+        }
+
+        function hideWelcomeMessage() {
+            $('#welcomeMessage').hide();
+        }
+
+        function showWelcomeMessage() {
+            $('#welcomeMessage').show();
+        }
+
+        function clearCanvas() {
+            $('.flowchart-node').remove();
+            $('.connection-svg').remove();
+            connections = [];
+            selectedNode = null;
+            selectedNodes = [];
+            hidePropertiesPanel();
+            exitConnectMode();
+            updateCounters();
+            showWelcomeMessage();
+            saveState();
+            showToast('Canvas cleared', 'info');
+        }
+
+        function autoArrange() {
+            const nodes = $('.flowchart-node').toArray();
+            if (nodes.length === 0) return;
+            
+            const cols = Math.ceil(Math.sqrt(nodes.length));
+            const spacing = 180;
+            
+            nodes.forEach((node, index) => {
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+                
+                $(node).css({
+                    left: (100 + col * spacing) + 'px',
+                    top: (100 + row * spacing) + 'px'
+                });
+            });
+            
+            setTimeout(() => {
+                connections.forEach(conn => drawConnection(conn));
+            }, 100);
+            
+            saveState();
+            showToast('Nodes arranged', 'success');
+        }
+
+        function alignNodes(direction) {
+            if (selectedNodes.length < 2) {
+                showToast('Select multiple nodes to align', 'warning');
+                return;
+            }
+            
+            if (direction === 'horizontal') {
+                const targetY = parseInt($(selectedNodes[0]).css('top'));
+                selectedNodes.forEach(node => {
+                    $(node).css('top', targetY + 'px');
+                });
+            } else if (direction === 'vertical') {
+                const targetX = parseInt($(selectedNodes[0]).css('left'));
+                selectedNodes.forEach(node => {
+                    $(node).css('left', targetX + 'px');
+                });
+            }
+            
+            setTimeout(() => {
+                connections.forEach(conn => drawConnection(conn));
+            }, 100);
+            
+            saveState();
+            showToast(`Nodes aligned ${direction}ly`, 'success');
+        }
+
+        // Project Management (keeping existing functions)
+        function newFile() {
+            if ($('.flowchart-node').length > 0) {
+                if (!confirm('Create new file? Unsaved changes will be lost.')) {
+                    return;
+                }
+            }
+            clearCanvas();
+            currentProjectName = 'Untitled';
+            $('#currentProject').text(currentProjectName);
+        }
+
+        function saveProject() {
+            $('#saveModal').modal('show');
+            $('#projectName').val(currentProjectName !== 'Untitled' ? currentProjectName : '');
+        }
+
+        function saveProjectWithName() {
+            const name = $('#projectName').val().trim();
+            const description = $('#projectDescription').val().trim();
+            
+            if (!name) {
+                showToast('Please enter a project name', 'warning');
+                return;
+            }
+
+            const projectData = getCurrentProjectData();
+            projectData.name = name;
+            projectData.description = description;
+            
+            savedProjects[name] = projectData;
+            currentProjectName = name;
+            $('#currentProject').text(currentProjectName);
+            
+            loadSavedProjectsList();
+            $('#saveModal').modal('hide');
+            
+            showToast(`Project "${name}" saved`, 'success');
+        }
+
+        function getCurrentProjectData() {
+            const nodes = $('.flowchart-node').map(function() {
+                const $node = $(this);
+                return {
+                    id: $node.data('id'),
+                    x: parseInt($node.css('left')),
+                    y: parseInt($node.css('top')),
+                    shape: $node.data('shape'),
+                    color: $node.data('color'),
+                    text: $node.find('.node-content').text(),
+                    tag: $node.find('.node-tag').text() || '',
+                    width: $node.width(),
+                    height: $node.height()
+                };
+            }).get();
+            
+            return {
+                nodes: nodes,
+                connections: connections,
+                metadata: {
+                    created: new Date().toISOString(),
+                    zoom: zoomLevel,
+                    theme: isDarkMode ? 'dark' : 'light'
+                }
+            };
+        }
+
+        function loadSavedProjectsList() {
+            const $container = $('#savedProjects');
+            
+            if (Object.keys(savedProjects).length === 0) {
+                $container.html('<small class="text-muted">No saved projects</small>');
+                return;
+            }
+            
+            $container.empty();
+            Object.keys(savedProjects).slice(0, 3).forEach(name => {
+                $container.append(`
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-medium">${name}</span>
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadProject('${name}')">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                    </div>
+                `);
+            });
+        }
+
+        function loadProject(name) {
+            const project = savedProjects[name];
+            if (!project) return;
+            
+            clearCanvas();
+            
+            // Load nodes with tags
+            project.nodes.forEach(nodeData => {
+                const node = $(`
+                    <div class="flowchart-node node-${nodeData.shape} color-${nodeData.color}" 
+                         data-id="${nodeData.id}" data-shape="${nodeData.shape}" data-color="${nodeData.color}"
+                         style="left: ${nodeData.x}px; top: ${nodeData.y}px; width: ${nodeData.width}px; height: ${nodeData.height}px;">
+                        ${(nodeData.shape === 'diamond' || nodeData.shape === 'parallelogram') ? 
+                            `<div class="node-inner">
+                                <div class="node-content">${nodeData.text}</div>
+                                ${nodeData.tag ? `<div class="node-tag">${nodeData.tag}</div>` : ''}
+                            </div>` :
+                            `<div class="node-content">${nodeData.text}</div>
+                            ${nodeData.tag ? `<div class="node-tag">${nodeData.tag}</div>` : ''}`
+                        }
+                    </div>
+                `);
+                makeDraggable(node[0]);
+                $('#canvas').append(node);
+            });
+            
+            // Load connections
+            connections = [...project.connections];
+            setTimeout(() => {
+                connections.forEach(conn => drawConnection(conn));
+            }, 100);
+            
+            currentProjectName = name;
+            $('#currentProject').text(currentProjectName);
+            updateCounters();
+            hideWelcomeMessage();
+            
+            showToast(`Project "${name}" loaded`, 'success');
+        }
+
+        // Import/Export
+        function importProject() {
+            $('#importInput').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const projectData = JSON.parse(e.target.result);
+                    clearCanvas();
+                    
+                    // Load nodes with tags
+                    projectData.nodes.forEach(nodeData => {
+                        const node = $(`
+                            <div class="flowchart-node node-${nodeData.shape} color-${nodeData.color}" 
+                                 data-id="${nodeData.id}" data-shape="${nodeData.shape}" data-color="${nodeData.color}"
+                                 style="left: ${nodeData.x}px; top: ${nodeData.y}px; width: ${nodeData.width}px; height: ${nodeData.height}px;">
+                                ${(nodeData.shape === 'diamond' || nodeData.shape === 'parallelogram') ? 
+                                    `<div class="node-inner">
+                                        <div class="node-content">${nodeData.text}</div>
+                                        ${nodeData.tag ? `<div class="node-tag">${nodeData.tag}</div>` : ''}
+                                    </div>` :
+                                    `<div class="node-content">${nodeData.text}</div>
+                                    ${nodeData.tag ? `<div class="node-tag">${nodeData.tag}</div>` : ''}`
+                                }
+                            </div>
+                        `);
+                        makeDraggable(node[0]);
+                        $('#canvas').append(node);
+                    });
+                    
+                    // Load connections
+                    connections = [...projectData.connections];
+                    setTimeout(() => {
+                        connections.forEach(conn => drawConnection(conn));
+                    }, 100);
+                    
+                    currentProjectName = projectData.name || 'Imported Project';
+                    $('#currentProject').text(currentProjectName);
+                    updateCounters();
+                    hideWelcomeMessage();
+                    
+                    showToast('Project imported successfully', 'success');
+                } catch (error) {
+                    showToast('Error importing project', 'danger');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Enhanced PNG Export with SVG-based connections for better rendering
+        function exportAsPNG() {
+            const nodes = $('.flowchart-node');
+            if (nodes.length === 0) {
+                showToast('No content to export', 'warning');
+                return;
+            }
+
+            createExportCanvasWithSVG(false).then(exportCanvas => {
+                html2canvas(exportCanvas, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                }).then(canvas => {
+                    downloadCanvas(canvas, 'png');
+                    document.body.removeChild(exportCanvas);
+                    showToast('PNG exported successfully', 'success');
+                }).catch(() => {
+                    document.body.removeChild(exportCanvas);
+                    showToast('Export failed', 'danger');
+                });
+            });
+        }
+
+        // PNG Export with enhanced arrows and better dashed line rendering
+        function exportAsPNGWithArrows() {
+            const nodes = $('.flowchart-node');
+            if (nodes.length === 0) {
+                showToast('No content to export', 'warning');
+                return;
+            }
+
+            createExportCanvasWithSVG(true).then(exportCanvas => {
+                html2canvas(exportCanvas, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                }).then(canvas => {
+                    downloadCanvas(canvas, 'png', '_enhanced');
+                    document.body.removeChild(exportCanvas);
+                    showToast('Enhanced PNG exported successfully', 'success');
+                }).catch(() => {
+                    document.body.removeChild(exportCanvas);
+                    showToast('Export failed', 'danger');
+                });
+            });
+        }
+
+        function createExportCanvasWithSVG(enhanced = false) {
+            return new Promise((resolve) => {
+                const nodes = $('.flowchart-node');
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                
+                // Calculate bounds
+                nodes.each(function() {
+                    const $node = $(this);
+                    const x = parseInt($node.css('left'));
+                    const y = parseInt($node.css('top'));
+                    const width = $node.width();
+                    const height = $node.height();
+                    
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y);
+                    maxX = Math.max(maxX, x + width);
+                    maxY = Math.max(maxY, y + height);
+                });
+
+                const padding = 60;
+                const exportWidth = maxX - minX + (padding * 2);
+                const exportHeight = maxY - minY + (padding * 2);
+                const offsetX = -minX + padding;
+                const offsetY = -minY + padding;
+
+                // Create export canvas
+                const exportCanvas = document.createElement('div');
+                exportCanvas.style.cssText = `
+                    position: absolute;
+                    top: -9999px;
+                    left: -9999px;
+                    width: ${exportWidth}px;
+                    height: ${exportHeight}px;
+                    background: white;
+                    font-family: Arial, sans-serif;
+                    overflow: hidden;
+                `;
+                document.body.appendChild(exportCanvas);
+
+                // Create SVG for connections (better rendering than CSS)
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 1;
+                `;
+                svg.setAttribute('width', exportWidth);
+                svg.setAttribute('height', exportHeight);
+
+                // Add SVG definitions for better arrow rendering
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                defs.innerHTML = `
+                    <marker id="arrow-solid" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 12 4, 0 8" fill="#4f46e5" stroke="#4f46e5" stroke-width="0.5"/>
+                    </marker>
+                    <marker id="arrow-dashed" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 12 4, 0 8" fill="#7c3aed" stroke="#7c3aed" stroke-width="0.5"/>
+                    </marker>
+                    <marker id="arrow-thick" markerWidth="14" markerHeight="10" refX="12" refY="5" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 14 5, 0 10" fill="#06b6d4" stroke="#06b6d4" stroke-width="0.5"/>
+                    </marker>
+                    <marker id="arrow-dotted" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 12 4, 0 8" fill="#f59e0b" stroke="#f59e0b" stroke-width="0.5"/>
+                    </marker>
+                    <marker id="arrow-double" markerWidth="14" markerHeight="10" refX="12" refY="5" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 14 5, 0 10" fill="#ef4444" stroke="#ef4444" stroke-width="0.5"/>
+                    </marker>
+                    <marker id="arrow-curved" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 12 4, 0 8" fill="#ec4899" stroke="#ec4899" stroke-width="0.5"/>
+                    </marker>
+                    ${enhanced ? `
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                        <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+                    </filter>
+                    ` : ''}
+                `;
+                svg.appendChild(defs);
+
+                // Clone nodes with better styling
+                nodes.each(function() {
+                    const $node = $(this);
+                    const clone = $node.clone();
+                    clone.removeClass('selected connecting');
+                    
+                    // Enhanced styling for better export
+                    clone.css({
+                        left: (parseInt($node.css('left')) + offsetX) + 'px',
+                        top: (parseInt($node.css('top')) + offsetY) + 'px',
+                        position: 'absolute',
+                        zIndex: '10',
+                        boxShadow: enhanced ? '0 4px 12px rgba(0,0,0,0.15)' : '0 2px 8px rgba(0,0,0,0.1)',
+                        border: enhanced ? '3px solid' : '2px solid'
+                    });
+                    
+                    exportCanvas.appendChild(clone[0]);
+                });
+
+                // Draw SVG connections for better rendering
+                connections.forEach(conn => {
+                    const startNodeElement = exportCanvas.querySelector(`[data-id="${conn.start}"]`);
+                    const endNodeElement = exportCanvas.querySelector(`[data-id="${conn.end}"]`);
+                    
+                    if (startNodeElement && endNodeElement) {
+                        const startRect = startNodeElement.getBoundingClientRect();
+                        const endRect = endNodeElement.getBoundingClientRect();
+                        const canvasRect = exportCanvas.getBoundingClientRect();
+                        
+                        const startX = startRect.left - canvasRect.left + startRect.width / 2;
+                        const startY = startRect.top - canvasRect.top + startRect.height / 2;
+                        const endX = endRect.left - canvasRect.left + endRect.width / 2;
+                        const endY = endRect.top - canvasRect.top + endRect.height / 2;
+                        
+                        // Create SVG line element
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        
+                        const styleConfig = {
+                            solid: { color: '#4f46e5', width: '3', dash: '', marker: 'arrow-solid' },
+                            dashed: { color: '#7c3aed', width: '3', dash: '8,4', marker: 'arrow-dashed' },
+                            thick: { color: '#06b6d4', width: '5', dash: '', marker: 'arrow-thick' },
+                            dotted: { color: '#f59e0b', width: '3', dash: '3,3', marker: 'arrow-dotted' },
+                            double: { color: '#ef4444', width: '4', dash: '', marker: 'arrow-double' },
+                            curved: { color: '#ec4899', width: '3', dash: '', marker: 'arrow-curved' }
+                        };
+                        
+                        const style = styleConfig[conn.style] || styleConfig.solid;
+                        
+                        line.setAttribute('x1', startX);
+                        line.setAttribute('y1', startY);
+                        line.setAttribute('x2', endX);
+                        line.setAttribute('y2', endY);
+                        line.setAttribute('stroke', style.color);
+                        line.setAttribute('stroke-width', style.width);
+                        line.setAttribute('fill', 'none');
+                        line.setAttribute('marker-end', `url(#${style.marker})`);
+                        
+                        if (style.dash) {
+                            line.setAttribute('stroke-dasharray', style.dash);
+                        }
+                        
+                        if (enhanced) {
+                            line.setAttribute('filter', 'url(#glow)');
+                        }
+                        
+                        svg.appendChild(line);
+                    }
+                });
+
+                exportCanvas.appendChild(svg);
+                setTimeout(() => resolve(exportCanvas), 300);
+            });
+        }
+
+        function downloadCanvas(canvas, format, suffix = '') {
+            const link = document.createElement('a');
+            link.download = `${currentProjectName.replace(/[^a-z0-9]/gi, '_')}${suffix}.${format}`;
+            link.href = canvas.toDataURL(`image/${format}`);
+            link.click();
+        }
+
+        function exportAsSVG() {
+            const nodes = $('.flowchart-node');
+            if (nodes.length === 0) {
+                showToast('No content to export', 'warning');
+                return;
+            }
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            
+            nodes.each(function() {
+                const $node = $(this);
+                const x = parseInt($node.css('left'));
+                const y = parseInt($node.css('top'));
+                const width = $node.width();
+                const height = $node.height();
+                
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x + width);
+                maxY = Math.max(maxY, y + height);
+            });
+
+            const padding = 40;
+            const svgWidth = maxX - minX + (padding * 2);
+            const svgHeight = maxY - minY + (padding * 2);
+            const offsetX = -minX + padding;
+            const offsetY = -minY + padding;
+
+            let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth} ${svgHeight}" width="${svgWidth}" height="${svgHeight}" style="background: white; font-family: Arial, sans-serif;">`;
+            
+            // Add defs for arrows and filters
+            svgContent += `<defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#4f46e5" />
+                </marker>
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+                </filter>
+            </defs>`;
+            
+            // Add connections
+            connections.forEach(conn => {
+                const startNode = $(`.flowchart-node[data-id="${conn.start}"]`);
+                const endNode = $(`.flowchart-node[data-id="${conn.end}"]`);
+                
+                if (startNode.length && endNode.length) {
+                    const startX = parseInt(startNode.css('left')) + startNode.width() / 2 + offsetX;
+                    const startY = parseInt(startNode.css('top')) + startNode.height() / 2 + offsetY;
+                    const endX = parseInt(endNode.css('left')) + endNode.width() / 2 + offsetX;
+                    const endY = parseInt(endNode.css('top')) + endNode.height() / 2 + offsetY;
+                    
+                    const colors = {
+                        solid: '#4f46e5',
+                        dashed: '#7c3aed',
+                        thick: '#06b6d4',
+                        dotted: '#f59e0b',
+                        double: '#ef4444',
+                        curved: '#ec4899'
+                    };
+                    
+                    const color = colors[conn.style] || '#4f46e5';
+                    const strokeWidth = conn.style === 'thick' ? '5' : conn.style === 'double' ? '4' : '3';
+                    const strokeDasharray = conn.style === 'dashed' ? '8,4' : conn.style === 'dotted' ? '3,3' : '';
+                    
+                    svgContent += `<line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" 
+                        stroke="${color}" stroke-width="${strokeWidth}" 
+                        ${strokeDasharray ? `stroke-dasharray="${strokeDasharray}"` : ''}
+                        marker-end="url(#arrowhead)" filter="url(#shadow)" />`;
+                }
+            });
+            
+            // Add nodes
+            nodes.each(function() {
+                const $node = $(this);
+                const x = parseInt($node.css('left')) + offsetX;
+                const y = parseInt($node.css('top')) + offsetY;
+                const width = $node.width();
+                const height = $node.height();
+                const text = $node.find('.node-content').text();
+                const tag = $node.find('.node-tag').text() || '';
+                
+                const colorMap = {
+                    primary: '#4f46e5', secondary: '#7c3aed', success: '#10b981', 
+                    warning: '#f59e0b', danger: '#ef4444', info: '#06b6d4',
+                    orange: '#f97316', pink: '#ec4899', cyan: '#0891b2', emerald: '#059669'
+                };
+                
+                const color = colorMap[$node.data('color')] || '#4f46e5';
+                const shape = $node.data('shape');
+                
+                // Draw shape based on type
+                if (shape === 'circle') {
+                    const radius = Math.min(width, height) / 2;
+                    svgContent += `<circle cx="${x + width/2}" cy="${y + height/2}" r="${radius}" 
+                        fill="${color}" stroke="#e2e8f0" stroke-width="2" filter="url(#shadow)"/>`;
+                } else if (shape === 'diamond') {
+                    const cx = x + width/2;
+                    const cy = y + height/2;
+                    svgContent += `<polygon points="${cx},${y} ${x+width},${cy} ${cx},${y+height} ${x},${cy}" 
+                        fill="${color}" stroke="#e2e8f0" stroke-width="2" filter="url(#shadow)"/>`;
+                } else if (shape === 'triangle') {
+                    svgContent += `<polygon points="${x + width/2},${y} ${x+width},${y+height} ${x},${y+height}" 
+                        fill="${color}" stroke="#e2e8f0" stroke-width="2" filter="url(#shadow)"/>`;
+                } else {
+                    const rx = shape === 'rounded' ? Math.min(width, height) / 4 : 8;
+                    svgContent += `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="${rx}" 
+                        fill="${color}" stroke="#e2e8f0" stroke-width="2" filter="url(#shadow)"/>`;
+                }
+                
+                // Add text
+                const textY = tag ? y + height/2 - 5 : y + height/2 + 5;
+                svgContent += `<text x="${x + width/2}" y="${textY}" text-anchor="middle" 
+                    fill="white" font-family="Arial" font-size="14" font-weight="600">${text}</text>`;
+                
+                if (tag) {
+                    svgContent += `<text x="${x + width/2}" y="${y + height/2 + 12}" text-anchor="middle" 
+                        fill="white" font-family="Arial" font-size="11" opacity="0.8">${tag}</text>`;
+                }
+            });
+            
+            svgContent += '</svg>';
+            
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const link = document.createElement('a');
+            link.download = `${currentProjectName.replace(/[^a-z0-9]/gi, '_')}.svg`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            
+            showToast('SVG exported successfully', 'success');
+        }
+
+        function exportAsJSON() {
+            const data = getCurrentProjectData();
+            data.name = currentProjectName;
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.download = `${currentProjectName.replace(/[^a-z0-9]/gi, '_')}.json`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            
+            showToast('JSON exported successfully', 'success');
+        }
+
+        function copyCanvas() {
+            exportAsPNG();
+            showToast('Canvas copied as PNG', 'info');
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'info') {
+            const colors = {
+                success: 'bg-success',
+                warning: 'bg-warning',
+                danger: 'bg-danger',
+                info: 'bg-info'
+            };
+            
+            const toast = $(`
+                <div class="toast align-items-center text-white ${colors[type]} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `);
+            
+            if (!$('.toast-container').length) {
+                $('body').append('<div class="toast-container position-fixed top-0 end-0 p-3"></div>');
+            }
+            
+            $('.toast-container').append(toast);
+            const bsToast = new bootstrap.Toast(toast[0]);
+            bsToast.show();
+            
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

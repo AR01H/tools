@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>We1 | Enhanced Markdown Editor</title>
+  <link rel="icon" href="../logo.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.3.0/litera/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    body { margin:0; display:flex; height:100vh; }
+    #sidebar { width:240px; background:#f8f9fa; border-right:1px solid #ddd; overflow-y:auto; }
+    #main { flex:1; display:flex; flex-direction:column; }
+    #toolbar { padding:0.5rem; background:#e9ecef; border-bottom:1px solid #ccc; display:flex; flex-wrap:wrap; gap:4px; }
+    #editor-container { flex:1; display:flex; overflow:hidden; }
+    #editor, #preview { width:50%; padding:1rem; overflow-y:auto; }
+    #editor textarea { width:100%; height:100%; border:none; resize:none; outline:none; font-family:monospace; }
+    .file-item { padding:0.5rem; cursor:pointer; }
+    .file-item.active { background:#ddd; }
+    .btn-sm { font-size:.9rem; }
+    #preview { background:#fff; }
+    .dark-mode body { background:#2c2c2c; color:#ccc; }
+    .dark-mode #editor textarea { background:#1e1e1e; color:#ddd; }
+    .dark-mode #preview { background:#2a2a2a; color:#eee; }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <div class="p-2">
+      <span class="navbar-brand fw-bold" style="display: flex;align-items: center;gap: 10px;">
+        <img src="../logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 5px;" />
+        <strong>Enhanced Markdown</strong>
+      </span>
+    </div>
+    <div class="p-2">
+      <button class="btn btn-primary btn-sm w-100 mb-2" onclick="newFile()">New File</button>
+      <button class="btn btn-secondary btn-sm w-100 mb-2" onclick="toggleTheme()">Toggle Theme</button>
+    </div>
+    <ul id="fileList" class="list-unstyled mb-0"></ul>
+  </div>
+  <div id="main">
+    <div id="toolbar">
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('**','**')"><i class="fa fa-bold"></i></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('_','_')"><i class="fa fa-italic"></i></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('~~','~~')"><i class="fa fa-strikethrough"></i></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('>','')">></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('<abbr title=>','</abbr>')">ABBR</button>
+
+
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('# ','')">H1</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('## ','')">H2</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('### ','')">H3</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('#### ','')">H4</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('##### ','')">H5</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('###### ','')">H6</button>
+
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('> ','')"><i class="fa fa-quote-right"></i></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('- ','')"><i class="fa fa-list-ul"></i></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('`','`')"><i class="fa fa-code"></i></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('```\n','\n```')"><i class="fa fa-file-code"></i></button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('--- ','')">Line</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertSym('\n\n','')">New line</button>
+
+      <button class="btn btn-sm btn-outline-dark" onclick="insertTable()">Table</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertLink()">Link</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertImage()">Image</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertCustom('card')">Card</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertCustom('callout')">Callout</button>
+      <button class="btn btn-sm btn-outline-dark" onclick="insertCustom('button')">Button</button>
+      <button class="btn btn-sm btn-outline-success" onclick="saveAll()">💾</button>
+      <button class="btn btn-sm btn-outline-danger" onclick="clearThis()">🧹 Clear</button>
+      <button class="btn btn-sm btn-outline-primary" onclick="exportMD()">.md</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="exportHTML()">.html</button>
+      <button class="btn btn-sm btn-outline-info" onclick="copyHTML()">Copy HTML</button>
+      <input type="text" placeholder="Search…" oninput="searchContent(this.value)" class="form-control form-control-sm" style="width:150px;"/>
+    </div>
+    <div id="editor-container">
+      <div id="editor"><textarea id="markdown"></textarea></div>
+      <div id="preview"></div>
+    </div>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+const STORAGE='pmd_files';
+let files = JSON.parse(localStorage.getItem(STORAGE)||'{}'), current='';
+function refreshSidebar(){
+  const list=document.getElementById('fileList');
+  list.innerHTML='';
+  for(let name in files){
+    const li=document.createElement('li'); li.textContent=name;
+    li.className='file-item'+(name===current?' active':'');
+    li.onclick=()=>switchFile(name);
+    list.append(li);
+  }
+}
+function newFile(){
+  const name=prompt('File name')||('sample_'+Date.now());
+  files[name]=''; current=name; refreshSidebar(); loadFile();
+}
+function switchFile(name){ saveCurrent(); current=name; refreshSidebar(); loadFile();}
+function saveCurrent(){ if(current) files[current]=document.getElementById('markdown').value; }
+function loadFile(){ document.getElementById('markdown').value=files[current]; updatePreview(); }
+function saveAll(){ saveCurrent(); localStorage.setItem(STORAGE, JSON.stringify(files)); alert('Saved workspace'); }
+function clearThis(){ if(confirm('Clear content?')){ document.getElementById('markdown').value=''; updatePreview(); }}
+function insertSym(a,b){ const ta=document.getElementById('markdown'); const s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;
+  ta.value=v.slice(0,s)+a+v.slice(s,e)+b+v.slice(e); ta.focus(); updatePreview();
+}
+function insertTable(){ insertSym('|H1|H2|\n|--|--|\n|c1|c2|\n',''); }
+function insertLink(){ const url=prompt('URL'); if(!url)return; insertSym('[text](' + url + ')',''); }
+function insertImage(){ const url=prompt('Image URL'); if(!url)return; insertSym('![]( '+url+' )',''); }
+function insertCustom(type){ const sample={
+  card:':::card\n## Title\nContent\n:::',
+  callout:':::callout\nImportant info\n:::',
+  button:':::button\n[Click me](https://example.com)\n:::'
+}; insertSym(sample[type],''); }
+function updatePreview(){ document.getElementById('preview').innerHTML=marked.parse(document.getElementById('markdown').value); syncScroll(); }
+document.getElementById('markdown').addEventListener('input', ()=>{ updatePreview(); autoSave(); });
+function exportMD(){ saveCurrent(); const blob=new Blob([files[current]||''],{type:'text/markdown'}); downloadBlob(blob,(current+'.md')); }
+function exportHTML(){ saveCurrent(); const html=marked.parse(files[current]||''); const blob=new Blob([html],{type:'text/html'}); downloadBlob(blob,(current+'.html')); }
+function copyHTML(){ const html=marked.parse(document.getElementById('markdown').value); navigator.clipboard.writeText(html).then(()=>alert('Copied HTML')); }
+function downloadBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+function autoSave(){ localStorage.setItem(STORAGE, JSON.stringify(files)); }
+window.onload=()=>{
+  if(Object.keys(files).length){ current=Object.keys(files)[0]; refreshSidebar(); loadFile(); }
+  else newFile();
+};
+function toggleTheme(){ document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode')); }
+if(localStorage.getItem('theme')==='true') document.body.classList.add('dark-mode');
+function syncScroll(){
+  const ed=document.getElementById('editor'), pr=document.getElementById('preview');
+  pr.scrollTop = ed.scrollTop*(pr.scrollHeight/ed.scrollHeight);
+}
+function searchContent(q){ 
+  const txt=files[current]||'';
+  const idx=txt.indexOf(q);
+  if(idx>=0){
+    const ta=document.getElementById('markdown');
+    ta.focus(); ta.selectionStart=idx; ta.selectionEnd=idx+q.length;
+  }
+}
+setInterval(autoSave,10000);
+</script>
+</body>
+</html>

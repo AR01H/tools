@@ -1,0 +1,2583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>We1|Flowchart Maker</title>
+<link rel="icon" href="../logo.png" type="image/x-icon">
+
+<style>
+  :root {
+    --primary-color: #e39d4e;
+    --secondary-color: #af1e1e;
+    --accent-color: #3b82f6;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --dark-bg: #1f2937;
+    --darker-bg: #111827;
+    --light-bg: #f8fafc;
+    --border-color: #e5e7eb;
+    --text-color: #1f2937;
+    --text-muted: #6b7280;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+  }
+
+  body, html {
+    height: 100vh;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: var(--text-color);
+  }
+
+  /* Header */
+  .header {
+    background: var(--darker-bg);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1000;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .theme-toggle {
+    background: var(--accent-color);
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .theme-toggle:hover {
+    background: var(--secondary-color);
+    transform: scale(1.05);
+  }
+
+  /* Main Container */
+  .container {
+    display: grid;
+    grid-template-columns: 350px 1fr 320px;
+    grid-template-rows: 1fr;
+    height: calc(100vh - 80px);
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  /* Panel Styling */
+  .panel {
+    background: white;
+    border-radius: 5px;
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .panel-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .panel-content {
+    flex: 1;
+    padding: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    margin-bottom: 1rem;
+    background: var(--light-bg);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+  }
+
+  .tab-btn.active {
+    background: white;
+    color: var(--primary-color);
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+  }
+
+  .tab-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--text-color);
+  }
+
+  /* Code Editor */
+  .editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .code-input {
+    flex: 1;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    border: 2px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    resize: none;
+    transition: all 0.2s ease;
+    background: var(--light-bg);
+    min-height: 300px;
+  }
+
+  .code-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: white;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn:hover:before {
+    left: 100%;
+  }
+
+  .btn-primary {
+    background: var(--primary-color);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-success {
+    background: var(--success-color);
+    color: white;
+  }
+
+  .btn-success:hover {
+    background: #059669;
+    transform: translateY(-2px);
+  }
+
+  .btn-warning {
+    background: var(--warning-color);
+    color: white;
+  }
+
+  .btn-warning:hover {
+    background: #d97706;
+    transform: translateY(-2px);
+  }
+
+  .btn-danger {
+    background: var(--danger-color);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: var(--light-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn-secondary:hover {
+    background: var(--border-color);
+    transform: translateY(-1px);
+  }
+
+  /* Preview Panel */
+  .preview-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .preview-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .render-area {
+    flex: 1;
+    border: 2px dashed var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    overflow: auto;
+    background: white;
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .render-area.has-content {
+    border-style: solid;
+    border-color: var(--success-color);
+  }
+
+  .render-area:empty:before {
+    content: 'Your flowchart will appear here...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Samples Panel */
+  .samples-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .samples-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .sample-btn {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 1px solid #0ea5e9;
+    color: #0c4a6e;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    overflow: unset;
+  }
+
+  .sample-btn:hover {
+    background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .sample-btn .sample-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #0c4a6e;
+  }
+
+  .sample-btn .sample-desc {
+    font-size: 0.8rem;
+    color: #075985;
+    opacity: 0.8;
+  }
+
+  .sample-btn .sample-mode {
+    font-size: 0.8rem;
+    color: #075985;
+    opacity: 0.8;
+    border: 1px solid #0ea5e9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    display: inline-block;
+    float: right;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    background: var(--light-bg);
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  /* Loading Animation */
+  .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Dark Mode */
+  .dark-mode {
+    background: var(--darker-bg);
+    color: white;
+  }
+
+  .dark-mode .panel {
+    background: var(--dark-bg);
+    color: white;
+    border-color: #374151;
+  }
+
+  .dark-mode .code-input {
+    background: var(--darker-bg);
+    color: white;
+    border-color: #374151;
+  }
+
+  .dark-mode .render-area {
+    background: var(--darker-bg);
+    border-color: #374151;
+  }
+
+  .dark-mode .btn-secondary {
+    background: var(--darker-bg);
+    color: white;
+    border-color: #374151;
+  }
+
+  .dark-mode .modal-content {
+    background: var(--darker-bg);
+    color: white;
+    border-color: #374151;
+  }
+
+  .dark-mode .modal-header {
+    background: var(--dark-bg);
+    color: white;
+    border-color: #374151;
+  }
+
+  .dark-mode .modal-header h3 {
+    color: white;
+  }
+
+  /* Export Modal */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+
+  .modal-content {
+    background: var(--light-bg);
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .modal-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .export-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .export-option {
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .export-option:hover {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+  }
+
+  .export-option.selected {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.1);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1200px) {
+    .container {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 1rem;
+    }
+    
+    .panel {
+      height: 400px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .header {
+      padding: 0.75rem 1rem;
+    }
+    
+    .header h1 {
+      font-size: 1.25rem;
+    }
+    
+    .container {
+      padding: 0.5rem;
+      gap: 0.5rem;
+    }
+    
+    .panel-content {
+      padding: 1rem;
+    }
+    
+    .controls {
+      flex-direction: column;
+    }
+    
+    .btn {
+      justify-content: center;
+    }
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: var(--darker-bg);
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1001;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.8rem;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--light-bg);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+</style>
+
+<!-- External Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.17.1/flowchart.min.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowchart/1.15.0/flowchart.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <h1>
+      <span class="navbar-brand fw-bold" style="display: flex;align-items: center;gap: 10px;">
+        <img src="../logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 5px;" />
+        <span>Code FlowForge</span>
+      </span>
+    </h1>
+    <div class="header-actions">
+      <button class="theme-toggle tooltip" onclick="toggleTheme()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+        </svg>
+        <span class="tooltiptext">Toggle Dark Mode</span>
+      </button>
+      <button class="btn btn-primary" onclick="showExportModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75z"/>
+          <path d="M3.75 19.5a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5H3.75z"/>
+        </svg>
+        Export
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Left Panel: Editor -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>
+          Code Editor
+        </span>
+        <span id="editorStatus">Ready</span>
+      </div>
+      <div class="panel-content">
+        <div class="tabs">
+          <button class="tab-btn active" data-mode="mermaid">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 3h18v18H3V3zm2 2v14h14V5H5zm2 2h10v2H7V7zm0 4h10v2H7v-2zm0 4h6v2H7v-2z"/>
+            </svg>
+            Mermaid
+          </button>
+          <button class="tab-btn" data-mode="flowchartjs">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Flowchart.js
+          </button>
+        </div>
+        
+        <div class="editor-container">
+          <textarea 
+            id="codeInput" 
+            class="code-input" 
+            placeholder="Write your flowchart code here..."
+            spellcheck="false"
+          ></textarea>
+          
+          <div class="controls">
+            <button class="btn btn-primary tooltip" onclick="render()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4.5 12.75l6 6 9-13.5"/>
+              </svg>
+              Render
+              <span class="tooltiptext">Render the flowchart (Ctrl+R)</span>
+            </button>
+            
+            <button class="btn btn-secondary tooltip" onclick="validateSyntax()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Validate
+              <span class="tooltiptext">Check syntax validity</span>
+            </button>
+            
+            <button class="btn btn-warning tooltip" onclick="formatCode()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
+              </svg>
+              Format
+              <span class="tooltiptext">Auto-format code</span>
+            </button>
+            
+            <button class="btn btn-danger tooltip" onclick="clearAll()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+              </svg>
+              Clear
+              <span class="tooltiptext">Clear editor and preview</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle Panel: Preview -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Live Preview
+        </span>
+        <div class="preview-controls">
+          <button class="btn btn-secondary tooltip" onclick="zoomIn()">
+            +
+            <span class="tooltiptext">Zoom In</span>
+          </button>
+          <button class="btn btn-secondary tooltip" onclick="zoomOut()">
+            -
+            <span class="tooltiptext">Zoom Out</span>
+          </button>
+          <button class="btn btn-secondary tooltip" onclick="resetZoom()">
+            Reset
+            <span class="tooltiptext">Reset Zoom</span>
+          </button>
+        </div>
+      </div>
+      <div class="panel-content">
+        <div class="preview-container">
+          <div id="renderArea" class="render-area"></div>
+        </div>
+      </div>
+    </div>
+
+<!-- Right Panel: Samples & Tools -->
+<div class="panel">
+    <div class="panel-header">
+      <span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z"/>
+        </svg>
+        Templates & Tools
+      </span>
+      <button class="btn btn-secondary" onclick="showTemplateBrowser()" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+        </svg>
+        Browse
+      </button>
+    </div>
+    <div class="panel-content">
+      <div class="samples-container">
+        <!-- Quick Actions -->
+        <div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <button class="btn btn-primary" onclick="showTemplateBrowser()" style="font-size: 0.8rem; padding: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6z"/>
+              </svg>
+              Templates
+            </button>
+            <button class="btn btn-secondary" onclick="showAnalysis()" style="font-size: 0.8rem; padding: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z"/>
+              </svg>
+              Analyze
+            </button>
+          </div>
+        </div>
+  
+        <div class="samples-grid" id="samplesGrid"></div>
+  
+        <!-- Tools Section -->
+        <div style="padding-top: 1rem; border-top: 1px solid var(--border-color);display:none;">
+          <h4 style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--text-muted);">Quick Tools</h4>
+          <div style="display: grid; gap: 0.5rem;">
+            <button class="btn btn-secondary" onclick="formatCode()" style="font-size: 0.8rem; padding: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5"/>
+              </svg>
+              Format Code
+            </button>
+            <button class="btn btn-secondary" onclick="validateSyntax()" style="font-size: 0.8rem; padding: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Validate Syntax
+            </button>
+            <button class="btn btn-secondary" onclick="generateShareableLink()" style="font-size: 0.8rem; padding: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+              </svg>
+              Share Link
+            </button>
+            <button class="btn btn-secondary" onclick="showCollaborationOptions()" style="font-size: 0.8rem; padding: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07"/>
+              </svg>
+              Collaborate
+            </button>
+          </div>
+        </div>
+  
+        <!-- Help Section -->
+        <div style="padding-top: 1rem; border-top: 1px solid var(--border-color);">
+          <h4 style="margin: 0 0 0.5rem; font-size: 0.9rem; color: var(--text-muted);">Help & Documentation</h4>
+          <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+            <p style="margin: 0 0 0.5rem;">
+              <strong>Keyboard Shortcuts:</strong><br>
+              Ctrl+R - Render<br>
+              Ctrl+S - Export<br>
+              Ctrl+F - Format<br>
+              Ctrl++ - Zoom In<br>
+              Ctrl+- - Zoom Out
+            </p>
+            <p style="margin: 0;">
+              <strong>Tip:</strong> Drag & drop .mmd or .flow files to import them directly.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  
+  <!-- Export Modal -->
+  <div id="exportModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Export Flowchart</h3>
+      </div>
+      <div class="export-options">
+        <div class="export-option" data-format="svg">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+            <polyline points="14,2 14,8 20,8"/>
+          </svg>
+          <div>SVG</div>
+          <small>Vector format</small>
+        </div>
+        <div class="export-option" data-format="png">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21,15 16,10 5,21"/>
+          </svg>
+          <div>PNG</div>
+          <small>High quality image</small>
+        </div>
+        <div class="export-option" data-format="pdf">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10,9 9,9 8,9"/>
+          </svg>
+          <div>PDF</div>
+          <small>Document format</small>
+        </div>
+        <div class="export-option" data-format="json">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5z"/>
+            <path d="M8 12h4l3 3-3 3"/>
+            <path d="M8 12l3-3-3-3"/>
+          </svg>
+          <div>JSON</div>
+          <small>Data format</small>
+        </div>
+        <div class="export-option" data-format="csv">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="10" y1="12" x2="18" y2="12"/>
+            <line x1="10" y1="16" x2="18" y2="16"/>
+          </svg>
+          <div>CSV</div>
+          <small>Table format</small>
+        </div>
+        <div class="export-option" data-format="html">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <polyline points="16 18 22 12 16 6"/>
+            <polyline points="8 6 2 12 8 18"/>
+          </svg>
+          <div>HTML</div>
+          <small>Web format</small>
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="executeExport()">
+          <span class="loading" style="display: none;"></span>
+          Export
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div>
+      <span id="syntaxStatus">Syntax: Valid</span> • 
+      <span id="nodeCount">Nodes: 0</span> • 
+      <span id="renderTime">Render: 0ms</span>
+    </div>
+    <div>
+      <span>Mode: <span id="currentMode">Mermaid</span></span> • 
+      <span>Zoom: <span id="zoomLevel">100%</span></span>
+    </div>
+  </div>
+  
+  <script>
+    // Initialize libraries
+    mermaid.initialize({ 
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      flowchart: {
+        useMaxWidth: true,
+        htmlLabels: true
+      }
+    });
+    
+    // Global variables
+    let currentMode = 'mermaid';
+    let currentZoom = 1;
+    let renderStartTime = 0;
+    let selectedExportFormat = 'svg';
+    let isDarkMode = false;
+    let currentArrowStyle = 'solid';
+    
+    // DOM elements
+    const codeInput = document.getElementById('codeInput');
+    const renderArea = document.getElementById('renderArea');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const exportModal = document.getElementById('exportModal');
+    const samplesGrid = document.getElementById('samplesGrid');
+    
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSample();
+      setupEventListeners();
+      updateStatus();
+      setupDragAndDrop();
+      setupAutoSave();
+      loadFromShare();
+      setupPerformanceMonitoring();
+    });
+    
+    // Event listeners
+    function setupEventListeners() {
+      // Tab switching
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          switchMode(this.dataset.mode);
+        });
+      });
+    
+      // Auto-render with debounce
+      let debounceTimer;
+      codeInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          render();
+          updateStatus();
+        }, 500);
+      });
+    
+      // Sample buttons
+      samplesGrid.addEventListener('click', function(e) {
+        const sampleBtn = e.target.closest('.sample-btn');
+        if (sampleBtn) {
+          loadSampleCode(sampleBtn);
+        }
+      });
+    
+      // Export modal clicks
+      document.querySelectorAll('.export-option').forEach(option => {
+        option.addEventListener('click', function() {
+          selectExportFormat(this.dataset.format);
+        });
+      });
+    
+      // Keyboard shortcuts
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+          switch(e.key) {
+            case 'r':
+              e.preventDefault();
+              render();
+              break;
+            case 's':
+              e.preventDefault();
+              showExportModal();
+              break;
+            case '=':
+              e.preventDefault();
+              zoomIn();
+              break;
+            case '-':
+              e.preventDefault();
+              zoomOut();
+              break;
+            case 'f':
+              e.preventDefault();
+              formatCode();
+              break;
+          }
+        }
+      });
+    
+      // Modal close on outside click
+      exportModal.addEventListener('click', function(e) {
+        if (e.target === exportModal) {
+          closeExportModal();
+        }
+      });
+    }
+    
+    // Mode switching
+    function switchMode(mode) {
+      currentMode = mode;
+      
+      // Update active tab
+      tabBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      
+      // Clear editor
+      codeInput.value = '';
+      clearRender();
+      
+      // Update status
+      document.getElementById('currentMode').textContent = 
+        mode === 'mermaid' ? 'Mermaid' : 'Flowchart.js';
+      
+      updateStatus();
+      
+      showToast(`Switched to ${mode === 'mermaid' ? 'Mermaid' : 'Flowchart.js'} mode`, 'info');
+    }
+    
+    // Rendering functions
+    function render() {
+      renderStartTime = performance.now();
+      document.getElementById('editorStatus').innerHTML = 
+        '<span class="loading"></span> Rendering...';
+      
+      const code = codeInput.value.trim();
+      
+      setTimeout(() => {
+        try {
+          if (currentMode === 'mermaid') {
+            renderMermaid(code);
+          } else {
+            renderFlowchartJS(code);
+          }
+          
+          const renderTime = Math.round(performance.now() - renderStartTime);
+          document.getElementById('renderTime').textContent = `Render: ${renderTime}ms`;
+          document.getElementById('editorStatus').textContent = 'Rendered';
+          
+          renderArea.classList.toggle('has-content', code.length > 0);
+          
+        } catch (error) {
+          showError(error.message);
+          document.getElementById('editorStatus').textContent = 'Error';
+        }
+      }, 100);
+    }
+    
+    function renderMermaid(code) {
+      clearRender();
+      
+      if (!code) {
+        renderArea.innerHTML = '';
+        return;
+      }
+      
+      const uniqueId = 'mermaid-' + Math.random().toString(36).substr(2, 9);
+      const container = document.createElement('div');
+      container.className = 'mermaid';
+      container.id = uniqueId;
+      container.textContent = code;
+      
+      renderArea.appendChild(container);
+      
+      try {
+        mermaid.init(undefined, '#' + uniqueId);
+        applyZoom();
+      } catch (e) {
+        showError('Mermaid render error: ' + e.message);
+      }
+    }
+
+    function renderFlowchartJS(code) {
+      debugger
+      clearRender();
+      
+      if (!code) {
+        renderArea.innerHTML = '';
+        return;
+      }
+      
+      try {
+        const flowchartDivId = 'flowchartjs-container';
+        const flowchartDiv = document.createElement('div');
+        flowchartDiv.id = flowchartDivId;
+        flowchartDiv.style.cssText = 'width: 100%; height: auto; overflow: auto;';
+        
+        renderArea.appendChild(flowchartDiv);
+        
+        const diagram = flowchart.parse(code);
+        diagram.drawSVG(flowchartDivId, {
+          'line-width': 2,
+          'maxWidth': 600,
+          'font-size': 14,
+          'font-family': 'Inter, Arial, sans-serif',
+          'font-weight': 'normal',
+          'font-color': isDarkMode ? '#ffffff' : '#000000',
+          'line-length': 50,
+          'text-margin': 10,
+          'yes-text': 'Yes',
+          'no-text': 'No',
+          'arrow-end': 'block',
+          'scale': 1,
+          'symbols': {
+            'start': {
+              'font-color': '#ffffff',
+              'element-color': '#2563eb',
+              'fill': '#3b82f6'
+            },
+            'end': {
+              'font-color': '#ffffff',
+              'element-color': '#dc2626',
+              'fill': '#ef4444'
+            },
+            'operation': {
+              'font-color': isDarkMode ? '#ffffff' : '#000000',
+              'element-color': '#6b7280',
+              'fill': '#f3f4f6'
+            },
+            'condition': {
+              'font-color': '#ffffff',
+              'element-color': '#f59e0b',
+              'fill': '#fbbf24'
+            }
+          }
+        });
+        
+        applyZoom();
+      } catch (e) {
+        showError('Flowchart.js render error: ' + e.message);
+      }
+    }
+
+    function clearRender() {
+      renderArea.innerHTML = '';
+      renderArea.classList.remove('has-content');
+    }
+    
+    // Zoom functions
+    function zoomIn() {
+      currentZoom = Math.min(currentZoom + 0.1, 3);
+      applyZoom();
+      updateZoomDisplay();
+    }
+    
+    function zoomOut() {
+      currentZoom = Math.max(currentZoom - 0.1, 0.3);
+      applyZoom();
+      updateZoomDisplay();
+    }
+    
+    function resetZoom() {
+      currentZoom = 1;
+      applyZoom();
+      updateZoomDisplay();
+    }
+    
+    function applyZoom() {
+      const svg = renderArea.querySelector('svg');
+      if (svg) {
+        svg.style.transform = `scale(${currentZoom})`;
+        svg.style.transformOrigin = 'top left';
+      }
+    }
+    
+    function updateZoomDisplay() {
+      document.getElementById('zoomLevel').textContent = Math.round(currentZoom * 100) + '%';
+    }
+    
+    // Sample management
+    function loadSample() {
+      const defaultCode = `graph TD
+        A[Start] --> B{Decision}
+        B -->|Yes| C[Process 1]
+        B -->|No| D[Process 2]
+        C --> E[End]
+        D --> E`;
+      
+      codeInput.value = defaultCode;
+      render();
+    }
+    
+    function loadSampleCode(sampleBtn) {
+      const code = sampleBtn.dataset.code;
+      const mode = sampleBtn.dataset.mode;
+      
+      if (mode !== currentMode) {
+        switchMode(mode);
+      }
+      
+      codeInput.value = code;
+      render();
+      
+      showToast('Sample loaded successfully', 'success');
+    }
+    
+    // Validation and formatting
+    function validateSyntax() {
+      const code = codeInput.value.trim();
+      
+      if (!code) {
+        showToast('No code to validate', 'warning');
+        return;
+      }
+      
+      try {
+        if (currentMode === 'mermaid') {
+          // Basic Mermaid validation
+          if (!code.includes('graph') && !code.includes('flowchart') && 
+              !code.includes('sequenceDiagram') && !code.includes('erDiagram') &&
+              !code.includes('gitgraph')) {
+            throw new Error('Invalid Mermaid syntax: Missing diagram type');
+          }
+        } else {
+          // Basic Flowchart.js validation
+          flowchart.parse(code);
+        }
+        
+        showToast('Syntax is valid', 'success');
+        document.getElementById('syntaxStatus').textContent = 'Syntax: Valid';
+      } catch (error) {
+        showToast('Syntax error: ' + error.message, 'error');
+        document.getElementById('syntaxStatus').textContent = 'Syntax: Invalid';
+      }
+    }
+    
+    function formatCode() {
+      const code = codeInput.value.trim();
+      
+      if (!code) {
+        showToast('No code to format', 'warning');
+        return;
+      }
+      
+      // Basic formatting - add proper indentation
+      const lines = code.split('\n');
+      const formatted = lines.map(line => {
+        line = line.trim();
+        if (line.includes('-->') || line.includes('->')) {
+          return '    ' + line;
+        }
+        return line;
+      }).join('\n');
+      
+      codeInput.value = formatted;
+      render();
+      showToast('Code formatted', 'success');
+    }
+    
+    // Export functions
+    function showExportModal() {
+      if (!renderArea.querySelector('svg')) {
+        showToast('No diagram to export', 'warning');
+        return;
+      }
+      
+      exportModal.style.display = 'flex';
+    }
+    
+    function closeExportModal() {
+      exportModal.style.display = 'none';
+    }
+    
+    function selectExportFormat(format) {
+      document.querySelectorAll('.export-option').forEach(option => {
+        option.classList.toggle('selected', option.dataset.format === format);
+      });
+      selectedExportFormat = format;
+    }
+    
+    function executeExport() {
+      const exportBtn = exportModal.querySelector('.btn-primary');
+      const loading = exportBtn.querySelector('.loading');
+      
+      exportBtn.disabled = true;
+      loading.style.display = 'inline-block';
+      
+      setTimeout(() => {
+        try {
+          switch(selectedExportFormat) {
+            case 'svg':
+              exportSVG();
+              break;
+            case 'png':
+              exportPNG();
+              break;
+            case 'pdf':
+              exportPDF();
+              break;
+            case 'json':
+              exportJSON();
+              break;
+            case 'csv':
+              exportCSV();
+              break;
+            case 'html':
+              exportHTML();
+              break;
+          }
+          
+          showToast(`Exported as ${selectedExportFormat.toUpperCase()}`, 'success');
+          closeExportModal();
+        } catch (error) {
+          showToast('Export failed: ' + error.message, 'error');
+        } finally {
+          exportBtn.disabled = false;
+          loading.style.display = 'none';
+        }
+      }, 500);
+    }
+    
+    function exportSVG() {
+      const svg = renderArea.querySelector('svg');
+      if (!svg) throw new Error('No SVG to export');
+      
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svg);
+      
+      if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      if (!source.match(/^<svg[^>]+"http:\/\/www\.w3\.org\/1999\/xlink"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+      }
+      
+      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+      
+      downloadFile(source, 'flowchart.svg', 'image/svg+xml');
+    }
+    
+    function exportPNG() {
+      const svg = renderArea.querySelector('svg');
+      if (!svg) throw new Error('No SVG to export');
+      
+      html2canvas(renderArea, {
+        backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+        scale: 2,
+        useCORS: true
+      }).then(canvas => {
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'flowchart.png';
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+      });
+    }
+    
+    function exportPDF() {
+      const svg = renderArea.querySelector('svg');
+      if (!svg) throw new Error('No SVG to export');
+      
+      html2canvas(renderArea, {
+        backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+        scale: 2,
+        useCORS: true
+      }).then(canvas => {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: canvas.width > canvas.height ? 'l' : 'p',
+          unit: 'mm'
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('flowchart.pdf');
+      });
+    }
+    
+    function exportJSON() {
+      const data = {
+        mode: currentMode,
+        code: codeInput.value,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          nodes: countNodes(),
+          zoom: currentZoom,
+          theme: isDarkMode ? 'dark' : 'light'
+        }
+      };
+      
+      downloadFile(JSON.stringify(data, null, 2), 'flowchart.json', 'application/json');
+    }
+    
+    function exportCSV() {
+      const code = codeInput.value;
+      let csv = 'Source,Target,Label,Type\n';
+      
+      try {
+        if (currentMode === 'mermaid') {
+          const lines = code.split('\n');
+          lines.forEach(line => {
+            const linkRegex = /(\w+)(?:\[[^\]]*\]|\(\([^)]+\)\)|\([^)]+\))?\s*--\s*(.*?)\s*-->\s*(\w+)/;
+            const match = line.match(linkRegex);
+            if (match) {
+              csv += `"${match[1]}","${match[3]}","${match[2].trim()}","link"\n`;
+            }
+          });
+        } else {
+          const lines = code.split('\n');
+          lines.forEach(line => {
+            if (line.includes('=>')) {
+              const [id, definition] = line.split('=>');
+              const [type, label] = definition.split(':');
+              csv += `"${id.trim()}","","${label ? label.trim() : ''}","${type.trim()}"\n`;
+            } else if (line.includes('->')) {
+              const parts = line.split('->');
+              if (parts.length >= 2) {
+                csv += `"${parts[0].trim()}","${parts[1].trim()}","","connection"\n`;
+              }
+            }
+          });
+        }
+        
+        downloadFile(csv, 'flowchart.csv', 'text/csv');
+      } catch (error) {
+        throw new Error('Failed to parse flowchart for CSV export');
+      }
+    }
+    
+    function exportHTML() {
+      const svg = renderArea.querySelector('svg');
+      if (!svg) throw new Error('No diagram to export');
+      
+      const htmlContent = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Flowchart Export</title>
+        <style>
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: #f8fafc;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+            }
+            .container {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                padding: 30px;
+                max-width: 90vw;
+                max-height: 90vh;
+                overflow: auto;
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #e5e7eb;
+            }
+            .header h1 {
+                color: #1f2937;
+                margin: 0;
+                font-size: 2rem;
+                font-weight: 700;
+            }
+            .header p {
+                color: #6b7280;
+                margin: 5px 0 0;
+                font-size: 0.9rem;
+            }
+            .diagram-container {
+                text-align: center;
+                overflow: auto;
+            }
+            svg {
+                max-width: 100%;
+                height: auto;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                background: white;
+            }
+            .footer {
+                text-align: center;
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid #e5e7eb;
+                color: #6b7280;
+                font-size: 0.8rem;
+            }
+            @media (max-width: 768px) {
+                .container { padding: 15px; }
+                .header h1 { font-size: 1.5rem; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Flowchart Diagram</h1>
+                <p>Generated on ${new Date().toLocaleDateString()}</p>
+                <p>Mode: ${currentMode === 'mermaid' ? 'Mermaid' : 'Flowchart.js'}</p>
+            </div>
+            <div class="diagram-container">
+                ${renderArea.innerHTML}
+            </div>
+            <div class="footer">
+                <p>Created with Advanced Pro Flowchart Maker</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+      
+      downloadFile(htmlContent, 'flowchart.html', 'text/html');
+    }
+    
+    // Utility functions
+    function downloadFile(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    
+    function countNodes() {
+      const code = codeInput.value;
+      if (currentMode === 'mermaid') {
+        const matches = code.match(/\w+(?:\[[^\]]*\]|\([^)]*\)|\{[^}]*\})/g);
+        return matches ? matches.length : 0;
+      } else {
+        const matches = code.match(/\w+\s*=>/g);
+        return matches ? matches.length : 0;
+      }
+    }
+    
+    function updateStatus() {
+      const nodeCount = countNodes();
+      document.getElementById('nodeCount').textContent = `Nodes: ${nodeCount}`;
+      
+      validateSyntax();
+    }
+    
+    function clearAll() {
+      if (confirm('Are you sure you want to clear everything?')) {
+        codeInput.value = '';
+        clearRender();
+        updateStatus();
+        showToast('Editor cleared', 'info');
+      }
+    }
+    
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      document.body.classList.toggle('dark-mode', isDarkMode);
+      
+      // Re-render to apply theme changes
+      if (renderArea.querySelector('svg')) {
+        render();
+      }
+      
+      showToast(`Switched to ${isDarkMode ? 'dark' : 'light'} theme`, 'info');
+    }
+    
+    function showError(message) {
+      showToast(message, 'error');
+    }
+    
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        font-size: 0.9rem;
+        max-width: 300px;
+        min-width: 200px;
+      `;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }, 3000);
+    }
+    
+    // Template Categories and Management
+    const templateCategories = {
+      business: [
+        {
+          name: "Customer Journey",
+          mode: "mermaid",
+          code: `graph TD
+        A[Customer Awareness] --> B[Interest]
+        B --> C[Consideration]
+        C --> D[Purchase]
+        D --> E[Retention]
+        E --> F[Advocacy]
+        F --> A
+        
+        C --> G[Abandonment]
+        G --> H[Retargeting]
+        H --> C`
+        },
+        {
+          name: "Sales Process",
+          mode: "flowchartjs",
+          code: `start=>start: Lead Generation
+    qualify=>operation: Qualify Lead
+    present=>operation: Present Solution
+    negotiate=>condition: Negotiate Terms
+    close=>operation: Close Deal
+    followup=>operation: Follow Up
+    end=>end: Customer Success
+    
+    start->qualify->present->negotiate
+    negotiate(yes)->close->followup->end
+    negotiate(no)->present`
+        }
+      ],
+      technical: [
+        {
+          name: "CI/CD Pipeline",
+          mode: "mermaid",
+          code: `graph LR
+        A[Code Commit] --> B[Build]
+        B --> C[Unit Tests]
+        C --> D{Tests Pass?}
+        D -->|Yes| E[Integration Tests]
+        D -->|No| F[Notify Developer]
+        E --> G{Integration OK?}
+        G -->|Yes| H[Deploy to Staging]
+        G -->|No| F
+        H --> I[Manual Testing]
+        I --> J{Staging OK?}
+        J -->|Yes| K[Deploy to Production]
+        J -->|No| F
+        K --> L[Monitor]
+        F --> A`
+        },
+        {
+          name: "API Error Handling",
+          mode: "mermaid",
+          code: `graph TD
+        A[API Request] --> B{Valid Request?}
+        B -->|No| C[400 Bad Request]
+        B -->|Yes| D{Authenticated?}
+        D -->|No| E[401 Unauthorized]
+        D -->|Yes| F{Authorized?}
+        F -->|No| G[403 Forbidden]
+        F -->|Yes| H[Process Request]
+        H --> I{Success?}
+        I -->|Yes| J[200 Success]
+        I -->|No| K{Server Error?}
+        K -->|Yes| L[500 Internal Error]
+        K -->|No| M[400 Bad Request]`
+        }
+      ]
+    };
+    
+    // Template browser functionality
+    function showTemplateBrowser() {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      
+      let categoriesHTML = '';
+      Object.keys(templateCategories).forEach(category => {
+        const templates = templateCategories[category];
+        const templatesHTML = templates.map(template => `
+          <div class="template-item" data-code="${encodeURIComponent(template.code)}" data-mode="${template.mode}">
+            <h4>${template.name}</h4>
+            <p>Mode: ${template.mode === 'mermaid' ? 'Mermaid' : 'Flowchart.js'}</p>
+            <div class="template-preview">${template.code.split('\n').slice(0, 3).join('\n')}...</div>
+          </div>
+        `).join('');
+        
+        categoriesHTML += `
+          <div class="template-category">
+            <h3>${category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+            <div class="template-grid">${templatesHTML}</div>
+          </div>
+        `;
+      });
+      
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+          <div class="modal-header">
+            <h3>Template Browser</h3>
+            <button onclick="this.closest('.modal').remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+          </div>
+          <div style="padding: 0 1rem;">
+            ${categoriesHTML}
+          </div>
+        </div>
+        <style>
+          .template-category { margin-bottom: 2rem; }
+          .template-category h3 { color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+          .template-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+          .template-item { 
+            border: 2px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; cursor: pointer; 
+            transition: all 0.2s ease; background: #f8fafc;
+          }
+          .template-item:hover { border-color: #3b82f6; background: #eff6ff; transform: translateY(-2px); }
+          .template-item h4 { margin: 0 0 0.5rem; color: #1f2937; }
+          .template-item p { margin: 0 0 0.5rem; color: #6b7280; font-size: 0.8rem; }
+          .template-preview { 
+            background: #1f2937; color: #f1f5f9; padding: 0.5rem; border-radius: 0.5rem; 
+            font-family: monospace; font-size: 0.8rem; line-height: 1.4; 
+          }
+        </style>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Add click handlers
+      modal.querySelectorAll('.template-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const code = decodeURIComponent(this.dataset.code);
+          const mode = this.dataset.mode;
+          
+          if (mode !== currentMode) {
+            switchMode(mode);
+          }
+          
+          codeInput.value = code;
+          render();
+          modal.remove();
+          showToast('Template loaded successfully', 'success');
+        });
+      });
+    }
+    
+    // Diagram analysis and insights
+    function analyzeFlowchart() {
+      const code = codeInput.value;
+      const analysis = {
+        nodeCount: 0,
+        connections: 0,
+        complexity: 'Low',
+        cycles: false,
+        recommendations: []
+      };
+      
+      if (currentMode === 'mermaid') {
+        const nodes = code.match(/\w+(?:\[[^\]]*\]|\([^)]*\)|\{[^}]*\})/g) || [];
+        const connections = code.match(/-->/g) || [];
+        
+        analysis.nodeCount = nodes.length;
+        analysis.connections = connections.length;
+        
+        if (analysis.nodeCount > 15) analysis.complexity = 'High';
+        else if (analysis.nodeCount > 8) analysis.complexity = 'Medium';
+        
+        // Check for potential cycles
+        if (code.includes('-->') && code.split('-->').length > analysis.nodeCount) {
+          analysis.cycles = true;
+        }
+      } else {
+        const nodes = code.match(/\w+\s*=>/g) || [];
+        const connections = code.match(/->/g) || [];
+        
+        analysis.nodeCount = nodes.length;
+        analysis.connections = connections.length;
+        
+        if (analysis.nodeCount > 12) analysis.complexity = 'High';
+        else if (analysis.nodeCount > 6) analysis.complexity = 'Medium';
+      }
+      
+      // Generate recommendations
+      if (analysis.nodeCount === 0) {
+        analysis.recommendations.push('Start by adding some nodes to your flowchart');
+      }
+      if (analysis.nodeCount > 20) {
+        analysis.recommendations.push('Consider breaking this into smaller sub-diagrams');
+      }
+      if (analysis.connections < analysis.nodeCount - 1) {
+        analysis.recommendations.push('Some nodes might be disconnected');
+      }
+      if (analysis.cycles) {
+        analysis.recommendations.push('Detected potential loops - verify they are intentional');
+      }
+      
+      return analysis;
+    }
+    
+    function showAnalysis() {
+      const analysis = analyzeFlowchart();
+      
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Flowchart Analysis</h3>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: #f3f4f6; padding: 1rem; border-radius: 0.5rem;">
+              <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">${analysis.nodeCount}</div>
+              <div style="color: #6b7280;">Nodes</div>
+            </div>
+            <div style="background: #f3f4f6; padding: 1rem; border-radius: 0.5rem;">
+              <div style="font-size: 2rem; font-weight: bold; color: #10b981;">${analysis.connections}</div>
+              <div style="color: #6b7280;">Connections</div>
+            </div>
+            <div style="background: #f3f4f6; padding: 1rem; border-radius: 0.5rem;">
+              <div style="font-size: 1.5rem; font-weight: bold; color: ${analysis.complexity === 'High' ? '#ef4444' : analysis.complexity === 'Medium' ? '#f59e0b' : '#10b981'};">${analysis.complexity}</div>
+              <div style="color: #6b7280;">Complexity</div>
+            </div>
+            <div style="background: #f3f4f6; padding: 1rem; border-radius: 0.5rem;">
+              <div style="font-size: 1.5rem; font-weight: bold; color: ${analysis.cycles ? '#f59e0b' : '#10b981'};">${analysis.cycles ? 'Yes' : 'No'}</div>
+              <div style="color: #6b7280;">Has Cycles</div>
+            </div>
+          </div>
+          ${analysis.recommendations.length > 0 ? `
+            <div style="background: #eff6ff; border: 1px solid #3b82f6; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+              <h4 style="margin: 0 0 0.5rem; color: #1e40af;">Recommendations:</h4>
+              <ul style="margin: 0; padding-left: 1.5rem;">
+                ${analysis.recommendations.map(rec => `<li style="color: #1e40af; margin: 0.25rem 0;">${rec}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="btn btn-primary" onclick="this.closest('.modal').remove()">Close</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    // Collaboration features
+    function generateShareableLink() {
+      const data = {
+        code: codeInput.value,
+        mode: currentMode,
+        timestamp: new Date().toISOString()
+      };
+      
+      const compressed = btoa(JSON.stringify(data));
+      const shareUrl = `${window.location.origin}${window.location.pathname}?share=${compressed}`;
+      
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast('Shareable link copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Failed to copy link', 'error');
+      });
+    }
+    
+    function showCollaborationOptions() {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Collaboration Options</h3>
+          </div>
+          <div style="display: grid; gap: 1rem; margin-bottom: 1.5rem;">
+            <button class="btn btn-primary" onclick="generateShareableLink(); this.closest('.modal').remove();">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>
+              </svg>
+              Generate Shareable Link
+            </button>
+            <button class="btn btn-secondary" onclick="exportForComment(); this.closest('.modal').remove();">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/>
+              </svg>
+              Export for Review
+            </button>
+            <button class="btn btn-secondary" onclick="showVersionHistory(); this.closest('.modal').remove();">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Version History
+            </button>
+          </div>
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Close</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    function exportForComment() {
+      const data = {
+        code: codeInput.value,
+        mode: currentMode,
+        timestamp: new Date().toISOString(),
+        analysis: analyzeFlowchart(),
+        metadata: {
+          version: '1.0',
+          author: 'Anonymous',
+          title: 'Flowchart for Review'
+        }
+      };
+      
+      downloadFile(JSON.stringify(data, null, 2), 'flowchart-review.json', 'application/json');
+      showToast('Exported for review', 'success');
+    }
+    
+    function showVersionHistory() {
+      // Simulate version history
+      const versions = [
+        { version: '1.0', date: new Date(Date.now() - 86400000).toLocaleDateString(), changes: 'Initial version' },
+        { version: '1.1', date: new Date(Date.now() - 43200000).toLocaleDateString(), changes: 'Added decision nodes' },
+        { version: '1.2', date: new Date().toLocaleDateString(), changes: 'Current version' }
+      ];
+      
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Version History</h3>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            ${versions.map(v => `
+              <div style="border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.5rem; background: ${v.version === '1.2' ? '#eff6ff' : 'white'};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong>Version ${v.version}</strong>
+                    <div style="font-size: 0.8rem; color: #6b7280;">${v.date}</div>
+                  </div>
+                  <div style="font-size: 0.8rem; color: #6b7280;">${v.changes}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="btn btn-primary" onclick="this.closest('.modal').remove()">Close</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    // Drag and drop functionality
+    function setupDragAndDrop() {
+      renderArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        renderArea.style.borderColor = '#3b82f6';
+        renderArea.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+      });
+      
+      renderArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        renderArea.style.borderColor = '';
+        renderArea.style.backgroundColor = '';
+      });
+      
+      renderArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        renderArea.style.borderColor = '';
+        renderArea.style.backgroundColor = '';
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          const file = files[0];
+          if (file.type === 'text/plain' || file.name.endsWith('.mmd') || file.name.endsWith('.flow')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              codeInput.value = e.target.result;
+              render();
+              showToast('File loaded successfully', 'success');
+            };
+            reader.readAsText(file);
+          } else {
+            showToast('Please drop a valid flowchart file (.mmd, .flow, .txt)', 'warning');
+          }
+        }
+      });
+    }
+    
+    // Auto-save functionality
+    function setupAutoSave() {
+      const AUTOSAVE_KEY = 'flowchart_autosave';
+      
+      // Load autosaved content
+      const savedContent = localStorage.getItem(AUTOSAVE_KEY);
+      if (savedContent && !codeInput.value.trim()) {
+        try {
+          const data = JSON.parse(savedContent);
+          if (data.code && data.code.trim()) {
+            codeInput.value = data.code;
+            if (data.mode && data.mode !== currentMode) {
+              switchMode(data.mode);
+            }
+            render();
+            showToast('Restored from autosave', 'info');
+          }
+        } catch (e) {
+          console.warn('Failed to restore autosave:', e);
+        }
+      }
+      
+      // Auto-save on input
+      let autoSaveTimer;
+      codeInput.addEventListener('input', function() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+          const data = {
+            code: codeInput.value,
+            mode: currentMode,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+        }, 2000);
+      });
+    }
+    
+    // Load shared content
+    function loadFromShare() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareData = urlParams.get('share');
+      
+      if (shareData) {
+        try {
+          const data = JSON.parse(atob(shareData));
+          if (data.code) {
+            codeInput.value = data.code;
+            if (data.mode) {
+              switchMode(data.mode);
+            }
+            render();
+            showToast('Shared flowchart loaded', 'success');
+            
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (e) {
+          showToast('Invalid share link', 'error');
+        }
+      }
+    }
+    
+    // Performance monitoring
+    function setupPerformanceMonitoring() {
+      const observer = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        entries.forEach((entry) => {
+          if (entry.name.includes('render')) {
+            document.getElementById('renderTime').textContent = 
+              `Render: ${Math.round(entry.duration)}ms`;
+          }
+        });
+      });
+      
+      observer.observe({ entryTypes: ['measure'] });
+    }
+    
+    // Error handling and recovery
+    window.addEventListener('error', function(e) {
+      console.error('Global error:', e);
+      showToast('An error occurred. Please try refreshing the page.', 'error');
+    });
+    
+    // Prevent data loss
+    window.addEventListener('beforeunload', function(e) {
+      if (codeInput.value.trim()) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    });
+    
+    // Advanced export with custom options
+    function showAdvancedExport() {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+          <div class="modal-header">
+            <h3>Advanced Export Options</h3>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Export Format:</label>
+            <select id="advancedFormat" class="form-control" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.5rem;">
+              <option value="svg">SVG (Vector)</option>
+              <option value="png">PNG (High Quality)</option>
+              <option value="jpg">JPEG (Compressed)</option>
+              <option value="pdf">PDF (Document)</option>
+              <option value="html">HTML (Standalone)</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Quality/Scale:</label>
+            <input type="range" id="qualityRange" min="1" max="4" value="2" step="0.5" style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280;">
+              <span>1x</span><span>2x (Default)</span><span>4x</span>
+            </div>
+          </div>
+          <div style="margin-bottom: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input type="checkbox" id="includeBackground" checked>
+              Include background color
+            </label>
+          </div>
+          <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+            <button class="btn btn-primary" onclick="executeAdvancedExport(this.closest('.modal'))">Export</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    function executeAdvancedExport(modal) {
+      const format = modal.querySelector('#advancedFormat').value;
+      const quality = parseFloat(modal.querySelector('#qualityRange').value);
+      const includeBackground = modal.querySelector('#includeBackground').checked;
+      
+      showToast(`Exporting as ${format.toUpperCase()} with ${quality}x quality...`, 'info');
+      
+      setTimeout(() => {
+        modal.remove();
+        showToast('Advanced export completed', 'success');
+      }, 1000);
+    }
+    
+    // File operations
+    function importFile() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.mmd,.flow,.txt,.json';
+      input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              let content = e.target.result;
+              
+              // If it's a JSON file, try to parse it
+              if (file.name.endsWith('.json')) {
+                const data = JSON.parse(content);
+                if (data.code) {
+                  content = data.code;
+                  if (data.mode && data.mode !== currentMode) {
+                    switchMode(data.mode);
+                  }
+                }
+              }
+              
+              codeInput.value = content;
+              render();
+              showToast(`File "${file.name}" imported successfully`, 'success');
+            } catch (error) {
+              showToast('Failed to import file: ' + error.message, 'error');
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+    
+    // Add import button to header
+    document.addEventListener('DOMContentLoaded', function() {
+      const importBtn = document.createElement('button');
+      importBtn.className = 'btn btn-secondary';
+      importBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/>
+        </svg>
+        Import
+      `;
+      importBtn.onclick = importFile;
+      
+      document.querySelector('.header-actions').insertBefore(
+        importBtn, 
+        document.querySelector('.btn-primary')
+      );
+    });
+    
+    // Fullscreen functionality
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          showToast('Error attempting to enable fullscreen: ' + err.message, 'error');
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    
+    // Add fullscreen button
+    document.addEventListener('DOMContentLoaded', function() {
+      const fullscreenBtn = document.createElement('button');
+      fullscreenBtn.className = 'btn btn-secondary tooltip';
+      fullscreenBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 7V4a1 1 0 011-1h3m0 0V1m0 2h2M7 3v4M17 3h3a1 1 0 011 1v3m0 0h2m-2 0v2m0-2h-4M21 17v3a1 1 0 01-1 1h-3m0 0v2m0-2h-2m2 0v-4M7 21H4a1 1 0 01-1-1v-3m0 0H1m2 0v-2m0 2h4"/>
+        </svg>
+        <span class="tooltiptext">Toggle Fullscreen</span>
+      `;
+      fullscreenBtn.onclick = toggleFullscreen;
+      
+      document.querySelector('.header-actions').appendChild(fullscreenBtn);
+    });
+    
+    // Initialize all features when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        // All initialization is already handled in the existing DOMContentLoaded listeners
+      });
+    } else {
+      // Page already loaded, initialize immediately
+      loadSample();
+      setupEventListeners();
+      updateStatus();
+    }
+  </script>
+
+
+  <div class="samples-grid" id="samplesGrid"></div>
+
+  <script>
+    // Your JSON data
+    const samples = [
+      {
+        mode: "mermaid",
+        code: `graph TD
+          A[Start] --> B{Decision}
+          B -->|Yes| C[Process 1]
+          B -->|No| D[Process 2]
+          C --> E[End]
+          D --> E`,
+        title: "🔄 Basic Decision Flow",
+        desc: "Simple decision tree with branching logic"
+      },
+      {
+        mode: "mermaid",
+        code: `graph LR
+          A[User] --> B[Login]
+          B --> C{Valid?}
+          C -->|Yes| D[Dashboard]
+          C -->|No| E[Error]
+          E --> B
+          D --> F[Logout]
+          F --> A`,
+        title: "🔐 User Authentication",
+        desc: "Login flow with error handling"
+      },
+      {
+        mode: "mermaid",
+        code: `graph TD
+          A[Requirements] --> B[Design]
+          B --> C[Development]
+          C --> D[Testing]
+          D --> E{Pass?}
+          E -->|No| C
+          E -->|Yes| F[Deployment]
+          F --> G[Maintenance]`,
+        title: "⚙️ Software Development",
+        desc: "SDLC with iterative testing"
+      },
+      {
+        mode: "mermaid",
+        code: `graph TB
+          subgraph Frontend
+              A[React App]
+              B[Vue.js]
+              C[Angular]
+          end
+          subgraph Backend
+              D[Node.js]
+              E[Python Flask]
+              F[Java Spring]
+          end
+          subgraph Database
+              G[MySQL]
+              H[MongoDB]
+              I[PostgreSQL]
+          end
+          A --> D
+          B --> E
+          C --> F
+          D --> G
+          E --> H
+          F --> I`,
+        title: "🏗️ System Architecture",
+        desc: "Multi-tier application structure"
+      },
+      {
+        mode: "mermaid",
+        code: `gitgraph
+          commit id: "Initial"
+          branch develop
+          checkout develop
+          commit id: "Feature A"
+          commit id: "Feature B"
+          checkout main
+          merge develop
+          commit id: "Release 1.0"
+          branch hotfix
+          commit id: "Bug fix"
+          checkout main
+          merge hotfix`,
+        title: "🌿 Git Workflow",
+        desc: "Branch management and merging"
+      },
+      {
+        mode: "mermaid",
+        code: `graph TD
+          A[Customer Awareness] --> B[Interest]
+          B --> C[Consideration]
+          C --> D[Purchase]
+          D --> E[Retention]
+          E --> F[Advocacy]
+          F --> A
+  
+          C --> G[Abandonment]
+          G --> H[Retargeting]
+          H --> C`,
+        title: "🛒 Customer Journey",
+        desc: "Marketing funnel with retargeting"
+      },
+      {
+        mode: "flowchartjs",
+        code: `st=>start: Start
+    e=>end: End
+    op1=>operation: Initialize
+    op2=>operation: Process Data
+    op3=>operation: Generate Output
+    cond=>condition: Data Valid?
+    io=>inputoutput: Get Input
+  
+    st->io->op1->cond
+    cond(yes)->op2->op3->e
+    cond(no)->io`,
+        title: "📊 Data Processing",
+        desc: "Input validation and processing workflow"
+      },
+      {
+        mode: "flowchartjs",
+        code: `start=>start: Customer Order
+    process1=>operation: Check Inventory
+    process2=>operation: Process Payment
+    process3=>operation: Ship Product
+    process4=>operation: Send Notification
+    decision=>condition: In Stock?
+    decision2=>condition: Payment OK?
+    end=>end: Order Complete
+  
+    start->process1->decision
+    decision(yes)->process2->decision2
+    decision(no)->end
+    decision2(yes)->process3->process4->end
+    decision2(no)->end`,
+        title: "🛒 E-commerce Flow",
+        desc: "Order processing with validations"
+      },
+      {
+        mode: "flowchartjs",
+        code: `start=>start: Bug Report
+    classify=>operation: Classify Bug
+    priority=>condition: High Priority?
+    assign=>operation: Assign Developer
+    develop=>operation: Fix Bug
+    test=>operation: Test Fix
+    verify=>condition: Fix Works?
+    deploy=>operation: Deploy Fix
+    close=>end: Close Ticket
+  
+    start->classify->priority
+    priority(yes)->assign->develop->test->verify
+    priority(no)->assign
+    verify(yes)->deploy->close
+    verify(no)->develop`,
+        title: "🐛 Bug Tracking",
+        desc: "Issue resolution workflow"
+      },
+      {
+        mode: "mermaid",
+        code: `sequenceDiagram
+          participant User
+          participant Frontend
+          participant API
+          participant Database
+  
+          User->>Frontend: Submit Form
+          Frontend->>API: POST /api/data
+          API->>Database: INSERT query
+          Database-->>API: Success
+          API-->>Frontend: 200 OK
+          Frontend-->>User: Success Message`,
+        title: "🔄 API Sequence",
+        desc: "Request-response flow diagram"
+      },
+      {
+        mode: "mermaid",
+        code: `erDiagram
+          USER ||--o{ ORDER : places
+          ORDER ||--|{ ORDER_ITEM : contains
+          ORDER_ITEM }o--|| PRODUCT : references
+          PRODUCT ||--o{ CATEGORY : belongs_to
+  
+          USER {
+              int id PK
+              string name
+              string email
+              date created_at
+          }
+          ORDER {
+              int id PK
+              int user_id FK
+              date order_date
+              decimal total
+          }
+          PRODUCT {
+              int id PK
+              string name
+              decimal price
+              int category_id FK
+          }
+          CATEGORY {
+              int id PK
+              string name
+              string description
+          }
+          ORDER_ITEM {
+              int order_id FK
+              int product_id FK
+              int quantity
+              decimal price
+          }`,
+        title: "🗄️ Database Schema",
+        desc: "Entity relationship diagram"
+      },
+      {
+        mode: "mermaid",
+        code: `graph TD
+          A[Identify Learning Goal] --> B[Assess Current Knowledge]
+          B --> C[Create Learning Plan]
+          C --> D[Study Material]
+          D --> E[Practice]
+          E --> F{Understanding?}
+          F -->|No| D
+          F -->|Yes| G[Apply Knowledge]
+          G --> H[Get Feedback]
+          H --> I{Proficient?}
+          I -->|No| E
+          I -->|Yes| J[Master Skill]
+          J --> K[Teach Others]`,
+        title: "📚 Learning Process",
+        desc: "Educational workflow and mastery"
+      },
+      {
+        mode: "flowchartjs",
+        code: `start=>start: Project Start
+    planning=>operation: Project Planning
+    execution=>operation: Execute Tasks
+    monitoring=>operation: Monitor Progress
+    control=>condition: On Track?
+    issue=>operation: Address Issues
+    review=>operation: Review Deliverables
+    complete=>condition: Project Complete?
+    closure=>operation: Project Closure
+    end=>end: Project End
+  
+    start->planning->execution->monitoring->control
+    control(yes)->review->complete
+    control(no)->issue->execution
+    complete(yes)->closure->end
+    complete(no)->execution`,
+        title: "📋 Project Management",
+        desc: "Complete project lifecycle"
+      },
+      {
+        mode: "mermaid",
+        code: `graph LR
+          A[Code Commit] --> B[Build]
+          B --> C[Unit Tests]
+          C --> D{Tests Pass?}
+          D -->|Yes| E[Integration Tests]
+          D -->|No| F[Notify Developer]
+          E --> G{Integration OK?}
+          G -->|Yes| H[Deploy to Staging]
+          G -->|No| F
+          H --> I[Manual Testing]
+          I --> J{Staging OK?}
+          J -->|Yes| K[Deploy to Production]
+          J -->|No| F
+          K --> L[Monitor]
+          F --> A`,
+        title: "🚀 CI/CD Pipeline",
+        desc: "Continuous integration and deployment"
+      },
+      {
+        mode: "mermaid",
+        code: `graph TD
+          A[API Request] --> B{Valid Request?}
+          B -->|No| C[400 Bad Request]
+          B -->|Yes| D{Authenticated?}
+          D -->|No| E[401 Unauthorized]
+          D -->|Yes| F{Authorized?}
+          F -->|No| G[403 Forbidden]
+          F -->|Yes| H[Process Request]
+          H --> I{Success?}
+          I -->|Yes| J[200 Success]
+          I -->|No| K{Server Error?}
+          K -->|Yes| L[500 Internal Error]
+          K -->|No| M[400 Bad Request]`,
+        title: "🔒 API Error Handling",
+        desc: "Comprehensive error management"
+      }
+    ];
+  
+    // Render buttons dynamically
+    const container = document.getElementById("samplesGrid");
+  
+    samples.forEach(sample => {
+      const btn = document.createElement("button");
+      btn.className = "sample-btn";
+      btn.dataset.mode = sample.mode;
+      btn.dataset.code = sample.code;
+  
+      btn.innerHTML = `
+        <div class="sample-title">${sample.title}</div>
+        <div class="sample-desc">${sample.desc}</div>
+        <div class="sample-mode">${sample.mode}</div>
+      `;
+  
+      container.appendChild(btn);
+    });
+  </script>
+  
+  
+</body>
+</html>

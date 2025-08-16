@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>We1 | UI FlowForge</title>
+  <link rel="icon" href="../logo.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap, jQuery, Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet"/>
+
+  <!-- GoJS + extra figures + jsPDF -->
+  <script src="https://unpkg.com/gojs/release/go.js"></script>
+  <script src="https://unpkg.com/gojs/extensions/Figures.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0f172a;--text:#e5e7eb;--canvas:#0b1220;--border:#334155;--accent:#22d3ee;
+      --toolbar:#111827;--sidebar:#0b1020;--card:#111827;
+    }
+    .light-theme{
+      --bg:#f8fafc;--text:#0f172a;--canvas:#ffffff;--border:#94a3b8;--accent:#0ea5e9;
+      --toolbar:#e2e8f0;--sidebar:#f1f5f9;--card:#ffffff;
+    }
+    body{background:var(--bg);color:var(--text);} 
+    .sidebar{background:var(--sidebar);border-right:1px solid var(--border);} 
+    .brand{border-bottom:1px solid var(--border);} 
+    .toolbar{background:var(--toolbar);border-bottom:1px solid var(--border);} 
+    .card-like{background:var(--card);border:1px solid var(--border);} 
+    #diagramDiv{background:var(--canvas);}
+    .shape-pill{border:1px solid var(--border);}
+    /* Hover dropdown for Export */
+    .dropdown-hover:hover .dropdown-menu{display:block;}
+    .dropdown-menu{border:1px solid var(--border);} 
+    .tag-pill{font-size:.75rem} 
+  </style>
+</head>
+<body class="d-flex flex-column" style="min-height:100vh;">
+  <!-- Header / Toolbar (kept concept, now Bootstrap) -->
+  <nav class="toolbar navbar navbar-expand px-2">
+    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none text-reset" href="#">
+      <span class="navbar-brand fw-bold" style="display: flex;align-items: center;gap: 10px;">
+        <img src="../logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 5px;" />
+        <strong>UI FlowForge</strong>
+      </span>
+    </a>
+
+    <div class="navbar-nav flex-row gap-2 ms-2 align-items-center flex-wrap">
+      <div class="small">Shapes</div>
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-light" id="btnAddStart"><i class="fa-solid fa-circle"></i></button>
+        <button class="btn btn-sm btn-outline-light" id="btnAddProcess"><i class="fa-solid fa-square"></i></button>
+        <button class="btn btn-sm btn-outline-light" id="btnAddDecision"><i class="fa-solid fa-diamond"></i></button>
+        <button class="btn btn-sm btn-outline-light" id="btnAddTriangle"><i class="fa-solid fa-play"></i></button>
+      </div>
+      <button class="btn btn-sm btn-outline-danger" id="btnDelete"><i class="fa-solid fa-trash"></i></button>
+    </div>
+
+    <div class="navbar-nav flex-row gap-2 ms-3 align-items-center">
+      <select class="form-select form-select-sm" id="layoutMode" style="width:220px">
+        <option value="LR">Layout: Left → Right</option>
+        <option value="TB">Layout: Top → Bottom</option>
+        <option value="FORCE">Layout: Force</option>
+        <option value="FREE">Layout: Freeform (manual)</option>
+      </select>
+      <button class="btn btn-sm btn-outline-light" id="btnGroup"><i class="fa-solid fa-object-group"></i></button>
+      <button class="btn btn-sm btn-outline-light" id="btnUngroup"><i class="fa-solid fa-object-ungroup"></i></button>
+    </div>
+
+    <div class="navbar-nav flex-row align-items-center gap-2 ms-3">
+      <div class="btn-group" role="group" aria-label="zoom">
+        <button class="btn btn-sm btn-outline-light" id="btnZoomIn"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+        <button class="btn btn-sm btn-outline-light" id="btnZoomOut"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+      </div>
+    </div>
+
+    <div class="navbar-nav flex-row gap-2 ms-3 align-items-center">
+      <div class="d-flex align-items-center gap-1">
+        <span class="small">Fill</span>
+        <input type="color" id="fillPicker" class="form-control form-control-color" value="#3b82f6" title="Node Fill"/>
+      </div>
+      <div class="d-flex align-items-center gap-1">
+        <span class="small">Stroke</span>
+        <input type="color" id="strokePicker" class="form-control form-control-color" value="#0ea5e9" title="Node Stroke"/>
+      </div>
+      <div class="d-flex align-items-center gap-1">
+        <span class="small">Text</span>
+        <input type="color" id="textPicker" class="form-control form-control-color" value="#ffffff" title="Text Color"/>
+      </div>
+      <div class="d-flex align-items-center gap-1">
+        <span class="small">Link</span>
+        <input type="color" id="linkPicker" class="form-control form-control-color" value="#ffffff" title="Link Color"/>
+      </div>
+      <button class="btn btn-sm btn-outline-light" id="btnEditNode"><i class="fa-solid fa-pen-to-square"></i> Node Props</button>
+    </div>
+
+    <div class="navbar-nav ms-auto flex-row gap-2 align-items-center">
+      <div class="dropdown dropdown-hover">
+        <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-file-export"></i> Export</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#" id="expPNG">PNG</a></li>
+          <li><a class="dropdown-item" href="#" id="expSVG">SVG</a></li>
+          <li><a class="dropdown-item" href="#" id="expPDF">PDF</a></li>
+          <li><a class="dropdown-item" href="#" id="expJSON">JSON</a></li>
+        </ul>
+      </div>
+      <input type="file" id="importJSON" class="d-none" accept="application/json"/>
+      <button class="btn btn-sm btn-outline-light" id="btnImport" title="Import"><i class="fa-solid fa-file-import"></i></button>
+      <button class="btn btn-sm btn-outline-secondary" id="btnTheme" title="Toggle Dark Mode"><i class="fa-solid fa-circle-half-stroke"></i></button>
+    </div>
+  </nav>
+
+  <div class="container-fluid flex-fill">
+    <div class="row g-0" style="height:calc(100vh - 56px)">
+      <!-- Sidebar -->
+      <div class="col-3 col-lg-2 sidebar p-2 d-flex flex-column">
+        <div class="brand px-2 py-2 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <span class="rounded-circle" style="width:10px;height:10px;background:var(--accent);"></span>
+            <strong>Files</strong>
+          </div>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-warning" id="btnNew"><i class="fa-solid fa-file-circle-plus"></i></button>
+            <button class="btn btn-outline-success" id="btnSave"><i class="fa-solid fa-floppy-disk"></i></button>
+          </div>
+        </div>
+        <div id="filesList" class="mt-2 overflow-auto flex-grow-1"></div>
+
+        <div class="mt-2 p-2 card-like rounded-3" style="display:none">
+          <div class="fw-semibold small mb-2">Shapes Palette</div>
+          <div id="paletteDiv" style="height:200px" class="rounded-2"></div>
+          <div class="small text-secondary mt-1">Drag shapes onto canvas</div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="col-9 col-lg-10 d-flex flex-column">
+        <div id="diagramDiv" class="flex-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Node Properties Modal (text, tags) -->
+  <div class="modal fade" id="nodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content card-like">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Node</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Text</label>
+            <input type="text" class="form-control" id="nodeText"/>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tags (comma separated)</label>
+            <input type="text" class="form-control" id="nodeTags" placeholder="e.g. stage-1, backend"/>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="nodeSaveBtn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const $g = go.GraphObject.make;
+  let diagram, palette;
+
+  // ======= Diagram Setup =======
+  function initDiagram(){
+    diagram = $g(go.Diagram, "diagramDiv",{
+      "undoManager.isEnabled": true,
+      layout: $g(go.LayeredDigraphLayout,{direction:0}), // default LR
+      "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom,
+      "grid.visible": true,
+      "draggingTool.isGridSnapEnabled": true,
+      allowDrop: true
+    });
+
+    // Group (Stage) template
+    diagram.groupTemplate = $g(go.Group, "Auto",
+      {
+        background: "transparent",
+        selectable: true,
+        selectionAdornmentTemplate: $g(go.Adornment, "Auto",
+          $g(go.Shape, { fill: null, stroke: "dodgerblue", strokeWidth: 3 }),
+          $g(go.Placeholder)
+        )
+      },
+      $g(go.Shape, "RoundedRectangle", { fill: "rgba(56,189,248,.08)", stroke: "#38bdf8", strokeWidth: 2, parameter1: 14 }),
+      $g(go.Panel, "Vertical",
+        { defaultAlignment: go.Spot.Left, margin: 6 },
+        $g(go.Panel, "Horizontal",
+          { stretch: go.GraphObject.Horizontal },
+          $g(go.TextBlock, { font: "bold 12pt sans-serif", stroke: "#38bdf8", editable:true }, new go.Binding("text","stage")),
+          $g(go.TextBlock, { margin: new go.Margin(0,0,0,8), alignment: go.Spot.Right, stroke: "#94a3b8", font:"9pt sans-serif" }, new go.Binding("text","subtitle"))
+        ),
+        $g(go.Placeholder, { padding: 10 })
+      )
+    );
+
+    // Node template (with tags line)
+    diagram.nodeTemplate = $g(go.Node, "Auto",
+      { resizable: true, resizeObjectName: "SHAPE" },
+      $g(go.Shape, "RoundedRectangle",
+        { name:"SHAPE", fill: "#3b82f6", stroke: "#0ea5e9", strokeWidth:2, portId:"", fromLinkable:true, toLinkable:true, cursor:"pointer" },
+        new go.Binding("figure"), new go.Binding("fill"), new go.Binding("stroke")
+      ),
+      $g(go.Panel, "Vertical",
+        $g(go.TextBlock, { margin:6, editable:true, stroke:"white", font:"bold 14px sans-serif" }, new go.Binding("text").makeTwoWay(), new go.Binding("stroke","textColor")),
+        $g(go.TextBlock, { margin:new go.Margin(0,6,6,6), stroke:"#cbd5e1", font:"10px sans-serif" }, new go.Binding("text","tags", (t)=> Array.isArray(t)? t.join(", "): ""))
+      )
+    );
+
+    // Links
+    diagram.linkTemplate = $g(go.Link,
+      { routing: go.Link.AvoidsNodes, corner: 5, relinkableFrom:true, relinkableTo:true, curve: go.Link.JumpOver },
+      $g(go.Shape, { stroke: "#ffffff", strokeWidth: 2 }, new go.Binding("stroke","linkColor")),
+      $g(go.Shape, { toArrow: "Standard", stroke: null, fill: "#ffffff" }, new go.Binding("fill","linkColor"))
+    );
+
+    // Palette
+    palette = $g(go.Palette, "paletteDiv",{ nodeTemplate: diagram.nodeTemplate, contentAlignment: go.Spot.Center });
+    const common = { fill: "#3b82f6", stroke:"#0ea5e9", textColor:"#ffffff" };
+    palette.model = new go.GraphLinksModel([
+      { text:"Start", figure:"Circle", ...common },
+      { text:"End", figure:"Circle", ...common },
+      { text:"Process", figure:"RoundedRectangle", ...common },
+      { text:"Decision", figure:"Diamond", ...common },
+      { text:"Triangle", figure:"Triangle", ...common },
+    ]);
+
+    // Initial model
+    diagram.model = new go.GraphLinksModel([],[]);
+  }
+
+  // ======= Layout Switching =======
+  function setLayout(mode){
+    if(mode==="LR"){
+      diagram.layout = $g(go.LayeredDigraphLayout,{direction:0});
+    } else if(mode==="TB"){
+      diagram.layout = $g(go.LayeredDigraphLayout,{direction:90});
+    } else if(mode==="FORCE"){
+      diagram.layout = $g(go.ForceDirectedLayout);
+    } else { // FREE
+      diagram.layout = null; // manual
+    }
+    diagram.layoutDiagram(true);
+  }
+
+  // ======= Styling actions =======
+  function applyFill(color){
+    diagram.startTransaction("fill");
+    diagram.selection.each(p=>{ if(p instanceof go.Node) diagram.model.setDataProperty(p.data,"fill",color); });
+    diagram.commitTransaction("fill");
+  }
+  function applyStroke(color){
+    diagram.startTransaction("stroke");
+    diagram.selection.each(p=>{ if(p instanceof go.Node) diagram.model.setDataProperty(p.data,"stroke",color); });
+    diagram.commitTransaction("stroke");
+  }
+  function applyText(color){
+    diagram.startTransaction("text");
+    diagram.selection.each(p=>{ if(p instanceof go.Node) diagram.model.setDataProperty(p.data,"textColor",color); });
+    diagram.commitTransaction("text");
+  }
+  function applyLink(color){
+    diagram.startTransaction("link");
+    diagram.selection.each(p=>{ if(p instanceof go.Link){ diagram.model.setDataProperty(p.data,"linkColor",color); } });
+    // if no link selected, apply to all links
+    if(diagram.selection.count===0){ diagram.links.each(l=> diagram.model.setDataProperty(l.data|| (l.data={}),"linkColor",color)); }
+    diagram.commitTransaction("link");
+  }
+
+  // ======= Node modal (text + tags) =======
+  function openNodeModal(){
+    const sel = diagram.selection.first();
+    if(!(sel && sel instanceof go.Node)) { alert('Select a node first'); return; }
+    $('#nodeText').val(sel.data.text||'');
+    $('#nodeTags').val(Array.isArray(sel.data.tags)? sel.data.tags.join(', '):'');
+    const m = new bootstrap.Modal(document.getElementById('nodeModal')); m.show();
+    $('#nodeSaveBtn').off('click').on('click',()=>{
+      diagram.startTransaction('editNode');
+      diagram.model.setDataProperty(sel.data,'text',$('#nodeText').val());
+      const tags = $('#nodeTags').val().split(',').map(s=>s.trim()).filter(Boolean);
+      diagram.model.setDataProperty(sel.data,'tags',tags);
+      diagram.commitTransaction('editNode');
+      m.hide();
+    });
+  }
+
+  // ======= Grouping (Stage) =======
+  function groupAsStage(){
+    if(diagram.selection.count<1){ alert('Select nodes to group'); return; }
+    const parts = new go.Set(/*Part*/);
+    diagram.selection.each(p=>{ if(p instanceof go.Node && !p.isGroup) parts.add(p); });
+    if(parts.count===0){ alert('Select nodes (not links)'); return; }
+    diagram.startTransaction('group');
+    const gdata = { isGroup:true, stage:'Stage', subtitle:'', key: go.Model.generateKey() };
+    diagram.model.addNodeData(gdata);
+    const group = diagram.findNodeForData(gdata);
+    parts.each(n=>{ n.containingGroup = group; });
+    diagram.commitTransaction('group');
+    diagram.select(group);
+  }
+  function ungroup(){ diagram.commandHandler.ungroupSelection(); }
+
+  // ======= Exports =======
+  function canvasBG(){ return getComputedStyle(document.body).getPropertyValue('--canvas'); }
+  function exportPNG(){ const png = diagram.makeImageData({ background: canvasBG(), scale:2 }); downloadURI(png, filename()+'.png'); }
+  function exportSVG(){ const svg = diagram.makeSvg({ background: canvasBG(), scale:1 }); const blob = new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'}); downloadBlob(blob, filename()+'.svg'); }
+  function exportPDF(){ const { jsPDF } = window.jspdf; const pdf = new jsPDF({orientation:'l',unit:'pt',format:'a4'}); const png = diagram.makeImageData({ background: canvasBG(), scale:2 }); const W = pdf.internal.pageSize.getWidth(); const H = pdf.internal.pageSize.getHeight(); const w = W-40; const h = w*(diagram.documentBounds.height/diagram.documentBounds.width); pdf.addImage(png,'PNG',20,(H-h)/2,w,h); pdf.save(filename()+'.pdf'); }
+  function exportJSON(){ const json = diagram.model.toJson(); downloadBlob(new Blob([json],{type:'application/json'}), filename()+'.json'); }
+
+  // ======= LocalStorage Files =======
+  const LS_INDEX='we1.files.index';
+  const LS_FILE = id=>`we1.file.${id}`;
+  let currentId=null;
+
+  function loadIndex(){ try{return JSON.parse(localStorage.getItem(LS_INDEX))||[]}catch{ return []; } }
+  function saveIndex(list){ localStorage.setItem(LS_INDEX, JSON.stringify(list)); }
+  function filename(){ const it = loadIndex().find(f=>f.id===currentId); return it? it.name: 'flowchart'; }
+
+  function renderFiles(){
+    const $list = $('#filesList').empty();
+    const idx = loadIndex().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    if(idx.length===0){ $list.append('<div class="text-secondary small p-2">No files yet. Click + to create.</div>'); return; }
+    idx.forEach(f=>{
+      const row = $(`<div class='file-row d-flex align-items-center justify-content-between p-2 rounded-2 mb-2 card-like ${f.id===currentId?'active':''}'>
+        <div class='d-flex align-items-center gap-2'>
+          <i class='fa-regular fa-file-lines'></i>
+          <span class='fw-semibold small'>${f.name}</span>
+        </div>
+        <div class='btn-group btn-group-sm'>
+          <button class='btn btn-outline-primary btn-open'><i class='fa-solid fa-file'></i></button>
+          <button class='btn btn-outline-secondary btn-rename'><i class='fa-solid fa-pen'></i></button>
+          <button class='btn btn-outline-danger btn-del'><i class='fa-solid fa-trash'></i></button>
+        </div>
+      </div>`);
+      row.find('.btn-open').on('click',()=>openFile(f.id));
+      row.find('.btn-rename').on('click',()=>renameFile(f.id));
+      row.find('.btn-del').on('click',()=>deleteFile(f.id));
+      row.on('click', e=>{ if(e.target===row[0]) openFile(f.id); });
+      $list.append(row);
+    });
+  }
+
+  function newFile(){
+    const name = prompt('New file name:','Untitled'); if(!name) return;
+    const id = Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const idx = loadIndex(); idx.push({id,name,updatedAt:Date.now()}); saveIndex(idx);
+    localStorage.setItem(LS_FILE(id), JSON.stringify({id,name,modelJson: new go.GraphLinksModel([],[]).toJson()}));
+    currentId = id; diagram.model = new go.GraphLinksModel([],[]); renderFiles();
+  }
+  function saveFile(){ if(!currentId) return newFile(); const idx=loadIndex(); const it=idx.find(f=>f.id===currentId); if(!it) return newFile(); it.updatedAt=Date.now(); saveIndex(idx); localStorage.setItem(LS_FILE(currentId), JSON.stringify({id:currentId,name:it.name,modelJson: diagram.model.toJson()})); renderFiles(); alert('Saved: '+it.name); }
+  function openFile(id){ const raw=localStorage.getItem(LS_FILE(id)); if(!raw) return alert('File not found'); const data=JSON.parse(raw); currentId=id; diagram.model= go.Model.fromJson(data.modelJson); renderFiles(); }
+  function renameFile(id){ const idx=loadIndex(); const it=idx.find(f=>f.id===id); if(!it) return; const name=prompt('Rename:', it.name); if(!name) return; it.name=name; it.updatedAt=Date.now(); saveIndex(idx); const raw=JSON.parse(localStorage.getItem(LS_FILE(id))||'{}'); raw.name=name; localStorage.setItem(LS_FILE(id), JSON.stringify(raw)); renderFiles(); }
+  function deleteFile(id){ if(!confirm('Delete this file?')) return; const idx=loadIndex().filter(f=>f.id!==id); saveIndex(idx); localStorage.removeItem(LS_FILE(id)); if(currentId===id){ currentId=null; diagram.model=new go.GraphLinksModel([],[]);} renderFiles(); }
+
+  // ======= Utilities =======
+  function downloadURI(uri,name){ const a=document.createElement('a'); a.href=uri; a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+  function downloadBlob(blob,name){ const url=URL.createObjectURL(blob); downloadURI(url,name); setTimeout(()=>URL.revokeObjectURL(url),1000); }
+
+  // ======= Bootstrap & jQuery Wiring =======
+  $(function(){
+    initDiagram();
+
+    // Default file boot
+    const idx=loadIndex();
+    if(idx.length===0){
+      const id=Date.now().toString(36); const name='Welcome';
+      saveIndex([{id,name,updatedAt:Date.now()}]);
+      const model = new go.GraphLinksModel([
+        { key:1, text:'Start', figure:'Circle', fill:'#22c55e', stroke:'#16a34a', textColor:'#ffffff' },
+        { key:2, text:'Process', figure:'RoundedRectangle', fill:'#3b82f6', stroke:'#0ea5e9', textColor:'#ffffff' },
+        { key:3, text:'Decision', figure:'Diamond', fill:'#f59e0b', stroke:'#b45309', textColor:'#ffffff' },
+        { key:4, text:'End', figure:'Circle', fill:'#ef4444', stroke:'#b91c1c', textColor:'#ffffff' }
+      ], [ {from:1,to:2}, {from:2,to:3}, {from:3,to:4} ]);
+      localStorage.setItem(LS_FILE(id), JSON.stringify({id,name,modelJson: model.toJson()}));
+      currentId=id; openFile(id);
+    } else { currentId=idx[0].id; openFile(currentId); }
+    renderFiles();
+
+    // Quick add buttons
+    const quickAdd=(fig,text)=>{ diagram.startTransaction('add'); diagram.model.addNodeData({ text, figure:fig, fill:'#3b82f6', stroke:'#0ea5e9', textColor:'#ffffff' }); diagram.commitTransaction('add'); };
+    $('#btnAddStart').on('click',()=>quickAdd('Circle','Start'));
+    $('#btnAddProcess').on('click',()=>quickAdd('RoundedRectangle','Process'));
+    $('#btnAddDecision').on('click',()=>quickAdd('Diamond','Decision'));
+    $('#btnAddTriangle').on('click',()=>quickAdd('Triangle','Triangle'));
+
+    // Layout switching
+    $('#layoutMode').on('change', function(){ setLayout(this.value); });
+
+    // Colors
+    $('#fillPicker').on('input', e=> applyFill(e.target.value));
+    $('#strokePicker').on('input', e=> applyStroke(e.target.value));
+    $('#textPicker').on('input', e=> applyText(e.target.value));
+    $('#linkPicker').on('input', e=> applyLink(e.target.value));
+
+    // Node modal
+    $('#btnEditNode').on('click', openNodeModal);
+
+    // Grouping
+    $('#btnGroup').on('click', groupAsStage);
+    $('#btnUngroup').on('click', ungroup);
+
+    // Export / Import
+    $('#expPNG').on('click', e=>{e.preventDefault(); exportPNG();});
+    $('#expSVG').on('click', e=>{e.preventDefault(); exportSVG();});
+    $('#expPDF').on('click', e=>{e.preventDefault(); exportPDF();});
+    $('#expJSON').on('click', e=>{e.preventDefault(); exportJSON();});
+
+    $('#btnImport').on('click', ()=> $('#importJSON').trigger('click'));
+    $('#importJSON').on('change', async function(){ const f=this.files[0]; if(!f) return; const text=await f.text(); diagram.model = go.Model.fromJson(text); });
+
+    // Zoom / Delete
+    $('#btnZoomIn').on('click', ()=> diagram.scale += .1);
+    $('#btnZoomOut').on('click', ()=> diagram.scale = Math.max(.1, diagram.scale-.1));
+    $('#btnDelete').on('click', ()=>{ diagram.startTransaction('del'); diagram.commandHandler.deleteSelection(); diagram.commitTransaction('del'); });
+
+    // Files
+    $('#btnNew').on('click', newFile);
+    $('#btnSave').on('click', saveFile);
+
+    // Theme toggle
+    $('#btnTheme').on('click', ()=> $('body').toggleClass('light-theme'));
+
+    // Keyboard shortcuts
+    $(document).on('keydown', e=>{
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); saveFile(); }
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='n'){ e.preventDefault(); newFile(); }
+    });
+  });
+  </script>
+</body>
+</html>
