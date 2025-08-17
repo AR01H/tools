@@ -1,440 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>We1 | All Tools</title>
   <link rel="icon" href="logo.png" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary-color: #0a2540;
-      --secondary-color: #0a2540;
-      --background-color: #f4f6f8;
-      --card-bg: #fff;
-      --text-color: #333;
-      --text-muted: #555;
-      --tag-bg: #e0e0e0;
-      --tag-color: #333;
-      --radius: 12px;
-
-      /* Status Colors */
-      --status-upcoming: #ff9800;
-      --status-onbuild: #2196f3;
-      --status-live: #4caf50;
-
-      /* Info icon colors */
-      --info-bg: #35dcf9;
-      --info-border: blue;
-      --info-hover: #0a2540;
-
-      /* Popup colors */
-      --popup-bg: #fff;
-      --overlay-bg: rgba(0,0,0,0.5);
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--background-color);
-      color: var(--text-color);
-    }
-    h2.group-title{
-      border-bottom: 3px solid;
-    }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2rem;
-      background: var(--primary-color);
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 10000;
-    }
-
-
-    .toggle-btn {
-      padding: 0.4rem 1rem;
-      cursor: pointer;
-      background: #fff;
-      color: var(--primary-color);
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    .container {
-      padding: 2rem;
-      display: grid;
-      gap: 1.5rem;
-    }
-    .group-container{
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-
-    .app-card {
-      position: relative;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .app-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-
-    .app-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .app-card h3 {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-
-    .app-card p {
-      margin: 0;
-      font-size: 0.95rem;
-      color: var(--text-muted);
-    }
-
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .tag {
-      background: var(--tag-bg);
-      color: var(--tag-color);
-      padding: 0.2rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.8rem;
-    }
-
-    /* Status Colors */
-    .status-upcoming { border-left: 5px solid var(--status-upcoming); }
-    .status-onbuild { border-left: 5px solid var(--status-onbuild); }
-    .status-live { border-left: 5px solid var(--status-live); }
-
-    /* Info Icon */
-    .info-icon {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      cursor: pointer;
-      color: #555;
-      transition: color 0.2s;
-      background: var(--info-bg);
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--info-border);
-      font-size: 0.9rem;
-    }
-
-    .info-icon:hover {
-      color: var(--info-hover);
-    }
-
-    /* Popup Overlay */
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: var(--overlay-bg);
-      z-index: 999;
-    }
-
-    .popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--popup-bg);
-      padding: 2rem;
-      border-radius: var(--radius);
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-      z-index: 1000;
-      display: none;
-      animation: popupAnim 0.3s ease;
-    }
-
-    @keyframes popupAnim {
-      0% { transform: translate(-50%, -60%) scale(0.9); opacity: 0; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    }
-
-    .popup h3 {
-      margin-top: 0;
-    }
-
-    .popup ul {
-      list-style: none;
-      padding: 0;
-      margin: 1rem 0 0 0;
-    }
-
-    .popup ul li {
-      padding: 0.5rem 0;
-      position: relative;
-      padding-left: 1.5rem;
-    }
-
-    .popup ul li::before {
-      content: "➡️";
-      position: absolute;
-      left: 0;
-    }
-
-    .btn {
-      margin-top: auto;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      color: #fff;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    .btn-live { background: var(--status-live); }
-    .btn-onbuild { background: var(--status-onbuild); }
-    .btn-upcoming { background: var(--status-upcoming); }
-    .btn:disabled { background: #ccc; cursor: not-allowed; }
-
-    .close-btn {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background: var(--primary-color);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .close-btn:hover {
-      background: #112b4e;
-    }
-
-    /* Dark Mode */
-    body.dark-mode {
-      --background-color: #121212;
-      --card-bg: #1e1e1e;
-      --text-color: #e0e0e0;
-      --text-muted: #c0c0c0;
-      --tag-bg: #333;
-      --tag-color: #e0e0e0;
-      --popup-bg: #1e1e1e;
-      --overlay-bg: rgba(0,0,0,0.6);
-      --info-bg: #2196f3;
-      --info-border: #0a2540;
-      --info-hover: #fff;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-<header>
-  <div class="logo">
-    <span class="navbar-brand fw-bold" style="display: flex;align-items: center;gap: 10px;">
-      <img src="logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 5px;" />
-      <strong>All Tools</strong>
-    </span>
-  </div>
-  <button class="toggle-btn" id="darkToggle">Dark Mode</button>
-</header>
 
-<div class="container" id="appContainer"></div>
-
-<!-- Overlay & Popup -->
-<div class="overlay" id="overlay"></div>
-<div class="popup" id="popup">
-  <h3 id="popupTitle"></h3>
-  <ul id="popupList"></ul>
-  <button class="close-btn" id="closePopup">Close</button>
-</div>
-
-<script>
-// JSON Data
-const apps = [
-  {
-    icon: "fas fa-chart-line",
-    title: "UI FlowForge Creater",
-    desc: "Create the Flow chart with UI Drag & Drop.",
-    tags: ["Flowchart Design","UI"],
-    status: "live",
-    instructions: ["DragDrop and Design your sheet"],
-    link: "./flowChartMaker/uIFlowForge.html",
-    groupname: ['FlowChart Maker']
-  },
-  {
-    icon: "fas fa-chart-line",
-    title: "UI FlowForge Enhancer",
-    desc: "Create the Flow chart with UI Drag & Drop.",
-    tags: ["Flowchart Design","UI"],
-    status: "live",
-    link: "./flowChartMaker/uIFlowForgerEnhancer.html",
-    groupname: ['FlowChart Maker']
-  },
-  {
-    icon: "fas fa-code",
-    title: "Code FlowForge",
-    desc: "Create the Flow chart with Coding.",
-    tags: ["Flowchart Design","Code"],
-    status: "live",
-    link: "./flowChartMaker/codeFlowForge.html",
-    groupname: ['FlowChart Maker']
-  },
-  {
-    icon: "fas fa-code",
-    title: "Code FlowForge Colorizer",
-    desc: "Create the Flow chart with Coding.",
-    tags: ["Flowchart Design","Code"],
-    status: "live",
-    link: "./flowChartMaker/codeFlowForgeColorizer.html",
-    groupname: ['FlowChart Maker']
-  },
-  {
-    icon: "fas fa-code",
-    title: "Liver Markdown",
-    desc: "Create the Flow chart with Coding.",
-    tags: ["Md Writer","Code"],
-    status: "live",
-    link: "./mdFileWriter/liveCommonMarkdown.html",
-    groupname: ['Md - HTML Designer']
-  },
-  {
-    icon: "fas fa-code",
-    title: "Enhanced Markdown Designing",
-    desc: "Create the Flow chart with Coding.",
-    tags: ["Md Writer","Code"],
-    status: "live",
-    link: "./mdFileWriter/liveEnhancedMarkdown.html",
-    groupname: ['Md - HTML Designer']
-  },
-  {
-    icon: "fas fa-code",
-    title: "Complex Password Bank",
-    desc: "Design your password and store in a JSON in Encoded",
-    tags: ["Sensitive Info Json Maker","Code"],
-    status: "live",
-    link: "./passwordBank/index.html",
-    groupname: ['Password Store']
-  },
-];
-
-// Container for all apps
-const container = document.getElementById("appContainer");
-
-// Create a set of all groups
-const allGroups = new Set();
-apps.forEach(app => {
-  if (app.groupname && app.groupname.length) {
-    app.groupname.forEach(g => allGroups.add(g));
-  } else {
-    allGroups.add("Others");
-  }
-});
-
-// Generate HTML for each group
-allGroups.forEach(groupName => {
-  const section = document.createElement("div");
-  section.className = "app-group";
-
-  // Group title
-  const title = document.createElement("h2");
-  title.textContent = groupName;
-  title.className = "group-title";
-  section.appendChild(title);
-
-  // Cards container with flex layout
-  const groupContainer = document.createElement("div");
-  groupContainer.className = "group-container"; // flex container
-
-  apps.forEach(app => {
-    if ((app.groupname && app.groupname.includes(groupName)) || (!app.groupname && groupName === "Others")) {
-      const card = document.createElement("div");
-      card.className = `app-card status-${app.status}`;
-
-      // Button HTML
-      const buttonHTML = app.link
-        ? `<a href="${app.link}" target="_blank" class="btn-link">
-             <button class="btn btn-${app.status}" ${app.status === 'upcoming' ? 'disabled' : ''}>
-               ${app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-             </button>
-           </a>`
-        : `<button class="btn btn-${app.status}" ${app.status === 'upcoming' ? 'disabled' : ''}>
-             ${app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-           </button>`;
-
-      card.innerHTML = `
-        <i class="${app.icon} app-icon"></i>
-        <h3>${app.title}</h3>
-        <p>${app.desc}</p>
-        <div class="tags">
-          ${app.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}
+<body data-theme="dark">
+  <div  class="header">
+    <!-- Primary Header -->
+    <header>
+      <div class="header-content">
+        <div class="logo">
+          <img src="logo.png" alt="Logo" width="40" height="40">
+          <span>All Tools</span>
         </div>
-        ${buttonHTML}
-        ${app.instructions && app.instructions.length ? `<div class="info-icon"><i class="fas fa-info"></i></div>` : ''}
-      `;
+  
+        
+        <div class="header-controls">
+          <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-bar" placeholder="Search tools..." id="searchInput">
+          </div>
+          <button class="control-btn" id="themeToggle">
+            <i class="fas fa-moon"></i>
+          </button>
+          <button class="control-btn" id="layoutToggle">
+            <i class="fas fa-th"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+  
+    <!-- Group Filter Section -->
+    <div class="group-filter-section">
+      <div class="group-filters" id="groupFilters"></div>
+    </div>
+  
+    <!-- Secondary Header -->
+    <div class="secondary-header">
+      <div class="secondary-header-content">
+        <div class="filters" id="filterContainer">
+          <button class="filter-btn active" data-filter="all">All Tools</button>
+          <button class="filter-btn" data-filter="live">Live</button>
+          <button class="filter-btn" data-filter="onbuild">In Progress</button>
+          <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+        </div>
+  
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="grid">
+            <i class="fas fa-th"></i>
+          </button>
+          <button class="view-btn" data-view="list">
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+      </div>
+    </div>
 
-      groupContainer.appendChild(card);
-
-      // Info popup
-      if (app.instructions && app.instructions.length) {
-        const infoIcon = card.querySelector(".info-icon");
-        infoIcon.addEventListener("click", () => {
-          document.getElementById("popupTitle").textContent = `${app.title} Instructions`;
-          const list = document.getElementById("popupList");
-          list.innerHTML = app.instructions.map(inst => `<li>${inst}</li>`).join("");
-          document.getElementById("overlay").style.display = "block";
-          document.getElementById("popup").style.display = "block";
-        });
-      }
-    }
-  });
-
-  section.appendChild(groupContainer);
-  container.appendChild(section);
-});
-
-// Close popup
-document.getElementById("closePopup").addEventListener("click", () => {
-  document.getElementById("overlay").style.display = "none";
-  document.getElementById("popup").style.display = "none";
-});
-document.getElementById("overlay").addEventListener("click", () => {
-  document.getElementById("overlay").style.display = "none";
-  document.getElementById("popup").style.display = "none";
-});
-
-// Dark mode toggle
-const darkToggle = document.getElementById("darkToggle");
-darkToggle.addEventListener("click", () => {
-  document.body.classList.toggle("dark-mode");
-  darkToggle.textContent = document.body.classList.contains("dark-mode") ? "Light Mode" : "Dark Mode";
-});
-</script>
+  </div>
 
 
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <div id="toolsContainer"></div>
+
+
+    <!-- No Results Message -->
+    <div class="no-results" id="noResults" style="display: none;">
+      <i class="fas fa-search"></i>
+      <h3>No tools found</h3>
+      <p>Try adjusting your search or filter criteria</p>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <button class="close-btn" id="closeModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul class="instructions-list" id="instructionsList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
