@@ -43,7 +43,7 @@ const tools = [
       "Use the toolbar to adjust colors, styles, and layouts",
       "Export your flowchart as PNG, SVG, or PDF"
     ],
-    link: "./flowChartMaker/uiFlowChart.html",
+    link: "./flowChartMaker/uIFlowChart.html",
     groupname: ["FlowChart Maker", "Design Tools"]
   },
   {
@@ -59,7 +59,7 @@ const tools = [
       "Use the toolbar to adjust colors, styles, and layouts",
       "Export your flowchart as PNG, SVG, or PDF"
     ],
-    link: "./flowChartMaker/uiFlowChart_Enhancer.html",
+    link: "./flowChartMaker/uIFlowChart_Enhancer.html",
     groupname: ["FlowChart Maker", "Design Tools"]
   },
   {
