@@ -937,11 +937,65 @@
         /* General layout */
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          margin: 0 auto;
-          padding: 1rem 3rem;
-          line-height: 1.7;
-          background: #f9f9f9;
-          color: #333;
+        }
+
+
+        h1 {
+          position: sticky;
+          top: 0;
+          text-align: center;
+          font-size: 2.8rem;
+          margin: 0px !important;
+          color: #fff !important;
+          background: #111;
+          z-index: 999;
+          overflow: hidden;
+
+          /* Animated border setup */
+          border: 4px solid transparent;
+          border-radius: 4px;
+          background-clip: padding-box;
+
+          /* Extra style */
+          font-weight: 700;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Animated gradient border */
+        h1::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: -1;
+          margin: -4px; /* matches border width */
+          border-radius: inherit;
+          background: linear-gradient(270deg, #ff0080, #7928ca, #00dbde, #ff0080);
+          background-size: 600% 600%;
+          animation: borderAnim 8s linear infinite;
+          filter: blur(3px); /* gives glow effect */
+        }
+
+        /* Keyframes for animation */
+        @keyframes borderAnim {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        @keyframes textAnim {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        /* Optional: hover effect for more interactivity */
+        h1:hover::before {
+          filter: blur(6px);
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -965,29 +1019,34 @@
 
         /* Code and pre blocks */
         code {
-          background: #caea1a30;
+          color: #02e6e4f0;
+          background: #2c420a;
           padding: 2px 6px;
           border-radius: 4px;
-          font-family: 'Courier New', Courier, monospace;
           font-size: 0.95em;
         }
 
         pre {
-          background: #2d2d2d;
+          background: #656565;
           color: #f8f8f2;
-          padding: 1rem 1.2rem;
-          border-radius: 8px;
+          padding: 0.1rem 0.5rem;
+          border-radius: 4px;
           overflow-x: auto;
-          font-family: 'Courier New', monospace;
           font-size: 0.95em;
+        }
+
+        pre code {
+          background: none;
+          padding: 0;
+          color: #f8f8f2;
         }
 
         blockquote {
           border-left: 4px solid #0070f3;
           background: #f0f8ff;
-          padding: 1rem 1.25rem;
+          padding: 0.1rem 1.25rem;
           margin: 1.5rem 0;
-          border-radius: 6px;
+          border-radius: 2px;
         }
 
         hr {
@@ -996,15 +1055,8 @@
           margin: 2rem 0;
         }
 
-        /* Tables */
-        table {
-          border-collapse: collapse;
-          width: 100%;
-          margin-bottom: 2rem;
-        }
         th, td {
           border: 1px solid #ddd;
-          padding: 0.75rem 1rem;
           text-align: left;
         }
         th {
@@ -1018,14 +1070,97 @@
           border-radius: 8px;
         }
 
-        /* Lists */
-        ul, ol {
-          margin: 1rem 0 1rem 1.5rem;
+        p {
+          margin: 0px;
         }
+          
+
+      /* Table styles */
+      table {
+        width: 98%;
+        border-collapse: collapse;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      /* Table header */
+      thead {
+        background: linear-gradient(90deg, #7928ca, #ff0080);
+        color: #fff;
+      }
+
+      thead th {
+        text-align: left;
+        font-size: 1rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      /* Table body */
+      tbody tr {
+        border-bottom: 1px solid #eee;
+        transition: background 0.3s ease;
+      }
+
+      tbody tr:hover {
+        background: rgba(121, 40, 202, 0.08); /* light gradient color hover */
+      }
+
+      tbody td {
+        font-size: 0.95rem;
+        color: #333;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #fafafa;
+      }
+
+      ul {
+        list-style: disc; /* default bullets */
+        padding-left: 20px; /* space for bullets */
+        margin: 0;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      }
+      ul li {
+        color: #333;
+      }
+      ul li:hover {
+        color: #7928ca; /* color change on hover */
+      }
+      ul {
+        list-style: none; /* remove default */
+        padding-left: 0;
+      }
+
+      ul li {
+        position: relative;
+        padding-left: 25px;
+      }
+
+      ul li::before {
+        content: "•"; /* custom dot */
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-size: 1.2rem;
+        line-height: 1;
+        color: #7928ca; /* custom color */
+        transition: color 0.3s ease;
+      }
+
+      ul li:hover::before {
+        color: #ff0080; /* animate color on hover */
+      }
+
+
+
       </style>
     </head>
     <body>
-      ${marked.parse(content)}
+      <div>
+        ${marked.parse(content)}
+      <div>
     </body>
     </html>
     `;
