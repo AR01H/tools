@@ -263,8 +263,12 @@
       padding-left: 1rem;
       margin: 1rem 0;
       background: rgba(0,123,255,0.1);
-      padding: 0.5rem 1rem;
+      padding: 0.1rem 0.8rem;
       border-radius: 0 6px 6px 0;
+    }
+    p {
+      margin-top:0px !important;
+      margin-bottom: 0px !important;
     }
     
     #preview code {
@@ -1062,7 +1066,7 @@
           border-radius: 8px;
         }
         .simpletheme pre code { 
-          color: red;
+          color: #00ffbf;
           background: unset;
         }
 
@@ -1359,12 +1363,17 @@
   
 
       </style>
-      
+
     </head>
     <body class="simpletheme">  
       <div class="article-wrap">
         ${marked.parse(content)}
       <div>
+        <!-- scr -->
+        <script>
+           // Your JavaScript code here
+           console.log('HTML exported!');
+         <\\/script>
     </body>
     </html>
     `;
