@@ -107,8 +107,7 @@
       background: none;
       border: none;
       color: var(--text-muted);
-      padding: 2px 6px;
-      margin-left: 4px;
+      padding: 2px 4px;
       border-radius: 3px;
       font-size: 0.8rem;
       cursor: pointer;
@@ -154,14 +153,15 @@
     }
     
     .btn-toolbar {
-      padding: 6px 12px;
+      padding: 6px 6px;
       font-size: 0.85rem;
       border: 1px solid var(--light-border);
       background: rgba(255,255,255,0.05);
       color: var(--text-muted);
-      border-radius: 6px;
+      border-radius: 4px;
       transition: all 0.2s ease;
       cursor: pointer;
+      align-items: center;
     }
     
     .btn-toolbar:hover {
@@ -172,12 +172,12 @@
     
     /* Editor Container */
     #editor-container {
-    overflow: hidden;
-    position: relative;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 49%;
-    gap: 10px;
+      overflow: hidden;
+      position: relative;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 49.9%;
+      gap: 2px;
     }
     
     .editor-panel {
@@ -196,6 +196,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: sticky;
+      top: 0.1px;
     }
     
     .panel-controls {
@@ -207,7 +209,7 @@
       background: none;
       border: 1px solid var(--light-border);
       color: var(--text-muted);
-      padding: 4px 8px;
+      padding: 0px 8px;
       border-radius: 4px;
       font-size: 0.8rem;
       cursor: pointer;
@@ -223,10 +225,32 @@
     #editor {
       border-right: 1px solid var(--light-border);
     }
+
+    #currentFileName {
+      color: var(---text-muted);
+    }
+
+    #modifiedStatus{
+      color: var(--accent-sec-color);
+    }
     
+    #modifiedStatus.modified {
+      color: yellow;
+      animation: blink 0.6s infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    #modifiedStatus.saved {
+      color: #00ff00;
+    }
+
     #editor textarea {
       width: 100%;
-      height: 100vh;
+      height: 87vh;
       border: none;
       resize: none;
       outline: none;
@@ -265,7 +289,7 @@
       margin: 0.1rem 0;
       background: rgba(0,123,255,0.1);
       padding: 0.1rem 1rem;
-      border-radius: 0 6px 6px 0;
+      border-radius: 4px;
     }
     
     #preview code {
@@ -279,7 +303,7 @@
     #preview pre {
       background: var(--darker-bg);
       border: 1px solid var(--light-border);
-      border-radius: 8px;
+      border-radius: 4px;
       padding: 1rem;
       overflow-x: auto;
     }
@@ -295,7 +319,7 @@
       width: 100%;
       margin: 1rem 0;
       border: 1px solid var(--light-border);
-      border-radius: 8px;
+      border-radius: 4px;
     }
     
     #preview th, #preview td {
@@ -324,7 +348,7 @@
       border: 1px solid var(--light-border);
       color: #f0f6fc;
       padding: 6px 12px;
-      border-radius: 6px;
+      border-radius: 4px;
       width: 200px;
       font-size: 0.9rem;
     }
@@ -361,7 +385,7 @@
       border: none;
       color: white;
       padding: 8px 12px;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
     }
 
@@ -399,7 +423,7 @@
   <div id="sidebar">
     <div class="sidebar-header">
       <span class="navbar-brand fw-bold" style="display: flex;align-items: center;gap: 10px;">
-        <img src="../logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 5px;" />
+        <img src="../logo.png" width="30" style="background: #ff000082;padding: 1px;border-radius: 4px;" />
         <strong>Markdown</strong>
       </span>
     </div>
@@ -501,14 +525,13 @@
           <i class="fas fa-save"></i>
         </button>
         <button class="btn-toolbar" onclick="exportMD()" title="Export MD">
-          <i class="fas fa-download"></i> .md
+          <i class="fas fa-download"></i> MD
         </button>
         <button class="btn-toolbar" onclick="exportHTML()" title="Export HTML">
-          <i class="fas fa-download"></i>
-          <i class="fab fa-html5"></i>
+          <i class="fab fa-html5"></i> HTML
         </button>
         <button class="btn-toolbar" onclick="copyHTML()" title="Copy HTML">
-          <i class="fas fa-copy"></i>
+          <i class="fas fa-copy"></i>HTML
         </button>
       </div>
       
@@ -529,6 +552,10 @@
             <button class="panel-btn" onclick="clearThis()" title="Clear">
               <i class="fas fa-trash"></i>
             </button>
+            <button class="panel-btn" onclick="" title="File Status">
+              <span id="modifiedStatus">Saved</span>
+            </button>
+
           </div>
         </div>
         <textarea id="markdown" placeholder="Start writing your markdown here..."></textarea>
@@ -537,17 +564,7 @@
       <div class="editor-panel" id="preview">
         <div class="panel-header">
           <span><i class="fas fa-eye"></i> Preview</span>
-          <div class="panel-controls">
-            <button class="panel-btn active" onclick="togglePreviewMode('preview')" id="preview-btn">
-              Preview
-            </button>
-            <button class="panel-btn" onclick="togglePreviewMode('split')" id="split-btn">
-              Split
-            </button>
-            <button class="panel-btn" onclick="togglePreviewMode('editor')" id="editor-btn">
-              Editor
-            </button>
-          </div>
+          
         </div>
         <div id="preview-content"></div>
       </div>
@@ -555,8 +572,7 @@
     
     <div class="status-bar">
       <div class="status-left">
-        <span id="currentFileName">Untitled</span> •
-        <span id="modifiedStatus">Saved</span>
+        <span id="currentFileName">Untitled</span>
       </div>
       <div class="status-right">
         <span id="lineCount">1 line</span> •
@@ -753,6 +769,7 @@
   function updateStatus() {
     document.getElementById('currentFileName').textContent = current || 'Untitled';
     document.getElementById('modifiedStatus').textContent = isModified ? 'Modified' : 'Saved';
+    document.getElementById('modifiedStatus').className = isModified ? 'modified' : 'saved';
   }
 
   function updateStats() {
