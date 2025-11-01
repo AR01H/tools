@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Vault Decryptor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+body { 
+  font-family: Arial; 
+  max-width: 800px; 
+  margin: 50px auto; 
+  padding: 20px; 
+  background: #f5f5f5;
+}
+.container {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+h2 { color: #2563eb; }
+label { 
+  display: block; 
+  margin-top: 15px; 
+  font-weight: bold; 
+  color: #333;
+}
+input, textarea { 
+  width: 100%; 
+  padding: 10px; 
+  margin: 5px 0; 
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+}
+button { 
+  padding: 12px 30px; 
+  background: #2563eb; 
+  color: white; 
+  border: none; 
+  cursor: pointer; 
+  border-radius: 4px;
+  font-size: 16px;
+  margin-top: 20px;
+}
+button:hover { background: #1d4ed8; }
+.result { 
+  background: #f0f9ff; 
+  padding: 20px; 
+  margin-top: 20px; 
+  border-left: 4px solid #2563eb;
+  border-radius: 4px;
+  max-height: 400px;
+  overflow: auto;
+}
+.password-item {
+  background: white;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+.password-item strong { color: #2563eb; }
+.info { 
+  background: #fef3c7; 
+  padding: 15px; 
+  border-left: 4px solid #f59e0b;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🔓 Vault Decryptor</h2>
+  <p>Decrypt your encrypted vault backup offline</p>
+
+  <div class="info">
+    <strong>ℹ️ Instructions:</strong><br>
+    1. Open your <code>.enc</code> backup file in a text editor<br>
+    2. Copy the <code>"vault"</code> value (the long encrypted text)<br>
+    3. Copy the <code>"salt"</code> value<br>
+    4. Enter your master password<br>
+    5. Click Decrypt
+  </div>
+
+  <label>Encrypted Vault Data:</label>
+  <textarea id="vaultData" rows="4" placeholder='Paste the "vault" value here...'></textarea>
+
+  <label>Salt:</label>
+  <input type="text" id="salt" placeholder='Paste the "salt" value here...'>
+
+  <label>Master Password:</label>
+  <input type="password" id="masterPassword" placeholder="Enter your master password">
+
+  <button onclick="decryptVault()">🔓 Decrypt Vault</button>
+
+  <div id="result" style="display:none;">
+    <h3>✅ Decrypted Passwords:</h3>
+    <div id="passwords"></div>
+  </div>
+</div>
+
+<script>
+function deriveKeyHex(pass, saltHex){
+  return CryptoJS.PBKDF2(pass, CryptoJS.enc.Hex.parse(saltHex), { 
+    keySize: 256/32, 
+    iterations: 2000 
+  }).toString();
+}
+
+function decryptVault() {
+  const vaultData = document.getElementById('vaultData').value.trim();
+  const salt = document.getElementById('salt').value.trim();
+  const masterPassword = document.getElementById('masterPassword').value;
+  
+  if(!vaultData || !salt || !masterPassword) {
+    alert('❌ Please fill all fields!');
+    return;
+  }
+  
+  try {
+    // Derive key from master password and salt
+    const keyHex = deriveKeyHex(masterPassword, salt);
+    
+    // Decrypt vault
+    const decrypted = CryptoJS.AES.decrypt(vaultData, keyHex).toString(CryptoJS.enc.Utf8);
+    
+    if(!decrypted) {
+      alert('❌ Decryption failed! Wrong master password.');
+      return;
+    }
+    
+    // Parse the decrypted vault
+    const passwords = JSON.parse(decrypted);
+    
+    // Display passwords
+    let html = `<p><strong>Total Passwords: ${passwords.length}</strong></p>`;
+    
+    passwords.forEach((item, index) => {
+      const password = item.password || '[ENCRYPTED - Need secret code]';
+      const hasEncoded = item.encoded && !item.password;
+      
+      html += `
+        <div class="password-item">
+          <strong>${index + 1}. ${item.site || 'No Name'}</strong><br>
+          <strong>URL:</strong> ${item.url || '-'}<br>
+          <strong>Username:</strong> ${item.username || '-'}<br>
+          <strong>Password:</strong> ${password}
+          ${hasEncoded ? ' <span style="color:#f59e0b;">⚠️ (Need secret code to decrypt)</span>' : ''}<br>
+          ${item.message ? `<strong>Notes:</strong> ${item.message}<br>` : ''}
+          ${item.updated ? `<strong>Updated:</strong> ${new Date(item.updated).toLocaleString()}<br>` : ''}
+        </div>
+      `;
+    });
+    
+    document.getElementById('passwords').innerHTML = html;
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').className = 'result';
+    
+    alert(`✅ Successfully decrypted ${passwords.length} passwords!`);
+    
+  } catch(e) {
+    alert('❌ Decryption failed! Check your master password and data.\n\nError: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>
