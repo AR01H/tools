@@ -1,918 +1,1258 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simple Password Storage App</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Password Storage App</title>
 
-<!-- Bootstrap -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
 
-<!-- CryptoJS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- CryptoJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-  :root {
-    --primary-color: #2563eb;
-    --secondary-color: #6b7280;
-    --success-color: #16a34a;
-    --danger-color: #dc2626;
-    --warning-color: #f59e0b;
-    --info-color: #0891b2;
-    --light-color: #f5f5f5;
-    --dark-color: #333;
-  }
-  
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--light-color);
-    color: var(--dark-color);
-  }
-  
-  .header {
-    background: var(--light-color);
-    padding: 0.5rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 1.5rem;
-  }
-  
-  .header h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .lock-screen {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-  
-  .lock-box {
-    background: var(--light-color);
-    padding: 2rem;
-    border-radius: 4px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  }
-  
-  .lock-box h3 {
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
-  }
-  
-  .form-section {
-    background: var(--light-color);
-    padding: 1.5rem;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 1.5rem;
-  }
-  
-  .form-control, .form-select {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.9375rem;
-  }
-  
-  .form-control:focus, .form-select:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    outline: none;
-  }
-  
-  .btn {
-    border: none;
-    border-radius: 4px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-  }
-  
-  .btn-primary {
-    background: #2563eb;
-    color: var(--light-color);
-  }
-  
-  .btn-primary:hover {
-    background: #1d4ed8;
-  }
-  
-  .btn-success {
-    background: #16a34a;
-    color: var(--light-color);
-  }
-  
-  .btn-danger {
-    background: #dc2626;
-    color: var(--light-color);
-  }
-  
-  .btn-info {
-    background: #0891b2;
-    color: var(--light-color);
-  }
-  
-  .btn-warning {
-    background: #f59e0b;
-    color: var(--light-color);
-  }
-  
-  .btn-secondary {
-    background: #6b7280;
-    color: var(--light-color);
-  }
-  
-  .btn-sm {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-  }
-  
-  .table-section {
-    background: var(--light-color);
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    overflow: hidden;
-  }
-  
-  .table {
-    margin: 0;
-  }
-  
-  .table thead {
-    background: #1f2937;
-    color: var(--light-color);
-  }
-  
-  .table thead th {
-    padding: 0.75rem 0.5rem;
-    font-weight: 500;
-    font-size: 0.875rem;
-    border: none;
-  }
-  
-  .table tbody td {
-    padding: 0.75rem 0.5rem;
-    vertical-align: middle;
-    border-top: 1px solid #e5e7eb;
-    font-size: 0.875rem;
-  }
-  
-  .table tbody tr:hover {
-    background: #f9fafb;
-  }
-  
-  .folder-list {
-    background: var(--light-color);
-    border-radius: 4px;
-    padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-  
-  .folder-item {
-    padding: 0.5rem 0.75rem;
-    margin-bottom: 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #f9fafb;
-  }
-  
-  .folder-item:hover {
-    background: #e5e7eb;
-  }
-  
-  .folder-item.active {
-    background: #2563eb;
-    color: var(--light-color);
-  }
-  
-  .folder-badge {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-  }
-  
-  .controls {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--light-color);
-  }
-  span:has(.fa) {
-      background-color: #2563eb;
-      color: var(--light-color);
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-  }
+      :root {
+        --primary-color: #2563eb;
+        --secondary-color: #6b7280;
+        --success-color: #16a34a;
+        --danger-color: #dc2626;
+        --warning-color: #f59e0b;
+        --info-color: #0891b2;
+        --light-color: #f5f5f5;
+        --dark-color: #333;
+      }
 
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: var(--light-color);
+        color: var(--dark-color);
+      }
 
-</style>
-</head>
-<body>
+      .header {
+        background: var(--light-color);
+        padding: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+      }
 
-<!-- Lock Screen -->
-<div id="lockScreen" class="lock-screen">
-  <div class="lock-box">
-    <h3><i class="fa fa-lock"></i> Password Storage App</h3>
-    <p class="text-muted mb-3">Enter Master Password</p>
-    <input id="masterInput" type="password" class="form-control mb-3" placeholder="Master Password">
-    <div class="d-flex gap-2">
-      <button id="unlockBtn" class="btn btn-primary flex-fill">Unlock</button>
-      <button id="setBtn" class="btn btn-success flex-fill">Create Master</button>
-    </div>
-  </div>
-</div>
+      .header h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
 
-<!-- Main App -->
-<div id="app" style="display:none;">
-  
-  <!-- Header -->
-  <div class="header">
-    <div class="container-fluid">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1><i class="fa fa-lock"></i> Password Storage App</h1>
-        <div class="d-flex gap-2 flex-wrap">
-          <button id="changeMasterBtn" class="btn btn-primary btn-sm">
-            <i class="fa fa-refresh"></i> Master Password
-          </button>
-          <button id="lockBtn" class="btn btn-danger btn-sm">
-            <i class="fa fa-lock"></i>
-          </button>
-          <button id="infoBtn" class="btn btn-primary btn-sm">
-            <i class="fa fa-info"></i>
-          </button>
-            <button id="exportBtn" class="btn btn-success btn-sm">
-              <i class="fa fa-download"></i> Export
-            </button>
-            <button id="exportBtn2" class="btn btn-success btn-sm">
-              <i class="fa fa-download"></i> Export 2
-            </button>
-            <label class="btn btn-info btn-sm mb-0">
-              <i class="fa fa-upload"></i> Import
-              <input type="file" id="importFile" hidden accept=".enc">
-            </label>
-            <label class="btn btn-info btn-sm mb-0">
-              <i class="fa fa-upload"></i> Import 2
-              <input type="file" id="importFile2" hidden accept="">
-            </label>
-            <button class="btn btn-danger btn-sm" onclick="downloadVaultAsCSV()">
-              <i class="fa fa-download"></i> CSV
-            </button>
+      .lock-screen {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
 
-        </div>
-      </div>
-    </div>
-  </div>
+      .lock-box {
+        background: var(--light-color);
+        padding: 2rem;
+        border-radius: 4px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
 
-  <div class="container-fluid">
-    <div class="row">
-      
-      <!-- Folders Sidebar -->
-      <div class="col-md-2">
-        <div class="folder-list">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <strong>Folders</strong>
-            <button id="addFolderBtn" class="btn btn-primary btn-sm">
-              <i class="fa fa-plus"></i>
-            </button>
-          </div>
-          <div id="folderList"></div>
-          
-          <div id="folderForm" style="display:none;" class="mt-3">
-            <input id="newFolderName" class="form-control form-control-sm mb-2" placeholder="Folder name">
-            <div class="d-flex gap-2">
-              <input id="newFolderColor" type="color" value="#2563eb" class="form-control form-control-sm" style="width:40px;">
-              <button id="createFolder" class="btn btn-primary btn-sm flex-fill">Create</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      .lock-box h3 {
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+      }
 
-      <!-- Main Content -->
-      <div class="col-md-10">
-        
-        <!-- Add Entry Form -->
-        <div class="form-section">
-          <div class="row g-2">
-            <div class="col-md-2">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Website" erasecontextfor="site"><i class="fa fa-cloud"></i></span>
-                <input id="site" list="siteList" class="form-control" placeholder="Website Name" erasecontenttriggerfrom="site">
-              </div>
+      .form-section {
+        background: var(--light-color);
+        padding: 1.5rem;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+      }
 
-              <!-- The dropdown suggestion list -->
-              <datalist id="siteList">
-                <option value="Gmail">
-                <option value="MicroSoft Teams">
-                <option value="FLM">
-                <option value="Linkedin">
-                <option value="Instagram">
-              </datalist>
-            </div>
-            <div class="col-md-2">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="URL" erasecontextfor="url"><i class="fa fa-globe"></i></span>
-                <input id="url" class="form-control" placeholder="Website URL" erasecontenttriggerfrom="url">
-            </div>
-            </div>
-            <div class="col-md-2">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Username" erasecontextfor="username"><i class="fa fa-user"></i></span>
-                <input id="username" class="form-control" placeholder="Username" erasecontenttriggerfrom="username">
-            </div>
-            </div>
-            <div class="col-md-2">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Password" erasecontextfor="password"><i class="fa fa-key"></i></span>
-                <input id="password" class="form-control" placeholder="Original Password" erasecontenttriggerfrom="password">
-            </div>
-            </div>
-            <div class="col-md-2">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Secret Code" erasecontextfor="secret"><i class="fa fa-user-secret"></i></span>
-                <input id="secret" list="secretList" class="form-control" placeholder="Secret Code" erasecontenttriggerfrom="secret">
-                <datalist id="secretList">
-                  <option value="-">
-                </datalist>
-            </div>
-            </div>
-            <div class="col-md-2">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Folder" erasecontextfor="folder"><i class="fa fa-folder"></i></span>
-                <select id="folderSelect" class="form-select" erasecontenttriggerfrom="folder"></select>
-            </div>
-            </div>
-            <div class="col-md-6">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Message" erasecontextfor="message"><i class="fa fa-sticky-note"></i></span>
-                <input id="message" list="msgList" class="form-control" placeholder="Secret Message Remember Context" erasecontenttriggerfrom="message">
-                <!-- The dropdown suggestion list -->
-                  <datalist id="msgList">
-                    <option value="No Password/Secret Code">
-                  </datalist>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Additional Info" erasecontextfor="additionalInfo"><i class="fa fa-sticky-note"></i></span>
-                <textarea id="additionalInfo" class="form-control" placeholder="Additional Info" erasecontenttriggerfrom="additionalInfo" style="height: 40.8px;"></textarea>
-              </div>
-            </div>
-            <div class="row g-2">
-              <div class="col-md-12">
-                <button id="saveBtn" class="btn btn-primary">Save</button>
-                <button id="clearBtn" class="btn btn-secondary ms-2">Clear</button>
-              </div>
-            </div>
-          </div>
-        </div>
+      .form-control,
+      .form-select {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9375rem;
+      }
 
-        <!-- Search & Controls -->
-        <div class="controls">
-          <input id="search" class="form-control" placeholder="Search..." style="max-width:300px;">
-          <select id="filterFolder" class="form-select" style="max-width:200px;">
-            <option value="all">--Filter Folder--</option>
-          </select>
-          <select id="sortDate" class="form-select" style="max-width:200px;">
-            <option value="">--Sort by Date--</option>
-            <option value="new">Newest First</option>
-            <option value="old">Oldest First</option>
-          </select>
-          
-        </div>
+      .form-control:focus,
+      .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
 
-        <!-- Table -->
-        <div class="table-section">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Website</th>
-                  <th>URL</th>
-                  <th>Username</th>
-                  <th>Password</th>
-                  <th>Encoded</th>
-                  <th>Folder</th>
-                  <th>Message</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="entryList"></tbody>
-            </table>
-          </div>
-          
-          <div class="pagination">
-            <button id="prevPage" class="btn btn-secondary btn-sm">Prev</button>
-            <span id="pageInfo">Page 1</span>
-            <button id="nextPage" class="btn btn-secondary btn-sm">Next</button>
-          </div>
-        </div>
+      .btn {
+        border: none;
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        cursor: pointer;
+      }
 
-      </div>
-    </div>
-  </div>
-</div>
+      .btn-primary {
+        background: #2563eb;
+        color: var(--light-color);
+      }
 
-<!-- View Modal -->
-<div class="modal fade" id="viewModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="viewModalBody" style="overflow: auto;"></div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+      .btn-primary:hover {
+        background: #1d4ed8;
+      }
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+      .btn-success {
+        background: #16a34a;
+        color: var(--light-color);
+      }
 
-<script>
-// Utilities
-function uid(){ return 'id'+Math.random().toString(36).slice(2,11); }
-function now(){ return Date.now(); }
-function fmtDate(ts){ if(!ts) return '-'; return new Date(ts).toLocaleString(); }
-function safeParse(s, fallback){ try{ return JSON.parse(s); }catch(e){return fallback;} }
-function saveJSON(key,obj){ localStorage.setItem(key, JSON.stringify(obj)); }
-function loadJSON(key, fallback){ return safeParse(localStorage.getItem(key), fallback); }
-function escapeHtml(s){ 
-  if(!s && s!==0) return ''; 
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); 
-}
+      .btn-danger {
+        background: #dc2626;
+        color: var(--light-color);
+      }
 
-// Crypto
-function ensureSalt(){
-  let s = localStorage.getItem('vault_salt');
-  if(!s){ s = CryptoJS.lib.WordArray.random(16).toString(); localStorage.setItem('vault_salt', s); }
-  return s;
-}
+      .btn-info {
+        background: #0891b2;
+        color: var(--light-color);
+      }
 
-function deriveKeyHex(pass, saltHex){
-  return CryptoJS.PBKDF2(pass, CryptoJS.enc.Hex.parse(saltHex), { keySize: 256/32, iterations: 2000 }).toString();
-}
+      .btn-warning {
+        background: #f59e0b;
+        color: var(--light-color);
+      }
 
-function encryptVault(vaultObj, keyHex){
-  return CryptoJS.AES.encrypt(JSON.stringify(vaultObj), keyHex).toString();
-}
+      .btn-secondary {
+        background: #6b7280;
+        color: var(--light-color);
+      }
 
-function decryptVault(enc, keyHex){
-  return CryptoJS.AES.decrypt(enc, keyHex).toString(CryptoJS.enc.Utf8);
-}
+      .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+      }
 
-// State
-let derivedKey = null;
-let autoLockTimer = null;
-let currentFolderFilter = 'all';
-let folders = loadJSON('folders_list', null);
+      .table-section {
+        background: var(--light-color);
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
 
-if(!folders){
-  folders = [
-    {id:'all', name:'All', color:'#6b7280'},
-    {id:'banking', name:'Banking', color:'#dc2626'},
-    {id:'email', name:'Email', color:'#2563eb'},
-    {id:'social', name:'Social', color:'#7c3aed'},
-    {id:'work', name:'Work', color:'#16a34a'},
-    {id:'other', name:'Other', color:'#f59e0b'}
-  ];
-  saveJSON('folders_list', folders);
-}
+      .table {
+        margin: 0;
+      }
 
-const perPage = 10;
-let currentPage = 1;
-let editingIndex = null;
+      .table thead {
+        background: #1f2937;
+        color: var(--light-color);
+      }
 
-// Lock/Unlock
-function showLock(){ 
-  document.getElementById('lockScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-}
+      .table thead th {
+        padding: 0.75rem 0.5rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        border: none;
+      }
 
-function showApp(){ 
-  document.getElementById('lockScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-}
+      .table tbody td {
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+        border-top: 1px solid #e5e7eb;
+        font-size: 0.875rem;
+      }
 
-document.getElementById('setBtn').onclick = function(){
-  if(localStorage.getItem('vault_enc')) return alert('Master already set. Use Unlock.');
-  let pass = document.getElementById('masterInput').value;
-  if(!pass) return alert('Enter a master password.');
-  if(pass.length < 2) return alert('Password must be at least 2 characters.');
-  
-  let s = ensureSalt();
-  let keyHex = deriveKeyHex(pass, s);
-  localStorage.setItem('vault_enc', encryptVault([], keyHex));
-  derivedKey = keyHex;
-  document.getElementById('masterInput').value = '';
-  showApp();
-  renderFolders();
-  loadEntries();
-  resetAutoLock();
-  alert('Master password created!');
-};
+      .table tbody tr:hover {
+        background: #f9fafb;
+      }
 
-document.addEventListener("click", function (e) {
-    const trigger = e.target.closest("[erasecontextfor]");
-    if (!trigger) return;
+      .folder-list {
+        background: var(--light-color);
+        border-radius: 4px;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
 
-    const key = trigger.getAttribute("erasecontextfor");
+      .folder-item {
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f9fafb;
+      }
 
-    // Find all inputs, textareas, and selects that match
-    const fields = document.querySelectorAll(
-        `[erasecontenttriggerfrom="${key}"]`
-    );
+      .folder-item:hover {
+        background: #e5e7eb;
+      }
 
-    fields.forEach(field => {
-        if (field.tagName === "SELECT") {
-            field.selectedIndex = 0; // reset dropdown
-        } else {
-            field.value = ""; // clear input/textarea
+      .folder-item.active {
+        background: #2563eb;
+        color: var(--light-color);
+      }
+
+      .folder-badge {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--light-color);
+      }
+      span:has(.fa) {
+        background-color: #2563eb;
+        color: var(--light-color);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+      }
+
+      .input-shake {
+        animation: shake 0.6s;
+      }
+
+      @keyframes shake {
+        0% {
+          transform: translateX(0px);
         }
+        10% {
+          transform: translateX(-1px);
+        }
+        20% {
+          transform: translateX(1px);
+        }
+        30% {
+          transform: translateX(-1px);
+        }
+        40% {
+          transform: translateX(1px);
+        }
+        50% {
+          transform: translateX(-1px);
+        }
+        60% {
+          transform: translateX(1px);
+        }
+        70% {
+          transform: translateX(-1px);
+        }
+        80% {
+          transform: translateX(1px);
+        }
+        90% {
+          transform: translateX(-1px);
+        }
+        100% {
+          transform: translateX(1px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Lock Screen -->
+    <div id="lockScreen" class="lock-screen">
+      <div class="lock-box">
+        <h3><i class="fa fa-lock"></i> Password Storage App</h3>
+        <p class="text-muted mb-3">Enter Master Password</p>
+        <input
+          id="masterInput"
+          type="password"
+          class="form-control mb-3"
+          placeholder="Master Password"
+        />
+        <div class="d-flex gap-2">
+          <button id="unlockBtn" class="btn btn-primary flex-fill">
+            Unlock
+          </button>
+          <button id="setBtn" class="btn btn-success flex-fill">
+            Create Master
+          </button>
+        </div>
+      </div>
+    </div>
 
-        // fire input/change events if needed
-        field.dispatchEvent(new Event("input"));
-        field.dispatchEvent(new Event("change"));
-    });
-});
+    <!-- Main App -->
+    <div id="app" style="display: none">
+      <!-- Header -->
+      <div class="header">
+        <div class="container-fluid">
+          <div
+            class="d-flex justify-content-between align-items-center flex-wrap gap-2"
+          >
+            <h1><i class="fa fa-lock"></i> Password Storage App</h1>
+            <div class="d-flex gap-2 flex-wrap">
+              <button id="changeMasterBtn" class="btn btn-primary btn-sm">
+                <i class="fa fa-refresh"></i> Master Password
+              </button>
+              <button id="lockBtn" class="btn btn-danger btn-sm">
+                <i class="fa fa-lock"></i>
+              </button>
+              <button id="infoBtn" class="btn btn-primary btn-sm">
+                <i class="fa fa-info"></i>
+              </button>
+              <button id="exportBtn" class="btn btn-success btn-sm">
+                <i class="fa fa-download"></i> Export
+              </button>
+              <button id="exportBtn2" class="btn btn-success btn-sm">
+                <i class="fa fa-download"></i> Export 2
+              </button>
+              <label class="btn btn-info btn-sm mb-0">
+                <i class="fa fa-upload"></i> Import
+                <input type="file" id="importFile" hidden accept=".enc" />
+              </label>
+              <label class="btn btn-info btn-sm mb-0">
+                <i class="fa fa-upload"></i> Import 2
+                <input type="file" id="importFile2" hidden accept="" />
+              </label>
+              <button
+                class="btn btn-danger btn-sm"
+                onclick="downloadVaultAsCSV()"
+              >
+                <i class="fa fa-download"></i> CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-document.addEventListener("click", function (e) {
-    const folder = e.target.closest(".folder-item");
-    if (!folder) return;
+      <div class="container-fluid">
+        <div class="row">
+          <!-- Folders Sidebar -->
+          <div class="col-md-2">
+            <div class="folder-list">
+              <div
+                class="d-flex justify-content-between align-items-center mb-2"
+              >
+                <strong>Folders</strong>
+                <button id="addFolderBtn" class="btn btn-primary btn-sm">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div>
+              <div id="folderList"></div>
 
-    // get the folder's data-id (ex: "work", "email")
-    const id = folder.getAttribute("data-id");
+              <div id="folderForm" style="display: none" class="mt-3">
+                <input
+                  id="newFolderName"
+                  class="form-control form-control-sm mb-2"
+                  placeholder="Folder name"
+                />
+                <div class="d-flex gap-2">
+                  <input
+                    id="newFolderColor"
+                    type="color"
+                    value="#2563eb"
+                    class="form-control form-control-sm"
+                    style="width: 40px"
+                  />
+                  <button
+                    id="createFolder"
+                    class="btn btn-primary btn-sm flex-fill"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-    const select = document.getElementById("filterFolder");
-    if (!select) return;
+          <!-- Main Content -->
+          <div class="col-md-10">
+            <!-- Add Entry Form -->
+            <div class="form-section">
+              <div class="row g-2">
+                <div class="col-md-2">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="Website"
+                      erasecontextfor="site"
+                      ><i class="fa fa-cloud"></i
+                    ></span>
+                    <input
+                      id="site"
+                      list="siteList"
+                      class="form-control"
+                      placeholder="Website Name"
+                      erasecontenttriggerfrom="site"
+                    />
+                  </div>
 
-    select.value = id;                // change dropdown
-    select.dispatchEvent(new Event("change")); // trigger change event if needed
+                  <!-- The dropdown suggestion list -->
+                  <datalist id="siteList">
+                    <option value="Gmail"></option>
+                    <option value="MicroSoft Teams"></option>
+                    <option value="FLM"></option>
+                    <option value="Linkedin"></option>
+                    <option value="Instagram"></option>
+                  </datalist>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="URL"
+                      erasecontextfor="url"
+                      ><i class="fa fa-globe"></i
+                    ></span>
+                    <input
+                      id="url"
+                      class="form-control"
+                      placeholder="Website URL"
+                      erasecontenttriggerfrom="url"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="Username"
+                      erasecontextfor="username"
+                      ><i class="fa fa-user"></i
+                    ></span>
+                    <input
+                      id="username"
+                      class="form-control"
+                      placeholder="Username"
+                      erasecontenttriggerfrom="username"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="Password"
+                      erasecontextfor="password"
+                      ><i class="fa fa-key"></i
+                    ></span>
+                    <input
+                      id="password"
+                      class="form-control"
+                      placeholder="Original Password"
+                      erasecontenttriggerfrom="password"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="Secret Code"
+                      erasecontextfor="secret"
+                      ><i class="fa fa-user-secret"></i
+                    ></span>
+                    <input
+                      id="secret"
+                      list="secretList"
+                      class="form-control"
+                      placeholder="Secret Code"
+                      erasecontenttriggerfrom="secret"
+                    />
+                    <datalist id="secretList">
+                      <option value="-"></option>
+                    </datalist>
+                  </div>
+                </div>
+                <div class="col-md-2">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="Folder"
+                      erasecontextfor="folder"
+                      ><i class="fa fa-folder"></i
+                    ></span>
+                    <select
+                      id="folderSelect"
+                      class="form-select"
+                      erasecontenttriggerfrom="folder"
+                    ></select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="Message"
+                      erasecontextfor="message"
+                      ><i class="fa fa-sticky-note"></i
+                    ></span>
+                    <input
+                      id="message"
+                      list="msgList"
+                      class="form-control"
+                      placeholder="Secret Message Remember Context"
+                      erasecontenttriggerfrom="message"
+                    />
+                    <!-- The dropdown suggestion list -->
+                    <datalist id="msgList">
+                      <option value="No Password/Secret Code"></option>
+                    </datalist>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="input-group">
+                    <span
+                      id="genBtn"
+                      class="btn btn-outline-secondary"
+                      title="Additional Info"
+                      erasecontextfor="additionalInfo"
+                      ><i class="fa fa-sticky-note"></i
+                    ></span>
+                    <textarea
+                      id="additionalInfo"
+                      class="form-control"
+                      placeholder="Additional Info"
+                      erasecontenttriggerfrom="additionalInfo"
+                      style="height: 40.8px"
+                    ></textarea>
+                  </div>
+                </div>
+                <div class="row g-2">
+                  <div class="col-md-12">
+                    <button id="saveBtn" class="btn btn-primary">Save</button>
+                    <button id="clearBtn" class="btn btn-secondary ms-2">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-    const folderSelect = document.getElementById("folderSelect");
-    if (!folderSelect) return;
+            <!-- Search & Controls -->
+            <div class="controls">
+              <input
+                id="search"
+                class="form-control"
+                placeholder="Search..."
+                style="max-width: 300px"
+              />
+              <select
+                id="filterFolder"
+                class="form-select"
+                style="max-width: 200px"
+              >
+                <option value="all">--Filter Folder--</option>
+              </select>
+              <select
+                id="sortDate"
+                class="form-select"
+                style="max-width: 200px"
+              >
+                <option value="">--Sort by Date--</option>
+                <option value="new">Newest First</option>
+                <option value="old">Oldest First</option>
+              </select>
+            </div>
 
-    folderSelect.value = id;                // change dropdown
-    folderSelect.dispatchEvent(new Event("change")); // trigger change event if needed
-});
+            <!-- Table -->
+            <div class="table-section">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Website</th>
+                      <th>URL</th>
+                      <th>Username</th>
+                      <th>Password</th>
+                      <th>Encoded</th>
+                      <th>Folder</th>
+                      <th>Message</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="entryList"></tbody>
+                </table>
+              </div>
 
-document.getElementById('unlockBtn').onclick = function(){
-  let pass = document.getElementById('masterInput').value;
-  if(!pass) return alert('Enter master password.');
-  
-  const salt = ensureSalt();
-  const keyHex = deriveKeyHex(pass, salt);
-  const enc = localStorage.getItem('vault_enc');
-  if(!enc) return alert('No vault found. Create master first.');
-  
-  try{
-    const dec = decryptVault(enc, keyHex);
-    JSON.parse(dec);
-    derivedKey = keyHex;
-    document.getElementById('masterInput').value = '';
-    showApp();
-    renderFolders();
-    loadEntries();
-    resetAutoLock();
-    alert('Vault unlocked!');
-  }catch(e){
-    alert('Wrong master password!');
-  }
-};
+              <div class="pagination">
+                <button id="prevPage" class="btn btn-secondary btn-sm">
+                  Prev
+                </button>
+                <span id="pageInfo">Page 1</span>
+                <button id="nextPage" class="btn btn-secondary btn-sm">
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-document.getElementById('lockBtn').onclick = function(){ lockNow(); };
+    <!-- View Modal -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Details</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div
+            class="modal-body"
+            id="viewModalBody"
+            style="overflow: auto"
+          ></div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function lockNow(){
-  derivedKey = null;
-  showLock();
-  clearTimeout(autoLockTimer);
-  editingIndex = null;
-  document.getElementById('entryList').innerHTML = '';
-}
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-function resetAutoLock(){
-  clearTimeout(autoLockTimer);
-  autoLockTimer = setTimeout(function(){ lockNow(); alert('Auto-locked'); }, 5*60000);
-}
+    <script>
+      // Utilities
+      function uid() {
+        return "id" + Math.random().toString(36).slice(2, 11);
+      }
+      function now() {
+        return Date.now();
+      }
+      function fmtDate(ts) {
+        if (!ts) return "-";
+        return new Date(ts).toLocaleString();
+      }
+      function safeParse(s, fallback) {
+        try {
+          return JSON.parse(s);
+        } catch (e) {
+          return fallback;
+        }
+      }
+      function saveJSON(key, obj) {
+        localStorage.setItem(key, JSON.stringify(obj));
+      }
+      function loadJSON(key, fallback) {
+        return safeParse(localStorage.getItem(key), fallback);
+      }
+      function escapeHtml(s) {
+        if (!s && s !== 0) return "";
+        return String(s).replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[m])
+        );
+      }
 
-document.addEventListener('mousemove', function(){ if(derivedKey) resetAutoLock(); });
-document.addEventListener('keydown', function(){ if(derivedKey) resetAutoLock(); });
-document.addEventListener('click', function(){ if(derivedKey) resetAutoLock(); });
+      // Crypto
+      function ensureSalt() {
+        let s = localStorage.getItem("vault_salt");
+        if (!s) {
+          s = CryptoJS.lib.WordArray.random(16).toString();
+          localStorage.setItem("vault_salt", s);
+        }
+        return s;
+      }
 
-// Vault
-function readVaultArray(){
-  if(!derivedKey) return [];
-  const enc = localStorage.getItem('vault_enc') || encryptVault([], derivedKey);
-  try{
-    return JSON.parse(decryptVault(enc, derivedKey));
-  }catch(e){
-    return [];
-  }
-}
+      function deriveKeyHex(pass, saltHex) {
+        return CryptoJS.PBKDF2(pass, CryptoJS.enc.Hex.parse(saltHex), {
+          keySize: 256 / 32,
+          iterations: 2000,
+        }).toString();
+      }
 
-function writeVaultArray(arr){
-  if(!derivedKey) return;
-  localStorage.setItem('vault_enc', encryptVault(arr, derivedKey));
-}
+      function encryptVault(vaultObj, keyHex) {
+        return CryptoJS.AES.encrypt(
+          JSON.stringify(vaultObj),
+          keyHex
+        ).toString();
+      }
 
-// Folders
-function renderFolders(){
-  folders = loadJSON('folders_list', folders);
-  
-  const list = document.getElementById('folderList');
-  list.innerHTML = '';
-  
-  folders.forEach(function(f){
-    debugger
-    const cls = (currentFolderFilter === f.id) ? 'folder-item active' : 'folder-item';
-    const div = document.createElement('div');
-    div.className = cls;
-    div.setAttribute('data-id', f.id);
-    div.innerHTML = `
+      function decryptVault(enc, keyHex) {
+        return CryptoJS.AES.decrypt(enc, keyHex).toString(CryptoJS.enc.Utf8);
+      }
+
+      // State
+      let derivedKey = null;
+      let autoLockTimer = null;
+      let currentFolderFilter = "all";
+      let folders = loadJSON("folders_list", null);
+
+      if (!folders) {
+        folders = [
+          { id: "all", name: "All", color: "#6b7280" },
+          { id: "banking", name: "Banking", color: "#dc2626" },
+          { id: "email", name: "Email", color: "#2563eb" },
+          { id: "social", name: "Social", color: "#7c3aed" },
+          { id: "work", name: "Work", color: "#16a34a" },
+          { id: "other", name: "Other", color: "#f59e0b" },
+        ];
+        saveJSON("folders_list", folders);
+      }
+
+      const perPage = 10;
+      let currentPage = 1;
+      let editingIndex = null;
+
+      // Lock/Unlock
+      function showLock() {
+        document.getElementById("lockScreen").style.display = "flex";
+        document.getElementById("app").style.display = "none";
+      }
+
+      function showApp() {
+        document.getElementById("lockScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      }
+
+      document.getElementById("setBtn").onclick = function () {
+        if (localStorage.getItem("vault_enc"))
+          return alert("Master already set. Use Unlock.");
+        let pass = document.getElementById("masterInput").value;
+        if (!pass) return alert("Enter a master password.");
+        if (pass.length < 2)
+          return alert("Password must be at least 2 characters.");
+
+        let s = ensureSalt();
+        let keyHex = deriveKeyHex(pass, s);
+        localStorage.setItem("vault_enc", encryptVault([], keyHex));
+        derivedKey = keyHex;
+        document.getElementById("masterInput").value = "";
+        showApp();
+        renderFolders();
+        loadEntries();
+        resetAutoLock();
+        alert("Master password created!");
+      };
+
+      document.addEventListener("click", function (e) {
+        const trigger = e.target.closest("[erasecontextfor]");
+        if (!trigger) return;
+
+        const key = trigger.getAttribute("erasecontextfor");
+
+        // Find all inputs, textareas, and selects that match
+        const fields = document.querySelectorAll(
+          `[erasecontenttriggerfrom="${key}"]`
+        );
+
+        fields.forEach((field) => {
+          if (field.tagName === "SELECT") {
+            field.selectedIndex = 0; // reset dropdown
+          } else {
+            field.value = ""; // clear input/textarea
+          }
+
+          // fire input/change events if needed
+          field.dispatchEvent(new Event("input"));
+          field.dispatchEvent(new Event("change"));
+        });
+      });
+
+      document.addEventListener("click", function (e) {
+        const folder = e.target.closest(".folder-item");
+        if (!folder) return;
+
+        // get the folder's data-id (ex: "work", "email")
+        const id = folder.getAttribute("data-id");
+
+        const select = document.getElementById("filterFolder");
+        if (!select) return;
+
+        select.value = id; // change dropdown
+        select.dispatchEvent(new Event("change")); // trigger change event if needed
+
+        const folderSelect = document.getElementById("folderSelect");
+        if (!folderSelect) return;
+
+        folderSelect.value = id; // change dropdown
+        folderSelect.dispatchEvent(new Event("change")); // trigger change event if needed
+      });
+
+      document
+        .getElementById("masterInput")
+        .addEventListener("input", function () {
+          let pass = this.value.trim();
+          if (!pass) return;
+
+          const salt = ensureSalt();
+          const keyHex = deriveKeyHex(pass, salt);
+          const enc = localStorage.getItem("vault_enc");
+          if (!enc) return;
+
+          try {
+            const dec = decryptVault(enc, keyHex);
+            JSON.parse(dec);
+
+            // ✅ Correct password — unlock
+            derivedKey = keyHex;
+            this.value = "";
+            showApp();
+            renderFolders();
+            loadEntries();
+            resetAutoLock();
+            alert("Vault unlocked!");
+          } catch (e) {
+            this.style.borderColor = "red";
+            setTimeout(() => (this.style.borderColor = ""), 600);
+          }
+        });
+
+      document.getElementById("unlockBtn").onclick = function () {
+        let pass = document.getElementById("masterInput").value;
+        const masterInput = document.getElementById("masterInput");
+
+        if (!pass) return alert("Enter master password.");
+
+        const salt = ensureSalt();
+        const keyHex = deriveKeyHex(pass, salt);
+        const enc = localStorage.getItem("vault_enc");
+        if (!enc) return alert("No vault found. Create master first.");
+
+        try {
+          const dec = decryptVault(enc, keyHex);
+          JSON.parse(dec);
+          derivedKey = keyHex;
+          masterInput.value = "";
+          showApp();
+          renderFolders();
+          loadEntries();
+          resetAutoLock();
+          alert("Vault unlocked!");
+        } catch (e) {
+          alert("Wrong master password!");
+          masterInput.style.borderColor = "red";
+          setTimeout(() => (masterInput.style.borderColor = ""), 1500);
+          masterInput.classList.remove("input-shake"); // reset if repeated
+          void masterInput.offsetWidth; // force reflow
+          masterInput.classList.add("input-shake");
+
+          // remove class after 2s so it can trigger again later
+          setTimeout(() => {
+            masterInput.classList.remove("input-shake");
+          }, 1000);
+        }
+      };
+
+      document.getElementById("lockBtn").onclick = function () {
+        lockNow();
+      };
+
+      function lockNow() {
+        derivedKey = null;
+        showLock();
+        clearTimeout(autoLockTimer);
+        editingIndex = null;
+        document.getElementById("entryList").innerHTML = "";
+      }
+
+      function resetAutoLock() {
+        clearTimeout(autoLockTimer);
+        autoLockTimer = setTimeout(function () {
+          lockNow();
+          alert("Auto-locked");
+        }, 5 * 60000);
+      }
+
+      document.addEventListener("mousemove", function () {
+        if (derivedKey) resetAutoLock();
+      });
+      document.addEventListener("keydown", function () {
+        if (derivedKey) resetAutoLock();
+      });
+      document.addEventListener("click", function () {
+        if (derivedKey) resetAutoLock();
+      });
+
+      // Vault
+      function readVaultArray() {
+        if (!derivedKey) return [];
+        const enc =
+          localStorage.getItem("vault_enc") || encryptVault([], derivedKey);
+        try {
+          return JSON.parse(decryptVault(enc, derivedKey));
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function writeVaultArray(arr) {
+        if (!derivedKey) return;
+        localStorage.setItem("vault_enc", encryptVault(arr, derivedKey));
+      }
+
+      // Folders
+      function renderFolders() {
+        folders = loadJSON("folders_list", folders);
+
+        const list = document.getElementById("folderList");
+        list.innerHTML = "";
+
+        folders.forEach(function (f) {
+          debugger;
+          const cls =
+            currentFolderFilter === f.id ? "folder-item active" : "folder-item";
+          const div = document.createElement("div");
+          div.className = cls;
+          div.setAttribute("data-id", f.id);
+          div.innerHTML = `
       <span class="folder-badge" style="background:${f.color}"></span>
       <span class="flex-grow-1">${escapeHtml(f.name)}</span>
-      ${(f.id!=='all' || f.id!=='other') ? `<button class="btn btn-sm btn-danger delFolder" data-id="${f.id}"><i class="fa fa-trash"></i></button>` : ''}
+      ${
+        f.id !== "all" || f.id !== "other"
+          ? `<button class="btn btn-sm btn-danger delFolder" data-id="${f.id}"><i class="fa fa-trash"></i></button>`
+          : ""
+      }
     `;
-    
-    div.onclick = function(e){
-      if(e.target.closest('button')) return;
-      currentFolderFilter = f.id;
-      renderFolders();
-      loadEntries(1);
-    };
-    
-    list.appendChild(div);
-  });
 
-  const folderSel = document.getElementById('folderSelect');
-  const filterSel = document.getElementById('filterFolder');
-  folderSel.innerHTML = '';
-  filterSel.innerHTML = '<option value="all">Filter Folder</option>';
-  
-  folders.forEach(function(f){
-    folderSel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-    filterSel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-  });
-}
+          div.onclick = function (e) {
+            if (e.target.closest("button")) return;
+            currentFolderFilter = f.id;
+            renderFolders();
+            loadEntries(1);
+          };
 
-document.getElementById('addFolderBtn').onclick = function(){
-  const form = document.getElementById('folderForm');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
-};
+          list.appendChild(div);
+        });
 
-document.getElementById('createFolder').onclick = function(){
-  const name = document.getElementById('newFolderName').value.trim();
-  const color = document.getElementById('newFolderColor').value;
-  if(!name) return alert('Enter folder name');
-  
-  folders.push({id: uid(), name: name, color: color});
-  saveJSON('folders_list', folders);
-  document.getElementById('newFolderName').value = '';
-  document.getElementById('folderForm').style.display = 'none';
-  renderFolders();
-  alert('Folder created!');
-};
+        const folderSel = document.getElementById("folderSelect");
+        const filterSel = document.getElementById("filterFolder");
+        folderSel.innerHTML = "";
+        filterSel.innerHTML = '<option value="all">Filter Folder</option>';
 
-document.addEventListener('click', function(e){
-  if(e.target.closest('.delFolder')){
-    e.stopPropagation();
-    if(!confirm('Delete folder?')) return;
-    
-    const id = e.target.closest('.delFolder').getAttribute('data-id');
-    folders = folders.filter(function(f){ return f.id !== id; });
-    
-    const arr = readVaultArray();
-    arr.forEach(function(it){ if(it.folder === id) it.folder = 'other'; });
-    writeVaultArray(arr);
-    saveJSON('folders_list', folders);
-    renderFolders();
-    loadEntries();
-    alert('Folder deleted');
-  }
-});
+        folders.forEach(function (f) {
+          folderSel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+          filterSel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+        });
+      }
 
-// Entries
-function entryMatchesFilter(it, q, folderId){
-  q = (q||'').toLowerCase();
-  const inFolder = folderId === 'all' ? true : it.folder === folderId;
-  const inQuery = q === '' || 
-    (it.site||'').toLowerCase().includes(q) || 
-    (it.username||'').toLowerCase().includes(q) || 
-    (it.message||'').toLowerCase().includes(q);
-  return inFolder && inQuery;
-}
+      document.getElementById("addFolderBtn").onclick = function () {
+        const form = document.getElementById("folderForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+      };
 
-function loadEntries(page){
-  if(!derivedKey) return;
-  currentPage = page || currentPage;
-  let arr = readVaultArray();
-  
-  const sort = document.getElementById('sortDate').value;
-  if(sort==='new') arr.sort(function(a,b){ return (b.updated||0) - (a.updated||0); });
-  if(sort==='old') arr.sort(function(a,b){ return (a.updated||0) - (b.updated||0); });
+      document.getElementById("createFolder").onclick = function () {
+        const name = document.getElementById("newFolderName").value.trim();
+        const color = document.getElementById("newFolderColor").value;
+        if (!name) return alert("Enter folder name");
 
-  const q = document.getElementById('search').value.trim();
-  const fFilter = document.getElementById('filterFolder').value || currentFolderFilter;
-  const filtered = arr.filter(function(it){ return entryMatchesFilter(it, q, fFilter); });
-  
-  const total = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / perPage));
-  if(currentPage > totalPages) currentPage = totalPages;
-  
-  const start = (currentPage-1) * perPage;
-  const pageSlice = filtered.slice(start, start+perPage);
+        folders.push({ id: uid(), name: name, color: color });
+        saveJSON("folders_list", folders);
+        document.getElementById("newFolderName").value = "";
+        document.getElementById("folderForm").style.display = "none";
+        renderFolders();
+        alert("Folder created!");
+      };
 
-  const tbody = document.getElementById('entryList');
-  tbody.innerHTML = '';
-  
-  pageSlice.forEach(function(it){
-    const originalIndex = arr.indexOf(it);
-    const folderObj = folders.find(function(f){ return f.id === it.folder; }) || {name:'Other', color:'#6b7280'};
-    const isEncoded = it.encoded && !it.password;
+      document.addEventListener("click", function (e) {
+        if (e.target.closest(".delFolder")) {
+          e.stopPropagation();
+          if (!confirm("Delete folder?")) return;
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+          const id = e.target.closest(".delFolder").getAttribute("data-id");
+          folders = folders.filter(function (f) {
+            return f.id !== id;
+          });
+
+          const arr = readVaultArray();
+          arr.forEach(function (it) {
+            if (it.folder === id) it.folder = "other";
+          });
+          writeVaultArray(arr);
+          saveJSON("folders_list", folders);
+          renderFolders();
+          loadEntries();
+          alert("Folder deleted");
+        }
+      });
+
+      // Entries
+      function entryMatchesFilter(it, q, folderId) {
+        q = (q || "").toLowerCase();
+        const inFolder = folderId === "all" ? true : it.folder === folderId;
+        const inQuery =
+          q === "" ||
+          (it.site || "").toLowerCase().includes(q) ||
+          (it.username || "").toLowerCase().includes(q) ||
+          (it.message || "").toLowerCase().includes(q);
+        return inFolder && inQuery;
+      }
+
+      function loadEntries(page) {
+        if (!derivedKey) return;
+        currentPage = page || currentPage;
+        let arr = readVaultArray();
+
+        const sort = document.getElementById("sortDate").value;
+        if (sort === "new")
+          arr.sort(function (a, b) {
+            return (b.updated || 0) - (a.updated || 0);
+          });
+        if (sort === "old")
+          arr.sort(function (a, b) {
+            return (a.updated || 0) - (b.updated || 0);
+          });
+
+        const q = document.getElementById("search").value.trim();
+        const fFilter =
+          document.getElementById("filterFolder").value || currentFolderFilter;
+        const filtered = arr.filter(function (it) {
+          return entryMatchesFilter(it, q, fFilter);
+        });
+
+        const total = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * perPage;
+        const pageSlice = filtered.slice(start, start + perPage);
+
+        const tbody = document.getElementById("entryList");
+        tbody.innerHTML = "";
+
+        pageSlice.forEach(function (it) {
+          const originalIndex = arr.indexOf(it);
+          const folderObj = folders.find(function (f) {
+            return f.id === it.folder;
+          }) || { name: "Other", color: "#6b7280" };
+          const isEncoded = it.encoded && !it.password;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
       <td>${escapeHtml(it.site)}</td>
-      <td>${it.url ? `<a href="${escapeHtml(it.url)}" target="_blank">Link</a>` : '-'}</td>
+      <td>${
+        it.url
+          ? `<a href="${escapeHtml(it.url)}" target="_blank">Link</a>`
+          : "-"
+      }</td>
       <td>${escapeHtml(it.username)}</td>
-      <td>${isEncoded ? '<i class="fa fa-lock"></i>' : '••••••'}</td>
-      <td>${isEncoded ? '<i class="fa fa-lock"></i>' : '-'}</td>
-      <td><span class="badge" style="background:${folderObj.color};color:var(--light-color)">${folderObj.name}</span></td>
-      <td>${escapeHtml(it.message || '-')}</td>
+      <td>${isEncoded ? '<i class="fa fa-lock"></i>' : "••••••"}</td>
+      <td>${isEncoded ? '<i class="fa fa-lock"></i>' : "-"}</td>
+      <td><span class="badge" style="background:${
+        folderObj.color
+      };color:var(--light-color)">${folderObj.name}</span></td>
+      <td>${escapeHtml(it.message || "-")}</td>
       <td>
-        <button class="btn btn-sm btn-info encodeEntry" ${isEncoded ? 'disabled' : ''} data-i="${originalIndex}">${isEncoded ? 'Locked' : '<i class="fa fa-lock">&nbsp; Pass</i>'}</button>
+        <button class="btn btn-sm btn-info encodeEntry" ${
+          isEncoded ? "disabled" : ""
+        } data-i="${originalIndex}">${
+            isEncoded ? "Locked" : '<i class="fa fa-lock">&nbsp; Pass</i>'
+          }</button>
         <button class="btn btn-sm btn-primary viewEntry" data-i="${originalIndex}"><i class="fa fa-eye"></i></button>
         <button class="btn btn-sm btn-warning editEntry" data-i="${originalIndex}"><i class="fa fa-edit"></i></button>
         <button class="btn btn-sm btn-danger delEntry" data-i="${originalIndex}"><i class="fa fa-trash"></i></button>
         <button class="btn btn-sm btn-secondary copyPassword" data-i="${originalIndex}"><i class="fa fa-copy"></i></button>
       </td>
     `;
-    tbody.appendChild(tr);
-  });
+          tbody.appendChild(tr);
+        });
 
-  document.getElementById('pageInfo').textContent = `Page ${currentPage} / ${totalPages}`;
-  document.getElementById('prevPage').disabled = currentPage<=1;
-  document.getElementById('nextPage').disabled = currentPage>=totalPages;
-}
+        document.getElementById(
+          "pageInfo"
+        ).textContent = `Page ${currentPage} / ${totalPages}`;
+        document.getElementById("prevPage").disabled = currentPage <= 1;
+        document.getElementById("nextPage").disabled =
+          currentPage >= totalPages;
+      }
 
-// Save
-document.getElementById('saveBtn').onclick = function(){
-  if(!derivedKey) return alert('Unlock vault first');
-  
-  const site = document.getElementById('site').value.trim();
-  const url = document.getElementById('url').value.trim();
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const secret = document.getElementById('secret').value;
-  const folder = document.getElementById('folderSelect').value;
-  const message = document.getElementById('message').value;
-  const additionalInfo = document.getElementById('additionalInfo').value;
+      // Save
+      document.getElementById("saveBtn").onclick = function () {
+        if (!derivedKey) return alert("Unlock vault first");
 
-  if(!site || !username) {
-    return alert('Fill: Website, Username Mandatory!');
-  }
+        const site = document.getElementById("site").value.trim();
+        const url = document.getElementById("url").value.trim();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        const secret = document.getElementById("secret").value;
+        const folder = document.getElementById("folderSelect").value;
+        const message = document.getElementById("message").value;
+        const additionalInfo = document.getElementById("additionalInfo").value;
 
-  const arr = readVaultArray();
-  const obj = { site:site, url:url, username:username, password:password, secret:secret, encoded:null, folder:folder, message:message, additionalInfo:additionalInfo, updated: now() };
+        if (!site || !username) {
+          return alert("Fill: Website, Username Mandatory!");
+        }
 
-  if(editingIndex !== null){
-    arr[editingIndex] = obj;
-    editingIndex = null;
-    alert('Entry updated!');
-  } else {
-    arr.push(obj);
-    alert('Entry saved!');
-  }
-  
-  writeVaultArray(arr);
-  clearForm();
-  loadEntries(1);
-};
+        const arr = readVaultArray();
+        const obj = {
+          site: site,
+          url: url,
+          username: username,
+          password: password,
+          secret: secret,
+          encoded: null,
+          folder: folder,
+          message: message,
+          additionalInfo: additionalInfo,
+          updated: now(),
+        };
 
-document.getElementById('clearBtn').onclick = function(){ clearForm(); };
+        if (editingIndex !== null) {
+          arr[editingIndex] = obj;
+          editingIndex = null;
+          alert("Entry updated!");
+        } else {
+          arr.push(obj);
+          alert("Entry saved!");
+        }
 
-function clearForm(){
-  document.getElementById('site').value = '';
-  document.getElementById('url').value = '';
-  document.getElementById('username').value = '';
-  document.getElementById('password').value = '';
-  document.getElementById('secret').value = '';
-  document.getElementById('message').value = '';
-  document.getElementById('additionalInfo').value = '';
-  editingIndex = null;
-}
+        writeVaultArray(arr);
+        clearForm();
+        loadEntries(1);
+      };
 
-function downloadVaultAsCSV() {
-  const data = readVaultArray(); // your array of objects
-  if (!Array.isArray(data) || data.length === 0) {
-    alert("Vault array is empty or invalid!");
-    return;
-  }
+      document.getElementById("clearBtn").onclick = function () {
+        clearForm();
+      };
 
-  // Extract headers from keys of first object
-  const headers = Object.keys(data[0]);
+      function clearForm() {
+        document.getElementById("site").value = "";
+        document.getElementById("url").value = "";
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("secret").value = "";
+        document.getElementById("message").value = "";
+        document.getElementById("additionalInfo").value = "";
+        editingIndex = null;
+      }
 
-  // Build CSV rows
-  const rows = [
-    headers.join(","), // header row
-    ...data.map(obj => headers.map(h => JSON.stringify(obj[h] ?? "")).join(","))
-  ];
+      function downloadVaultAsCSV() {
+        const data = readVaultArray(); // your array of objects
+        if (!Array.isArray(data) || data.length === 0) {
+          alert("Vault array is empty or invalid!");
+          return;
+        }
 
-  const csvContent = rows.join("\r\n");
+        // Extract headers from keys of first object
+        const headers = Object.keys(data[0]);
 
-  // Create blob and download
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "vault_backup.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
+        // Build CSV rows
+        const rows = [
+          headers.join(","), // header row
+          ...data.map((obj) =>
+            headers.map((h) => JSON.stringify(obj[h] ?? "")).join(",")
+          ),
+        ];
 
+        const csvContent = rows.join("\r\n");
 
-// Actions
-document.addEventListener('click', function(e){
-  // View
-  if(e.target.closest('.viewEntry')){
-    const idx = parseInt(e.target.closest('.viewEntry').getAttribute('data-i'));
-    const arr = readVaultArray();
-    const it = arr[idx];
-    if(!it) return;
-    
-    const folderObj = folders.find(function(f){ return f.id === it.folder; }) || {name:'Other'};
-    const isEncoded = it.encoded && !it.password;
-    
-    let pwd = it.password;
-    let secret = it.secret;
-    if(isEncoded){
-      // If secret is not available, then in the side password side keep as lockicon with decrept button when clicked it will open a prompt to enter secret
-      //      const s = prompt('Enter secret to view password:');
-      //      if(!s) return;
-      //      try{
-      //        pwd = CryptoJS.AES.decrypt(it.encoded, s).toString(CryptoJS.enc.Utf8);
-      //        if(!pwd) throw 'bad';
-      //      }catch(err){
-      //        return alert('Wrong secret!');
-      //      }
-      pwd = "🔒";
-      secret = "🔒";
+        // Create blob and download
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "vault_backup.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
 
-    }
-    
-    const html = `
+      // Actions
+      document.addEventListener("click", function (e) {
+        // View
+        if (e.target.closest(".viewEntry")) {
+          const idx = parseInt(
+            e.target.closest(".viewEntry").getAttribute("data-i")
+          );
+          const arr = readVaultArray();
+          const it = arr[idx];
+          if (!it) return;
+
+          const folderObj = folders.find(function (f) {
+            return f.id === it.folder;
+          }) || { name: "Other" };
+          const isEncoded = it.encoded && !it.password;
+
+          let pwd = it.password;
+          let secret = it.secret;
+          if (isEncoded) {
+            // If secret is not available, then in the side password side keep as lockicon with decrept button when clicked it will open a prompt to enter secret
+            //      const s = prompt('Enter secret to view password:');
+            //      if(!s) return;
+            //      try{
+            //        pwd = CryptoJS.AES.decrypt(it.encoded, s).toString(CryptoJS.enc.Utf8);
+            //        if(!pwd) throw 'bad';
+            //      }catch(err){
+            //        return alert('Wrong secret!');
+            //      }
+            pwd = "🔒";
+            secret = "🔒";
+          }
+
+          const html = `
       <table class="table">
         <tr><th>Website</th><td>${escapeHtml(it.site)}</td></tr>
-        <tr><th>URL</th><td>${it.url ? escapeHtml(it.url) : '-'}</td></tr>
+        <tr><th>URL</th><td>${it.url ? escapeHtml(it.url) : "-"}</td></tr>
         <tr><th>Username</th><td>${escapeHtml(it.username)}</td></tr>
         <tr><th>Password</th><td>${escapeHtml(pwd)}</td></tr>
         <tr><th>Secret</th><td>${escapeHtml(secret)}</td></tr>
         <tr><th>Folder</th><td>${folderObj.name}</td></tr>
-        <tr><th>Message</th><td>${escapeHtml(it.message || '-')}</td></tr>
-        <tr><th>Additional Info</th><td>${escapeHtml(it.additionalInfo || '-')}</td></tr>
+        <tr><th>Message</th><td>${escapeHtml(it.message || "-")}</td></tr>
+        <tr><th>Additional Info</th><td>${escapeHtml(
+          it.additionalInfo || "-"
+        )}</td></tr>
         <tr><th>Updated</th><td>${fmtDate(it.updated)}</td></tr>
       </table>
     `;
-    
-    document.getElementById('viewModalBody').innerHTML = html;
-    new bootstrap.Modal(document.getElementById('viewModal')).show();
-  }
 
-  if(e.target.closest('#infoBtn')){
-   
-    const html = `
+          document.getElementById("viewModalBody").innerHTML = html;
+          new bootstrap.Modal(document.getElementById("viewModal")).show();
+        }
+
+        if (e.target.closest("#infoBtn")) {
+          const html = `
       <table class="table">
         <tr><th>Used</th><td>CryptoJS to encrypt</td></tr>
         <tr><th>Master Password</th><td>Whole vault is encrypted with master password</td></tr>
@@ -927,651 +1267,765 @@ document.addEventListener('click', function(e){
         </tr>
       </table>
     `;
-    
-    document.getElementById('viewModalBody').innerHTML = html;
-    new bootstrap.Modal(document.getElementById('viewModal')).show();
-  }
-  
-  if (e.target.closest('#changeMasterBtn')) {
-      const oldMaster = prompt('Enter current master password:');
-      if (!oldMaster) return;
-      
-      try {
-          const existingSalt = localStorage.getItem('vault_salt');
-          if (!existingSalt) return alert('No vault found.');
-          
-          const oldKeyHex = deriveKeyHex(oldMaster, existingSalt);
-          const vaultEnc = localStorage.getItem('vault_enc');
-          
-          if (!vaultEnc) return alert('No vault found. Create master first.');
-          
+
+          document.getElementById("viewModalBody").innerHTML = html;
+          new bootstrap.Modal(document.getElementById("viewModal")).show();
+        }
+
+        if (e.target.closest("#changeMasterBtn")) {
+          const oldMaster = prompt("Enter current master password:");
+          if (!oldMaster) return;
+
           try {
+            const existingSalt = localStorage.getItem("vault_salt");
+            if (!existingSalt) return alert("No vault found.");
+
+            const oldKeyHex = deriveKeyHex(oldMaster, existingSalt);
+            const vaultEnc = localStorage.getItem("vault_enc");
+
+            if (!vaultEnc) return alert("No vault found. Create master first.");
+
+            try {
               // Decrypt existing vault with old password
               const decryptedData = decryptVault(vaultEnc, oldKeyHex);
               const vaultArray = JSON.parse(decryptedData); // Validate
-              
-              const newMaster = prompt('Enter new master password (min 1 character(s)):');
-              if (!newMaster) return alert('New password cancelled.');
-              if (newMaster.length < 1) return alert('New password must be at least 1 characters.');
-              
-              const confirmMaster = prompt('Confirm new master password:');
-              if (confirmMaster !== newMaster) return alert('Passwords do not match!');
-              
+
+              const newMaster = prompt(
+                "Enter new master password (min 1 character(s)):"
+              );
+              if (!newMaster) return alert("New password cancelled.");
+              if (newMaster.length < 1)
+                return alert("New password must be at least 1 characters.");
+
+              const confirmMaster = prompt("Confirm new master password:");
+              if (confirmMaster !== newMaster)
+                return alert("Passwords do not match!");
+
               // Generate NEW salt for new password
               const newSalt = CryptoJS.lib.WordArray.random(16).toString();
               const newKeyHex = deriveKeyHex(newMaster, newSalt);
-              
+
               // Re-encrypt vault with new password
               const newEnc = encryptVault(vaultArray, newKeyHex);
-              
+
               // Save new encrypted vault AND new salt
-              localStorage.setItem('vault_enc', newEnc);
-              localStorage.setItem('vault_salt', newSalt);
-              
+              localStorage.setItem("vault_enc", newEnc);
+              localStorage.setItem("vault_salt", newSalt);
+
               // Update current session key
               derivedKey = newKeyHex;
-              
-              alert('Master password changed successfully! Please export your vault as backup.');
-              
+
+              alert(
+                "Master password changed successfully! Please export your vault as backup."
+              );
+            } catch (err) {
+              alert("Wrong current master password!");
+            }
           } catch (err) {
-              alert('Wrong current master password!');
-          }
-          
-      } catch (err) {
-          alert('Error changing password: ' + err.message);
-      }
-  }
-  // Edit
-  if(e.target.closest('.editEntry')){
-    const idx = parseInt(e.target.closest('.editEntry').getAttribute('data-i'));
-    const arr = readVaultArray();
-    const it = arr[idx];
-    if(!it) return;
-    
-    if(!it.password && it.encoded){
-      const s = prompt('Enter secret to edit:');
-      if(!s) return;
-      try{
-        const dec = CryptoJS.AES.decrypt(it.encoded, s).toString(CryptoJS.enc.Utf8);
-        if(!dec) throw 'bad';
-        it.password = dec;
-        it.secret = s;
-      }catch(err){
-        return alert('Wrong secret!');
-      }
-    }
-    
-    document.getElementById('site').value = it.site;
-    document.getElementById('url').value = it.url;
-    document.getElementById('username').value = it.username;
-    document.getElementById('password').value = it.password;
-    document.getElementById('secret').value = it.secret;
-    document.getElementById('message').value = it.message;
-    document.getElementById('additionalInfo').value = it.additionalInfo?it.additionalInfo:'';
-    document.getElementById('folderSelect').value = it.folder;
-    
-    editingIndex = idx;
-    window.scrollTo(0, 0);
-  }
-
-  if(e.target.closest('.copyPassword')){
-    // If password is encoded, then ask for secret
-
-    const idx = parseInt(e.target.closest('.copyPassword').getAttribute('data-i'));
-    const arr = readVaultArray();
-    const it = arr[idx];
-    debugger
-    if(!it) return;
-    if(it.encoded){
-      const s = prompt('Enter secret to copy:');
-      if(!s) return;
-      try{
-        const dec = CryptoJS.AES.decrypt(it.encoded, s).toString(CryptoJS.enc.Utf8);
-        if(!dec) throw 'bad';
-        it.password = dec;
-        it.secret = s;
-      }catch(err){
-        return alert('Wrong secret!');
-      }
-    }
-    navigator.clipboard.writeText(it.password);
-    alert('Password copied to clipboard!');
-  }
-  
-  // Encode
-  if(e.target.closest('.encodeEntry')){
-    const idx = parseInt(e.target.closest('.encodeEntry').getAttribute('data-i'));
-    const arr = readVaultArray();
-    const it = arr[idx];
-    
-    if(!it.password || !it.secret) return alert('Need password and secret to encode!');
-    if(it.encoded) return alert('Already encoded!');
-    if(!confirm('Encode password?')) return;
-    
-    it.encoded = CryptoJS.AES.encrypt(it.password, it.secret).toString();
-    it.password = null;
-    it.secret = null;
-    it.updated = now();
-    
-    writeVaultArray(arr);
-    loadEntries(currentPage);
-    alert('Password encoded!');
-  }
-  
-  // Delete
-  if(e.target.closest('.delEntry')){
-    if(!confirm('Delete this entry permanently?')) return;
-    
-    const idx = parseInt(e.target.closest('.delEntry').getAttribute('data-i'));
-    let arr = readVaultArray();
-    arr.splice(idx, 1);
-    writeVaultArray(arr);
-    loadEntries(currentPage);
-    alert('Entry deleted');
-  }
-});
-
-/* =============== EXPORT/IMPORT =============== */
-
-document.getElementById('exportBtn2').onclick = function(){
-  if(!derivedKey) return alert('Unlock first');
-
-  // Ask user what type of export they want
-  const exportType = prompt('Export type:\n1 = Encrypted backup (secure)\n2 = Plain text backup (readable)\n\nEnter 1 or 2:');
-  
-  if(exportType === '2') {
-    // PLAIN TEXT EXPORT (Human Readable)
-    const arr = readVaultArray();
-    
-    if(arr.length === 0) return alert('No passwords to export!');
-    
-    const decryptedArr = arr.map(it => {
-      let password = it.password;
-      let passwordStatus = 'plain';
-      let encodedData = null;
-      
-      // If password is encoded, keep both versions
-      if(!password && it.encoded) {
-        encodedData = it.encoded;
-        passwordStatus = 'encrypted';
-        
-        // Ask if user wants to decrypt now
-        const tryDecrypt = confirm(`Password for "${it.site}" is encrypted.\n\nClick OK to enter secret and decrypt it now.\nClick Cancel to keep it encrypted in export.`);
-        
-        if(tryDecrypt) {
-          const secret = prompt(`Enter secret code for "${it.site}":`);
-          if(secret) {
-            try {
-              password = CryptoJS.AES.decrypt(it.encoded, secret).toString(CryptoJS.enc.Utf8);
-              if(!password) throw 'Invalid';
-              passwordStatus = 'decrypted';
-            } catch(e) {
-              password = null;
-              passwordStatus = 'encrypted';
-            }
+            alert("Error changing password: " + err.message);
           }
         }
-      }
-      
-      return {
-        website: it.site,
-        url: it.url || '',
-        username: it.username,
-        password: password || '[ENCRYPTED - See encodedPassword field]',
-        passwordStatus: passwordStatus,
-        encodedPassword: encodedData,
-        secretCodeRequired: encodedData ? 'YES - You need your secret code to decrypt' : 'NO',
-        category: folders.find(f => f.id === it.folder)?.name || 'Other',
-        message: it.message || '',
-        lastUpdated: it.updated ? new Date(it.updated).toLocaleString() : ''
-      };
-    });
-    
-    // Create readable format
-    const plainTextData = {
-      exportType: 'PLAIN_TEXT_BACKUP',
-      warning: 'THIS FILE CONTAINS YOUR PASSWORDS - KEEP IT SECURE!',
-      exportDate: new Date().toLocaleString(),
-      totalPasswords: decryptedArr.length,
-      encryptedCount: decryptedArr.filter(p => p.passwordStatus === 'encrypted').length,
-      passwords: decryptedArr,
-      
-      instructions: {
-        note: 'For encrypted passwords, you need your SECRET CODE (not master password)',
-        howToDecrypt: 'Use the encodedPassword field with your secret code and AES decryption',
-        onlineDecryptTool: 'You can use https://www.devglan.com/online-tools/aes-encryption-decryption'
-      },
-      
-      decryptionCode: {
-        note: 'If you need to decrypt your .enc backups, use this information',
-        algorithm: 'AES with PBKDF2',
-        iterations: 2000,
-        keySize: 256
-      }
-    };
-    
-    const folderName = prompt("Enter file name (leave blank for default):") || 'passwords_backup';
-    
-    const blob = new Blob([JSON.stringify(plainTextData, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${folderName}_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    
-    const encCount = decryptedArr.filter(p => p.passwordStatus === 'encrypted').length;
-    if(encCount > 0) {
-      alert(`⚠️ Plain text backup exported!\n\n${encCount} password(s) are still encrypted.\nYou'll need your SECRET CODES to decrypt them later.\n\nThe encrypted data is included in the "encodedPassword" field.`);
-    } else {
-      alert('✅ Plain text backup exported!\n\nWARNING: This file contains readable passwords.\nStore it in a SECURE location!');
-    }
-    
-  } else {
-    // ENCRYPTED EXPORT (Original secure method)
-    const folderName = prompt("Enter file name (leave blank for default):") || new Date().toISOString().slice(0,10);
-    
-    const enc = localStorage.getItem('vault_enc') || '';
-    const salt = localStorage.getItem('vault_salt') || '';
-    const folders_backup = localStorage.getItem('folders_list') || '';
-    
-    const exportData = {
-      exportType: 'ENCRYPTED_BACKUP',
-      vault: enc,
-      salt: salt,
-      folders: folders_backup,
-      version: '1.0',
-      exportDate: new Date().toISOString(),
-      
-      decryptionInfo: {
-        algorithm: 'AES-256',
-        keyDerivation: 'PBKDF2',
-        iterations: 2000,
-        note: 'Use your master password to decrypt this vault'
-      }
-    };
-    
-    const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `vault_${folderName}.enc`;
-    a.click();
-    alert('🔒 Encrypted vault exported successfully!');
-  }
-};
-document.getElementById('exportBtn').onclick = function(){
-  if(!derivedKey) return alert('Unlock first');
-
-  const folderName = prompt("Enter Folder Name to export or leave blank to export with random name");
-  
-  const enc = localStorage.getItem('vault_enc') || '';
-  const salt = localStorage.getItem('vault_salt') || '';
-  const folders_backup = localStorage.getItem('folders_list') || '';
-  
-  // Export with salt and folders
-  const exportData = {
-    vault: enc,
-    salt: salt,
-    folders: folders_backup,
-    version: '1.0',
-    exportDate: new Date().toISOString()
-  };
-  
-  const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `vault_${folderName || new Date().toISOString().slice(0,10)}.enc`;
-  a.click();
-  alert('Vault exported!');
-};
-
-document.getElementById('importFile').onchange = function(e){
-  debugger
-  const f = this.files[0];
-  if(!f) return;
-  
-  const reader = new FileReader();
-  reader.onload = function(e2){
-    try {
-      const importData = JSON.parse(e2.target.result);
-      
-      // Check if it's new format (with salt) or old format (just encrypted data)
-      if(importData.vault && importData.salt) {
-        // New format - has salt included
-        const ask = prompt('Enter the master password used to encrypt this backup:');
-        if(!ask) return alert('Import cancelled');
-        
-        const keyHex = deriveKeyHex(ask, importData.salt);
-        
-        try {
-          const dec = decryptVault(importData.vault, keyHex);
-          JSON.parse(dec); // Validate
-          
-          // Import successful - update everything
-          localStorage.setItem('vault_enc', importData.vault);
-          localStorage.setItem('vault_salt', importData.salt);
-          if(importData.folders) {
-            localStorage.setItem('folders_list', importData.folders);
-          }
-          
-          derivedKey = keyHex;
-          folders = loadJSON('folders_list', folders);
-          
-          alert('Import successful! Vault restored with ' + JSON.parse(dec).length + ' entries.');
-          renderFolders();
-          loadEntries(1);
-        } catch(err) {
-          alert('Import failed: Wrong master password!');
-        }
-      } else {
-        // Old format or direct encrypted string - try with current salt
-        const enc = typeof importData === 'string' ? importData : importData.vault || e2.target.result;
-        
-        try {
-          const dec = decryptVault(enc, derivedKey);
-          JSON.parse(dec);
-          localStorage.setItem('vault_enc', enc);
-          alert('Vault imported with current master password!');
-          loadEntries(1);
-        } catch(err) {
-          alert('Cannot import: This backup needs the original salt. Please use a backup exported from this version.');
-        }
-      }
-    } catch(parseErr) {
-      // Try as old format (plain encrypted string)
-      const enc = e2.target.result;
-      const ask = prompt('Enter master password for this backup:');
-      if(!ask) return alert('Import cancelled');
-      
-      const salt = ensureSalt();
-      const keyHex = deriveKeyHex(ask, salt);
-      
-      try {
-        const dec = decryptVault(enc, keyHex);
-        JSON.parse(dec);
-        derivedKey = keyHex;
-        localStorage.setItem('vault_enc', enc);
-        alert('Import successful!');
-        loadEntries(1);
-      } catch(e3) {
-        alert('Import failed: wrong password or corrupted file');
-      }
-    }
-  };
-  reader.readAsText(f);
-  this.value = '';
-};
-
-document.getElementById('importFile2').onchange = function(e){
-  const f = this.files[0];
-  if(!f) return;
-  
-  const reader = new FileReader();
-  reader.onload = function(e2){
-    try {
-      const importData = JSON.parse(e2.target.result);
-      
-      // Check export type
-      if(importData.exportType === 'PLAIN_TEXT_BACKUP') {
-        // ============================================
-        // IMPORTING PLAIN TEXT BACKUP
-        // ============================================
-        
-        if(!confirm(`This is a PLAIN TEXT backup with ${importData.totalPasswords} passwords.\n\nImport into current vault?\n\nNote: You must be logged in first!`)) {
-          return;
-        }
-        
-        if(!derivedKey) {
-          return alert('Please unlock your vault first before importing!');
-        }
-        
-        const arr = readVaultArray();
-        let imported = 0;
-        let skipped = 0;
-        let reEncrypted = 0;
-        
-        importData.passwords.forEach(item => {
-          // Check if already exists
-          const exists = arr.find(e => 
-            e.site === item.website && 
-            e.username === item.username
+        // Edit
+        if (e.target.closest(".editEntry")) {
+          const idx = parseInt(
+            e.target.closest(".editEntry").getAttribute("data-i")
           );
-          
-          if(exists) {
-            const overwrite = confirm(`"${item.website}" (${item.username}) already exists.\n\nOverwrite it?`);
-            if(!overwrite) {
-              skipped++;
-              return;
+          const arr = readVaultArray();
+          const it = arr[idx];
+          if (!it) return;
+
+          if (!it.password && it.encoded) {
+            const s = prompt("Enter secret to edit:");
+            if (!s) return;
+            try {
+              const dec = CryptoJS.AES.decrypt(it.encoded, s).toString(
+                CryptoJS.enc.Utf8
+              );
+              if (!dec) throw "bad";
+              it.password = dec;
+              it.secret = s;
+            } catch (err) {
+              return alert("Wrong secret!");
             }
-            // Remove old entry
-            const idx = arr.indexOf(exists);
-            arr.splice(idx, 1);
           }
-          
-          let password = null;
-          let secret = null;
-          let encoded = null;
-          
-          // Handle different password statuses
-          if(item.passwordStatus === 'encrypted' && item.encodedPassword) {
-            // Password is still encrypted
-            const askSecret = confirm(`Password for "${item.website}" is encrypted.\n\nDo you want to enter the secret code now?\n(Click Cancel to keep it encrypted)`);
-            
-            if(askSecret) {
-              const secretCode = prompt(`Enter secret code for "${item.website}":`);
-              if(secretCode) {
-                try {
-                  const decrypted = CryptoJS.AES.decrypt(item.encodedPassword, secretCode).toString(CryptoJS.enc.Utf8);
-                  if(decrypted) {
-                    password = decrypted;
-                    secret = secretCode;
-                    reEncrypted++;
+
+          document.getElementById("site").value = it.site;
+          document.getElementById("url").value = it.url;
+          document.getElementById("username").value = it.username;
+          document.getElementById("password").value = it.password;
+          document.getElementById("secret").value = it.secret;
+          document.getElementById("message").value = it.message;
+          document.getElementById("additionalInfo").value = it.additionalInfo
+            ? it.additionalInfo
+            : "";
+          document.getElementById("folderSelect").value = it.folder;
+
+          editingIndex = idx;
+          window.scrollTo(0, 0);
+        }
+
+        if (e.target.closest(".copyPassword")) {
+          // If password is encoded, then ask for secret
+
+          const idx = parseInt(
+            e.target.closest(".copyPassword").getAttribute("data-i")
+          );
+          const arr = readVaultArray();
+          const it = arr[idx];
+          debugger;
+          if (!it) return;
+          if (it.encoded) {
+            const s = prompt("Enter secret to copy:");
+            if (!s) return;
+            try {
+              const dec = CryptoJS.AES.decrypt(it.encoded, s).toString(
+                CryptoJS.enc.Utf8
+              );
+              if (!dec) throw "bad";
+              it.password = dec;
+              it.secret = s;
+            } catch (err) {
+              return alert("Wrong secret!");
+            }
+          }
+          navigator.clipboard.writeText(it.password);
+          alert("Password copied to clipboard!");
+        }
+
+        // Encode
+        if (e.target.closest(".encodeEntry")) {
+          const idx = parseInt(
+            e.target.closest(".encodeEntry").getAttribute("data-i")
+          );
+          const arr = readVaultArray();
+          const it = arr[idx];
+
+          if (!it.password || !it.secret)
+            return alert("Need password and secret to encode!");
+          if (it.encoded) return alert("Already encoded!");
+          if (!confirm("Encode password?")) return;
+
+          it.encoded = CryptoJS.AES.encrypt(it.password, it.secret).toString();
+          it.password = null;
+          it.secret = null;
+          it.updated = now();
+
+          writeVaultArray(arr);
+          loadEntries(currentPage);
+          alert("Password encoded!");
+        }
+
+        // Delete
+        if (e.target.closest(".delEntry")) {
+          if (!confirm("Delete this entry permanently?")) return;
+
+          const idx = parseInt(
+            e.target.closest(".delEntry").getAttribute("data-i")
+          );
+          let arr = readVaultArray();
+          arr.splice(idx, 1);
+          writeVaultArray(arr);
+          loadEntries(currentPage);
+          alert("Entry deleted");
+        }
+      });
+
+      /* =============== EXPORT/IMPORT =============== */
+
+      document.getElementById("exportBtn2").onclick = function () {
+        if (!derivedKey) return alert("Unlock first");
+
+        // Ask user what type of export they want
+        const exportType = prompt(
+          "Export type:\n1 = Encrypted backup (secure)\n2 = Plain text backup (readable)\n\nEnter 1 or 2:"
+        );
+
+        if (exportType === "2") {
+          // PLAIN TEXT EXPORT (Human Readable)
+          const arr = readVaultArray();
+
+          if (arr.length === 0) return alert("No passwords to export!");
+
+          const decryptedArr = arr.map((it) => {
+            let password = it.password;
+            let passwordStatus = "plain";
+            let encodedData = null;
+
+            // If password is encoded, keep both versions
+            if (!password && it.encoded) {
+              encodedData = it.encoded;
+              passwordStatus = "encrypted";
+
+              // Ask if user wants to decrypt now
+              const tryDecrypt = confirm(
+                `Password for "${it.site}" is encrypted.\n\nClick OK to enter secret and decrypt it now.\nClick Cancel to keep it encrypted in export.`
+              );
+
+              if (tryDecrypt) {
+                const secret = prompt(`Enter secret code for "${it.site}":`);
+                if (secret) {
+                  try {
+                    password = CryptoJS.AES.decrypt(
+                      it.encoded,
+                      secret
+                    ).toString(CryptoJS.enc.Utf8);
+                    if (!password) throw "Invalid";
+                    passwordStatus = "decrypted";
+                  } catch (e) {
+                    password = null;
+                    passwordStatus = "encrypted";
+                  }
+                }
+              }
+            }
+
+            return {
+              website: it.site,
+              url: it.url || "",
+              username: it.username,
+              password: password || "[ENCRYPTED - See encodedPassword field]",
+              passwordStatus: passwordStatus,
+              encodedPassword: encodedData,
+              secretCodeRequired: encodedData
+                ? "YES - You need your secret code to decrypt"
+                : "NO",
+              category:
+                folders.find((f) => f.id === it.folder)?.name || "Other",
+              message: it.message || "",
+              lastUpdated: it.updated
+                ? new Date(it.updated).toLocaleString()
+                : "",
+            };
+          });
+
+          // Create readable format
+          const plainTextData = {
+            exportType: "PLAIN_TEXT_BACKUP",
+            warning: "THIS FILE CONTAINS YOUR PASSWORDS - KEEP IT SECURE!",
+            exportDate: new Date().toLocaleString(),
+            totalPasswords: decryptedArr.length,
+            encryptedCount: decryptedArr.filter(
+              (p) => p.passwordStatus === "encrypted"
+            ).length,
+            passwords: decryptedArr,
+
+            instructions: {
+              note: "For encrypted passwords, you need your SECRET CODE (not master password)",
+              howToDecrypt:
+                "Use the encodedPassword field with your secret code and AES decryption",
+              onlineDecryptTool:
+                "You can use https://www.devglan.com/online-tools/aes-encryption-decryption",
+            },
+
+            decryptionCode: {
+              note: "If you need to decrypt your .enc backups, use this information",
+              algorithm: "AES with PBKDF2",
+              iterations: 2000,
+              keySize: 256,
+            },
+          };
+
+          const folderName =
+            prompt("Enter file name (leave blank for default):") ||
+            "passwords_backup";
+
+          const blob = new Blob([JSON.stringify(plainTextData, null, 2)], {
+            type: "application/json",
+          });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `${folderName}_${new Date()
+            .toISOString()
+            .slice(0, 10)}.json`;
+          a.click();
+
+          const encCount = decryptedArr.filter(
+            (p) => p.passwordStatus === "encrypted"
+          ).length;
+          if (encCount > 0) {
+            alert(
+              `⚠️ Plain text backup exported!\n\n${encCount} password(s) are still encrypted.\nYou'll need your SECRET CODES to decrypt them later.\n\nThe encrypted data is included in the "encodedPassword" field.`
+            );
+          } else {
+            alert(
+              "✅ Plain text backup exported!\n\nWARNING: This file contains readable passwords.\nStore it in a SECURE location!"
+            );
+          }
+        } else {
+          // ENCRYPTED EXPORT (Original secure method)
+          const folderName =
+            prompt("Enter file name (leave blank for default):") ||
+            new Date().toISOString().slice(0, 10);
+
+          const enc = localStorage.getItem("vault_enc") || "";
+          const salt = localStorage.getItem("vault_salt") || "";
+          const folders_backup = localStorage.getItem("folders_list") || "";
+
+          const exportData = {
+            exportType: "ENCRYPTED_BACKUP",
+            vault: enc,
+            salt: salt,
+            folders: folders_backup,
+            version: "1.0",
+            exportDate: new Date().toISOString(),
+
+            decryptionInfo: {
+              algorithm: "AES-256",
+              keyDerivation: "PBKDF2",
+              iterations: 2000,
+              note: "Use your master password to decrypt this vault",
+            },
+          };
+
+          const blob = new Blob([JSON.stringify(exportData)], {
+            type: "application/json",
+          });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `vault_${folderName}.enc`;
+          a.click();
+          alert("🔒 Encrypted vault exported successfully!");
+        }
+      };
+      document.getElementById("exportBtn").onclick = function () {
+        if (!derivedKey) return alert("Unlock first");
+
+        const folderName = prompt(
+          "Enter Folder Name to export or leave blank to export with random name"
+        );
+
+        const enc = localStorage.getItem("vault_enc") || "";
+        const salt = localStorage.getItem("vault_salt") || "";
+        const folders_backup = localStorage.getItem("folders_list") || "";
+
+        // Export with salt and folders
+        const exportData = {
+          vault: enc,
+          salt: salt,
+          folders: folders_backup,
+          version: "1.0",
+          exportDate: new Date().toISOString(),
+        };
+
+        const blob = new Blob([JSON.stringify(exportData)], {
+          type: "application/json",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `vault_${
+          folderName || new Date().toISOString().slice(0, 10)
+        }.enc`;
+        a.click();
+        alert("Vault exported!");
+      };
+
+      document.getElementById("importFile").onchange = function (e) {
+        debugger;
+        const f = this.files[0];
+        if (!f) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e2) {
+          try {
+            const importData = JSON.parse(e2.target.result);
+
+            // Check if it's new format (with salt) or old format (just encrypted data)
+            if (importData.vault && importData.salt) {
+              // New format - has salt included
+              const ask = prompt(
+                "Enter the master password used to encrypt this backup:"
+              );
+              if (!ask) return alert("Import cancelled");
+
+              const keyHex = deriveKeyHex(ask, importData.salt);
+
+              try {
+                const dec = decryptVault(importData.vault, keyHex);
+                JSON.parse(dec); // Validate
+
+                // Import successful - update everything
+                localStorage.setItem("vault_enc", importData.vault);
+                localStorage.setItem("vault_salt", importData.salt);
+                if (importData.folders) {
+                  localStorage.setItem("folders_list", importData.folders);
+                }
+
+                derivedKey = keyHex;
+                folders = loadJSON("folders_list", folders);
+
+                alert(
+                  "Import successful! Vault restored with " +
+                    JSON.parse(dec).length +
+                    " entries."
+                );
+                renderFolders();
+                loadEntries(1);
+              } catch (err) {
+                alert("Import failed: Wrong master password!");
+              }
+            } else {
+              // Old format or direct encrypted string - try with current salt
+              const enc =
+                typeof importData === "string"
+                  ? importData
+                  : importData.vault || e2.target.result;
+
+              try {
+                const dec = decryptVault(enc, derivedKey);
+                JSON.parse(dec);
+                localStorage.setItem("vault_enc", enc);
+                alert("Vault imported with current master password!");
+                loadEntries(1);
+              } catch (err) {
+                alert(
+                  "Cannot import: This backup needs the original salt. Please use a backup exported from this version."
+                );
+              }
+            }
+          } catch (parseErr) {
+            // Try as old format (plain encrypted string)
+            const enc = e2.target.result;
+            const ask = prompt("Enter master password for this backup:");
+            if (!ask) return alert("Import cancelled");
+
+            const salt = ensureSalt();
+            const keyHex = deriveKeyHex(ask, salt);
+
+            try {
+              const dec = decryptVault(enc, keyHex);
+              JSON.parse(dec);
+              derivedKey = keyHex;
+              localStorage.setItem("vault_enc", enc);
+              alert("Import successful!");
+              loadEntries(1);
+            } catch (e3) {
+              alert("Import failed: wrong password or corrupted file");
+            }
+          }
+        };
+        reader.readAsText(f);
+        this.value = "";
+      };
+
+      document.getElementById("importFile2").onchange = function (e) {
+        const f = this.files[0];
+        if (!f) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e2) {
+          try {
+            const importData = JSON.parse(e2.target.result);
+
+            // Check export type
+            if (importData.exportType === "PLAIN_TEXT_BACKUP") {
+              // ============================================
+              // IMPORTING PLAIN TEXT BACKUP
+              // ============================================
+
+              if (
+                !confirm(
+                  `This is a PLAIN TEXT backup with ${importData.totalPasswords} passwords.\n\nImport into current vault?\n\nNote: You must be logged in first!`
+                )
+              ) {
+                return;
+              }
+
+              if (!derivedKey) {
+                return alert(
+                  "Please unlock your vault first before importing!"
+                );
+              }
+
+              const arr = readVaultArray();
+              let imported = 0;
+              let skipped = 0;
+              let reEncrypted = 0;
+
+              importData.passwords.forEach((item) => {
+                // Check if already exists
+                const exists = arr.find(
+                  (e) => e.site === item.website && e.username === item.username
+                );
+
+                if (exists) {
+                  const overwrite = confirm(
+                    `"${item.website}" (${item.username}) already exists.\n\nOverwrite it?`
+                  );
+                  if (!overwrite) {
+                    skipped++;
+                    return;
+                  }
+                  // Remove old entry
+                  const idx = arr.indexOf(exists);
+                  arr.splice(idx, 1);
+                }
+
+                let password = null;
+                let secret = null;
+                let encoded = null;
+
+                // Handle different password statuses
+                if (
+                  item.passwordStatus === "encrypted" &&
+                  item.encodedPassword
+                ) {
+                  // Password is still encrypted
+                  const askSecret = confirm(
+                    `Password for "${item.website}" is encrypted.\n\nDo you want to enter the secret code now?\n(Click Cancel to keep it encrypted)`
+                  );
+
+                  if (askSecret) {
+                    const secretCode = prompt(
+                      `Enter secret code for "${item.website}":`
+                    );
+                    if (secretCode) {
+                      try {
+                        const decrypted = CryptoJS.AES.decrypt(
+                          item.encodedPassword,
+                          secretCode
+                        ).toString(CryptoJS.enc.Utf8);
+                        if (decrypted) {
+                          password = decrypted;
+                          secret = secretCode;
+                          reEncrypted++;
+                        } else {
+                          // Keep encrypted
+                          encoded = item.encodedPassword;
+                        }
+                      } catch (err) {
+                        alert(
+                          `Wrong secret for "${item.website}". Keeping it encrypted.`
+                        );
+                        encoded = item.encodedPassword;
+                      }
+                    } else {
+                      encoded = item.encodedPassword;
+                    }
                   } else {
-                    // Keep encrypted
                     encoded = item.encodedPassword;
                   }
-                } catch(err) {
-                  alert(`Wrong secret for "${item.website}". Keeping it encrypted.`);
-                  encoded = item.encodedPassword;
-                }
-              } else {
-                encoded = item.encodedPassword;
-              }
-            } else {
-              encoded = item.encodedPassword;
-            }
-          } else if(item.password && item.password !== '[ENCRYPTED - See encodedPassword field]') {
-            // Plain text password
-            password = item.password;
-            secret = prompt(`Set a secret code for "${item.website}" (required):`);
-            if(!secret) {
-              alert(`Skipping "${item.website}" - secret code is required`);
-              skipped++;
-              return;
-            }
-          } else {
-            alert(`Skipping "${item.website}" - no password data available`);
-            skipped++;
-            return;
-          }
-          
-          // Find or create folder
-          let folderId = 'other';
-          if(item.category) {
-            const folder = folders.find(f => f.name.toLowerCase() === item.category.toLowerCase());
-            if(folder) {
-              folderId = folder.id;
-            } else {
-              // Create new folder
-              const newFolderId = uid();
-              folders.push({
-                id: newFolderId,
-                name: item.category,
-                color: '#' + Math.floor(Math.random()*16777215).toString(16)
-              });
-              folderId = newFolderId;
-            }
-          }
-          
-          // Add to vault
-          arr.push({
-            site: item.website,
-            url: item.url || '',
-            username: item.username,
-            password: password,
-            secret: secret,
-            encoded: encoded,
-            folder: folderId,
-            message: item.message || '',
-            updated: now()
-          });
-          
-          imported++;
-        });
-        
-        // Save everything
-        writeVaultArray(arr);
-        saveJSON('folders_list', folders);
-        renderFolders();
-        loadEntries(1);
-        
-        alert(`✅ Import completed!\n\n✓ Imported: ${imported}\n✓ Re-encrypted: ${reEncrypted}\n✗ Skipped: ${skipped}`);
-        
-      } else if(importData.exportType === 'ENCRYPTED_BACKUP' || importData.vault) {
-        // ============================================
-        // IMPORTING ENCRYPTED BACKUP
-        // ============================================
-        
-        if(importData.vault && importData.salt) {
-          // New format - has salt included
-          const ask = prompt('Enter the master password used to encrypt this backup:');
-          if(!ask) return alert('Import cancelled');
-          
-          const keyHex = deriveKeyHex(ask, importData.salt);
-          
-          try {
-            const dec = decryptVault(importData.vault, keyHex);
-            const vaultData = JSON.parse(dec); // Validate
-            
-            const overwriteAll = confirm(`This backup contains ${vaultData.length} passwords.\n\nDo you want to REPLACE your entire current vault?\n\nOK = Replace all\nCancel = Merge with current`);
-            
-            if(overwriteAll) {
-              // Replace everything
-              localStorage.setItem('vault_enc', importData.vault);
-              localStorage.setItem('vault_salt', importData.salt);
-              if(importData.folders) {
-                localStorage.setItem('folders_list', importData.folders);
-              }
-              
-              derivedKey = keyHex;
-              folders = loadJSON('folders_list', folders);
-              
-              alert(`✅ Vault replaced successfully!\n\nRestored ${vaultData.length} passwords.`);
-            } else {
-              // Merge with current
-              if(!derivedKey) {
-                return alert('Please unlock your current vault first to merge!');
-              }
-              
-              const currentArr = readVaultArray();
-              let merged = 0;
-              let duplicates = 0;
-              
-              vaultData.forEach(item => {
-                const exists = currentArr.find(e => 
-                  e.site === item.site && 
-                  e.username === item.username
-                );
-                
-                if(!exists) {
-                  currentArr.push(item);
-                  merged++;
+                } else if (
+                  item.password &&
+                  item.password !== "[ENCRYPTED - See encodedPassword field]"
+                ) {
+                  // Plain text password
+                  password = item.password;
+                  secret = prompt(
+                    `Set a secret code for "${item.website}" (required):`
+                  );
+                  if (!secret) {
+                    alert(
+                      `Skipping "${item.website}" - secret code is required`
+                    );
+                    skipped++;
+                    return;
+                  }
                 } else {
-                  duplicates++;
+                  alert(
+                    `Skipping "${item.website}" - no password data available`
+                  );
+                  skipped++;
+                  return;
                 }
+
+                // Find or create folder
+                let folderId = "other";
+                if (item.category) {
+                  const folder = folders.find(
+                    (f) => f.name.toLowerCase() === item.category.toLowerCase()
+                  );
+                  if (folder) {
+                    folderId = folder.id;
+                  } else {
+                    // Create new folder
+                    const newFolderId = uid();
+                    folders.push({
+                      id: newFolderId,
+                      name: item.category,
+                      color:
+                        "#" + Math.floor(Math.random() * 16777215).toString(16),
+                    });
+                    folderId = newFolderId;
+                  }
+                }
+
+                // Add to vault
+                arr.push({
+                  site: item.website,
+                  url: item.url || "",
+                  username: item.username,
+                  password: password,
+                  secret: secret,
+                  encoded: encoded,
+                  folder: folderId,
+                  message: item.message || "",
+                  updated: now(),
+                });
+
+                imported++;
               });
-              
-              writeVaultArray(currentArr);
-              
-              alert(`✅ Merge completed!\n\n✓ Added: ${merged}\n✗ Duplicates skipped: ${duplicates}`);
+
+              // Save everything
+              writeVaultArray(arr);
+              saveJSON("folders_list", folders);
+              renderFolders();
+              loadEntries(1);
+
+              alert(
+                `✅ Import completed!\n\n✓ Imported: ${imported}\n✓ Re-encrypted: ${reEncrypted}\n✗ Skipped: ${skipped}`
+              );
+            } else if (
+              importData.exportType === "ENCRYPTED_BACKUP" ||
+              importData.vault
+            ) {
+              // ============================================
+              // IMPORTING ENCRYPTED BACKUP
+              // ============================================
+
+              if (importData.vault && importData.salt) {
+                // New format - has salt included
+                const ask = prompt(
+                  "Enter the master password used to encrypt this backup:"
+                );
+                if (!ask) return alert("Import cancelled");
+
+                const keyHex = deriveKeyHex(ask, importData.salt);
+
+                try {
+                  const dec = decryptVault(importData.vault, keyHex);
+                  const vaultData = JSON.parse(dec); // Validate
+
+                  const overwriteAll = confirm(
+                    `This backup contains ${vaultData.length} passwords.\n\nDo you want to REPLACE your entire current vault?\n\nOK = Replace all\nCancel = Merge with current`
+                  );
+
+                  if (overwriteAll) {
+                    // Replace everything
+                    localStorage.setItem("vault_enc", importData.vault);
+                    localStorage.setItem("vault_salt", importData.salt);
+                    if (importData.folders) {
+                      localStorage.setItem("folders_list", importData.folders);
+                    }
+
+                    derivedKey = keyHex;
+                    folders = loadJSON("folders_list", folders);
+
+                    alert(
+                      `✅ Vault replaced successfully!\n\nRestored ${vaultData.length} passwords.`
+                    );
+                  } else {
+                    // Merge with current
+                    if (!derivedKey) {
+                      return alert(
+                        "Please unlock your current vault first to merge!"
+                      );
+                    }
+
+                    const currentArr = readVaultArray();
+                    let merged = 0;
+                    let duplicates = 0;
+
+                    vaultData.forEach((item) => {
+                      const exists = currentArr.find(
+                        (e) =>
+                          e.site === item.site && e.username === item.username
+                      );
+
+                      if (!exists) {
+                        currentArr.push(item);
+                        merged++;
+                      } else {
+                        duplicates++;
+                      }
+                    });
+
+                    writeVaultArray(currentArr);
+
+                    alert(
+                      `✅ Merge completed!\n\n✓ Added: ${merged}\n✗ Duplicates skipped: ${duplicates}`
+                    );
+                  }
+
+                  renderFolders();
+                  loadEntries(1);
+                } catch (err) {
+                  alert("Import failed: Wrong master password!");
+                }
+              }
+            } else {
+              alert("Unknown backup format. Cannot import.");
             }
-            
-            renderFolders();
-            loadEntries(1);
-            
-          } catch(err) {
-            alert('Import failed: Wrong master password!');
+          } catch (parseErr) {
+            alert("Invalid backup file format!");
           }
+        };
+        reader.readAsText(f);
+        this.value = "";
+      };
+
+      /* =============== SEARCH/SORT/PAGINATION =============== */
+      document.getElementById("search").oninput = function () {
+        loadEntries(1);
+      };
+      document.getElementById("filterFolder").onchange = function () {
+        loadEntries(1);
+      };
+      document.getElementById("sortDate").onchange = function () {
+        loadEntries(1);
+      };
+
+      document.getElementById("prevPage").onclick = function () {
+        if (currentPage > 1) {
+          currentPage--;
+          loadEntries();
         }
-        
-      } else {
-        alert('Unknown backup format. Cannot import.');
+      };
+
+      document.getElementById("nextPage").onclick = function () {
+        currentPage++;
+        loadEntries();
+      };
+
+      /* =============== INIT =============== */
+      function initApp() {
+        // Show only unlock if master password is already set
+        if (localStorage.getItem("vault_enc")) {
+          document.getElementById("setBtn").style.display = "none";
+        } else {
+          document.getElementById("unlockBtn").style.display = "none";
+        }
+        renderFolders();
+        showLock();
       }
-      
-    } catch(parseErr) {
-      alert('Invalid backup file format!');
-    }
-  };
-  reader.readAsText(f);
-  this.value = '';
-};
 
-/* =============== SEARCH/SORT/PAGINATION =============== */
-document.getElementById('search').oninput = function(){ loadEntries(1); };
-document.getElementById('filterFolder').onchange = function(){ loadEntries(1); };
-document.getElementById('sortDate').onchange = function(){ loadEntries(1); };
+      // Wait for DOM to be ready
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initApp);
+      } else {
+        initApp();
+      }
 
-document.getElementById('prevPage').onclick = function(){ 
-  if(currentPage > 1) {
-    currentPage--;
-    loadEntries();
-  }
-};
+      // Enter key support for master password
+      document
+        .getElementById("masterInput")
+        .addEventListener("keypress", function (e) {
+          if (e.which === 13 || e.keyCode === 13) {
+            if (localStorage.getItem("vault_enc")) {
+              document.getElementById("unlockBtn").click();
+            } else {
+              document.getElementById("setBtn").click();
+            }
+          }
+        });
 
-document.getElementById('nextPage').onclick = function(){ 
-  currentPage++;
-  loadEntries();
-};
-
-/* =============== INIT =============== */
-function initApp(){
-  // Show only unlock if master password is already set
-  if(localStorage.getItem('vault_enc')){
-    document.getElementById('setBtn').style.display = 'none';
-  }else{
-    document.getElementById('unlockBtn').style.display = 'none';
-  }
-  renderFolders();
-  showLock();
-}
-
-// Wait for DOM to be ready
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
-}
-
-// Enter key support for master password
-document.getElementById('masterInput').addEventListener('keypress', function(e){
-  if(e.which === 13 || e.keyCode === 13){
-    if(localStorage.getItem('vault_enc')){
-      document.getElementById('unlockBtn').click();
-    } else {
-      document.getElementById('setBtn').click();
-    }
-  }
-});
-
-// Warn before closing if vault is unlocked
-window.addEventListener('beforeunload', function(e){
-  if(derivedKey){
-    e.preventDefault();
-    e.returnValue = 'Vault is unlocked. Sure you want to leave?';
-    return e.returnValue;
-  }
-});
-
-</script>
-
-</body>
+      // Warn before closing if vault is unlocked
+      window.addEventListener("beforeunload", function (e) {
+        if (derivedKey) {
+          e.preventDefault();
+          e.returnValue = "Vault is unlocked. Sure you want to leave?";
+          return e.returnValue;
+        }
+      });
+    </script>
+  </body>
 </html>
-  
