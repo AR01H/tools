@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔒 Password Storage App</title>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- CryptoJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --primary-color: #2563eb;
+    --secondary-color: #6b7280;
+    --success-color: #16a34a;
+    --danger-color: #dc2626;
+    --warning-color: #f59e0b;
+    --info-color: #0891b2;
+    --light-color: #f5f5f5;
+    --dark-color: #333;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--light-color);
+    color: var(--dark-color);
+  }
+  
+  .header {
+    background: var(--light-color);
+    padding: 0.5rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+  }
+  
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .lock-screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  .lock-box {
+    background: var(--light-color);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .lock-box h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+  
+  .form-section {
+    background: var(--light-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-control, .form-select {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+  }
+  
+  .btn {
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  
+  .btn-primary {
+    background: #2563eb;
+    color: var(--light-color);
+  }
+  
+  .btn-primary:hover {
+    background: #1d4ed8;
+  }
+  
+  .btn-success {
+    background: #16a34a;
+    color: var(--light-color);
+  }
+  
+  .btn-danger {
+    background: #dc2626;
+    color: var(--light-color);
+  }
+  
+  .btn-info {
+    background: #0891b2;
+    color: var(--light-color);
+  }
+  
+  .btn-warning {
+    background: #f59e0b;
+    color: var(--light-color);
+  }
+  
+  .btn-secondary {
+    background: #6b7280;
+    color: var(--light-color);
+  }
+  
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .table-section {
+    background: var(--light-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  
+  .table {
+    margin: 0;
+  }
+  
+  .table thead {
+    background: #1f2937;
+    color: var(--light-color);
+  }
+  
+  .table thead th {
+    padding: 0.75rem 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: none;
+  }
+  
+  .table tbody td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
+    border-top: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+  }
+  
+  .table tbody tr:hover {
+    background: #f9fafb;
+  }
+  
+  .folder-list {
+    background: var(--light-color);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .folder-item {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f9fafb;
+  }
+  
+  .folder-item:hover {
+    background: #e5e7eb;
+  }
+  
+  .folder-item.active {
+    background: #2563eb;
+    color: var(--light-color);
+  }
+  
+  .folder-badge {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  
+  .controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--light-color);
+  }
+  span:has(.fa) {
+      background-color: #2563eb;
+      color: var(--light-color);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+  }
+
+
+</style>
+</head>
+<body>
+
+<!-- Lock Screen -->
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-box">
+    <h3>🔒 Password Storage App</h3>
+    <p class="text-muted mb-3">Enter Master Password</p>
+    <input id="masterInput" type="password" class="form-control mb-3" placeholder="Master Password">
+    <div class="d-flex gap-2">
+      <button id="unlockBtn" class="btn btn-primary flex-fill">Unlock</button>
+      <button id="setBtn" class="btn btn-success flex-fill">Create Master</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app" style="display:none;">
+  
+  <!-- Header -->
+  <div class="header">
+    <div class="container-fluid">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1><i class="fa fa-lock"></i> Password Storage App</h1>
+        <div class="d-flex gap-2">
+          <button id="lockBtn" class="btn btn-danger btn-sm">
+            <i class="fa fa-lock"></i> Lock
+          </button>
+          <button id="infoBtn" class="btn btn-primary btn-sm">
+            <i class="fa fa-info"></i> Info
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row">
+      
+      <!-- Folders Sidebar -->
+      <div class="col-md-2">
+        <div class="folder-list">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Folders</strong>
+            <button id="addFolderBtn" class="btn btn-primary btn-sm">
+              <i class="fa fa-plus"></i>
+            </button>
+          </div>
+          <div id="folderList"></div>
+          
+          <div id="folderForm" style="display:none;" class="mt-3">
+            <input id="newFolderName" class="form-control form-control-sm mb-2" placeholder="Folder name">
+            <div class="d-flex gap-2">
+              <input id="newFolderColor" type="color" value="#2563eb" class="form-control form-control-sm" style="width:40px;">
+              <button id="createFolder" class="btn btn-primary btn-sm flex-fill">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-md-10">
+        
+        <!-- Add Entry Form -->
+        <div class="form-section">
+          <div class="row g-2">
+            <div class="col-md-2">
+              <div class="input-group">
+                <input id="site" class="form-control" placeholder="Website Name">
+              <span id="genBtn" class="btn btn-outline-secondary" title="Website"><i class="fa fa-cloud"></i></span>
+            </div>
+            </div>
+            <div class="col-md-2">
+              <div class="input-group">
+                <input id="url" class="form-control" placeholder="Website URL">
+              <span id="genBtn" class="btn btn-outline-secondary" title="URL"><i class="fa fa-globe"></i></span>
+            </div>
+            </div>
+            <div class="col-md-2">
+              <div class="input-group">
+                <input id="username" class="form-control" placeholder="Username">
+              <span id="genBtn" class="btn btn-outline-secondary" title="Username"><i class="fa fa-user"></i></span>
+            </div>
+            </div>
+            <div class="col-md-2">
+              <div class="input-group">
+                <input id="password" class="form-control" placeholder="Original Password">
+              <span id="genBtn" class="btn btn-outline-secondary" title="Password"><i class="fa fa-key"></i></span>
+            </div>
+            </div>
+            <div class="col-md-2">
+              <div class="input-group">
+                <input id="secret" class="form-control" placeholder="Secret Code">
+              <span id="genBtn" class="btn btn-outline-secondary" title="Secret Code"><i class="fa fa-user-secret"></i></span>
+            </div>
+            </div>
+            <div class="col-md-2">
+              <div class="input-group">
+                <select id="folderSelect" class="form-select"></select>
+              <span id="genBtn" class="btn btn-outline-secondary" title="Folder"><i class="fa fa-folder"></i></span>
+            </div>
+            </div>
+            <div class="col-md-6">
+              <div class="input-group">
+                <input id="message" class="form-control" placeholder="Message">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Message"><i class="fa fa-sticky-note"></i></span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="input-group">
+                <input id="additionalInfo" class="form-control" placeholder="Additional Info">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Additional Info"><i class="fa fa-sticky-note"></i></span>
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-12">
+                <button id="saveBtn" class="btn btn-primary">Save</button>
+                <button id="clearBtn" class="btn btn-secondary ms-2">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search & Controls -->
+        <div class="controls">
+          <input id="search" class="form-control" placeholder="Search..." style="max-width:300px;">
+          <select id="filterFolder" class="form-select" style="max-width:200px;">
+            <option value="all">Filter Category</option>
+          </select>
+          <select id="sortDate" class="form-select" style="max-width:200px;">
+            <option value="">Sort by Date</option>
+            <option value="new">Newest First</option>
+            <option value="old">Oldest First</option>
+          </select>
+          <div class="ms-auto d-flex gap-2">
+            <button id="exportBtn" class="btn btn-success btn-sm">
+              <i class="fa fa-download"></i> Export
+            </button>
+            <label class="btn btn-info btn-sm mb-0">
+              <i class="fa fa-upload"></i> Import
+              <input type="file" id="importFile" hidden accept=".enc">
+            </label>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-section">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Website</th>
+                  <th>URL</th>
+                  <th>Username</th>
+                  <th>Password</th>
+                  <th>Encoded</th>
+                  <th>Category</th>
+                  <th>Message</th>
+                  <th>Actions</th>
+                  <th>Encode</th>
+                </tr>
+              </thead>
+              <tbody id="entryList"></tbody>
+            </table>
+          </div>
+          
+          <div class="pagination">
+            <button id="prevPage" class="btn btn-secondary btn-sm">Prev</button>
+            <span id="pageInfo">Page 1</span>
+            <button id="nextPage" class="btn btn-secondary btn-sm">Next</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="viewModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Utilities
+function uid(){ return 'id'+Math.random().toString(36).slice(2,11); }
+function now(){ return Date.now(); }
+function fmtDate(ts){ if(!ts) return '-'; return new Date(ts).toLocaleString(); }
+function safeParse(s, fallback){ try{ return JSON.parse(s); }catch(e){return fallback;} }
+function saveJSON(key,obj){ localStorage.setItem(key, JSON.stringify(obj)); }
+function loadJSON(key, fallback){ return safeParse(localStorage.getItem(key), fallback); }
+function escapeHtml(s){ 
+  if(!s && s!==0) return ''; 
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); 
+}
+
+// Crypto
+function ensureSalt(){
+  let s = localStorage.getItem('vault_salt');
+  if(!s){ s = CryptoJS.lib.WordArray.random(16).toString(); localStorage.setItem('vault_salt', s); }
+  return s;
+}
+
+function deriveKeyHex(pass, saltHex){
+  return CryptoJS.PBKDF2(pass, CryptoJS.enc.Hex.parse(saltHex), { keySize: 256/32, iterations: 2000 }).toString();
+}
+
+function encryptVault(vaultObj, keyHex){
+  return CryptoJS.AES.encrypt(JSON.stringify(vaultObj), keyHex).toString();
+}
+
+function decryptVault(enc, keyHex){
+  return CryptoJS.AES.decrypt(enc, keyHex).toString(CryptoJS.enc.Utf8);
+}
+
+// State
+let derivedKey = null;
+let autoLockTimer = null;
+let currentFolderFilter = 'all';
+let folders = loadJSON('folders_list', null);
+
+if(!folders){
+  folders = [
+    {id:'all', name:'All', color:'#6b7280'},
+    {id:'banking', name:'Banking', color:'#dc2626'},
+    {id:'email', name:'Email', color:'#2563eb'},
+    {id:'social', name:'Social', color:'#7c3aed'},
+    {id:'work', name:'Work', color:'#16a34a'},
+    {id:'other', name:'Other', color:'#f59e0b'}
+  ];
+  saveJSON('folders_list', folders);
+}
+
+const perPage = 10;
+let currentPage = 1;
+let editingIndex = null;
+
+// Lock/Unlock
+function showLock(){ 
+  document.getElementById('lockScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function showApp(){ 
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+document.getElementById('setBtn').onclick = function(){
+  if(localStorage.getItem('vault_enc')) return alert('Master already set. Use Unlock.');
+  let pass = document.getElementById('masterInput').value;
+  if(!pass) return alert('Enter a master password.');
+  if(pass.length < 2) return alert('Password must be at least 2 characters.');
+  
+  let s = ensureSalt();
+  let keyHex = deriveKeyHex(pass, s);
+  localStorage.setItem('vault_enc', encryptVault([], keyHex));
+  derivedKey = keyHex;
+  document.getElementById('masterInput').value = '';
+  showApp();
+  renderFolders();
+  loadEntries();
+  resetAutoLock();
+  alert('Master password created!');
+};
+
+document.getElementById('unlockBtn').onclick = function(){
+  let pass = document.getElementById('masterInput').value;
+  if(!pass) return alert('Enter master password.');
+  
+  const salt = ensureSalt();
+  const keyHex = deriveKeyHex(pass, salt);
+  const enc = localStorage.getItem('vault_enc');
+  if(!enc) return alert('No vault found. Create master first.');
+  
+  try{
+    const dec = decryptVault(enc, keyHex);
+    JSON.parse(dec);
+    derivedKey = keyHex;
+    document.getElementById('masterInput').value = '';
+    showApp();
+    renderFolders();
+    loadEntries();
+    resetAutoLock();
+    alert('Vault unlocked!');
+  }catch(e){
+    alert('Wrong master password!');
+  }
+};
+
+document.getElementById('lockBtn').onclick = function(){ lockNow(); };
+
+function lockNow(){
+  derivedKey = null;
+  showLock();
+  clearTimeout(autoLockTimer);
+  editingIndex = null;
+  document.getElementById('entryList').innerHTML = '';
+  alert('Vault locked');
+}
+
+function resetAutoLock(){
+  clearTimeout(autoLockTimer);
+  autoLockTimer = setTimeout(function(){ lockNow(); alert('Auto-locked'); }, 5*60000);
+}
+
+document.addEventListener('mousemove', function(){ if(derivedKey) resetAutoLock(); });
+document.addEventListener('keydown', function(){ if(derivedKey) resetAutoLock(); });
+document.addEventListener('click', function(){ if(derivedKey) resetAutoLock(); });
+
+// Vault
+function readVaultArray(){
+  if(!derivedKey) return [];
+  const enc = localStorage.getItem('vault_enc') || encryptVault([], derivedKey);
+  try{
+    return JSON.parse(decryptVault(enc, derivedKey));
+  }catch(e){
+    return [];
+  }
+}
+
+function writeVaultArray(arr){
+  if(!derivedKey) return;
+  localStorage.setItem('vault_enc', encryptVault(arr, derivedKey));
+}
+
+// Folders
+function renderFolders(){
+  folders = loadJSON('folders_list', folders);
+  
+  const list = document.getElementById('folderList');
+  list.innerHTML = '';
+  
+  folders.forEach(function(f){
+    debugger
+    const cls = (currentFolderFilter === f.id) ? 'folder-item active' : 'folder-item';
+    const div = document.createElement('div');
+    div.className = cls;
+    div.setAttribute('data-id', f.id);
+    div.innerHTML = `
+      <span class="folder-badge" style="background:${f.color}"></span>
+      <span class="flex-grow-1">${escapeHtml(f.name)}</span>
+      ${f.id!=='all' ? `<button class="btn btn-sm btn-danger delFolder" data-id="${f.id}"><i class="fa fa-trash"></i></button>` : ''}
+    `;
+    
+    div.onclick = function(e){
+      if(e.target.closest('button')) return;
+      currentFolderFilter = f.id;
+      renderFolders();
+      loadEntries(1);
+    };
+    
+    list.appendChild(div);
+  });
+
+  const folderSel = document.getElementById('folderSelect');
+  const filterSel = document.getElementById('filterFolder');
+  folderSel.innerHTML = '';
+  filterSel.innerHTML = '<option value="all">Filter Category</option>';
+  
+  folders.forEach(function(f){
+    folderSel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+    filterSel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+  });
+}
+
+document.getElementById('addFolderBtn').onclick = function(){
+  const form = document.getElementById('folderForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+};
+
+document.getElementById('createFolder').onclick = function(){
+  const name = document.getElementById('newFolderName').value.trim();
+  const color = document.getElementById('newFolderColor').value;
+  if(!name) return alert('Enter folder name');
+  
+  folders.push({id: uid(), name: name, color: color});
+  saveJSON('folders_list', folders);
+  document.getElementById('newFolderName').value = '';
+  document.getElementById('folderForm').style.display = 'none';
+  renderFolders();
+  alert('Folder created!');
+};
+
+document.addEventListener('click', function(e){
+  if(e.target.closest('.delFolder')){
+    e.stopPropagation();
+    if(!confirm('Delete folder?')) return;
+    
+    const id = e.target.closest('.delFolder').getAttribute('data-id');
+    folders = folders.filter(function(f){ return f.id !== id; });
+    
+    const arr = readVaultArray();
+    arr.forEach(function(it){ if(it.folder === id) it.folder = 'other'; });
+    writeVaultArray(arr);
+    saveJSON('folders_list', folders);
+    renderFolders();
+    loadEntries();
+    alert('Folder deleted');
+  }
+});
+
+// Entries
+function entryMatchesFilter(it, q, folderId){
+  q = (q||'').toLowerCase();
+  const inFolder = folderId === 'all' ? true : it.folder === folderId;
+  const inQuery = q === '' || 
+    (it.site||'').toLowerCase().includes(q) || 
+    (it.username||'').toLowerCase().includes(q) || 
+    (it.message||'').toLowerCase().includes(q);
+  return inFolder && inQuery;
+}
+
+function loadEntries(page){
+  if(!derivedKey) return;
+  currentPage = page || currentPage;
+  let arr = readVaultArray();
+  
+  const sort = document.getElementById('sortDate').value;
+  if(sort==='new') arr.sort(function(a,b){ return (b.updated||0) - (a.updated||0); });
+  if(sort==='old') arr.sort(function(a,b){ return (a.updated||0) - (b.updated||0); });
+
+  const q = document.getElementById('search').value.trim();
+  const fFilter = document.getElementById('filterFolder').value || currentFolderFilter;
+  const filtered = arr.filter(function(it){ return entryMatchesFilter(it, q, fFilter); });
+  
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  if(currentPage > totalPages) currentPage = totalPages;
+  
+  const start = (currentPage-1) * perPage;
+  const pageSlice = filtered.slice(start, start+perPage);
+
+  const tbody = document.getElementById('entryList');
+  tbody.innerHTML = '';
+  
+  pageSlice.forEach(function(it){
+    const originalIndex = arr.indexOf(it);
+    const folderObj = folders.find(function(f){ return f.id === it.folder; }) || {name:'Other', color:'#6b7280'};
+    const isEncoded = it.encoded && !it.password;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(it.site)}</td>
+      <td>${it.url ? `<a href="${escapeHtml(it.url)}" target="_blank">Link</a>` : '-'}</td>
+      <td>${escapeHtml(it.username)}</td>
+      <td>${isEncoded ? '🔒' : '••••••'}</td>
+      <td>${isEncoded ? '✓' : '-'}</td>
+      <td><span class="badge" style="background:${folderObj.color};color:var(--light-color)">${folderObj.name}</span></td>
+      <td>${escapeHtml(it.message || '-')}</td>
+      <td>
+        <button class="btn btn-sm btn-primary viewEntry" data-i="${originalIndex}"><i class="fa fa-eye"></i></button>
+        <button class="btn btn-sm btn-warning editEntry" data-i="${originalIndex}"><i class="fa fa-edit"></i></button>
+        <button class="btn btn-sm btn-danger delEntry" data-i="${originalIndex}"><i class="fa fa-trash"></i></button>
+      </td>
+      <td><button class="btn btn-sm btn-info encodeEntry" data-i="${originalIndex}"><i class="fa fa-lock">Encode</i></button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('pageInfo').textContent = `Page ${currentPage} / ${totalPages}`;
+  document.getElementById('prevPage').disabled = currentPage<=1;
+  document.getElementById('nextPage').disabled = currentPage>=totalPages;
+}
+
+// Save
+document.getElementById('saveBtn').onclick = function(){
+  if(!derivedKey) return alert('Unlock vault first');
+  
+  const site = document.getElementById('site').value.trim();
+  const url = document.getElementById('url').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const secret = document.getElementById('secret').value;
+  const folder = document.getElementById('folderSelect').value;
+  const message = document.getElementById('message').value;
+  const additionalInfo = document.getElementById('additionalInfo').value;
+
+  if(!site || !username || !password || !secret) {
+    return alert('Fill: Website, Username, Password, Secret');
+  }
+
+  const arr = readVaultArray();
+  const obj = { site:site, url:url, username:username, password:password, secret:secret, encoded:null, folder:folder, message:message, additionalInfo:additionalInfo, updated: now() };
+
+  if(editingIndex !== null){
+    arr[editingIndex] = obj;
+    editingIndex = null;
+    alert('Entry updated!');
+  } else {
+    arr.push(obj);
+    alert('Entry saved!');
+  }
+  
+  writeVaultArray(arr);
+  clearForm();
+  loadEntries(1);
+};
+
+document.getElementById('clearBtn').onclick = function(){ clearForm(); };
+
+function clearForm(){
+  document.getElementById('site').value = '';
+  document.getElementById('url').value = '';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('secret').value = '';
+  document.getElementById('message').value = '';
+  editingIndex = null;
+}
+
+// Actions
+document.addEventListener('click', function(e){
+  // View
+  if(e.target.closest('.viewEntry')){
+    const idx = parseInt(e.target.closest('.viewEntry').getAttribute('data-i'));
+    const arr = readVaultArray();
+    const it = arr[idx];
+    if(!it) return;
+    
+    const folderObj = folders.find(function(f){ return f.id === it.folder; }) || {name:'Other'};
+    const isEncoded = it.encoded && !it.password;
+    
+    let pwd = it.password;
+    if(isEncoded){
+      const s = prompt('Enter secret to view password:');
+      if(!s) return;
+      try{
+        pwd = CryptoJS.AES.decrypt(it.encoded, s).toString(CryptoJS.enc.Utf8);
+        if(!pwd) throw 'bad';
+      }catch(err){
+        return alert('Wrong secret!');
+      }
+    }
+    
+    const html = `
+      <table class="table">
+        <tr><th>Website</th><td>${escapeHtml(it.site)}</td></tr>
+        <tr><th>URL</th><td>${it.url ? escapeHtml(it.url) : '-'}</td></tr>
+        <tr><th>Username</th><td>${escapeHtml(it.username)}</td></tr>
+        <tr><th>Password</th><td>${escapeHtml(pwd)}</td></tr>
+        <tr><th>Category</th><td>${folderObj.name}</td></tr>
+        <tr><th>Message</th><td>${escapeHtml(it.message || '-')}</td></tr>
+        <tr><th>Additional Info</th><td>${escapeHtml(it.additionalInfo || '-')}</td></tr>
+        <tr><th>Updated</th><td>${fmtDate(it.updated)}</td></tr>
+      </table>
+    `;
+    
+    document.getElementById('viewModalBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('viewModal')).show();
+  }
+
+  if(e.target.closest('#infoBtn')){
+   
+    const html = `
+      <table class="table">
+        <tr><th>Used</th><td>CryptoJS to encrypt</td></tr>
+        <tr><th>Master Password</th><td>Whole vault is encrypted with master password</td></tr>
+        <tr><th>Secret</th><td>Secret is used to decrypt password</td></tr>
+        <tr>
+          <th>Export Process</th>
+          <td>
+            <ul>
+              <li>Export process is used to export vault</li>
+              <li>Export process is used to export vault</li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+    `;
+    
+    document.getElementById('viewModalBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('viewModal')).show();
+  }
+  
+  
+  // Edit
+  if(e.target.closest('.editEntry')){
+    const idx = parseInt(e.target.closest('.editEntry').getAttribute('data-i'));
+    const arr = readVaultArray();
+    const it = arr[idx];
+    if(!it) return;
+    
+    if(!it.password && it.encoded){
+      const s = prompt('Enter secret to edit:');
+      if(!s) return;
+      try{
+        const dec = CryptoJS.AES.decrypt(it.encoded, s).toString(CryptoJS.enc.Utf8);
+        if(!dec) throw 'bad';
+        it.password = dec;
+        it.secret = s;
+      }catch(err){
+        return alert('Wrong secret!');
+      }
+    }
+    
+    document.getElementById('site').value = it.site;
+    document.getElementById('url').value = it.url;
+    document.getElementById('username').value = it.username;
+    document.getElementById('password').value = it.password;
+    document.getElementById('secret').value = it.secret;
+    document.getElementById('message').value = it.message;
+    document.getElementById('additionalInfo').value = it.additionalInfo?it.additionalInfo:'';
+    document.getElementById('folderSelect').value = it.folder;
+    
+    editingIndex = idx;
+    window.scrollTo(0, 0);
+  }
+  
+  // Encode
+  if(e.target.closest('.encodeEntry')){
+    const idx = parseInt(e.target.closest('.encodeEntry').getAttribute('data-i'));
+    const arr = readVaultArray();
+    const it = arr[idx];
+    
+    if(!it.password || !it.secret) return alert('Need password and secret to encode!');
+    if(it.encoded) return alert('Already encoded!');
+    if(!confirm('Encode password?')) return;
+    
+    it.encoded = CryptoJS.AES.encrypt(it.password, it.secret).toString();
+    it.password = null;
+    it.secret = null;
+    it.updated = now();
+    
+    writeVaultArray(arr);
+    loadEntries(currentPage);
+    alert('Password encoded!');
+  }
+  
+  // Delete
+  if(e.target.closest('.delEntry')){
+    if(!confirm('Delete this entry permanently?')) return;
+    
+    const idx = parseInt(e.target.closest('.delEntry').getAttribute('data-i'));
+    let arr = readVaultArray();
+    arr.splice(idx, 1);
+    writeVaultArray(arr);
+    loadEntries(currentPage);
+    alert('Entry deleted');
+  }
+});
+
+/* =============== EXPORT/IMPORT =============== */
+document.getElementById('exportBtn').onclick = function(){
+  debugger
+  if(!derivedKey) return alert('Unlock first');
+
+  const folderName = prompt("Enter Folder Name to export or leave blank to export with random name");
+  
+  const enc = localStorage.getItem('vault_enc') || '';
+  const salt = localStorage.getItem('vault_salt') || '';
+  const folders_backup = localStorage.getItem('folders_list') || '';
+  
+  // Export with salt and folders
+  const exportData = {
+    vault: enc,
+    salt: salt,
+    folders: folders_backup,
+    version: '1.0',
+    exportDate: new Date().toISOString()
+  };
+  
+  const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `vault_${folderName || new Date().toISOString().slice(0,10)}.enc`;
+  a.click();
+  alert('Vault exported!');
+};
+
+document.getElementById('importFile').onchange = function(e){
+  debugger
+  const f = this.files[0];
+  if(!f) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e2){
+    try {
+      const importData = JSON.parse(e2.target.result);
+      
+      // Check if it's new format (with salt) or old format (just encrypted data)
+      if(importData.vault && importData.salt) {
+        // New format - has salt included
+        const ask = prompt('Enter the master password used to encrypt this backup:');
+        if(!ask) return alert('Import cancelled');
+        
+        const keyHex = deriveKeyHex(ask, importData.salt);
+        
+        try {
+          const dec = decryptVault(importData.vault, keyHex);
+          JSON.parse(dec); // Validate
+          
+          // Import successful - update everything
+          localStorage.setItem('vault_enc', importData.vault);
+          localStorage.setItem('vault_salt', importData.salt);
+          if(importData.folders) {
+            localStorage.setItem('folders_list', importData.folders);
+          }
+          
+          derivedKey = keyHex;
+          folders = loadJSON('folders_list', folders);
+          
+          alert('Import successful! Vault restored with ' + JSON.parse(dec).length + ' entries.');
+          renderFolders();
+          loadEntries(1);
+        } catch(err) {
+          alert('Import failed: Wrong master password!');
+        }
+      } else {
+        // Old format or direct encrypted string - try with current salt
+        const enc = typeof importData === 'string' ? importData : importData.vault || e2.target.result;
+        
+        try {
+          const dec = decryptVault(enc, derivedKey);
+          JSON.parse(dec);
+          localStorage.setItem('vault_enc', enc);
+          alert('Vault imported with current master password!');
+          loadEntries(1);
+        } catch(err) {
+          alert('Cannot import: This backup needs the original salt. Please use a backup exported from this version.');
+        }
+      }
+    } catch(parseErr) {
+      // Try as old format (plain encrypted string)
+      const enc = e2.target.result;
+      const ask = prompt('Enter master password for this backup:');
+      if(!ask) return alert('Import cancelled');
+      
+      const salt = ensureSalt();
+      const keyHex = deriveKeyHex(ask, salt);
+      
+      try {
+        const dec = decryptVault(enc, keyHex);
+        JSON.parse(dec);
+        derivedKey = keyHex;
+        localStorage.setItem('vault_enc', enc);
+        alert('Import successful!');
+        loadEntries(1);
+      } catch(e3) {
+        alert('Import failed: wrong password or corrupted file');
+      }
+    }
+  };
+  reader.readAsText(f);
+  this.value = '';
+};
+
+/* =============== SEARCH/SORT/PAGINATION =============== */
+document.getElementById('search').oninput = function(){ loadEntries(1); };
+document.getElementById('filterFolder').onchange = function(){ loadEntries(1); };
+document.getElementById('sortDate').onchange = function(){ loadEntries(1); };
+
+document.getElementById('prevPage').onclick = function(){ 
+  if(currentPage > 1) {
+    currentPage--;
+    loadEntries();
+  }
+};
+
+document.getElementById('nextPage').onclick = function(){ 
+  currentPage++;
+  loadEntries();
+};
+
+/* =============== INIT =============== */
+function initApp(){
+  renderFolders();
+  showLock();
+}
+
+// Wait for DOM to be ready
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
+// Enter key support for master password
+document.getElementById('masterInput').addEventListener('keypress', function(e){
+  if(e.which === 13 || e.keyCode === 13){
+    if(localStorage.getItem('vault_enc')){
+      document.getElementById('unlockBtn').click();
+    } else {
+      document.getElementById('setBtn').click();
+    }
+  }
+});
+
+// Warn before closing if vault is unlocked
+window.addEventListener('beforeunload', function(e){
+  if(derivedKey){
+    e.preventDefault();
+    e.returnValue = 'Vault is unlocked. Sure you want to leave?';
+    return e.returnValue;
+  }
+});
+
+</script>
+
+</body>
+</html>
+  
