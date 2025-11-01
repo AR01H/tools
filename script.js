@@ -138,7 +138,22 @@ const tools = [
     link: "./passwordBank/index.html",
     groupname: ["Password Store"]
   },
-
+{
+    icon: "fas fa-shield-alt",
+    title: "Simple Password Bank",
+    description: "Secure password manager that stores your credentials in encrypted JSON format with advanced security features.",
+    tags: ["Security", "Password Manager", "Encryption", "JSON"],
+    status: "live",
+    instructions: [
+      "Create strong passwords with customizable criteria",
+      "Store passwords in encrypted JSON format",
+      "Organize passwords by categories and tags",
+      "Import/export password data securely",
+      "Use two-factor authentication for extra security"
+    ],
+    link: "./simplePasswordBank/index.html",
+    groupname: ["Password Store"]
+  },
   {
     icon: "fas fa-chart-bar",
     title: "Hangouts",
