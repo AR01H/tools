@@ -532,16 +532,16 @@
                     <span
                       id="genBtn"
                       class="btn btn-outline-secondary"
-                      title="Message"
-                      erasecontextfor="message"
+                      title="Secret Hint"
+                      erasecontextfor="secrethint"
                       ><i class="fa fa-sticky-note"></i
                     ></span>
                     <input
-                      id="message"
+                      id="secrethint"
                       list="msgList"
                       class="form-control"
                       placeholder="Secret Hint"
-                      erasecontenttriggerfrom="message"
+                      erasecontenttriggerfrom="secrethint"
                     />
                     <!-- The dropdown suggestion list -->
                     <datalist id="msgList">
@@ -616,7 +616,7 @@
                       <th>Password</th>
                       <th>Encoded</th>
                       <th>Folder</th>
-                      <th>Message</th>
+                      <th>Secret Hint</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -1056,7 +1056,7 @@
           q === "" ||
           (it.site || "").toLowerCase().includes(q) ||
           (it.username || "").toLowerCase().includes(q) ||
-          (it.message || "").toLowerCase().includes(q);
+          (it.secrethint || "").toLowerCase().includes(q);
         return inFolder && inQuery;
       }
 
@@ -1124,7 +1124,7 @@
             }</td>
 
             <td><span class="badge" style="background:${folderObj.color};color:var(--light-color)">${folderObj.name}</span></td>
-            <td>${escapeHtml(it.message || "-")}</td>
+            <td>${escapeHtml(it.secrethint || "-")}</td>
             <td>
               <button class="btn btn-sm btn-primary viewEntry" data-i="${originalIndex}"><i class="fa fa-file-text"></i></button>
               <button class="btn btn-sm btn-warning editEntry" data-i="${originalIndex}"><i class="fa fa-edit"></i></button>
@@ -1159,7 +1159,7 @@
         const password = document.getElementById("password").value;
         const secret = document.getElementById("secret").value;
         const folder = document.getElementById("folderSelect").value;
-        const message = document.getElementById("message").value;
+        const secrethint = document.getElementById("secrethint").value;
         const additionalInfo = document.getElementById("additionalInfo").value;
 
         if (!site || !username) {
@@ -1175,7 +1175,7 @@
           secret: secret,
           encoded: null,
           folder: folder,
-          message: message,
+          secrethint: secrethint,
           additionalInfo: additionalInfo,
           updated: now(),
         };
@@ -1204,7 +1204,7 @@
         document.getElementById("username").value = "";
         document.getElementById("password").value = "";
         document.getElementById("secret").value = "";
-        document.getElementById("message").value = "";
+        document.getElementById("secrethint").value = "";
         document.getElementById("additionalInfo").value = "";
         editingIndex = null;
       }
@@ -1281,7 +1281,7 @@
         <tr><th>Password</th><td>${escapeHtml(pwd)}</td></tr>
         <tr><th>Secret</th><td>${escapeHtml(secret)}</td></tr>
         <tr><th>Folder</th><td>${folderObj.name}</td></tr>
-        <tr><th>Secret Hint</th><td>${escapeHtml(it.message || "-")}</td></tr>
+        <tr><th>Secret Hint</th><td>${escapeHtml(it.secrethint || "-")}</td></tr>
         <tr><th>Additional Info</th><td>${escapeHtml(
           it.additionalInfo || "-"
         )}</td></tr>
@@ -1364,7 +1364,7 @@
               alert("Wrong current master password!");
             }
           } catch (err) {
-            alert("Error changing password: " + err.message);
+            alert("Error changing password: " + err.secrethint);
           }
         }
         // Edit
@@ -1396,7 +1396,7 @@
           document.getElementById("username").value = it.username;
           document.getElementById("password").value = it.password;
           document.getElementById("secret").value = it.secret;
-          document.getElementById("message").value = it.message;
+          document.getElementById("secrethint").value = it.secrethint;
           document.getElementById("additionalInfo").value = it.additionalInfo
             ? it.additionalInfo
             : "";
@@ -1533,7 +1533,7 @@
                 : "NO",
               category:
                 folders.find((f) => f.id === it.folder)?.name || "Other",
-              message: it.message || "",
+              secrethint: it.secrethint || "",
               lastUpdated: it.updated
                 ? new Date(it.updated).toLocaleString()
                 : "",
@@ -1900,7 +1900,7 @@
                   secret: secret,
                   encoded: encoded,
                   folder: folderId,
-                  message: item.message || "",
+                  secrethint: item.secrethint || "",
                   updated: now(),
                 });
 
