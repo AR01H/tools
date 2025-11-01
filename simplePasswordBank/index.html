@@ -89,7 +89,7 @@
         background: var(--light-color);
         padding: 1.5rem;
         border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 1px 2px 20px 0px rgba(0, 0, 0, 0.1);
         margin-bottom: 1.5rem;
       }
 
@@ -159,7 +159,7 @@
       .table-section {
         background: var(--light-color);
         border-radius: 4px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 1px 2px 20px 0px rgba(0, 0, 0, 0.1);
         overflow: hidden;
       }
 
@@ -194,11 +194,11 @@
         background: var(--light-color);
         border-radius: 4px;
         padding: 1rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 1px 2px 20px 0px rgba(0, 0, 0, 0.1);
       }
 
       .folder-item {
-        padding: 0.5rem 0.75rem;
+        padding: 0;
         margin-bottom: 0.5rem;
         border-radius: 4px;
         cursor: pointer;
@@ -228,6 +228,12 @@
         gap: 1rem;
         align-items: center;
         margin-bottom: 1rem;
+        justify-content: flex-end;
+      }
+
+      .hidden {
+        display: none;
+        visibility: hidden;
       }
 
       .pagination {
@@ -324,12 +330,6 @@
               <button id="changeMasterBtn" class="btn btn-primary btn-sm">
                 <i class="fa fa-refresh"></i> Master Password
               </button>
-              <button id="lockBtn" class="btn btn-danger btn-sm">
-                <i class="fa fa-lock"></i>
-              </button>
-              <button id="infoBtn" class="btn btn-primary btn-sm">
-                <i class="fa fa-info"></i>
-              </button>
               <button id="exportBtn" class="btn btn-success btn-sm">
                 <i class="fa fa-download"></i> Export
               </button>
@@ -345,10 +345,22 @@
                 <input type="file" id="importFile2" hidden accept="" />
               </label>
               <button
-                class="btn btn-danger btn-sm"
+                class="btn btn-warning btn-sm"
                 onclick="downloadVaultAsCSV()"
               >
                 <i class="fa fa-download"></i> CSV
+              </button>
+              <button id="lockBtn" class="btn btn-danger btn-sm">
+                <i class="fa fa-lock"></i>
+              </button>
+              <button id="infoBtn" class="btn btn-primary btn-sm">
+                <i class="fa fa-info"></i>
+              </button>
+              <button
+                class="btn btn-danger btn-sm"
+                id="ClearVaultBtn"
+              >
+                <i class="fa fa-eraser"></i>
               </button>
             </div>
           </div>
@@ -528,7 +540,7 @@
                       id="message"
                       list="msgList"
                       class="form-control"
-                      placeholder="Secret Message Remember Context"
+                      placeholder="Secret Hint"
                       erasecontenttriggerfrom="message"
                     />
                     <!-- The dropdown suggestion list -->
@@ -612,13 +624,13 @@
                 </table>
               </div>
 
-              <div class="pagination">
+              <div class="pagination" style="justify-content: flex-end">
                 <button id="prevPage" class="btn btn-secondary btn-sm">
-                  Prev
+                  <i class="fa fa-arrow-left" aria-hidden="true"></i>
                 </button>
-                <span id="pageInfo">Page 1</span>
+                <span id="pageInfo">1</span>
                 <button id="nextPage" class="btn btn-secondary btn-sm">
-                  Next
+                  <i class="fa fa-arrow-right" aria-hidden="true"></i>
                 </button>
               </div>
             </div>
@@ -653,10 +665,28 @@
       </div>
     </div>
 
+    <!-- Delete Confirmation UI Model -->
+    <div id="deleteOverlay" style="
+      position: fixed; inset:0; background:rgba(0,0,0,0.7);
+      display:none; justify-content:center; align-items:center;
+    ">
+      <div style="background:#fff; padding:30px; text-align:center; border-radius:8px; width:320px;">
+        <h2 style="margin-bottom:15px;">Deleting in <span id="deleteTimer">20</span>s</h2>
+        <button id="cancelDelete" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+
+      // All localstorage Keys
+      const LS_VALUT_SALT_KEY = "vault_salt";
+      const LS_VALUT_ENC_KEY = "vault_enc";
+      const LS_FOLDER_LIST_KEY = "folders_list";
+
+
       // Utilities
       function uid() {
         return "id" + Math.random().toString(36).slice(2, 11);
@@ -698,10 +728,10 @@
 
       // Crypto
       function ensureSalt() {
-        let s = localStorage.getItem("vault_salt");
+        let s = localStorage.getItem(LS_VALUT_SALT_KEY);
         if (!s) {
           s = CryptoJS.lib.WordArray.random(16).toString();
-          localStorage.setItem("vault_salt", s);
+          localStorage.setItem(LS_VALUT_SALT_KEY, s);
         }
         return s;
       }
@@ -728,7 +758,7 @@
       let derivedKey = null;
       let autoLockTimer = null;
       let currentFolderFilter = "all";
-      let folders = loadJSON("folders_list", null);
+      let folders = loadJSON(LS_FOLDER_LIST_KEY, null);
 
       if (!folders) {
         folders = [
@@ -739,7 +769,7 @@
           { id: "work", name: "Work", color: "#16a34a" },
           { id: "other", name: "Other", color: "#f59e0b" },
         ];
-        saveJSON("folders_list", folders);
+        saveJSON(LS_FOLDER_LIST_KEY, folders);
       }
 
       const perPage = 10;
@@ -758,7 +788,7 @@
       }
 
       document.getElementById("setBtn").onclick = function () {
-        if (localStorage.getItem("vault_enc"))
+        if (localStorage.getItem(LS_VALUT_ENC_KEY))
           return alert("Master already set. Use Unlock.");
         let pass = document.getElementById("masterInput").value;
         if (!pass) return alert("Enter a master password.");
@@ -767,7 +797,7 @@
 
         let s = ensureSalt();
         let keyHex = deriveKeyHex(pass, s);
-        localStorage.setItem("vault_enc", encryptVault([], keyHex));
+        localStorage.setItem(LS_VALUT_ENC_KEY, encryptVault([], keyHex));
         derivedKey = keyHex;
         document.getElementById("masterInput").value = "";
         showApp();
@@ -829,7 +859,7 @@
 
           const salt = ensureSalt();
           const keyHex = deriveKeyHex(pass, salt);
-          const enc = localStorage.getItem("vault_enc");
+          const enc = localStorage.getItem(LS_VALUT_ENC_KEY);
           if (!enc) return;
 
           try {
@@ -858,7 +888,7 @@
 
         const salt = ensureSalt();
         const keyHex = deriveKeyHex(pass, salt);
-        const enc = localStorage.getItem("vault_enc");
+        const enc = localStorage.getItem(LS_VALUT_ENC_KEY);
         if (!enc) return alert("No vault found. Create master first.");
 
         try {
@@ -920,7 +950,7 @@
       function readVaultArray() {
         if (!derivedKey) return [];
         const enc =
-          localStorage.getItem("vault_enc") || encryptVault([], derivedKey);
+          localStorage.getItem(LS_VALUT_ENC_KEY) || encryptVault([], derivedKey);
         try {
           return JSON.parse(decryptVault(enc, derivedKey));
         } catch (e) {
@@ -930,12 +960,12 @@
 
       function writeVaultArray(arr) {
         if (!derivedKey) return;
-        localStorage.setItem("vault_enc", encryptVault(arr, derivedKey));
+        localStorage.setItem(LS_VALUT_ENC_KEY, encryptVault(arr, derivedKey));
       }
 
       // Folders
       function renderFolders() {
-        folders = loadJSON("folders_list", folders);
+        folders = loadJSON(LS_FOLDER_LIST_KEY, folders);
 
         const list = document.getElementById("folderList");
         list.innerHTML = "";
@@ -989,7 +1019,7 @@
         if (!name) return alert("Enter folder name");
 
         folders.push({ id: uid(), name: name, color: color });
-        saveJSON("folders_list", folders);
+        saveJSON(LS_FOLDER_LIST_KEY, folders);
         document.getElementById("newFolderName").value = "";
         document.getElementById("folderForm").style.display = "none";
         renderFolders();
@@ -1011,7 +1041,7 @@
             if (it.folder === id) it.folder = "other";
           });
           writeVaultArray(arr);
-          saveJSON("folders_list", folders);
+          saveJSON(LS_FOLDER_LIST_KEY, folders);
           renderFolders();
           loadEntries();
           alert("Folder deleted");
@@ -1071,31 +1101,43 @@
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
-      <td>${escapeHtml(it.site)}</td>
-      <td>${
-        it.url
-          ? `<a href="${escapeHtml(it.url)}" target="_blank">Link</a>`
-          : "-"
-      }</td>
-      <td>${escapeHtml(it.username)}</td>
-      <td>${isEncoded ? '<i class="fa fa-lock"></i>' : "••••••"}</td>
-      <td>${isEncoded ? '<i class="fa fa-lock"></i>' : "-"}</td>
-      <td><span class="badge" style="background:${
-        folderObj.color
-      };color:var(--light-color)">${folderObj.name}</span></td>
-      <td>${escapeHtml(it.message || "-")}</td>
-      <td>
-        <button class="btn btn-sm btn-info encodeEntry" ${
-          isEncoded ? "disabled" : ""
-        } data-i="${originalIndex}">${
-            isEncoded ? "Locked" : '<i class="fa fa-lock">&nbsp; Pass</i>'
-          }</button>
-        <button class="btn btn-sm btn-primary viewEntry" data-i="${originalIndex}"><i class="fa fa-eye"></i></button>
-        <button class="btn btn-sm btn-warning editEntry" data-i="${originalIndex}"><i class="fa fa-edit"></i></button>
-        <button class="btn btn-sm btn-danger delEntry" data-i="${originalIndex}"><i class="fa fa-trash"></i></button>
-        <button class="btn btn-sm btn-secondary copyPassword" data-i="${originalIndex}"><i class="fa fa-copy"></i></button>
-      </td>
-    `;
+            <td>${escapeHtml(it.site)}</td>
+            <td>${
+              it.url
+                ? `<a href="${escapeHtml(it.url)}" target="_blank">Link</a>`
+                : "-"
+            }</td>
+            <td>${escapeHtml(it.username)}</td>
+
+            <!-- PASSWORD COLUMN -->
+            <td>${
+              isEncoded
+                ? '<i class="fa fa-lock"></i>'
+                : it.password ? '<i class="fa fa-eye"></i>' : '<i class="fa fa-times" aria-hidden="true"></i>'
+            }</td>
+
+            <!-- SECRET COLUMN -->
+            <td>${
+              isEncoded
+                ? '<i class="fa fa-lock"></i>'
+                : it.secret ? '<i class="fa fa-eye"></i>' : '<i class="fa fa-times" aria-hidden="true"></i>'
+            }</td>
+
+            <td><span class="badge" style="background:${folderObj.color};color:var(--light-color)">${folderObj.name}</span></td>
+            <td>${escapeHtml(it.message || "-")}</td>
+            <td>
+              <button class="btn btn-sm btn-primary viewEntry" data-i="${originalIndex}"><i class="fa fa-file-text"></i></button>
+              <button class="btn btn-sm btn-warning editEntry" data-i="${originalIndex}"><i class="fa fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger delEntry" data-i="${originalIndex}"><i class="fa fa-trash"></i></button>
+              <button class="btn btn-sm btn-secondary copyPassword" data-i="${originalIndex}"><i class="fa fa-copy"></i></button>
+              <button class="btn btn-sm btn-info encodeEntry ${!isEncoded && (!(it.password) || !(it.secret)) ? "hidden" : "" }" ${
+                isEncoded ? "disabled" : ""
+              } data-i="${originalIndex}">
+                ${isEncoded ? '<i class="fa fa-lock"></i>' : (it.password && it.secret) ? '<i class="fa fa-lock-open"></i>' : 'Can`t Lock'}
+              </button>
+            </td>
+          `;
+
           tbody.appendChild(tr);
         });
 
@@ -1239,7 +1281,7 @@
         <tr><th>Password</th><td>${escapeHtml(pwd)}</td></tr>
         <tr><th>Secret</th><td>${escapeHtml(secret)}</td></tr>
         <tr><th>Folder</th><td>${folderObj.name}</td></tr>
-        <tr><th>Message</th><td>${escapeHtml(it.message || "-")}</td></tr>
+        <tr><th>Secret Hint</th><td>${escapeHtml(it.message || "-")}</td></tr>
         <tr><th>Additional Info</th><td>${escapeHtml(
           it.additionalInfo || "-"
         )}</td></tr>
@@ -1277,11 +1319,11 @@
           if (!oldMaster) return;
 
           try {
-            const existingSalt = localStorage.getItem("vault_salt");
+            const existingSalt = localStorage.getItem(LS_VALUT_SALT_KEY);
             if (!existingSalt) return alert("No vault found.");
 
             const oldKeyHex = deriveKeyHex(oldMaster, existingSalt);
-            const vaultEnc = localStorage.getItem("vault_enc");
+            const vaultEnc = localStorage.getItem(LS_VALUT_ENC_KEY);
 
             if (!vaultEnc) return alert("No vault found. Create master first.");
 
@@ -1309,8 +1351,8 @@
               const newEnc = encryptVault(vaultArray, newKeyHex);
 
               // Save new encrypted vault AND new salt
-              localStorage.setItem("vault_enc", newEnc);
-              localStorage.setItem("vault_salt", newSalt);
+              localStorage.setItem(LS_VALUT_ENC_KEY, newEnc);
+              localStorage.setItem(LS_VALUT_SALT_KEY, newSalt);
 
               // Update current session key
               derivedKey = newKeyHex;
@@ -1557,9 +1599,9 @@
             prompt("Enter file name (leave blank for default):") ||
             new Date().toISOString().slice(0, 10);
 
-          const enc = localStorage.getItem("vault_enc") || "";
-          const salt = localStorage.getItem("vault_salt") || "";
-          const folders_backup = localStorage.getItem("folders_list") || "";
+          const enc = localStorage.getItem(LS_VALUT_ENC_KEY) || "";
+          const salt = localStorage.getItem(LS_VALUT_SALT_KEY) || "";
+          const folders_backup = localStorage.getItem(LS_FOLDER_LIST_KEY) || "";
 
           const exportData = {
             exportType: "ENCRYPTED_BACKUP",
@@ -1594,9 +1636,9 @@
           "Enter Folder Name to export or leave blank to export with random name"
         );
 
-        const enc = localStorage.getItem("vault_enc") || "";
-        const salt = localStorage.getItem("vault_salt") || "";
-        const folders_backup = localStorage.getItem("folders_list") || "";
+        const enc = localStorage.getItem(LS_VALUT_ENC_KEY) || "";
+        const salt = localStorage.getItem(LS_VALUT_SALT_KEY) || "";
+        const folders_backup = localStorage.getItem(LS_FOLDER_LIST_KEY) || "";
 
         // Export with salt and folders
         const exportData = {
@@ -1644,14 +1686,14 @@
                 JSON.parse(dec); // Validate
 
                 // Import successful - update everything
-                localStorage.setItem("vault_enc", importData.vault);
-                localStorage.setItem("vault_salt", importData.salt);
+                localStorage.setItem(LS_VALUT_ENC_KEY, importData.vault);
+                localStorage.setItem(LS_VALUT_SALT_KEY, importData.salt);
                 if (importData.folders) {
-                  localStorage.setItem("folders_list", importData.folders);
+                  localStorage.setItem(LS_FOLDER_LIST_KEY, importData.folders);
                 }
 
                 derivedKey = keyHex;
-                folders = loadJSON("folders_list", folders);
+                folders = loadJSON(LS_FOLDER_LIST_KEY, folders);
 
                 alert(
                   "Import successful! Vault restored with " +
@@ -1673,7 +1715,7 @@
               try {
                 const dec = decryptVault(enc, derivedKey);
                 JSON.parse(dec);
-                localStorage.setItem("vault_enc", enc);
+                localStorage.setItem(LS_VALUT_ENC_KEY, enc);
                 alert("Vault imported with current master password!");
                 loadEntries(1);
               } catch (err) {
@@ -1695,7 +1737,7 @@
               const dec = decryptVault(enc, keyHex);
               JSON.parse(dec);
               derivedKey = keyHex;
-              localStorage.setItem("vault_enc", enc);
+              localStorage.setItem(LS_VALUT_ENC_KEY, enc);
               alert("Import successful!");
               loadEntries(1);
             } catch (e3) {
@@ -1867,7 +1909,7 @@
 
               // Save everything
               writeVaultArray(arr);
-              saveJSON("folders_list", folders);
+              saveJSON(LS_FOLDER_LIST_KEY, folders);
               renderFolders();
               loadEntries(1);
 
@@ -1901,14 +1943,14 @@
 
                   if (overwriteAll) {
                     // Replace everything
-                    localStorage.setItem("vault_enc", importData.vault);
-                    localStorage.setItem("vault_salt", importData.salt);
+                    localStorage.setItem(LS_VALUT_ENC_KEY, importData.vault);
+                    localStorage.setItem(LS_VALUT_SALT_KEY, importData.salt);
                     if (importData.folders) {
-                      localStorage.setItem("folders_list", importData.folders);
+                      localStorage.setItem(LS_FOLDER_LIST_KEY, importData.folders);
                     }
 
                     derivedKey = keyHex;
-                    folders = loadJSON("folders_list", folders);
+                    folders = loadJSON(LS_FOLDER_LIST_KEY, folders);
 
                     alert(
                       `✅ Vault replaced successfully!\n\nRestored ${vaultData.length} passwords.`
@@ -1986,10 +2028,83 @@
         loadEntries();
       };
 
+      let deleteCountdown = null;
+      let deleteTimeLeft = 20;
+
+      document.getElementById('ClearVaultBtn').addEventListener('click', async function () {
+          // First ask master password
+          let master = prompt("Enter master password for instant delete.\nLeave empty and press OK to use confirmation phrase.");
+
+          // ✅ User entered master password
+          if (master && master.trim() !== "") {
+              try {
+                  const salt = ensureSalt();
+                  const keyHex = deriveKeyHex(master.trim(), salt);
+                  const enc = localStorage.getItem(LS_VALUT_ENC_KEY);
+
+                  const dec = decryptVault(enc, keyHex);
+                  JSON.parse(dec);
+
+                  // instant delete
+                  deleteVaultNow();
+                  return;
+
+              } catch (e) {
+                  alert("Wrong password! Falling back to confirmation phrase.");
+              }
+          }
+
+          // ✅ Fallback: confirmation phrase with countdown
+          let txt = prompt('Type exactly: "Confirm to Delete Everything"');
+
+          if (txt === "Confirm to Delete Everything") {
+              startCountdownDelete();
+          } else if (txt !== null) {
+              alert("Confirmation text did not match!");
+          }
+      });
+
+      function deleteVaultNow() {
+          localStorage.removeItem(LS_VALUT_ENC_KEY);
+          localStorage.removeItem(LS_VALUT_SALT_KEY);
+          localStorage.removeItem(LS_FOLDER_LIST_KEY);
+
+          alert("Vault cleared instantly!");
+          window.location.replace(window.location.href);
+
+      }
+
+      // ✅ Starts the 20-second countdown UI
+      function startCountdownDelete() {
+          deleteTimeLeft = 20;
+          document.getElementById("deleteTimer").innerText = deleteTimeLeft;
+          document.getElementById("deleteOverlay").style.display = "flex";
+
+          deleteCountdown = setInterval(() => {
+              deleteTimeLeft--;
+              document.getElementById("deleteTimer").innerText = deleteTimeLeft;
+
+              if (deleteTimeLeft <= 0) {
+                  clearInterval(deleteCountdown);
+                  document.getElementById("deleteOverlay").style.display = "none";
+                  deleteVaultNow();
+              }
+          }, 1000);
+      }
+
+      // ✅ Cancel button
+      document.getElementById('cancelDelete').addEventListener('click', function () {
+          clearInterval(deleteCountdown);
+          document.getElementById("deleteOverlay").style.display = "none";
+          alert("Delete cancelled.");
+      });
+
+
+
       /* =============== INIT =============== */
       function initApp() {
         // Show only unlock if master password is already set
-        if (localStorage.getItem("vault_enc")) {
+        if (localStorage.getItem(LS_VALUT_ENC_KEY)) {
           document.getElementById("setBtn").style.display = "none";
         } else {
           document.getElementById("unlockBtn").style.display = "none";
@@ -2010,7 +2125,7 @@
         .getElementById("masterInput")
         .addEventListener("keypress", function (e) {
           if (e.which === 13 || e.keyCode === 13) {
-            if (localStorage.getItem("vault_enc")) {
+            if (localStorage.getItem(LS_VALUT_ENC_KEY)) {
               document.getElementById("unlockBtn").click();
             } else {
               document.getElementById("setBtn").click();
