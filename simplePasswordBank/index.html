@@ -372,10 +372,14 @@
             </div>
             <div class="col-md-6">
               <div class="input-group">
-                <input id="message" class="form-control" placeholder="Message">
+                <input id="message" list="msgList" class="form-control" placeholder="Message">
                 <span id="genBtn" class="btn btn-outline-secondary" title="Message"><i class="fa fa-sticky-note"></i></span>
               </div>
             </div>
+            <!-- The dropdown suggestion list -->
+              <datalist id="ssgList">
+                <option value="No Password/Secret Code">
+              </datalist>
             <div class="col-md-6">
               <div class="input-group">
                 <input id="additionalInfo" class="form-control" placeholder="Additional Info">
