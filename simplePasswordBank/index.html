@@ -292,6 +292,10 @@
           transform: translateX(1px);
         }
       }
+      .mastertaghint {
+        color: red;
+        font-size: small;
+      }
     </style>
   </head>
   <body>
@@ -300,12 +304,8 @@
       <div class="lock-box">
         <h3><i class="fa fa-lock"></i> Password Storage App</h3>
         <p class="text-muted mb-3">Enter Master Password</p>
-        <input
-          id="masterInput"
-          type="password"
-          class="form-control mb-3"
-          placeholder="Master Password"
-        />
+        <input id="masterInput" type="password" class="form-control mb-3" placeholder="Master Password"/>
+        <input id="masterInputHint" type="text" class="form-control mb-3" placeholder="Master Hint"/>
         <div class="d-flex gap-2">
           <button id="unlockBtn" class="btn btn-primary flex-fill">
             Unlock
@@ -684,6 +684,7 @@
       // All localstorage Keys
       const LS_VALUT_SALT_KEY = "vault_salt";
       const LS_VALUT_ENC_KEY = "vault_enc";
+      const LS_MASTER_PWD_HINT = "master_pwd_hint";
       const LS_FOLDER_LIST_KEY = "folders_list";
 
 
@@ -791,6 +792,7 @@
         if (localStorage.getItem(LS_VALUT_ENC_KEY))
           return alert("Master already set. Use Unlock.");
         let pass = document.getElementById("masterInput").value;
+        let hint = document.getElementById("masterInputHint").value;
         if (!pass) return alert("Enter a master password.");
         if (pass.length < 2)
           return alert("Password must be at least 2 characters.");
@@ -805,6 +807,7 @@
         loadEntries();
         resetAutoLock();
         alert("Master password created!");
+        localStorage.setItem(LS_MASTER_PWD_HINT, hint);
       };
 
       document.addEventListener("click", function (e) {
@@ -873,7 +876,7 @@
             renderFolders();
             loadEntries();
             resetAutoLock();
-            alert("Vault unlocked!");
+            // We can add some animation here
           } catch (e) {
             this.style.borderColor = "red";
             setTimeout(() => (this.style.borderColor = ""), 600);
@@ -913,6 +916,22 @@
           setTimeout(() => {
             masterInput.classList.remove("input-shake");
           }, 1000);
+
+          // If hint is exist then show it
+          const hint = localStorage.getItem(LS_MASTER_PWD_HINT);
+          if (hint){
+            // add a p with class mastertaghint tag with the hint below the input field
+            // If alredy exist then remove it
+            const existingHint = document.querySelector(".mastertaghint");
+            if (existingHint) {
+              existingHint.remove();
+            }
+            const p = document.createElement("p");
+            p.classList.add("mastertaghint");
+            p.classList.add("hint");
+            p.textContent = "Hint : " + hint;
+            masterInput.parentNode.insertBefore(p, masterInput.nextSibling);
+          }
         }
       };
 
@@ -1343,6 +1362,10 @@
               if (confirmMaster !== newMaster)
                 return alert("Passwords do not match!");
 
+              var addMasterHint = prompt("Enter secret hint for new master password:");
+              if(addMasterHint == null) addMasterHint = '';
+
+
               // Generate NEW salt for new password
               const newSalt = CryptoJS.lib.WordArray.random(16).toString();
               const newKeyHex = deriveKeyHex(newMaster, newSalt);
@@ -1353,6 +1376,9 @@
               // Save new encrypted vault AND new salt
               localStorage.setItem(LS_VALUT_ENC_KEY, newEnc);
               localStorage.setItem(LS_VALUT_SALT_KEY, newSalt);
+
+              // Save new master hint
+              localStorage.setItem(LS_MASTER_PWD_HINT, addMasterHint);
 
               // Update current session key
               derivedKey = newKeyHex;
@@ -2105,6 +2131,8 @@
         // Show only unlock if master password is already set
         if (localStorage.getItem(LS_VALUT_ENC_KEY)) {
           document.getElementById("setBtn").style.display = "none";
+          document.getElementById("unlockBtn").style.display = "block";
+          document.getElementById("masterInputHint").style.display = "none";
         } else {
           document.getElementById("unlockBtn").style.display = "none";
         }
