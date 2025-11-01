@@ -325,8 +325,8 @@
           <div class="row g-2">
             <div class="col-md-2">
               <div class="input-group">
-                <input id="site" list="siteList" class="form-control" placeholder="Website Name">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Website">
+                <input id="site" list="siteList" class="form-control" placeholder="Website Name" erasecontenttriggerfrom="site">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Website" erasecontextfor="site">
                   <i class="fa fa-cloud"></i>
                 </span>
               </div>
@@ -342,26 +342,26 @@
             </div>
             <div class="col-md-2">
               <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="URL"><i class="fa fa-globe"></i></span>
-                <input id="url" class="form-control" placeholder="Website URL">
+                <span id="genBtn" class="btn btn-outline-secondary" title="URL" erasecontextfor="url"><i class="fa fa-globe"></i></span>
+                <input id="url" class="form-control" placeholder="Website URL" erasecontenttriggerfrom="url">
             </div>
             </div>
             <div class="col-md-2">
               <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Username"><i class="fa fa-user"></i></span>
-                <input id="username" class="form-control" placeholder="Username">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Username" erasecontextfor="username"><i class="fa fa-user"></i></span>
+                <input id="username" class="form-control" placeholder="Username" erasecontenttriggerfrom="username">
             </div>
             </div>
             <div class="col-md-2">
               <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Password"><i class="fa fa-key"></i></span>
-                <input id="password" class="form-control" placeholder="Original Password">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Password" erasecontextfor="password"><i class="fa fa-key"></i></span>
+                <input id="password" class="form-control" placeholder="Original Password" erasecontenttriggerfrom="password">
             </div>
             </div>
             <div class="col-md-2">
               <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Secret Code"><i class="fa fa-user-secret"></i></span>
-                <input id="secret" list="secretList" class="form-control" placeholder="Secret Code">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Secret Code" erasecontextfor="secret"><i class="fa fa-user-secret"></i></span>
+                <input id="secret" list="secretList" class="form-control" placeholder="Secret Code" erasecontenttriggerfrom="secret">
                 <datalist id="secretList">
                   <option value="-">
                 </datalist>
@@ -369,24 +369,24 @@
             </div>
             <div class="col-md-2">
               <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Folder"><i class="fa fa-folder"></i></span>
-                <select id="folderSelect" class="form-select"></select>
+                <span id="genBtn" class="btn btn-outline-secondary" title="Folder" erasecontextfor="folder"><i class="fa fa-folder"></i></span>
+                <select id="folderSelect" class="form-select" erasecontenttriggerfrom="folder"></select>
             </div>
             </div>
             <div class="col-md-6">
               <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Message"><i class="fa fa-sticky-note"></i></span>
-                <input id="message" list="msgList" class="form-control" placeholder="Secret Message Remember Context">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Message" erasecontextfor="message"><i class="fa fa-sticky-note"></i></span>
+                <input id="message" list="msgList" class="form-control" placeholder="Secret Message Remember Context" erasecontenttriggerfrom="message">
+                <!-- The dropdown suggestion list -->
+                  <datalist id="msgList">
+                    <option value="No Password/Secret Code">
+                  </datalist>
               </div>
             </div>
-            <!-- The dropdown suggestion list -->
-              <datalist id="msgList">
-                <option value="No Password/Secret Code">
-              </datalist>
             <div class="col-md-6">
               <div class="input-group">
-                <span id="genBtn" class="btn btn-outline-secondary" title="Additional Info"><i class="fa fa-sticky-note"></i></span>
-                <input id="additionalInfo" class="form-control" placeholder="Additional Info">
+                <span id="genBtn" class="btn btn-outline-secondary" title="Additional Info" erasecontextfor="additionalInfo"><i class="fa fa-sticky-note"></i></span>
+                <input id="additionalInfo" class="form-control" placeholder="Additional Info" erasecontenttriggerfrom="additionalInfo">
               </div>
             </div>
             <div class="row g-2">
@@ -545,6 +545,31 @@ document.getElementById('setBtn').onclick = function(){
   resetAutoLock();
   alert('Master password created!');
 };
+
+document.addEventListener("click", function (e) {
+    const trigger = e.target.closest("[erasecontextfor]");
+    if (!trigger) return;
+
+    const key = trigger.getAttribute("erasecontextfor");
+
+    // Find all inputs, textareas, and selects that match
+    const fields = document.querySelectorAll(
+        `[erasecontenttriggerfrom="${key}"]`
+    );
+
+    fields.forEach(field => {
+        if (field.tagName === "SELECT") {
+            field.selectedIndex = 0; // reset dropdown
+        } else {
+            field.value = ""; // clear input/textarea
+        }
+
+        // fire input/change events if needed
+        field.dispatchEvent(new Event("input"));
+        field.dispatchEvent(new Event("change"));
+    });
+});
+
 
 document.getElementById('unlockBtn').onclick = function(){
   let pass = document.getElementById('masterInput').value;
@@ -788,6 +813,7 @@ function clearForm(){
   document.getElementById('password').value = '';
   document.getElementById('secret').value = '';
   document.getElementById('message').value = '';
+  document.getElementById('additionalInfo').value = '';
   editingIndex = null;
 }
 
