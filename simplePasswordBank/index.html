@@ -568,6 +568,19 @@ document.addEventListener("click", function (e) {
     });
 });
 
+document.addEventListener("click", function (e) {
+    const folder = e.target.closest(".folder-item");
+    if (!folder) return;
+
+    // get the folder's data-id (ex: "work", "email")
+    const id = folder.getAttribute("data-id");
+
+    const select = document.getElementById("filterFolder");
+    if (!select) return;
+
+    select.value = id;                // change dropdown
+    select.dispatchEvent(new Event("change")); // trigger change event if needed
+});
 
 document.getElementById('unlockBtn').onclick = function(){
   let pass = document.getElementById('masterInput').value;
