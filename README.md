@@ -47,5 +47,3 @@ Feel free to fork the repository, add new tools, or improve existing ones. Ensur
 This repository belongs to:
 
 **Akhilesh Ravuri**
-
-
