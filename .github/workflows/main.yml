@@ -1,0 +1,21 @@
+# .github/workflows/mirror.yml
+name: Mirror to AR2001
+
+on:
+  push:
+    branches:
+      - main  # or whatever your main branch is
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to AR2001 repo
+        run: |
+          git remote add mirror https://AKHILESHRAVURI2001:${{ secrets.Akhileshravuri2001_token_unexpiry }}@github.com/AR2001/AR01H_tools_backup.git
+          git push mirror main --force
