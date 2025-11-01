@@ -784,7 +784,7 @@ document.getElementById('saveBtn').onclick = function(){
   const additionalInfo = document.getElementById('additionalInfo').value;
 
   if(!site || !username) {
-    return alert('Fill: Website, Username, Password, Secret');
+    return alert('Fill: Website, Username Mandatory!');
   }
 
   const arr = readVaultArray();
