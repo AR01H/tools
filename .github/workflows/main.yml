@@ -17,5 +17,5 @@ jobs:
 
       - name: Push to AR2001 repo
         run: |
-          git remote add mirror https://AKHILESHRAVURI2001:${{ secrets.AKHILESHRAVURI2001_BACKUP_TOOLS_MIRROR_TOKEN }}@github.com/AKHILESHRAVURI2001/AR01H_tools_backup.git
+          git remote add mirror https://AKHILESHRAVURI2001:${{ secrets.AKHILESHRAVURI2001_BACKUP_TOOLS_MIRROR_TOKEN }}@github.com/AKHILESHRAVURI2001/AR01H_tools_backup.git 
           git push mirror main --force
