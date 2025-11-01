@@ -580,6 +580,12 @@ document.addEventListener("click", function (e) {
 
     select.value = id;                // change dropdown
     select.dispatchEvent(new Event("change")); // trigger change event if needed
+
+    const folderSelect = document.getElementById("folderSelect");
+    if (!folderSelect) return;
+
+    folderSelect.value = id;                // change dropdown
+    folderSelect.dispatchEvent(new Event("change")); // trigger change event if needed
 });
 
 document.getElementById('unlockBtn').onclick = function(){
