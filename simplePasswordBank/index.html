@@ -39,8 +39,7 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          sans-serif;
+        font-family: monospace;
         background: var(--light-color);
         color: var(--dark-color);
       }
@@ -87,7 +86,7 @@
 
       .form-section {
         background: var(--light-color);
-        padding: 1.5rem;
+        padding: 0.5rem;
         border-radius: 4px;
         box-shadow: 1px 2px 20px 0px rgba(0, 0, 0, 0.1);
         margin-bottom: 1.5rem;
@@ -313,6 +312,9 @@
           <button id="setBtn" class="btn btn-success flex-fill">
             Create Master
           </button>
+          <button class="btn btn-danger btn-sm" id="ClearVaultBtn">
+            <i class="fa fa-eraser"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -419,6 +421,7 @@
                       class="btn btn-outline-secondary"
                       title="Website"
                       erasecontextfor="site"
+                      style="color: #eb2525"
                       ><i class="fa fa-cloud"></i
                     ></span>
                     <input
@@ -463,6 +466,7 @@
                       class="btn btn-outline-secondary"
                       title="Username"
                       erasecontextfor="username"
+                      style="color: #eb2525"
                       ><i class="fa fa-user"></i
                     ></span>
                     <input
@@ -527,7 +531,7 @@
                     ></select>
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="input-group">
                     <span
                       id="genBtn"
@@ -567,13 +571,9 @@
                     ></textarea>
                   </div>
                 </div>
-                <div class="row g-2">
-                  <div class="col-md-12">
-                    <button id="saveBtn" class="btn btn-primary">Save</button>
-                    <button id="clearBtn" class="btn btn-secondary ms-2">
-                      Clear
-                    </button>
-                  </div>
+                <div class="col-md-2">
+                  <button id="saveBtn" class="btn btn-primary">Save</button>
+                  <button id="clearBtn" class="btn btn-secondary ms-2">Clear</button>
                 </div>
               </div>
             </div>
@@ -589,16 +589,16 @@
               <select
                 id="filterFolder"
                 class="form-select"
-                style="max-width: 200px"
+                style="max-width: 150px"
               >
                 <option value="all">--Filter Folder--</option>
               </select>
               <select
                 id="sortDate"
                 class="form-select"
-                style="max-width: 200px"
+                style="max-width: 150px"
               >
-                <option value="">--Sort by Date--</option>
+                <option value="">--Sort By Date--</option>
                 <option value="new">Newest First</option>
                 <option value="old">Oldest First</option>
               </select>
@@ -669,6 +669,7 @@
     <div id="deleteOverlay" style="
       position: fixed; inset:0; background:rgba(0,0,0,0.7);
       display:none; justify-content:center; align-items:center;
+      z-index:100000
     ">
       <div style="background:#fff; padding:30px; text-align:center; border-radius:8px; width:320px;">
         <h2 style="margin-bottom:15px;">Deleting in <span id="deleteTimer">20</span>s</h2>
@@ -1162,7 +1163,7 @@
 
         document.getElementById(
           "pageInfo"
-        ).textContent = `Page ${currentPage} / ${totalPages}`;
+        ).textContent = `${currentPage} / ${totalPages}`;
         document.getElementById("prevPage").disabled = currentPage <= 1;
         document.getElementById("nextPage").disabled =
           currentPage >= totalPages;
@@ -2134,6 +2135,7 @@
           document.getElementById("unlockBtn").style.display = "block";
           document.getElementById("masterInputHint").style.display = "none";
         } else {
+          document.getElementById("ClearVaultBtn").style.display = "none";
           document.getElementById("unlockBtn").style.display = "none";
         }
         renderFolders();
