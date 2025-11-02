@@ -1186,8 +1186,28 @@
         const secrethint = document.getElementById("secrethint").value;
         const additionalInfo = document.getElementById("additionalInfo").value;
 
-        if (!site || !username) {
-          return alert("Fill: Website, Username Mandatory!");
+        if(!site && !username) {
+          document.getElementById("site").classList.add("input-shake");
+          document.getElementById("username").classList.add("input-shake");
+          setTimeout(() => {
+            document.getElementById("site").classList.remove("input-shake");
+            document.getElementById("username").classList.remove("input-shake");
+          }, 1000);
+          return;
+        }
+        if (!site) {
+          document.getElementById("site").classList.add("input-shake");
+          setTimeout(() => {
+            document.getElementById("site").classList.remove("input-shake");
+          }, 1000);
+          return;
+        }
+        if(!username) {
+          document.getElementById("username").classList.add("input-shake");
+          setTimeout(() => {
+            document.getElementById("username").classList.remove("input-shake");
+          }, 1000);
+          return;
         }
 
         const arr = readVaultArray();
