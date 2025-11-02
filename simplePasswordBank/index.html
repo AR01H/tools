@@ -1126,7 +1126,7 @@
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${escapeHtml(it.site)}</td>
-            <td>${
+            <td style="text-align: center">${
               it.url
                 ? `<a href="${escapeHtml(it.url)}" target="_blank"><i class="fa fa-external-link" aria-hidden="true"></i></a>`
                 : "-"
@@ -1134,20 +1134,20 @@
             <td>${escapeHtml(it.username)}</td>
 
             <!-- PASSWORD COLUMN -->
-            <td>${
+            <td style="text-align: center">${
               isEncoded
                 ? '<i class="fa fa-lock"></i>'
                 : it.password ? '<i class="fa fa-eye"></i>' : '<i class="fa fa-times" aria-hidden="true"></i>'
             }</td>
 
             <!-- SECRET COLUMN -->
-            <td>${
+            <td style="text-align: center">${
               isEncoded
                 ? '<i class="fa fa-lock"></i>'
                 : it.secret ? '<i class="fa fa-eye"></i>' : '<i class="fa fa-times" aria-hidden="true"></i>'
             }</td>
 
-            <td><span class="badge" style="background:${folderObj.color};color:var(--light-color)">${folderObj.name}</span></td>
+            <td style="text-align: center"><span class="badge" style="background:${folderObj.color};color:var(--light-color)">${folderObj.name}</span></td>
             <td>${escapeHtml(it.secrethint || "-")}</td>
             <td>
               <button class="btn btn-sm btn-primary viewEntry" data-i="${originalIndex}"><i class="fa fa-file-text"></i></button>
