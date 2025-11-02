@@ -2171,8 +2171,8 @@
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", initApp);
       } else {
-        document.getElementById('masterInput').focus();
         initApp();
+        document.getElementById('masterInput').focus();
       }
 
       // Enter key support for master password
