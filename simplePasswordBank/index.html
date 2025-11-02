@@ -1299,7 +1299,7 @@
           const html = `
       <table class="table">
         <tr><th>Website</th><td>${escapeHtml(it.site)}</td></tr>
-        <tr><th>URL</th><td>${it.url ? escapeHtml(it.url) : "-"}</td></tr>
+        <tr><th>URL</th><td>${it.url ? escapeHtml(it.url) : "-"}${it.url ? "<a href=\"" + it.url + "\" target=\"_blank\"><i class=\"fa fa-external-link-alt\"></i></a>" : ""}</td></tr>
         <tr><th>Username</th><td>${escapeHtml(it.username)}</td></tr>
         <tr><th>Password</th><td>${escapeHtml(pwd)}</td></tr>
         <tr><th>Secret</th><td>${escapeHtml(secret)}</td></tr>
