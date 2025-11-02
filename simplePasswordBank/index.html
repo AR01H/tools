@@ -910,7 +910,7 @@
           resetAutoLock();
           alert("Vault unlocked!");
         } catch (e) {
-          alert("Wrong master password!");
+          // alert("Wrong master password!");
           masterInput.style.borderColor = "red";
           setTimeout(() => (masterInput.style.borderColor = ""), 1500);
           masterInput.classList.remove("input-shake"); // reset if repeated
