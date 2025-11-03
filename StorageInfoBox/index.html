@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>We1 | Info Storage</title>
+  <link rel="icon" href="../logo.png" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{--accent:#4f46e5;--muted:#6b7280}
+    html,body{height:100%}
+    body{background:#f3f4f6;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;padding:0;margin:0}
+    .topbar{background:#fff;border-bottom:1px solid #e6edf3;position:sticky;top:0;z-index:60}
+    .sidebar{background:#fff;border-right:1px solid #e6edf3;min-height:100vh;padding:1rem}
+    .folder-item{padding:.45rem .6rem;border-radius:.45rem;cursor:pointer}
+    .folder-item.active{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff}
+    .card{border-radius:.6rem;border:none;box-shadow:0 6px 18px rgba(45,55,72,0.06)}
+    .inline-editor{background:#ffffff;border-top:1px solid #eef2f7;padding:1rem}
+    .badge-tag{background:#eef6ff;color:#0f4db6;padding:.25rem .6rem;border-radius:999px}
+    .drag-handle{cursor:grab}
+    .pinned{background:linear-gradient(90deg,#fffbeb,#fff7ed)}
+    .expanded-value{white-space:pre-wrap;background:#fff;padding:.75rem;border-radius:.5rem;border:1px solid #eef2f7}
+    .dark-mode{background:#0f1724;color:#e6eef8}
+    /* responsive tweaks */
+    @media (max-width:767px){ .sidebar{display:none} .topbar { padding:0.5rem } }
+  </style>
+  <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+</head>
+<body>
+  <div class="topbar p-3 d-flex align-items-center gap-2">
+    <h5 class="mb-0 me-auto"><i class="fa fa-database text-primary me-2"></i>Info Storage</h5>
+    <div class="d-flex gap-2 align-items-center">
+      <button class="btn btn-sm btn-outline-secondary" id="btnToggleDark"><i class="fa fa-moon"></i></button>
+      <button class="btn btn-sm btn-outline-secondary" id="btnNewFolder"><i class="fa fa-folder-plus me-1"></i>Folder</button>
+      <div class="btn-group">
+        <button class="btn btn-sm btn-primary" id="btnAddItem"><i class="fa fa-plus me-1"></i>Add</button>
+        <button class="btn btn-sm btn-outline-info" id="btnExport"><i class="fa fa-download me-1"></i>Export</button>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Import</button>
+          <ul class="dropdown-menu dropdown-menu-end p-3" style="min-width:270px">
+            <li><label class="form-label">Mode</label>
+              <select id="importMode" class="form-select mb-2">
+                <option value="add">Add to existing</option>
+                <option value="replace">Replace all</option>
+              </select>
+            </li>
+            <li>
+              <div class="mb-2">
+                <input class="form-control form-control-sm" type="file" id="importFile" accept="application/json">
+              </div>
+            </li>
+            <li>
+              <div class="mb-2">
+                <textarea id="importPaste" class="form-control" rows="4" placeholder="Or paste JSON here and press Ctrl+Enter"></textarea>
+              </div>
+            </li>
+            <li class="d-flex gap-2 justify-content-end">
+              <button class="btn btn-sm btn-primary" id="btnDoImport">Import</button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex">
+    <aside class="sidebar col-3 col-md-2">
+      <div class="mb-3 d-flex align-items-center justify-content-between">
+        <strong>Folders</strong>
+        <button class="btn btn-sm btn-light" id="btnShowAddFolder"><i class="fa fa-plus"></i></button>
+      </div>
+      <div id="folderAddBox" class="mb-2" style="display:none">
+        <div class="input-group input-group-sm mb-2">
+          <input id="folderName" class="form-control" placeholder="Folder name">
+          <button class="btn btn-primary" id="btnAddFolder"><i class="fa fa-check"></i></button>
+        </div>
+      </div>
+      <input id="search" class="form-control form-control-sm mb-3" placeholder="Search title or tags">
+      <ul id="folders" class="list-unstyled"></ul>
+      <hr>
+      <div class="small-muted">Tips</div>
+      <ul class="small text-muted">
+        <li>Click settings (gear) to edit inline</li>
+        <li>Drag the handle to reorder items</li>
+        <li>Use Import mode to Add or Replace data</li>
+      </ul>
+    </aside>
+
+    <main class="col p-3">
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="table">
+            <thead class="table-light">
+              <tr>
+                <th style="width:36px"></th>
+                <th>Title</th>
+                <th>Value</th>
+                <th>Tags</th>
+                <th>Updated</th>
+                <th class="text-end">Settings</th>
+              </tr>
+            </thead>
+            <tbody id="list"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Storage key
+const KEY = 'info_storage_v3';
+let store = { folders: [], items: [] };
+let activeFolder = 'all';
+let openRow = null; // only one open at a time
+let dark = false;
+
+// helpers
+const uid = () => 'id_' + Math.random().toString(36).slice(2,9);
+const nowStr = () => new Date().toLocaleString();
+const esc = s => String(s||'').replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','':'','':'','	':'	'}[ch]));
+
+function load(){
+  try{ const raw = localStorage.getItem(KEY); store = raw?JSON.parse(raw):{folders:[{id:'all',name:'All'}],items:[]}; }
+  catch(e){ console.error(e); store = {folders:[{id:'all',name:'All'}], items:[]}; }
+  if(!store.folders || !store.folders.length) store.folders = [{id:'all',name:'All'}];
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(store)); }
+
+function renderFolders(){
+  const $f = $('#folders').empty();
+  // always include All
+  store.folders.forEach(fld=>{
+    const cls = (activeFolder===fld.id)?'folder-item active':'folder-item';
+    $f.append(`<li class='${cls}' data-id='${fld.id}'>${fld.name}</li>`);
+  });
+}
+
+function renderList(){
+  // reverse order (newest first) and pinned first
+  const items = store.items.slice().sort((a,b)=>{ // pinned then updated desc
+    if((b.pinned?1:0) !== (a.pinned?1:0)) return (b.pinned?1:0) - (a.pinned?1:0);
+    return new Date(b.updated) - new Date(a.updated);
+  });
+
+  $('#list').empty();
+  const q = $('#search').val().toLowerCase();
+  items.forEach(item=>{
+    if(activeFolder!=='all' && item.folderId !== activeFolder) return;
+    if(q && !((item.title||'').toLowerCase().includes(q) || (item.tags||'').toLowerCase().includes(q) || (item.value||'').toLowerCase().includes(q))) return;
+    const tr = $('<tr draggable="true" data-id="'+item.id+'"></tr>');
+    if(item.pinned) tr.addClass('pinned');
+    tr.append(`<td class="drag-handle"><i class="fa fa-bars text-muted"></i></td>`);
+    tr.append(`<td class="title-cell">${esc(item.title)}</td>`);
+    const valPreview = (item.value||'').length>100 ? (item.value||'').slice(0,100)+'...' : (item.value||'');
+    tr.append(`<td class="value-cell"><code>${esc(valPreview)}</code></td>`);
+    tr.append(`<td>${(item.tags||'').split(',').filter(Boolean).map(t=>'<span class="badge-tag me-1">'+esc(t.trim())+'</span>').join(' ')}</td>`);
+    tr.append(`<td>${new Date(item.updated).toLocaleString()}</td>`);
+    tr.append(`<td class="text-end">
+      <button class="btn btn-sm btn-light btn-settings" title="Edit"><i class="fa fa-gear"></i></button>
+      <button class="btn btn-sm btn-light btn-dup" title="Duplicate"><i class="fa fa-clone"></i></button>
+      <button class="btn btn-sm btn-light btn-pin" title="Pin"><i class="fa fa-thumbtack"></i></button>
+      <button class="btn btn-sm btn-light btn-copy" title="Copy"><i class="fa fa-copy"></i></button>
+      <button class="btn btn-sm btn-danger btn-del" title="Delete"><i class="fa fa-trash"></i></button>
+    </td>`);
+    $('#list').append(tr);
+  });
+}
+
+function addFolder(name){ if(!name) return; store.folders.push({id:uid(),name}); save(); renderFolders(); }
+
+function addItem(){ const folderId = (activeFolder==='all' && store.folders[0]) ? store.folders[0].id : activeFolder; const it = { id: uid(), folderId: folderId||(store.folders[0] && store.folders[0].id) || 'all', title:'New item', value:'', tags:'', updated: new Date().toISOString(), pinned:false }; store.items.push(it); save(); renderList(); openEditorInline(it.id); }
+
+function openEditorInline(id){ // close others (option 1)
+  closeInline(); openRow = id; const tr = $(`tr[data-id='${id}']`);
+  const item = store.items.find(x=>x.id===id);
+  const editorRow = $(`<tr class='inline-editor-row'><td colspan='6'><div class='inline-editor'>
+    <div class='row g-2'>
+      <div class='col-md-4'><input class='form-control edit-title' value='${esc(item.title)}'></div>
+      <div class='col-md-4'><input class='form-control edit-tags' value='${esc(item.tags)}' placeholder='comma separated'></div>
+      <div class='col-md-4 d-flex align-items-center gap-2'>
+        <button class='btn btn-sm btn-outline-secondary btn-expand-value'>Expand Value</button>
+        <button class='btn btn-sm btn-outline-secondary btn-toggle-ck' >Use CKEditor</button>
+        <div class='form-check ms-auto'><input class='form-check-input form-check-sm edit-pin' type='checkbox' ${item.pinned?'checked':''}> <label class='form-check-label small-muted'>Pin</label></div>
+      </div>
+      <div class='col-12'><textarea class='form-control edit-value' rows='4' placeholder='Value'>${esc(item.value)}</textarea></div>
+      <div class='col-12 text-end'>
+        <button class='btn btn-sm btn-success btn-save-inline'>Save</button>
+        <button class='btn btn-sm btn-outline-secondary btn-cancel-inline'>Cancel</button>
+      </div>
+    </div>
+  </div></td></tr>`);
+  tr.after(editorRow);
+
+  // CKEditor toggle
+  let ckInstance = null;
+  function enableCK(){
+    const ta = editorRow.find('.edit-value');
+    CKEDITOR.replace(ta[0]);
+    ckInstance = CKEDITOR.instances[ta.attr('id')] || CKEDITOR.instances[Object.keys(CKEDITOR.instances)[0]];
+  }
+  function disableCK(){
+    if(ckInstance){
+      ckInstance.updateElement();
+      ckInstance.destroy();
+      ckInstance=null;
+    }
+  }
+  editorRow.find('.btn-toggle-ck').on('click', function(){
+    if(!ckInstance){ enableCK(); $(this).text('Back to Textarea'); }
+    else{ disableCK(); $(this).text('Use CKEditor'); }
+  });
+
+
+
+  editorRow.find('.edit-title, .edit-tags, .edit-value').on('input', function(){
+    const it = store.items.find(x=>x.id===id);
+    it.title = editorRow.find('.edit-title').val();
+    it.tags  = editorRow.find('.edit-tags').val();
+    it.value = editorRow.find('.edit-value').val();
+    it.updated = new Date().toISOString();
+    save(); renderList(); // re-render keeps editor closed normally; to keep open we need to re-open
+    // re-open at same id
+    setTimeout(()=>{ openEditorInline(id); }, 0);
+  });
+
+  // expand value: show full value below editor
+  editorRow.find('.btn-expand-value').on('click', function(){
+    const full = editorRow.find('.edit-value').val();
+    if(editorRow.find('.expanded-value').length){ editorRow.find('.expanded-value').remove(); return; }
+    editorRow.find('.edit-value').after(`<div class='expanded-value mt-2'>${esc(full)}</div>`);
+  });
+
+  editorRow.find('.btn-save-inline').on('click', function(){
+    disableCK();
+    const it = store.items.find(x=>x.id===id);
+    it.title = editorRow.find('.edit-title').val();
+    it.tags  = editorRow.find('.edit-tags').val();
+    it.value = editorRow.find('.edit-value').val();
+    it.pinned = !!editorRow.find('.edit-pin').is(':checked');
+    it.updated = new Date().toISOString();
+    save(); renderList(); closeInline();
+  });
+
+  editorRow.find('.btn-cancel-inline').on('click', function(){ closeInline(); });
+}
+
+function closeInline(){ $('.inline-editor-row').remove(); openRow = null; }
+
+function duplicateItem(id){ const it = store.items.find(x=>x.id===id); if(!it) return; const copy = {...it, id: uid(), title: it.title + ' (copy)', updated: new Date().toISOString()}; store.items.push(copy); save(); renderList(); }
+
+function pinItem(id){ const it = store.items.find(x=>x.id===id); if(!it) return; it.pinned = !it.pinned; it.updated = new Date().toISOString(); save(); renderList(); }
+
+function copyEsc(id){ const it = store.items.find(x=>x.id===id); navigator.clipboard.writeText(it.value||''); }
+
+function deleteItem(id){ if(!confirm('Delete item?')) return; store.items = store.items.filter(x=>x.id!==id); save(); renderList(); }
+
+// Drag & drop reorder
+let dragSrc = null;
+$(document).on('dragstart','tr[data-id]', function(e){ dragSrc = $(this).data('id'); $(this).addClass('dragging'); e.originalEvent.dataTransfer.effectAllowed = 'move'; });
+$(document).on('dragend','tr[data-id]', function(){ $('tr.dragging').removeClass('dragging'); dragSrc=null; });
+$(document).on('dragover','tr[data-id]', function(e){ e.preventDefault(); $(this).addClass('drag-over'); });
+$(document).on('dragleave','tr[data-id]', function(){ $(this).removeClass('drag-over'); });
+$(document).on('drop','tr[data-id]', function(e){ e.preventDefault(); $(this).removeClass('drag-over'); const target = $(this).data('id'); if(!dragSrc || dragSrc===target) return; // reorder in store: move dragSrc before target
+  const items = store.items;
+  const srcIdx = items.findIndex(x=>x.id===dragSrc); const tgtIdx = items.findIndex(x=>x.id===target);
+  if(srcIdx<0||tgtIdx<0) return;
+  const [moved] = items.splice(srcIdx,1);
+  items.splice(tgtIdx,0,moved);
+  save(); renderList(); });
+
+// click handlers
+$(function(){ load(); renderFolders(); renderList();
+  // folder add
+  $('#btnShowAddFolder').on('click', ()=>$('#folderAddBox').toggle());
+  $('#btnAddFolder').on('click', ()=>{ const v=$('#folderName').val().trim(); if(v){ addFolder(v); $('#folderName').val(''); $('#folderAddBox').hide(); }});
+
+  $('#folders').on('click','.folder-item', function(){ activeFolder = $(this).data('id'); $('.folder-item').removeClass('active'); $(this).addClass('active'); renderList(); });
+
+  $('#btnAddItem').on('click', addItem);
+
+  $('#list').on('click', '.btn-settings', function(){ const id=$(this).closest('tr').data('id'); openEditorInline(id); });
+  $('#list').on('click', '.btn-dup', function(){ const id=$(this).closest('tr').data('id'); duplicateItem(id); });
+  $('#list').on('click', '.btn-pin', function(){ const id=$(this).closest('tr').data('id'); pinItem(id); });
+  $('#list').on('click', '.btn-copy', function(){ const id=$(this).closest('tr').data('id'); copyEsc(id); });
+  $('#list').on('click', '.btn-del', function(){ const id=$(this).closest('tr').data('id'); deleteItem(id); });
+
+  // search
+  $('#search').on('input', renderList);
+
+  // export
+  $('#btnExport').on('click', ()=>{
+    const blob = new Blob([JSON.stringify(store,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='info-storage.json'; a.click(); URL.revokeObjectURL(url);
+  });
+
+  // import controls
+  $('#btnDoImport').on('click', ()=>{ doImport(); });
+  $('#importFile').on('change', function(e){ const f = this.files[0]; if(!f) return; const r=new FileReader(); r.onload = ev => { try{ const obj=JSON.parse(ev.target.result); processImport(obj); alert('File imported'); }catch(err){ alert('Invalid JSON file'); } }; r.readAsText(f); this.value=''; });
+  $('#importPaste').on('keydown', function(e){ if(e.ctrlKey && e.key==='Enter'){ try{ const obj=JSON.parse($(this).val()); processImport(obj); $(this).val(''); alert('Imported from paste'); }catch(err){ alert('Invalid JSON'); } } });
+
+  // expand value on cell click
+  $('#list').on('click','.value-cell', function(){ const id = $(this).closest('tr').data('id'); const item = store.items.find(x=>x.id===id); const existing = $(this).find('.expanded-value'); if(existing.length){ existing.remove(); return; } $(this).append('<div class="expanded-value mt-2">'+esc(item.value)+'</div>'); });
+
+  // dark mode toggle
+  $('#btnToggleDark').on('click', ()=>{ dark = !dark; if(dark) $('body').addClass('dark-mode'); else $('body').removeClass('dark-mode'); });
+
+  // double click row to quick edit
+  $('#list').on('dblclick','tr[data-id]', function(){ const id=$(this).data('id'); openEditorInline(id); });
+});
+
+function processImport(obj){ const mode = $('#importMode').val(); if(mode==='replace'){ store = obj; if(!store.folders) store.folders = [{id:'all',name:'All'}]; if(!store.items) store.items = []; save(); renderFolders(); renderList(); return; }
+  // add mode: append with new ids if missing
+  if(obj.folders && Array.isArray(obj.folders)){
+    obj.folders.forEach(f=>{ if(!f.id) f.id=uid(); store.folders.push(f); });
+  }
+  if(obj.items && Array.isArray(obj.items)){
+    obj.items.forEach(it=>{ if(!it.id) it.id = uid(); store.items.push(it); });
+  }
+  save(); renderFolders(); renderList(); }
+
+function doImport(){ const pasted = $('#importPaste').val().trim(); if(pasted){ try{ const obj = JSON.parse(pasted); processImport(obj); $('#importPaste').val(''); alert('Imported'); }catch(e){ alert('Invalid JSON'); } } else {
+  // check file input handled separately
+  alert('Please choose a file or paste JSON into the import box.'); }
+}
+</script>
+</body>
+</html>

@@ -138,6 +138,15 @@ const tools = [
     link: "./passwordBank/index.html",
     groupname: ["Password Store"]
   },
+    {
+    icon: "fas fa-shield-alt",
+    title: "Info Storage",
+    description: "Store your information in a secure and easy to use format.",
+    tags: ["Info Storage",  "JSON"],
+    status: "live",
+    link: "./StorageInfoBox/index.html",
+    groupname: ["Info Storage"]
+  },
 {
     icon: "fas fa-shield-alt",
     title: "Simple Password Bank",
