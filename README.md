@@ -32,6 +32,7 @@ A web-based platform that consolidates multiple utility tools into one interface
 
 ### Password Store
 - **Complex Password Bank**: Design and store passwords securely in JSON format.
+- **Simple Password Bank**: Design and store passwords securely in Encrypted JSON format.
 
 ---
 

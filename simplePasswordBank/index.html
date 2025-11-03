@@ -365,12 +365,7 @@
               <button id="infoBtn" class="btn btn-primary btn-sm">
                 <i class="fa fa-info"></i>
               </button>
-              <button
-                class="btn btn-danger btn-sm"
-                id="ClearVaultBtn"
-              >
-                <i class="fa fa-eraser"></i>
-              </button>
+              
             </div>
           </div>
         </div>
@@ -554,7 +549,9 @@
                     />
                     <!-- The dropdown suggestion list -->
                     <datalist id="msgList">
-                      <option value="No Password/Secret Code"></option>
+                      <option value="Secret is my DOB with First Name"></option>
+                      <option value="Frequenctly using Password as Secret"></option>
+                      <option value="My Common 6 digit Secret"></option>
                     </datalist>
                   </div>
                 </div>
@@ -1154,7 +1151,7 @@
               <button class="btn btn-sm btn-primary viewEntry" data-i="${originalIndex}"><i class="fa fa-file-text"></i></button>
               <button class="btn btn-sm btn-warning editEntry" data-i="${originalIndex}"><i class="fa fa-edit"></i></button>
               <button class="btn btn-sm btn-danger delEntry" data-i="${originalIndex}"><i class="fa fa-trash"></i></button>
-              <button class="btn btn-sm btn-secondary copyPassword" data-i="${originalIndex}"><i class="fa fa-copy"></i></button>
+              <button class="btn btn-sm btn-secondary copyPassword" ${!isEncoded && (it.password) ? "" : "hidden"}  data-i="${originalIndex}"><i class="fa fa-copy"></i></button>
               <button class="btn btn-sm btn-info encodeEntry ${!isEncoded && (!(it.password) || !(it.secret)) ? "hidden" : "" }" ${
                 isEncoded ? "disabled" : ""
               } data-i="${originalIndex}">
@@ -1530,7 +1527,7 @@
 
         // Ask user what type of export they want
         const exportType = prompt(
-          "Export type:\n1 = Encrypted backup (secure)\n2 = Plain text backup (readable)\n\nEnter 1 or 2:"
+          "Export type:\n1 = Encrypted backup (secure) \n2 = Plain text backup (readable)\n\nEnter 1 or 2:"
         );
 
         if (exportType === "2") {
@@ -1644,7 +1641,7 @@
               "✅ Plain text backup exported!\n\nWARNING: This file contains readable passwords.\nStore it in a SECURE location!"
             );
           }
-        } else {
+        } else if (exportType === "1" ) {
           // ENCRYPTED EXPORT (Original secure method)
           const folderName =
             prompt("Enter file name (leave blank for default):") ||
@@ -1677,7 +1674,7 @@
           a.href = URL.createObjectURL(blob);
           a.download = `vault_${folderName}.enc`;
           a.click();
-          alert("🔒 Encrypted vault exported successfully!");
+          // alert("🔒 Encrypted vault exported successfully!");
         }
       };
       document.getElementById("exportBtn").onclick = function () {
@@ -2078,6 +2075,8 @@
         currentPage++;
         loadEntries();
       };
+
+      
 
       let deleteCountdown = null;
       let deleteTimeLeft = 20;
