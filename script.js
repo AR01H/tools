@@ -161,7 +161,7 @@ const tools = [
       "Use two-factor authentication for extra security"
     ],
     link: "./simplePasswordBank/index.html",
-    groupname: ["Password Store"]
+    groupname: ["Password Store"] 
   },
   {
     icon: "fas fa-chart-bar",
