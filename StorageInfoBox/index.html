@@ -1,136 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personal Data Manager - Secure</title>
-
-<!-- Bootstrap + jQuery + Font Awesome + CryptoJS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-<style>
-body { background: #f8f9fa; }
-.sidebar {
-  width: 250px; height: 100vh; background: #343a40; color: #fff; position: fixed; overflow-y: auto;
-  transition: width 0.3s ease;
-}
-.sidebar.collapsed { width: 60px; }
-.sidebar h5 { text-align: center; margin: 1rem 0; }
-.sidebar button { width: 90%; margin: 0.5rem auto; display: block; }
-.sidebar a {
-  color: #adb5bd; text-decoration: none; display: block; padding: 8px 20px; border-radius: 5px;
-}
-.sidebar a:hover, .sidebar a.active { background: #495057; color: #fff; }
-.sidebar.collapsed a span { display: none; }
-.sidebar.collapsed h5 { display: none; }
-.content { margin-left: 270px; padding: 20px; transition: margin-left 0.3s ease; }
-.sidebar.collapsed + .content { margin-left: 80px; }
-.table td, .table th { vertical-align: middle; }
-.copy-btn { cursor: pointer; color: #0d6efd; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>We1 | Info Storage</title>
+  <link rel="icon" href="../logo.png" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{--accent:#4f46e5;--muted:#6b7280}
+    html,body{height:100%}
+    body{background:#f3f4f6;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;padding:0;margin:0}
+    .topbar{background:#fff;border-bottom:1px solid #e6edf3;position:sticky;top:0;z-index:60}
+    .sidebar{background:#fff;border-right:1px solid #e6edf3;min-height:100vh;padding:1rem}
+    .folder-item{padding:.45rem .6rem;border-radius:.45rem;cursor:pointer}
+    .folder-item.active{background:linear-gradient(135deg,var(--accent),#7c3aed);color:#fff}
+    .card{border-radius:.6rem;border:none;box-shadow:0 6px 18px rgba(45,55,72,0.06)}
+    .inline-editor{background:#ffffff;border-top:1px solid #eef2f7;padding:1rem}
+    .badge-tag{background:#eef6ff;color:#0f4db6;padding:.25rem .6rem;border-radius:999px}
+    .drag-handle{cursor:grab}
+    .pinned{background:linear-gradient(90deg,#fffbeb,#fff7ed)}
+    .expanded-value{white-space:pre-wrap;background:#fff;padding:.75rem;border-radius:.5rem;border:1px solid #eef2f7}
+    .dark-mode{background:#0f1724;color:#e6eef8}
+    /* responsive tweaks */
+    @media (max-width:767px){ .sidebar{display:none} .topbar { padding:0.5rem } }
+  </style>
+  <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
 </head>
-
 <body>
-<div class="sidebar" id="sidebar">
-  <h5>📁 My Folders</h5>
-  <div id="folderList"></div>
-  <button class="btn btn-outline-light btn-sm" id="newFolder"><i class="fa fa-folder-plus"></i> <span>New Folder</span></button>
-  <button class="btn btn-outline-light btn-sm" id="toggleSidebar"><i class="fa fa-bars"></i> <span>Toggle</span></button>
-</div>
-
-<div class="content">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 id="folderTitle">No Folder Selected</h3>
-    <div>
-      <button class="btn btn-secondary btn-sm" id="exportNormal"><i class="fa fa-download"></i> Export</button>
-      <button class="btn btn-warning btn-sm" id="exportEncrypted"><i class="fa fa-lock"></i> Export Encrypted</button>
-      <label class="btn btn-outline-secondary btn-sm mb-0">
-        <i class="fa fa-upload"></i> Import <input type="file" id="importNormal" hidden accept=".json">
-      </label>
-      <label class="btn btn-outline-warning btn-sm mb-0">
-        <i class="fa fa-lock"></i> Import Encrypted <input type="file" id="importEncrypted" hidden accept=".json">
-      </label>
-      <button class="btn btn-primary btn-sm" id="addItem"><i class="fa fa-plus"></i> Add</button>
+  <div class="topbar p-3 d-flex align-items-center gap-2">
+    <h5 class="mb-0 me-auto"><i class="fa fa-database text-primary me-2"></i>Info Storage</h5>
+    <div class="d-flex gap-2 align-items-center">
+      <button class="btn btn-sm btn-outline-secondary" id="btnToggleDark"><i class="fa fa-moon"></i></button>
+      <button class="btn btn-sm btn-outline-secondary" id="btnNewFolder"><i class="fa fa-folder-plus me-1"></i>Folder</button>
+      <div class="btn-group">
+        <button class="btn btn-sm btn-primary" id="btnAddItem"><i class="fa fa-plus me-1"></i>Add</button>
+        <button class="btn btn-sm btn-outline-info" id="btnExport"><i class="fa fa-download me-1"></i>Export</button>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Import</button>
+          <ul class="dropdown-menu dropdown-menu-end p-3" style="min-width:270px">
+            <li><label class="form-label">Mode</label>
+              <select id="importMode" class="form-select mb-2">
+                <option value="add">Add to existing</option>
+                <option value="replace">Replace all</option>
+              </select>
+            </li>
+            <li>
+              <div class="mb-2">
+                <input class="form-control form-control-sm" type="file" id="importFile" accept="application/json">
+              </div>
+            </li>
+            <li>
+              <div class="mb-2">
+                <textarea id="importPaste" class="form-control" rows="4" placeholder="Or paste JSON here and press Ctrl+Enter"></textarea>
+              </div>
+            </li>
+            <li class="d-flex gap-2 justify-content-end">
+              <button class="btn btn-sm btn-primary" id="btnDoImport">Import</button>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 
-  <table class="table table-striped table-bordered">
-    <thead class="table-light">
-      <tr>
-        <th>Title</th>
-        <th>Value</th>
-        <th>Tags</th>
-        <th>Updated</th>
-        <th style="width:140px;">Actions</th>
-      </tr>
-    </thead>
-    <tbody id="itemTable"></tbody>
-  </table>
-
-  <div id="formSection" class="mt-3 d-none">
-    <h5 id="formTitle">Add Item</h5>
-    <form id="itemForm" class="card p-3">
-      <input type="hidden" name="index">
-      <div class="row">
-        <div class="col-md-3 mb-2">
-          <input type="text" name="title" class="form-control" placeholder="Title" required>
-        </div>
-        <div class="col-md-4 mb-2">
-          <input type="text" name="value" class="form-control" placeholder="Value" required>
-        </div>
-        <div class="col-md-3 mb-2">
-          <input type="text" name="tags" class="form-control" placeholder="Tags">
-        </div>
-        <div class="col-md-2 mb-2">
-          <button class="btn btn-success w-100" type="submit"><i class="fa fa-save"></i> Save</button>
+  <div class="d-flex">
+    <aside class="sidebar col-3 col-md-2">
+      <div class="mb-3 d-flex align-items-center justify-content-between">
+        <strong>Folders</strong>
+        <button class="btn btn-sm btn-light" id="btnShowAddFolder"><i class="fa fa-plus"></i></button>
+      </div>
+      <div id="folderAddBox" class="mb-2" style="display:none">
+        <div class="input-group input-group-sm mb-2">
+          <input id="folderName" class="form-control" placeholder="Folder name">
+          <button class="btn btn-primary" id="btnAddFolder"><i class="fa fa-check"></i></button>
         </div>
       </div>
-    </form>
+      <input id="search" class="form-control form-control-sm mb-3" placeholder="Search title or tags">
+      <ul id="folders" class="list-unstyled"></ul>
+      <hr>
+      <div class="small-muted">Tips</div>
+      <ul class="small text-muted">
+        <li>Click settings (gear) to edit inline</li>
+        <li>Drag the handle to reorder items</li>
+        <li>Use Import mode to Add or Replace data</li>
+      </ul>
+    </aside>
+
+    <main class="col p-3">
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle" id="table">
+            <thead class="table-light">
+              <tr>
+                <th style="width:36px"></th>
+                <th>Title</th>
+                <th>Value</th>
+                <th>Tags</th>
+                <th>Updated</th>
+                <th class="text-end">Settings</th>
+              </tr>
+            </thead>
+            <tbody id="list"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
   </div>
-</div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-let data = JSON.parse(localStorage.getItem("foldersData")) || {};
-let currentFolder = null;
+// Storage key
+const KEY = 'info_storage_v3';
+let store = { folders: [], items: [] };
+let activeFolder = 'all';
+let openRow = null; // only one open at a time
+let dark = false;
 
-function saveData() {
-  localStorage.setItem("foldersData", JSON.stringify(data));
+// helpers
+const uid = () => 'id_' + Math.random().toString(36).slice(2,9);
+const nowStr = () => new Date().toLocaleString();
+const esc = s => String(s||'').replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','':'','':'','	':'	'}[ch]));
+
+function load(){
+  try{ const raw = localStorage.getItem(KEY); store = raw?JSON.parse(raw):{folders:[{id:'all',name:'All'}],items:[]}; }
+  catch(e){ console.error(e); store = {folders:[{id:'all',name:'All'}], items:[]}; }
+  if(!store.folders || !store.folders.length) store.folders = [{id:'all',name:'All'}];
 }
+function save(){ localStorage.setItem(KEY, JSON.stringify(store)); }
 
-function renderFolders() {
-  $("#folderList").empty();
-  Object.keys(data).forEach(f => {
-    $("#folderList").append(`<a href="#" data-folder="${f}" class="${f===currentFolder?'active':''}"><i class="fa fa-folder me-2"></i><span>${f}</span></a>`);
+function renderFolders(){
+  const $f = $('#folders').empty();
+  // always include All
+  store.folders.forEach(fld=>{
+    const cls = (activeFolder===fld.id)?'folder-item active':'folder-item';
+    $f.append(`<li class='${cls}' data-id='${fld.id}'>${fld.name}</li>`);
   });
 }
 
-function renderItems() {
-  let table = $("#itemTable");
-  table.empty();
-  if (!currentFolder) return;
-  let items = data[currentFolder] || [];
-  if (items.length === 0) {
-    table.append(`<tr><td colspan="5" class="text-center text-muted">No items found</td></tr>`);
-    return;
-  }
-  items.forEach((it, i) => {
-    table.append(`
-      <tr>
-        <td>${it.title}</td>
-        <td>${it.value}</td>
-        <td>${it.tags}</td>
-        <td>${it.updated}</td>
-        <td>
-          <span class="copy-btn me-2" onclick="copyText('${it.value}')"><i class="fa fa-copy"></i></span>
-          <button class="btn btn-sm btn-outline-dark" onclick="editItem(${i})"><i class="fa fa-pen"></i></button>
-          <button class="btn btn-sm btn-danger" onclick="deleteItem(${i})"><i class="fa fa-trash"></i></button>
-        </td>
-      </tr>
-    `);
+function renderList(){
+  // reverse order (newest first) and pinned first
+  const items = store.items.slice().sort((a,b)=>{ // pinned then updated desc
+    if((b.pinned?1:0) !== (a.pinned?1:0)) return (b.pinned?1:0) - (a.pinned?1:0);
+    return new Date(b.updated) - new Date(a.updated);
+  });
+
+  $('#list').empty();
+  const q = $('#search').val().toLowerCase();
+  items.forEach(item=>{
+    if(activeFolder!=='all' && item.folderId !== activeFolder) return;
+    if(q && !((item.title||'').toLowerCase().includes(q) || (item.tags||'').toLowerCase().includes(q) || (item.value||'').toLowerCase().includes(q))) return;
+    const tr = $('<tr draggable="true" data-id="'+item.id+'"></tr>');
+    if(item.pinned) tr.addClass('pinned');
+    tr.append(`<td class="drag-handle"><i class="fa fa-bars text-muted"></i></td>`);
+    tr.append(`<td class="title-cell">${esc(item.title)}</td>`);
+    const valPreview = (item.value||'').length>100 ? (item.value||'').slice(0,100)+'...' : (item.value||'');
+    tr.append(`<td class="value-cell"><code>${esc(valPreview)}</code></td>`);
+    tr.append(`<td>${(item.tags||'').split(',').filter(Boolean).map(t=>'<span class="badge-tag me-1">'+esc(t.trim())+'</span>').join(' ')}</td>`);
+    tr.append(`<td>${new Date(item.updated).toLocaleString()}</td>`);
+    tr.append(`<td class="text-end">
+      <button class="btn btn-sm btn-light btn-settings" title="Edit"><i class="fa fa-gear"></i></button>
+      <button class="btn btn-sm btn-light btn-dup" title="Duplicate"><i class="fa fa-clone"></i></button>
+      <button class="btn btn-sm btn-light btn-pin" title="Pin"><i class="fa fa-thumbtack"></i></button>
+      <button class="btn btn-sm btn-light btn-copy" title="Copy"><i class="fa fa-copy"></i></button>
+      <button class="btn btn-sm btn-danger btn-del" title="Delete"><i class="fa fa-trash"></i></button>
+    </td>`);
+    $('#list').append(tr);
   });
 }
 
@@ -180,16 +216,7 @@ function openEditorInline(id){ // close others (option 1)
 
 
 
-  editorRow.find('.edit-title, .edit-tags, .edit-value').on('input', function(){
-    const it = store.items.find(x=>x.id===id);
-    it.title = editorRow.find('.edit-title').val();
-    it.tags  = editorRow.find('.edit-tags').val();
-    it.value = editorRow.find('.edit-value').val();
-    it.updated = new Date().toISOString();
-    save(); renderList(); // re-render keeps editor closed normally; to keep open we need to re-open
-    // re-open at same id
-    setTimeout(()=>{ openEditorInline(id); }, 0);
-  });
+  
 
   // expand value: show full value below editor
   editorRow.find('.btn-expand-value').on('click', function(){
