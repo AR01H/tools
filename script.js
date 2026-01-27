@@ -138,7 +138,7 @@ const tools = [
     link: "./passwordBank/index.html",
     groupname: ["Password Store"]
   },
-    {
+  {
     icon: "fas fa-shield-alt",
     title: "Info Storage",
     description: "Store your information in a secure and easy to use format.",
@@ -147,7 +147,16 @@ const tools = [
     link: "./StorageInfoBox/index.html",
     groupname: ["Info Storage"]
   },
-{
+  {
+    icon: "fas fa-shield-alt",
+    title: "Notes Maker",
+    description: "Store your information",
+    tags: ["Info Storage",  "JSON"],
+    status: "live",
+    link: "./NotesManager/index.html",
+    groupname: ["Info Storage"]
+  },
+  {
     icon: "fas fa-shield-alt",
     title: "Simple Password Bank",
     description: "Secure password manager that stores your credentials in encrypted JSON format with advanced security features.",
@@ -187,6 +196,21 @@ const tools = [
       "Download converted files individually or as ZIP"
     ],
     groupname: ["Resume Maker"]
+  },
+  {
+    icon: "fas fa-cloud-upload-alt",
+    title: "Test Case Manager",
+    description: "Test case management tool for organizing and tracking software tests.",
+    tags: ["Test Management", "Software Testing", "Tracking"],
+    status: "live",
+    instructions: [
+      "Create and organize test cases",
+      "Assign test cases to team members",
+      "Track test execution and results",
+      "Generate reports and analytics"
+    ],
+    link: "./testCaseManager/index.html",
+    groupname: ["Sopftware Testing"]
   }
 ];
 
