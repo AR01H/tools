@@ -1042,6 +1042,23 @@
         }
         .simpletheme a:hover::after { width: 100%; }
 
+        /* 🔹 Page Break CSS */
+.page-break {
+  page-break-before: always;  /* Forces a new page before this element */
+  break-before: page;         /* Modern browsers */
+}
+
+/* Optional - for better PDF styling */
+@media print {
+  .page-break {
+    display: block;
+    height: 1px;
+    margin: 40px 0;
+    border: none;
+  }
+}
+
+
         /* === Blockquotes with Flair === */
         .simpletheme blockquote {
           border-left: 5px solid #3b82f6;

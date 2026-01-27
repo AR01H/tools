@@ -134,142 +134,161 @@ function renderItems() {
   });
 }
 
-function copyText(text) {
-  navigator.clipboard.writeText(text);
-  alert("Copied: " + text);
-}
+function addFolder(name){ if(!name) return; store.folders.push({id:uid(),name}); save(); renderFolders(); }
 
-$("#toggleSidebar").click(() => {
-  $("#sidebar").toggleClass("collapsed");
-});
+function addItem(){ const folderId = (activeFolder==='all' && store.folders[0]) ? store.folders[0].id : activeFolder; const it = { id: uid(), folderId: folderId||(store.folders[0] && store.folders[0].id) || 'all', title:'New item', value:'', tags:'', updated: new Date().toISOString(), pinned:false }; store.items.push(it); save(); renderList(); openEditorInline(it.id); }
 
-$("#newFolder").click(() => {
-  let name = prompt("Enter folder name:");
-  if (!name) return;
-  if (data[name]) return alert("Folder already exists!");
-  data[name] = [];
-  currentFolder = name;
-  saveData();
-  renderFolders();
-  renderItems();
-  $("#folderTitle").text(name);
-});
+function openEditorInline(id){ // close others (option 1)
+  closeInline(); openRow = id; const tr = $(`tr[data-id='${id}']`);
+  const item = store.items.find(x=>x.id===id);
+  const editorRow = $(`<tr class='inline-editor-row'><td colspan='6'><div class='inline-editor'>
+    <div class='row g-2'>
+      <div class='col-md-4'><input class='form-control edit-title' value='${esc(item.title)}'></div>
+      <div class='col-md-4'><input class='form-control edit-tags' value='${esc(item.tags)}' placeholder='comma separated'></div>
+      <div class='col-md-4 d-flex align-items-center gap-2'>
+        <button class='btn btn-sm btn-outline-secondary btn-expand-value'>Expand Value</button>
+        <button class='btn btn-sm btn-outline-secondary btn-toggle-ck' >Use CKEditor</button>
+        <div class='form-check ms-auto'><input class='form-check-input form-check-sm edit-pin' type='checkbox' ${item.pinned?'checked':''}> <label class='form-check-label small-muted'>Pin</label></div>
+      </div>
+      <div class='col-12'><textarea class='form-control edit-value' rows='4' placeholder='Value'>${esc(item.value)}</textarea></div>
+      <div class='col-12 text-end'>
+        <button class='btn btn-sm btn-success btn-save-inline'>Save</button>
+        <button class='btn btn-sm btn-outline-secondary btn-cancel-inline'>Cancel</button>
+      </div>
+    </div>
+  </div></td></tr>`);
+  tr.after(editorRow);
 
-$(document).on("click", ".sidebar a", function(e){
-  e.preventDefault();
-  currentFolder = $(this).data("folder");
-  $(".sidebar a").removeClass("active");
-  $(this).addClass("active");
-  $("#folderTitle").text(currentFolder);
-  renderItems();
-  $("#formSection").addClass("d-none");
-});
-
-$("#addItem").click(() => {
-  if (!currentFolder) return alert("Select a folder first!");
-  $("#formTitle").text("Add Item");
-  $("#itemForm")[0].reset();
-  $("#itemForm [name=index]").val("");
-  $("#formSection").removeClass("d-none");
-});
-
-$("#itemForm").submit(function(e){
-  e.preventDefault();
-  const form = Object.fromEntries(new FormData(this).entries());
-  let folder = data[currentFolder];
-  const now = new Date().toLocaleString();
-  if (form.index) {
-    folder[form.index] = { title: form.title, value: form.value, tags: form.tags, updated: now };
-  } else {
-    folder.push({ title: form.title, value: form.value, tags: form.tags, updated: now });
+  // CKEditor toggle
+  let ckInstance = null;
+  function enableCK(){
+    const ta = editorRow.find('.edit-value');
+    CKEDITOR.replace(ta[0]);
+    ckInstance = CKEDITOR.instances[ta.attr('id')] || CKEDITOR.instances[Object.keys(CKEDITOR.instances)[0]];
   }
-  saveData();
-  renderItems();
-  $("#formSection").addClass("d-none");
-});
+  function disableCK(){
+    if(ckInstance){
+      ckInstance.updateElement();
+      ckInstance.destroy();
+      ckInstance=null;
+    }
+  }
+  editorRow.find('.btn-toggle-ck').on('click', function(){
+    if(!ckInstance){ enableCK(); $(this).text('Back to Textarea'); }
+    else{ disableCK(); $(this).text('Use CKEditor'); }
+  });
 
-function editItem(i) {
-  const it = data[currentFolder][i];
-  $("#formTitle").text("Edit Item");
-  $("#itemForm [name=title]").val(it.title);
-  $("#itemForm [name=value]").val(it.value);
-  $("#itemForm [name=tags]").val(it.tags);
-  $("#itemForm [name=index]").val(i);
-  $("#formSection").removeClass("d-none");
+
+
+  editorRow.find('.edit-title, .edit-tags, .edit-value').on('input', function(){
+    const it = store.items.find(x=>x.id===id);
+    it.title = editorRow.find('.edit-title').val();
+    it.tags  = editorRow.find('.edit-tags').val();
+    it.value = editorRow.find('.edit-value').val();
+    it.updated = new Date().toISOString();
+    save(); renderList(); // re-render keeps editor closed normally; to keep open we need to re-open
+    // re-open at same id
+    setTimeout(()=>{ openEditorInline(id); }, 0);
+  });
+
+  // expand value: show full value below editor
+  editorRow.find('.btn-expand-value').on('click', function(){
+    const full = editorRow.find('.edit-value').val();
+    if(editorRow.find('.expanded-value').length){ editorRow.find('.expanded-value').remove(); return; }
+    editorRow.find('.edit-value').after(`<div class='expanded-value mt-2'>${esc(full)}</div>`);
+  });
+
+  editorRow.find('.btn-save-inline').on('click', function(){
+    disableCK();
+    const it = store.items.find(x=>x.id===id);
+    it.title = editorRow.find('.edit-title').val();
+    it.tags  = editorRow.find('.edit-tags').val();
+    it.value = editorRow.find('.edit-value').val();
+    it.pinned = !!editorRow.find('.edit-pin').is(':checked');
+    it.updated = new Date().toISOString();
+    save(); renderList(); closeInline();
+  });
+
+  editorRow.find('.btn-cancel-inline').on('click', function(){ closeInline(); });
 }
 
-function deleteItem(i) {
-  if (!confirm("Delete this item?")) return;
-  data[currentFolder].splice(i,1);
-  saveData();
-  renderItems();
+function closeInline(){ $('.inline-editor-row').remove(); openRow = null; }
+
+function duplicateItem(id){ const it = store.items.find(x=>x.id===id); if(!it) return; const copy = {...it, id: uid(), title: it.title + ' (copy)', updated: new Date().toISOString()}; store.items.push(copy); save(); renderList(); }
+
+function pinItem(id){ const it = store.items.find(x=>x.id===id); if(!it) return; it.pinned = !it.pinned; it.updated = new Date().toISOString(); save(); renderList(); }
+
+function copyEsc(id){ const it = store.items.find(x=>x.id===id); navigator.clipboard.writeText(it.value||''); }
+
+function deleteItem(id){ if(!confirm('Delete item?')) return; store.items = store.items.filter(x=>x.id!==id); save(); renderList(); }
+
+// Drag & drop reorder
+let dragSrc = null;
+$(document).on('dragstart','tr[data-id]', function(e){ dragSrc = $(this).data('id'); $(this).addClass('dragging'); e.originalEvent.dataTransfer.effectAllowed = 'move'; });
+$(document).on('dragend','tr[data-id]', function(){ $('tr.dragging').removeClass('dragging'); dragSrc=null; });
+$(document).on('dragover','tr[data-id]', function(e){ e.preventDefault(); $(this).addClass('drag-over'); });
+$(document).on('dragleave','tr[data-id]', function(){ $(this).removeClass('drag-over'); });
+$(document).on('drop','tr[data-id]', function(e){ e.preventDefault(); $(this).removeClass('drag-over'); const target = $(this).data('id'); if(!dragSrc || dragSrc===target) return; // reorder in store: move dragSrc before target
+  const items = store.items;
+  const srcIdx = items.findIndex(x=>x.id===dragSrc); const tgtIdx = items.findIndex(x=>x.id===target);
+  if(srcIdx<0||tgtIdx<0) return;
+  const [moved] = items.splice(srcIdx,1);
+  items.splice(tgtIdx,0,moved);
+  save(); renderList(); });
+
+// click handlers
+$(function(){ load(); renderFolders(); renderList();
+  // folder add
+  $('#btnShowAddFolder').on('click', ()=>$('#folderAddBox').toggle());
+  $('#btnAddFolder').on('click', ()=>{ const v=$('#folderName').val().trim(); if(v){ addFolder(v); $('#folderName').val(''); $('#folderAddBox').hide(); }});
+
+  $('#folders').on('click','.folder-item', function(){ activeFolder = $(this).data('id'); $('.folder-item').removeClass('active'); $(this).addClass('active'); renderList(); });
+
+  $('#btnAddItem').on('click', addItem);
+
+  $('#list').on('click', '.btn-settings', function(){ const id=$(this).closest('tr').data('id'); openEditorInline(id); });
+  $('#list').on('click', '.btn-dup', function(){ const id=$(this).closest('tr').data('id'); duplicateItem(id); });
+  $('#list').on('click', '.btn-pin', function(){ const id=$(this).closest('tr').data('id'); pinItem(id); });
+  $('#list').on('click', '.btn-copy', function(){ const id=$(this).closest('tr').data('id'); copyEsc(id); });
+  $('#list').on('click', '.btn-del', function(){ const id=$(this).closest('tr').data('id'); deleteItem(id); });
+
+  // search
+  $('#search').on('input', renderList);
+
+  // export
+  $('#btnExport').on('click', ()=>{
+    const blob = new Blob([JSON.stringify(store,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='info-storage.json'; a.click(); URL.revokeObjectURL(url);
+  });
+
+  // import controls
+  $('#btnDoImport').on('click', ()=>{ doImport(); });
+  $('#importFile').on('change', function(e){ const f = this.files[0]; if(!f) return; const r=new FileReader(); r.onload = ev => { try{ const obj=JSON.parse(ev.target.result); processImport(obj); alert('File imported'); }catch(err){ alert('Invalid JSON file'); } }; r.readAsText(f); this.value=''; });
+  $('#importPaste').on('keydown', function(e){ if(e.ctrlKey && e.key==='Enter'){ try{ const obj=JSON.parse($(this).val()); processImport(obj); $(this).val(''); alert('Imported from paste'); }catch(err){ alert('Invalid JSON'); } } });
+
+  // expand value on cell click
+  $('#list').on('click','.value-cell', function(){ const id = $(this).closest('tr').data('id'); const item = store.items.find(x=>x.id===id); const existing = $(this).find('.expanded-value'); if(existing.length){ existing.remove(); return; } $(this).append('<div class="expanded-value mt-2">'+esc(item.value)+'</div>'); });
+
+  // dark mode toggle
+  $('#btnToggleDark').on('click', ()=>{ dark = !dark; if(dark) $('body').addClass('dark-mode'); else $('body').removeClass('dark-mode'); });
+
+  // double click row to quick edit
+  $('#list').on('dblclick','tr[data-id]', function(){ const id=$(this).data('id'); openEditorInline(id); });
+});
+
+function processImport(obj){ const mode = $('#importMode').val(); if(mode==='replace'){ store = obj; if(!store.folders) store.folders = [{id:'all',name:'All'}]; if(!store.items) store.items = []; save(); renderFolders(); renderList(); return; }
+  // add mode: append with new ids if missing
+  if(obj.folders && Array.isArray(obj.folders)){
+    obj.folders.forEach(f=>{ if(!f.id) f.id=uid(); store.folders.push(f); });
+  }
+  if(obj.items && Array.isArray(obj.items)){
+    obj.items.forEach(it=>{ if(!it.id) it.id = uid(); store.items.push(it); });
+  }
+  save(); renderFolders(); renderList(); }
+
+function doImport(){ const pasted = $('#importPaste').val().trim(); if(pasted){ try{ const obj = JSON.parse(pasted); processImport(obj); $('#importPaste').val(''); alert('Imported'); }catch(e){ alert('Invalid JSON'); } } else {
+  // check file input handled separately
+  alert('Please choose a file or paste JSON into the import box.'); }
 }
-
-// EXPORT NORMAL
-$("#exportNormal").click(() => {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = "data_export.json";
-  a.click();
-});
-
-// EXPORT ENCRYPTED
-$("#exportEncrypted").click(() => {
-  const password = prompt("Enter encryption password:");
-  if (!password) return;
-  const ciphertext = CryptoJS.AES.encrypt(JSON.stringify(data), password).toString();
-  const blob = new Blob([ciphertext], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = "data_encrypted.json";
-  a.click();
-});
-
-// IMPORT NORMAL
-$("#importNormal").change(function(){
-  const file = this.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      data = JSON.parse(e.target.result);
-      saveData();
-      renderFolders();
-      renderItems();
-      alert("Import successful!");
-    } catch {
-      alert("Invalid JSON file");
-    }
-  };
-  reader.readAsText(file);
-});
-
-// IMPORT ENCRYPTED
-$("#importEncrypted").change(function(){
-  const file = this.files[0];
-  if (!file) return;
-  const password = prompt("Enter decryption password:");
-  if (!password) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const bytes = CryptoJS.AES.decrypt(e.target.result, password);
-      const decrypted = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      data = decrypted;
-      saveData();
-      renderFolders();
-      renderItems();
-      alert("Decrypted import successful!");
-    } catch {
-      alert("Invalid password or encrypted file");
-    }
-  };
-  reader.readAsText(file);
-});
-
-renderFolders();
-renderItems();
 </script>
 </body>
 </html>
