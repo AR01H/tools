@@ -149,6 +149,15 @@ const tools = [
   },
   {
     icon: "fas fa-shield-alt",
+    title: "Cheat Sheet Maker",
+    description: "Create the cheat sheet you need.",
+    tags: ["Learning",  "Cheat Sheets"],
+    status: "live",
+    link: "./checkSheetBuilder/index.html",
+    groupname: ["Info Storage"]
+  },
+  {
+    icon: "fas fa-shield-alt",
     title: "Notes Maker",
     description: "Store your information",
     tags: ["Info Storage",  "JSON"],
@@ -210,7 +219,7 @@ const tools = [
       "Generate reports and analytics"
     ],
     link: "./testCaseManager/index.html",
-    groupname: ["Sopftware Testing"]
+    groupname: ["Soptware Testing"]
   }
 ];
 

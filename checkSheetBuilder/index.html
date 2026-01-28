@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheat Sheet Manager - Ultra Compact</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; overflow: hidden; }
+        
+        .top-bar { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            padding: 8px 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            height: 45px;
+        }
+        .top-bar h4 { margin: 0; font-size: 1.1em; }
+        .btn-top { 
+            padding: 5px 10px; 
+            border: none; 
+            border-radius: 3px; 
+            margin-left: 5px; 
+            cursor: pointer; 
+            font-size: 11px;
+            transition: 0.2s;
+        }
+        .btn-top:hover { transform: scale(1.05); }
+        .btn-new { background: #27ae60; color: white; }
+        .btn-save { background: #3498db; color: white; }
+        .btn-download { background: #e74c3c; color: white; }
+        
+        .files-sidebar {
+            position: fixed;
+            top: 45px;
+            left: 0;
+            width: 180px;
+            height: calc(100vh - 45px);
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .file-item {
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            background: #34495e;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-item:hover { background: #3d566e; }
+        .file-item.active { background: #3498db; }
+        .file-delete { 
+            background: #e74c3c; 
+            border: none; 
+            color: white; 
+            padding: 2px 5px; 
+            border-radius: 2px; 
+            font-size: 9px;
+            cursor: pointer;
+        }
+        
+        .main-container { 
+            margin-left: 180px; 
+            margin-top: 45px;
+            display: flex; 
+            height: calc(100vh - 45px); 
+        }
+        
+        .editor-side { 
+            width: 32%; 
+            background: #34495e; 
+            color: white; 
+            overflow-y: auto; 
+            padding: 10px;
+        }
+        
+        .form-group { margin-bottom: 8px; }
+        .form-group label { display: block; margin-bottom: 2px; font-size: 10px; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { 
+            width: 100%; 
+            padding: 4px 6px; 
+            border: none; 
+            border-radius: 3px; 
+            background: #2c3e50; 
+            color: white; 
+            font-size: 10px;
+        }
+        .form-group textarea { 
+            font-family: 'Courier New', monospace; 
+            resize: vertical;
+        }
+        
+        .section-box {
+            background: #2c3e50;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border-left: 2px solid #3498db;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .item-mini {
+            background: #34495e;
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            border-left: 2px solid #27ae60;
+        }
+        
+        .item-mini input {
+            margin-bottom: 3px;
+            padding: 3px 5px;
+            font-size: 9px;
+        }
+        
+        .item-mini textarea {
+            padding: 3px 5px;
+            font-size: 9px;
+            min-height: 35px;
+        }
+        
+        .btn-small {
+            padding: 3px 7px;
+            font-size: 9px;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            margin: 2px;
+        }
+        .btn-add { background: #27ae60; color: white; }
+        .btn-remove { background: #e74c3c; color: white; }
+        
+        .preview-side { 
+            width: 68%; 
+            background: #ecf0f1; 
+            overflow-y: auto; 
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        /* ULTRA COMPACT CHEAT SHEET */
+        #cheatSheet {
+            width: 100%;
+            max-width: 950px;
+            background: white;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .sheet-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .sheet-header h1 { 
+            font-size: 1.3em; 
+            margin: 0 0 2px 0; 
+            font-weight: bold; 
+            letter-spacing: 0.5px;
+        }
+        .sheet-header p { 
+            font-size: 0.7em; 
+            margin: 0; 
+            opacity: 0.9; 
+        }
+        
+        .sheet-body {
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .section-card {
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .section-card-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 0.65em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .sheet-item-micro {
+            background: white;
+            padding: 4px 5px;
+            margin-bottom: 4px;
+            border-radius: 2px;
+            border-left: 2px solid #667eea;
+            font-size: 0.58em;
+            line-height: 1.25;
+        }
+        
+        .sheet-item-micro strong {
+            color: #2c3e50;
+            display: block;
+            font-size: 1.08em;
+            margin-bottom: 1px;
+            font-weight: 700;
+        }
+        
+        .sheet-item-micro p {
+            margin: 1px 0;
+            color: #666;
+            font-size: 0.96em;
+            line-height: 1.2;
+        }
+        
+        .sheet-item-micro code {
+            display: block;
+            background: #2d3748;
+            color: #48bb78;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.92em;
+            margin-top: 2px;
+            word-break: break-all;
+            line-height: 1.15;
+        }
+        
+        input[type="file"] { display: none; }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #2c3e50; }
+        ::-webkit-scrollbar-thumb { background: #34495e; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4a6278; }
+        
+        @media (max-width: 1200px) {
+            .sheet-body { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .files-sidebar { width: 140px; }
+            .main-container { margin-left: 140px; }
+            .editor-side, .preview-side { width: 100%; }
+            .sheet-body { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div>
+            <h4><i class="fas fa-file-code"></i> Cheat Sheet Manager</h4>
+        </div>
+        <div>
+            <input type="text" id="currentFileName" placeholder="File name" style="padding: 4px 8px; border-radius: 3px; border: none; margin-right: 8px; width: 130px; font-size: 11px;">
+            <button class="btn-top btn-new" onclick="createNewFile()"><i class="fas fa-plus"></i> New</button>
+            <button class="btn-top btn-save" onclick="saveFile()"><i class="fas fa-save"></i> Save</button>
+            <button class="btn-top btn-save" onclick="exportJSON()"><i class="fas fa-file-export"></i> Export</button>
+            <button class="btn-top btn-save" onclick="document.getElementById('importFile').click()"><i class="fas fa-file-import"></i> Import</button>
+            <button class="btn-top btn-download" onclick="downloadImage()"><i class="fas fa-download"></i> PNG</button>
+            <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+        </div>
+    </div>
+
+    <!-- Files Sidebar -->
+    <div class="files-sidebar">
+        <div style="font-size: 10px; font-weight: bold; margin-bottom: 6px; padding: 4px; border-bottom: 1px solid #34495e;">
+            <i class="fas fa-folder"></i> CHEAT SHEETS
+        </div>
+        <div id="filesList"></div>
+        <button class="btn-small btn-add" style="width: 100%; margin-top: 8px; font-size: 10px; padding: 5px;" onclick="createNewFile()">
+            <i class="fas fa-plus"></i> New Sheet
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Editor -->
+        <div class="editor-side">
+            <div style="margin-bottom: 10px;">
+                <div class="form-group">
+                    <label>TITLE</label>
+                    <input type="text" id="sheetTitle" placeholder="e.g., Python Basics" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>SUBTITLE</label>
+                    <input type="text" id="sheetSubtitle" placeholder="Quick Reference" oninput="updatePreview()">
+                </div>
+                <div class="form-group">
+                    <label>COLUMNS (1-4)</label>
+                    <input type="number" id="columnCount" min="1" max="4" value="3" oninput="updateColumns()">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #2c3e50;">
+                <strong style="font-size: 11px;"><i class="fas fa-layer-group"></i> SECTIONS</strong>
+                <button class="btn-small btn-add" onclick="addSection()">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+
+            <div id="sectionsContainer"></div>
+        </div>
+
+        <!-- Preview -->
+        <div class="preview-side">
+            <div id="cheatSheet">
+                <div class="sheet-header">
+                    <h1 id="previewTitle">Your Cheat Sheet</h1>
+                    <p id="previewSubtitle">Create your content</p>
+                </div>
+                <div class="sheet-body" id="previewContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'cheatSheetFiles';
+        let files = {};
+        let currentFileId = null;
+
+        let currentData = {
+            title: "Python Essentials",
+            subtitle: "Complete Quick Reference",
+            columns: 3,
+            sections: [
+                {
+                    title: "Data Types",
+                    items: [
+                        { name: "str", desc: "Text/String", code: "x = 'hello'" },
+                        { name: "int", desc: "Integer", code: "x = 42" },
+                        { name: "float", desc: "Decimal", code: "x = 3.14" },
+                        { name: "bool", desc: "True/False", code: "x = True" },
+                        { name: "list", desc: "Array", code: "x = [1,2,3]" },
+                        { name: "dict", desc: "Object", code: "x = {'a':1}" }
+                    ]
+                },
+                {
+                    title: "String Methods",
+                    items: [
+                        { name: "upper()", desc: "Uppercase", code: "s.upper()" },
+                        { name: "lower()", desc: "Lowercase", code: "s.lower()" },
+                        { name: "strip()", desc: "Trim", code: "s.strip()" },
+                        { name: "split()", desc: "Split", code: "s.split(',')" },
+                        { name: "join()", desc: "Join", code: "','.join(list)" },
+                        { name: "replace()", desc: "Replace", code: "s.replace('a','b')" }
+                    ]
+                },
+                {
+                    title: "List Methods",
+                    items: [
+                        { name: "append()", desc: "Add end", code: "list.append(x)" },
+                        { name: "insert()", desc: "Insert at", code: "list.insert(i,x)" },
+                        { name: "remove()", desc: "Remove", code: "list.remove(x)" },
+                        { name: "pop()", desc: "Remove last", code: "list.pop()" },
+                        { name: "sort()", desc: "Sort", code: "list.sort()" },
+                        { name: "reverse()", desc: "Reverse", code: "list.reverse()" }
+                    ]
+                },
+                {
+                    title: "Dict Methods",
+                    items: [
+                        { name: "keys()", desc: "Get keys", code: "d.keys()" },
+                        { name: "values()", desc: "Get values", code: "d.values()" },
+                        { name: "items()", desc: "Key-value", code: "d.items()" },
+                        { name: "get()", desc: "Get value", code: "d.get(k)" },
+                        { name: "update()", desc: "Merge", code: "d.update(d2)" },
+                        { name: "pop()", desc: "Remove key", code: "d.pop(k)" }
+                    ]
+                },
+                {
+                    title: "Operators",
+                    items: [
+                        { name: "+", desc: "Add", code: "5 + 3  # 8" },
+                        { name: "-", desc: "Subtract", code: "5 - 3  # 2" },
+                        { name: "*", desc: "Multiply", code: "5 * 3  # 15" },
+                        { name: "/", desc: "Divide", code: "5 / 2  # 2.5" },
+                        { name: "//", desc: "Floor div", code: "5 // 2  # 2" },
+                        { name: "%", desc: "Modulo", code: "5 % 2  # 1" }
+                    ]
+                },
+                {
+                    title: "Conditionals",
+                    items: [
+                        { name: "if", desc: "If statement", code: "if x > 5:" },
+                        { name: "elif", desc: "Else if", code: "elif x == 5:" },
+                        { name: "else", desc: "Else", code: "else:" },
+                        { name: "and", desc: "AND logic", code: "if a and b:" },
+                        { name: "or", desc: "OR logic", code: "if a or b:" },
+                        { name: "not", desc: "NOT logic", code: "if not a:" }
+                    ]
+                },
+                {
+                    title: "Loops",
+                    items: [
+                        { name: "for", desc: "For loop", code: "for x in list:" },
+                        { name: "while", desc: "While loop", code: "while x < 10:" },
+                        { name: "break", desc: "Exit loop", code: "break" },
+                        { name: "continue", desc: "Skip", code: "continue" },
+                        { name: "range()", desc: "Range", code: "for i in range(10):" },
+                        { name: "enumerate()", desc: "Index+value", code: "for i,v in enumerate(l):" }
+                    ]
+                },
+                {
+                    title: "Functions",
+                    items: [
+                        { name: "def", desc: "Define", code: "def func():" },
+                        { name: "return", desc: "Return value", code: "return x" },
+                        { name: "lambda", desc: "Anonymous", code: "lambda x: x*2" },
+                        { name: "args", desc: "Multiple args", code: "def f(*args):" },
+                        { name: "kwargs", desc: "Keyword args", code: "def f(**kwargs):" },
+                        { name: "default", desc: "Default param", code: "def f(x=10):" }
+                    ]
+                },
+                {
+                    title: "File I/O",
+                    items: [
+                        { name: "open()", desc: "Open file", code: "f = open('file.txt')" },
+                        { name: "read()", desc: "Read all", code: "f.read()" },
+                        { name: "readline()", desc: "Read line", code: "f.readline()" },
+                        { name: "write()", desc: "Write", code: "f.write('text')" },
+                        { name: "close()", desc: "Close file", code: "f.close()" },
+                        { name: "with", desc: "Context", code: "with open('f') as f:" }
+                    ]
+                }
+            ]
+        };
+
+        function loadFiles() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                files = JSON.parse(stored);
+            } else {
+                files = {
+                    'python_essentials': {
+                        name: 'Python Essentials',
+                        data: JSON.parse(JSON.stringify(currentData))
+                    }
+                };
+                saveFiles();
+            }
+            renderFilesList();
+            if (!currentFileId && Object.keys(files).length > 0) {
+                loadFile(Object.keys(files)[0]);
+            }
+        }
+
+        function saveFiles() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+        }
+
+        function renderFilesList() {
+            const container = document.getElementById('filesList');
+            container.innerHTML = Object.keys(files).map(id => `
+                <div class="file-item ${id === currentFileId ? 'active' : ''}" onclick="loadFile('${id}')">
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><i class="fas fa-file"></i> ${files[id].name}</span>
+                    <button class="file-delete" onclick="event.stopPropagation(); deleteFile('${id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function createNewFile() {
+            const name = prompt('Enter cheat sheet name:', 'My Cheat Sheet');
+            if (!name) return;
+            
+            const id = 'file_' + Date.now();
+            files[id] = {
+                name: name,
+                data: {
+                    title: name,
+                    subtitle: "Quick Reference",
+                    columns: 3,
+                    sections: [
+                        { title: "Section 1", items: [
+                            { name: "Item 1", desc: "Description", code: "code()" },
+                            { name: "Item 2", desc: "Description", code: "code()" }
+                        ]}
+                    ]
+                }
+            };
+            saveFiles();
+            renderFilesList();
+            loadFile(id);
+        }
+
+        function loadFile(id) {
+            currentFileId = id;
+            currentData = JSON.parse(JSON.stringify(files[id].data));
+            document.getElementById('currentFileName').value = files[id].name;
+            document.getElementById('sheetTitle').value = currentData.title;
+            document.getElementById('sheetSubtitle').value = currentData.subtitle;
+            document.getElementById('columnCount').value = currentData.columns || 3;
+            renderFilesList();
+            renderEditor();
+            updatePreview();
+        }
+
+        function saveFile() {
+            if (!currentFileId) return;
+            const name = document.getElementById('currentFileName').value.trim();
+            if (name) {
+                files[currentFileId].name = name;
+                files[currentFileId].data = JSON.parse(JSON.stringify(currentData));
+                saveFiles();
+                renderFilesList();
+                
+                const btn = event.target;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                setTimeout(() => btn.innerHTML = orig, 1500);
+            }
+        }
+
+        function deleteFile(id) {
+            if (confirm('Delete this cheat sheet?')) {
+                delete files[id];
+                if (id === currentFileId) {
+                    currentFileId = null;
+                    const remaining = Object.keys(files);
+                    if (remaining.length > 0) {
+                        loadFile(remaining[0]);
+                    }
+                }
+                saveFiles();
+                renderFilesList();
+            }
+        }
+
+        function renderEditor() {
+            const container = document.getElementById('sectionsContainer');
+            container.innerHTML = currentData.sections.map((section, sIdx) => `
+                <div class="section-box">
+                    <div class="section-header">
+                        <span>${sIdx + 1}. ${section.title}</span>
+                        <button class="btn-small btn-remove" onclick="removeSection(${sIdx})">×</button>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" value="${section.title}" placeholder="Section Title" oninput="updateSectionTitle(${sIdx}, this.value)">
+                    </div>
+                    ${section.items.map((item, iIdx) => `
+                        <div class="item-mini">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                <span style="font-size: 9px; font-weight: bold;">#${iIdx + 1}</span>
+                                <button class="btn-small btn-remove" style="padding: 1px 4px; font-size: 8px;" onclick="removeItem(${sIdx}, ${iIdx})">×</button>
+                            </div>
+                            <input type="text" value="${item.name}" placeholder="Name" oninput="updateItem(${sIdx}, ${iIdx}, 'name', this.value)">
+                            <input type="text" value="${item.desc}" placeholder="Description" oninput="updateItem(${sIdx}, ${iIdx}, 'desc', this.value)">
+                            <textarea rows="2" placeholder="Code" oninput="updateItem(${sIdx}, ${iIdx}, 'code', this.value)">${item.code}</textarea>
+                        </div>
+                    `).join('')}
+                    <button class="btn-small btn-add" style="width: 100%; margin-top: 4px;" onclick="addItem(${sIdx})">
+                        <i class="fas fa-plus"></i> Add Item
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updatePreview() {
+            currentData.title = document.getElementById('sheetTitle').value;
+            currentData.subtitle = document.getElementById('sheetSubtitle').value;
+            
+            document.getElementById('previewTitle').textContent = currentData.title || 'Your Cheat Sheet';
+            document.getElementById('previewSubtitle').textContent = currentData.subtitle || '';
+            
+            const content = document.getElementById('previewContent');
+            content.innerHTML = currentData.sections.map(section => `
+                <div class="section-card">
+                    <div class="section-card-title">${section.title}</div>
+                    ${section.items.map(item => `
+                        <div class="sheet-item-micro">
+                            <strong>${item.name}</strong>
+                            ${item.desc ? `<p>${item.desc}</p>` : ''}
+                            ${item.code ? `<code>${item.code}</code>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function updateColumns() {
+            currentData.columns = parseInt(document.getElementById('columnCount').value);
+            document.getElementById('previewContent').style.gridTemplateColumns = `repeat(${currentData.columns}, 1fr)`;
+        }
+
+        function addSection() {
+            currentData.sections.push({
+                title: "New Section",
+                items: [
+                    { name: "Item 1", desc: "Description", code: "code()" },
+                    { name: "Item 2", desc: "Description", code: "code()" }
+                ]
+            });
+            renderEditor();
+            updatePreview();
+        }
+
+        function removeSection(idx) {
+            if (confirm('Remove section?')) {
+                currentData.sections.splice(idx, 1);
+                renderEditor();
+                updatePreview();
+            }
+        }
+
+        function updateSectionTitle(sIdx, value) {
+            currentData.sections[sIdx].title = value;
+            updatePreview();
+        }
+
+        function addItem(sIdx) {
+            currentData.sections[sIdx].items.push({ name: "New", desc: "", code: "" });
+            renderEditor();
+            updatePreview();
+        }
+
+        function removeItem(sIdx, iIdx) {
+            currentData.sections[sIdx].items.splice(iIdx, 1);
+            renderEditor();
+            updatePreview();
+        }
+
+        function updateItem(sIdx, iIdx, field, value) {
+            currentData.sections[sIdx].items[iIdx][field] = value;
+            updatePreview();
+        }
+
+        function downloadImage() {
+            const btn = event.target;
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            html2canvas(document.getElementById('cheatSheet'), {
+                scale: 3,
+                backgroundColor: '#ffffff',
+                logging: false
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `${currentData.title.replace(/\s+/g, '_')}.png`;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    btn.innerHTML = '<i class="fas fa-check"></i> Done!';
+                    setTimeout(() => {
+                        btn.innerHTML = orig;
+                        btn.disabled = false;
+                    }, 2000);
+                });
+            }).catch(err => {
+                alert('Error generating image');
+                btn.innerHTML = orig;
+                btn.disabled = false;
+            });
+        }
+
+        function exportJSON() {
+            const blob = new Blob([JSON.stringify(files, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'all_cheatsheets.json';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (confirm('Import these cheat sheets? (Will merge with existing)')) {
+                        files = { ...files, ...imported };
+                        saveFiles();
+                        renderFilesList();
+                        alert('✓ Imported successfully!');
+                    }
+                } catch (err) {
+                    alert('Error importing file!');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Initialize
+        loadFiles();
+    </script>
+</body>
+</html>
