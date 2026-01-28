@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Productivity Hub</title>
+
+<!-- CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<style>
+.view{display:none}
+.view.active{display:block}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{border:1px solid #ddd;min-height:100px;padding:5px;font-size:12px}
+.today{background:#e3f2fd}
+.kanban{min-height:300px;background:#f1f3f5;padding:10px;border-radius:8px}
+.task{background:#fff;padding:6px;border-radius:6px;margin-bottom:6px;cursor:grab}
+.timer{font-size:42px}
+</style>
+</head>
+
+<body class="bg-light">
+<div class="container py-3">
+
+<h3>🚀 Productivity Hub</h3>
+
+<!-- TASK FORM -->
+<div class="card mb-3">
+<div class="card-body">
+<input id="title" class="form-control mb-2" placeholder="Task title">
+<textarea id="desc" class="form-control mb-2" placeholder="Description"></textarea>
+<input id="taskDate" type="date" class="form-control mb-2">
+<input id="times" class="form-control mb-2" placeholder="Reminder times (HH:MM,HH:MM)">
+<button class="btn btn-primary w-100" onclick="addTask()">Add Task</button>
+</div>
+</div>
+
+<!-- NAV -->
+<div class="btn-group w-100 mb-3">
+<button class="btn btn-outline-primary" onclick="show('list')"><i class="fa fa-list"></i></button>
+<button class="btn btn-outline-primary" onclick="show('calendar')"><i class="fa fa-calendar"></i></button>
+<button class="btn btn-outline-primary" onclick="show('kanban')"><i class="fa fa-columns"></i></button>
+<button class="btn btn-outline-primary" onclick="show('analytics')"><i class="fa fa-chart-bar"></i></button>
+<button class="btn btn-outline-primary" onclick="show('pomodoro')"><i class="fa fa-clock"></i></button>
+</div>
+
+<!-- LIST VIEW -->
+<div id="list" class="view active"></div>
+
+<!-- CALENDAR VIEW -->
+<div id="calendar" class="view">
+<div id="calendarGrid" class="calendar"></div>
+</div>
+
+<!-- KANBAN -->
+<div id="kanban" class="view">
+<div class="row">
+<div class="col kanban" id="Pending"><b>Pending</b></div>
+<div class="col kanban" id="Done"><b>Done</b></div>
+<div class="col kanban" id="Stopped"><b>Stopped</b></div>
+</div>
+</div>
+
+<!-- ANALYTICS -->
+<div id="analytics" class="view"></div>
+
+<!-- POMODORO -->
+<div id="pomodoro" class="view text-center">
+<div class="timer" id="timer">25:00</div>
+<button class="btn btn-success" onclick="startPomodoro()">Start</button>
+<button class="btn btn-warning" onclick="pausePomodoro()">Pause</button>
+<button class="btn btn-danger" onclick="resetPomodoro()">Reset</button>
+</div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal fade" id="editModal">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header"><h5>Edit Task</h5></div>
+<div class="modal-body">
+<input id="eTitle" class="form-control mb-2">
+<textarea id="eDesc" class="form-control mb-2"></textarea>
+<input id="eDate" type="date" class="form-control mb-2">
+<input id="eTimes" class="form-control mb-2">
+</div>
+<div class="modal-footer">
+<button class="btn btn-danger" onclick="deleteTask()">Delete</button>
+<button class="btn btn-primary" onclick="saveEdit()">Save</button>
+</div>
+</div>
+</div>
+</div>
+
+<audio id="beep">
+<source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
+</audio>
+
+<script>
+const KEY="TASKS_V2";
+let tasks=JSON.parse(localStorage.getItem(KEY))||[];
+let editIndex=null;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(tasks));}
+function show(v){
+ document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+ document.getElementById(v).classList.add("active");
+}
+
+/* ADD */
+function addTask(){
+ if(!title.value||!taskDate.value||!times.value)
+  return alert("Fill all fields");
+
+ let rem=times.value.split(",").map(t=>taskDate.value+"T"+t.trim());
+ tasks.push({
+  title:title.value,
+  desc:desc.value,
+  date:taskDate.value,
+  reminders:rem,
+  fired:[],
+  status:"Pending"
+ });
+ save(); renderAll();
+ title.value=desc.value=times.value="";
+}
+
+/* LIST */
+function renderList(){
+ list.innerHTML="";
+ tasks.forEach((t,i)=>{
+  list.innerHTML+=`
+  <div class="card mb-2">
+   <div class="card-body">
+    <b>${t.title}</b> (${t.status})
+    <p>${t.desc}</p>
+    <button class="btn btn-sm btn-outline-primary" onclick="openEdit(${i})">Edit</button>
+    <button class="btn btn-sm btn-outline-success" onclick="setStatus(${i},'Done')">Done</button>
+    <button class="btn btn-sm btn-outline-warning" onclick="setStatus(${i},'Stopped')">Stop</button>
+   </div>
+  </div>`;
+ });
+}
+
+/* CALENDAR */
+function renderCalendar(){
+ let g=calendarGrid; g.innerHTML="";
+ let d=new Date(),y=d.getFullYear(),m=d.getMonth();
+ let first=new Date(y,m,1).getDay();
+ let days=new Date(y,m+1,0).getDate();
+ for(let i=0;i<first;i++) g.innerHTML+="<div></div>";
+ for(let i=1;i<=days;i++){
+  let ds=`${y}-${String(m+1).padStart(2,"0")}-${String(i).padStart(2,"0")}`;
+  let ts=tasks.filter(t=>t.date===ds);
+  g.innerHTML+=`
+  <div class="day ${ds===new Date().toISOString().split("T")[0]?"today":""}">
+   <b>${i}</b>
+   ${ts.map(t=>`<div>• ${t.title}</div>`).join("")}
+  </div>`;
+ }
+}
+
+/* KANBAN */
+function renderKanban(){
+ ["Pending","Done","Stopped"].forEach(s=>{
+  let c=document.getElementById(s);
+  c.innerHTML=`<b>${s}</b>`;
+ });
+ tasks.forEach((t,i)=>{
+  let el=document.createElement("div");
+  el.className="task";
+  el.textContent=t.title;
+  el.draggable=true;
+  el.ondragstart=e=>e.dataTransfer.setData("i",i);
+  document.getElementById(t.status).appendChild(el);
+ });
+ document.querySelectorAll(".kanban").forEach(c=>{
+  c.ondragover=e=>e.preventDefault();
+  c.ondrop=e=>{
+   let i=e.dataTransfer.getData("i");
+   tasks[i].status=c.id;
+   save(); renderAll();
+  };
+ });
+}
+
+/* ANALYTICS */
+function renderAnalytics(){
+ let total=tasks.length;
+ let done=tasks.filter(t=>t.status==="Done").length;
+ analytics.innerHTML=`
+ <div class="card"><div class="card-body">
+  Total: ${total}<br>
+  Done: ${done}<br>
+  Productivity: ${total?Math.round(done/total*100):0}%
+ </div></div>`;
+}
+
+/* STATUS */
+function setStatus(i,s){
+ tasks[i].status=s;
+ save(); renderAll();
+}
+
+/* EDIT */
+function openEdit(i){
+ editIndex=i;
+ let t=tasks[i];
+ eTitle.value=t.title;
+ eDesc.value=t.desc;
+ eDate.value=t.date;
+ eTimes.value=t.reminders.map(r=>r.split("T")[1]).join(",");
+ new bootstrap.Modal(editModal).show();
+}
+function saveEdit(){
+ let t=tasks[editIndex];
+ t.title=eTitle.value;
+ t.desc=eDesc.value;
+ t.date=eDate.value;
+ t.reminders=eTimes.value.split(",").map(x=>t.date+"T"+x.trim());
+ t.fired=[];
+ save(); renderAll();
+ bootstrap.Modal.getInstance(editModal).hide();
+}
+function deleteTask(){
+ if(confirm("Delete task?")){
+  tasks.splice(editIndex,1);
+  save(); renderAll();
+  bootstrap.Modal.getInstance(editModal).hide();
+ }
+}
+
+/* REMINDER */
+if("Notification"in window) Notification.requestPermission();
+setInterval(()=>{
+ let now=Date.now();
+ tasks.forEach(t=>{
+  if(t.status!=="Pending")return;
+  t.reminders.forEach(r=>{
+   if(now>=new Date(r)&&!t.fired.includes(r)){
+    new Notification("🔔 Reminder",{body:t.title});
+    beep.play();
+    t.fired.push(r);
+    save();
+   }
+  });
+ });
+},15000);
+
+/* POMODORO */
+let timeLeft=1500,intv=null;
+function updateTimer(){
+ timer.textContent=
+ Math.floor(timeLeft/60)+":"+
+ String(timeLeft%60).padStart(2,"0");
+}
+function startPomodoro(){
+ if(intv)return;
+ intv=setInterval(()=>{
+  timeLeft--;updateTimer();
+  if(timeLeft<=0){
+   clearInterval(intv);
+   beep.play();
+   new Notification("Pomodoro done");
+  }
+ },1000);
+}
+function pausePomodoro(){clearInterval(intv);intv=null;}
+function resetPomodoro(){pausePomodoro();timeLeft=1500;updateTimer();}
+
+/* INIT */
+function renderAll(){
+ renderList();
+ renderCalendar();
+ renderKanban();
+ renderAnalytics();
+}
+renderAll();updateTimer();
+</script>
+</body>
+</html>
