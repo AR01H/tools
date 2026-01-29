@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cheat Sheet Manager - Ultra Compact</title>
+    <title>Cheat Sheet Manager Ultimate</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; overflow: hidden; }
         
         .top-bar { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white; 
             padding: 8px 12px; 
             display: flex; 
@@ -20,6 +24,8 @@
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             height: 45px;
+            z-index: 100;
+            position: relative;
         }
         .top-bar h4 { margin: 0; font-size: 1.1em; }
         .btn-top { 
@@ -35,6 +41,24 @@
         .btn-new { background: #27ae60; color: white; }
         .btn-save { background: #3498db; color: white; }
         .btn-download { background: #e74c3c; color: white; }
+        .btn-info { background: #9b59b6; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        
+        /* Auto-save indicator */
+        .autosave-indicator {
+            position: fixed;
+            top: 55px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .autosave-indicator.show { opacity: 1; }
         
         .files-sidebar {
             position: fixed;
@@ -46,7 +70,10 @@
             color: white;
             overflow-y: auto;
             padding: 8px;
+            transition: transform 0.3s;
         }
+        .files-sidebar.hidden { transform: translateX(-180px); }
+        
         .file-item {
             padding: 6px 8px;
             margin-bottom: 4px;
@@ -60,6 +87,7 @@
         }
         .file-item:hover { background: #3d566e; }
         .file-item.active { background: #3498db; }
+        .file-item.favorite { border-left: 3px solid #f39c12; }
         .file-delete { 
             background: #e74c3c; 
             border: none; 
@@ -69,12 +97,22 @@
             font-size: 9px;
             cursor: pointer;
         }
+        .file-favorite {
+            background: none;
+            border: none;
+            color: #f39c12;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
         
         .main-container { 
             margin-left: 180px; 
             display: flex; 
-            height: calc(100vh - 45px); 
+            height: calc(100vh - 45px);
+            transition: margin-left 0.3s;
         }
+        .main-container.sidebar-hidden { margin-left: 0; }
         
         .editor-side { 
             width: 32%; 
@@ -82,7 +120,9 @@
             color: white; 
             overflow-y: auto; 
             padding: 10px;
+            transition: width 0.3s;
         }
+        .editor-side.hidden { width: 0; padding: 0; overflow: hidden; }
         
         .form-group { margin-bottom: 8px; }
         .form-group label { display: block; margin-bottom: 2px; font-size: 10px; font-weight: bold; }
@@ -100,21 +140,33 @@
             resize: vertical;
         }
         
+        /* Section collapse in editor */
         .section-box {
             background: #2c3e50;
-            padding: 8px;
+            padding: 3px;
             border-radius: 4px;
             margin-bottom: 8px;
             border-left: 2px solid #3498db;
+            cursor: move;
         }
+        .section-box.dragging { opacity: 0.5; }
+        .section-box.collapsed .section-items { display: none; }
         
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
             font-size: 11px;
             font-weight: bold;
+            cursor: pointer;
+        }
+        .section-header:hover { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        
+        .section-collapse-icon {
+            transition: transform 0.3s;
+        }
+        .section-box.collapsed .section-collapse-icon {
+            transform: rotate(-90deg);
         }
         
         .item-mini {
@@ -123,18 +175,24 @@
             margin-bottom: 5px;
             border-radius: 3px;
             border-left: 2px solid #27ae60;
+            cursor: move;
         }
+        .item-mini.dragging { opacity: 0.5; }
+        .item-mini.selected { border-left-color: #f39c12; border-left-width: 4px; background: #3d566e; }
         
-        .item-mini input {
+        .item-mini input, .item-mini textarea, .item-mini select {
             margin-bottom: 3px;
             padding: 3px 5px;
             font-size: 9px;
         }
         
         .item-mini textarea {
-            padding: 3px 5px;
-            font-size: 9px;
             min-height: 35px;
+        }
+        
+        .item-checkbox {
+            margin-right: 5px;
+            cursor: pointer;
         }
         
         .btn-small {
@@ -147,6 +205,21 @@
         }
         .btn-add { background: #27ae60; color: white; }
         .btn-remove { background: #e74c3c; color: white; }
+        .btn-duplicate { background: #3498db; color: white; }
+        
+        /* Bulk actions bar */
+        .bulk-actions {
+            position: fixed;
+            bottom: 0;
+            left: 180px;
+            background: #e74c3c;
+            color: white;
+            padding: 4px;
+            display: none;
+            z-index: 90;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+        }
+        .bulk-actions.show { display: flex; gap: 10px; align-items: center; }
         
         .preview-side { 
             width: 68%; 
@@ -156,9 +229,63 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
+            transition: width 0.3s;
+        }
+        .preview-side.full { width: 100%; }
+        
+        /* Zoom Controls */
+        .zoom-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 50;
+        }
+        .zoom-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            background: #3498db;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .zoom-btn:hover { background: #2980b9; }
+        
+        /* Keyboard shortcuts help */
+        .shortcuts-help {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 10px;
+            display: none;
+            max-width: 300px;
+            z-index: 60;
+        }
+        .shortcuts-help.show { display: block; }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            font-size: 11px;
+        }
+        .shortcut-key {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
         }
         
-        /* ULTRA COMPACT CHEAT SHEET */
+        /* CHEAT SHEET */
         #cheatSheet {
             width: 100%;
             max-width: 950px;
@@ -166,11 +293,12 @@
             box-shadow: 0 3px 12px rgba(0,0,0,0.2);
             border-radius: 6px;
             overflow: hidden;
-            margin-bottom: 20px;
+            transform-origin: top center;
+            transition: transform 0.3s;
         }
         
         .sheet-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 10px 12px;
             text-align: center;
@@ -194,6 +322,11 @@
             gap: 8px;
         }
         
+        /* Layout Templates */
+        .sheet-body.layout-compact { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .sheet-body.layout-detailed { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .sheet-body.layout-single { grid-template-columns: 1fr; gap: 10px; }
+        
         .section-card {
             background: #f8f9fa;
             border-radius: 4px;
@@ -202,7 +335,7 @@
         }
         
         .section-card-title {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 4px 6px;
             border-radius: 3px;
@@ -212,16 +345,24 @@
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        
+        .section-content { transition: max-height 0.3s, opacity 0.3s; overflow: hidden; }
+        .section-content.collapsed { max-height: 0; opacity: 0; }
         
         .sheet-item-micro {
             background: white;
             padding: 4px 5px;
             margin-bottom: 4px;
             border-radius: 2px;
-            border-left: 2px solid #667eea;
+            border-left: 2px solid var(--primary-color);
             font-size: 0.58em;
             line-height: 1.25;
+            position: relative;
         }
         
         .sheet-item-micro strong {
@@ -239,61 +380,226 @@
             line-height: 1.2;
         }
         
-        .sheet-item-micro code {
+        .sheet-item-micro pre {
             display: block;
             background: #2d3748;
             color: #48bb78;
-            padding: 2px 4px;
+            padding: 3px 5px;
             border-radius: 2px;
             font-family: 'Courier New', monospace;
             font-size: 0.92em;
-            margin-top: 2px;
+            margin: 2px 0;
             word-break: break-all;
             line-height: 1.15;
+            position: relative;
+        }
+        
+        .sheet-item-micro .example {
+            display: block;
+            background: #fff3cd;
+            color: #856404;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.88em;
+            margin-top: 2px;
+            border-left: 2px solid #ffc107;
+        }
+        
+        /* Notes/Tips Styles */
+        .note-box {
+            padding: 3px 5px;
+            border-radius: 2px;
+            font-size: 0.88em;
+            margin-top: 2px;
+            display: flex;
+            align-items: flex-start;
+            gap: 3px;
+        }
+        .note-box.info { background: #d1ecf1; color: #0c5460; border-left: 2px solid #17a2b8; }
+        .note-box.warning { background: #fff3cd; color: #856404; border-left: 2px solid #ffc107; }
+        .note-box.tip { background: #d4edda; color: #155724; border-left: 2px solid #28a745; }
+        .note-box.danger { background: #f8d7da; color: #721c24; border-left: 2px solid #dc3545; }
+        
+        /* Copy Button */
+        .copy-btn-mini {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-size: 8px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .sheet-item-micro:hover .copy-btn-mini { opacity: 1; }
+        .copy-btn-mini:hover { background: #2980b9; }
+        
+        /* Related Items */
+        .related-items {
+            font-size: 0.85em;
+            color: #3498db;
+            margin-top: 2px;
+            font-style: italic;
+        }
+        
+        /* Quick Add Mode */
+        .quick-add-panel {
+            position: fixed;
+            bottom: 0;
+            left: 180px;
+            right: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 90;
+        }
+        .quick-add-panel.active { display: block; }
+        .quick-add-form {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .quick-add-form input, .quick-add-form textarea, .quick-add-form select {
+            padding: 6px;
+            border: none;
+            border-radius: 3px;
+            font-size: 11px;
         }
         
         input[type="file"] { display: none; }
         
-        /* Scrollbar styling */
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .modal-close {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .template-card {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .template-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        /* Themes */
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+        }
+        
+        .theme-blue { --primary-color: #667eea; --secondary-color: #764ba2; }
+        .theme-green { --primary-color: #11998e; --secondary-color: #38ef7d; }
+        .theme-orange { --primary-color: #f46b45; --secondary-color: #eea849; }
+        .theme-pink { --primary-color: #ff6b9d; --secondary-color: #c06c84; }
+        .theme-purple { --primary-color: #8e2de2; --secondary-color: #4a00e0; }
+        
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #2c3e50; }
         ::-webkit-scrollbar-thumb { background: #34495e; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #4a6278; }
         
+        .hljs { background: #2d3748 !important; padding: 3px 5px !important; border-radius: 2px; font-size: 0.9em !important; }
+        
         @media (max-width: 1200px) {
             .sheet-body { grid-template-columns: repeat(2, 1fr); }
         }
-        
-        @media (max-width: 768px) {
-            .files-sidebar { width: 140px; }
-            .main-container { margin-left: 140px; }
-            .editor-side, .preview-side { width: 100%; }
-            .sheet-body { grid-template-columns: 1fr; }
-        }
     </style>
 </head>
-<body>
+<body class="theme-blue">
+    <!-- Auto-save indicator -->
+    <div class="autosave-indicator" id="autosaveIndicator">
+        <i class="fas fa-check"></i> Auto-saved
+    </div>
+
     <!-- Top Bar -->
     <div class="top-bar">
-        <div>
-            <h4><i class="fas fa-file-code"></i> Cheat Sheet Manager</h4>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-top" onclick="toggleSidebar()" title="Toggle Sidebar"><i class="fas fa-bars"></i></button>
+            <h4><i class="fas fa-file-code"></i> Cheat Sheet Ultimate</h4>
         </div>
         <div>
             <input type="text" id="currentFileName" placeholder="File name" style="padding: 4px 8px; border-radius: 3px; border: none; margin-right: 8px; width: 130px; font-size: 11px;">
             <button class="btn-top btn-new" onclick="createNewFile()"><i class="fas fa-plus"></i> New</button>
             <button class="btn-top btn-save" onclick="saveFile()"><i class="fas fa-save"></i> Save</button>
-            <button class="btn-top btn-save" onclick="exportJSON()"><i class="fas fa-file-export"></i> Export</button>
+            <button class="btn-top btn-warning" onclick="undo()" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+            <button class="btn-top btn-warning" onclick="redo()" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+            <button class="btn-top btn-info" onclick="openTemplates()"><i class="fas fa-book"></i> Templates</button>
+            <button class="btn-top btn-info" onclick="toggleQuickAdd()" title="Quick Add Mode"><i class="fas fa-bolt"></i> Quick</button>
+            <button class="btn-top btn-save" onclick="toggleSplitView()" title="Toggle Editor"><i class="fas fa-columns"></i></button>
+            <button class="btn-top btn-info" onclick="toggleShortcuts()" title="Keyboard Shortcuts"><i class="fas fa-keyboard"></i></button>
+            <button class="btn-top btn-save" onclick="exportJSON()"><i class="fas fa-file-export"></i> JSON</button>
             <button class="btn-top btn-save" onclick="document.getElementById('importFile').click()"><i class="fas fa-file-import"></i> Import</button>
-            <button class="btn-top btn-download" onclick="downloadImage()"><i class="fas fa-download"></i> PNG</button>
+            <button class="btn-top btn-download" onclick="downloadImage()"><i class="fas fa-image"></i> PNG</button>
+            <button class="btn-top btn-download" onclick="downloadHTML()"><i class="fas fa-code"></i> HTML</button>
+            <button class="btn-top btn-download" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button class="btn-top btn-info" onclick="openSettings()"><i class="fas fa-cog"></i></button>
             <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
         </div>
     </div>
 
     <!-- Files Sidebar -->
-    <div class="files-sidebar">
-        <div style="font-size: 10px; font-weight: bold; margin-bottom: 6px; padding: 4px; border-bottom: 1px solid #34495e;">
+    <div class="files-sidebar" id="filesSidebar">
+        <div style="font-size: 10px; font-weight: bold; margin-bottom: 6px; padding: 4px;">
             <i class="fas fa-folder"></i> CHEAT SHEETS
         </div>
+        <input type="text" id="searchFiles" class="search-box" placeholder="🔍 Search files..." oninput="searchFiles()" style="background: #2c3e50; color: white; border-color: #34495e;">
         <div id="filesList"></div>
         <button class="btn-small btn-add" style="width: 100%; margin-top: 8px; font-size: 10px; padding: 5px;" onclick="createNewFile()">
             <i class="fas fa-plus"></i> New Sheet
@@ -301,157 +607,699 @@
     </div>
 
     <!-- Main Container -->
-    <div class="main-container">
+    <div class="main-container" id="mainContainer">
         <!-- Editor -->
-        <div class="editor-side">
+        <div class="editor-side" id="editorSide">
             <div style="margin-bottom: 10px;">
                 <div class="form-group">
                     <label>TITLE</label>
-                    <input type="text" id="sheetTitle" placeholder="e.g., Python Basics" oninput="updatePreview()">
+                    <input type="text" id="sheetTitle" placeholder="e.g., Python Basics" oninput="updatePreview(); autoSave()">
                 </div>
                 <div class="form-group">
                     <label>SUBTITLE</label>
-                    <input type="text" id="sheetSubtitle" placeholder="Quick Reference" oninput="updatePreview()">
+                    <input type="text" id="sheetSubtitle" placeholder="Quick Reference" oninput="updatePreview(); autoSave()">
                 </div>
                 <div class="form-group">
-                    <label>COLUMNS (1-4)</label>
-                    <input type="number" id="columnCount" min="1" max="4" value="3" oninput="updateColumns()">
+                    <label>LAYOUT</label>
+                    <select id="layoutSelect" onchange="changeLayout(); autoSave()">
+                        <option value="compact">Compact (3 cols)</option>
+                        <option value="detailed">Detailed (2 cols)</option>
+                        <option value="single">Single Column</option>
+                    </select>
                 </div>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #2c3e50;">
-                <strong style="font-size: 11px;"><i class="fas fa-layer-group"></i> SECTIONS</strong>
-                <button class="btn-small btn-add" onclick="addSection()">
-                    <i class="fas fa-plus"></i> Add
-                </button>
+                <strong style="font-size: 11px;"><i class="fas fa-layer-group"></i> SECTIONS (Click to collapse)</strong>
+                <div>
+                    <button class="btn-small btn-info" onclick="expandAllSections()" title="Expand All"><i class="fas fa-expand"></i></button>
+                    <button class="btn-small btn-info" onclick="collapseAllSections()" title="Collapse All"><i class="fas fa-compress"></i></button>
+                    <button class="btn-small btn-add" onclick="addSection()"><i class="fas fa-plus"></i> Add</button>
+                </div>
             </div>
 
             <div id="sectionsContainer"></div>
         </div>
 
         <!-- Preview -->
-        <div class="preview-side">
+        <div class="preview-side" id="previewSide">
             <div id="cheatSheet">
                 <div class="sheet-header">
                     <h1 id="previewTitle">Your Cheat Sheet</h1>
                     <p id="previewSubtitle">Create your content</p>
                 </div>
-                <div class="sheet-body" id="previewContent"></div>
+                <div class="sheet-body layout-compact" id="previewContent"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions" id="bulkActions">
+        <span><span id="selectedCount">0</span> items selected</span>
+        <button class="btn-small btn-remove" onclick="deleteSelectedItems()">
+            <i class="fas fa-trash"></i> Delete Selected
+        </button>
+        <button class="btn-small" style="background: #3498db; color: white;" onclick="clearSelection()">
+            <i class="fas fa-times"></i> Clear Selection
+        </button>
+    </div>
+
+    <!-- Quick Add Panel -->
+    <div class="quick-add-panel" id="quickAddPanel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong><i class="fas fa-bolt"></i> Quick Add Mode (Ctrl+Q)</strong>
+            <button class="btn-small btn-remove" onclick="toggleQuickAdd()">Close</button>
+        </div>
+        <div class="quick-add-form">
+            <select id="quickSection" style="flex: 0 0 150px;">
+                <option value="">Select Section</option>
+            </select>
+            <input type="text" id="quickName" placeholder="Name" style="flex: 1;">
+            <input type="text" id="quickDesc" placeholder="Description" style="flex: 1;">
+            <textarea id="quickCode" placeholder="Code" rows="1" style="flex: 1;"></textarea>
+            <button class="btn-small btn-add" style="padding: 6px 12px;" onclick="quickAddItem()">
+                <i class="fas fa-plus"></i> Add (Enter)
+            </button>
+        </div>
+    </div>
+
+    <!-- Zoom Controls -->
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (+)"><i class="fas fa-plus"></i></button>
+        <button class="zoom-btn" onclick="zoomReset()" title="Reset (0)">100%</button>
+        <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (-)"><i class="fas fa-minus"></i></button>
+    </div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div class="shortcuts-help" id="shortcutsHelp">
+        <h4 style="margin-bottom: 10px; font-size: 13px;"><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+        <div class="shortcut-item">
+            <span>New File</span>
+            <span class="shortcut-key">Ctrl+N</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Save</span>
+            <span class="shortcut-key">Ctrl+S</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Undo</span>
+            <span class="shortcut-key">Ctrl+Z</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Redo</span>
+            <span class="shortcut-key">Ctrl+Y</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Quick Add</span>
+            <span class="shortcut-key">Ctrl+Q</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Toggle Editor</span>
+            <span class="shortcut-key">Ctrl+E</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Zoom In</span>
+            <span class="shortcut-key">+</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Zoom Out</span>
+            <span class="shortcut-key">-</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Reset Zoom</span>
+            <span class="shortcut-key">0</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Search Files</span>
+            <span class="shortcut-key">Ctrl+F</span>
+        </div>
+    </div>
+
+    <!-- Templates Modal -->
+    <div id="templatesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-book"></i> Templates Library</h3>
+                <button class="modal-close" onclick="closeModal('templatesModal')">✕</button>
+            </div>
+            <input type="text" class="search-box" placeholder="🔍 Search templates..." id="searchTemplates" oninput="filterTemplates()">
+            <div id="templatesList"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> Settings</h3>
+                <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">
+                    <input type="checkbox" id="autoSaveToggle" onchange="toggleAutoSave()" checked> 
+                    Enable Auto-Save (every 3 seconds)
+                </label>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Theme Color</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="changeTheme('blue')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('green')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #11998e, #38ef7d); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('orange')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #f46b45, #eea849); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('pink')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff6b9d, #c06c84); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('purple')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #8e2de2, #4a00e0); border: none; border-radius: 5px; cursor: pointer;"></button>
+                </div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">Font Size Multiplier</label>
+                <input type="range" id="fontSizeSlider" min="0.8" max="1.5" step="0.1" value="1" oninput="changeFontSize(this.value)" style="width: 100%;">
+                <span id="fontSizeValue">1.0x</span>
+            </div>
+            <button onclick="exportAllData()" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+                <i class="fas fa-download"></i> Backup All Data
+            </button>
+            <button onclick="clearAllData()" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
+                <i class="fas fa-trash"></i> Clear All Data
+            </button>
         </div>
     </div>
 
     <script>
         const STORAGE_KEY = 'cheatSheetFiles';
+        const SETTINGS_KEY = 'cheatSheetSettings';
         let files = {};
         let currentFileId = null;
+        let settings = { theme: 'blue', fontSize: 1, layout: 'compact', zoom: 1, autoSave: true };
+        let collapsedSections = new Set();
+        let collapsedEditorSections = new Set();
+        let selectedItems = new Set();
+        let undoStack = [];
+        let redoStack = [];
+        let autoSaveTimeout = null;
+        let favorites = new Set();
 
-        let currentData = {
-            title: "Python Essentials",
-            subtitle: "Complete Quick Reference",
-            columns: 3,
-            sections: [
-                {
-                    title: "Data Types",
-                    items: [
-                        { name: "str", desc: "Text/String", code: "x = 'hello'" },
-                        { name: "int", desc: "Integer", code: "x = 42" },
-                        { name: "float", desc: "Decimal", code: "x = 3.14" },
-                        { name: "bool", desc: "True/False", code: "x = True" },
-                        { name: "list", desc: "Array", code: "x = [1,2,3]" },
-                        { name: "dict", desc: "Object", code: "x = {'a':1}" }
-                    ]
-                },
-                {
-                    title: "String Methods",
-                    items: [
-                        { name: "upper()", desc: "Uppercase", code: "s.upper()" },
-                        { name: "lower()", desc: "Lowercase", code: "s.lower()" },
-                        { name: "strip()", desc: "Trim", code: "s.strip()" },
-                        { name: "split()", desc: "Split", code: "s.split(',')" },
-                        { name: "join()", desc: "Join", code: "','.join(list)" },
-                        { name: "replace()", desc: "Replace", code: "s.replace('a','b')" }
-                    ]
-                },
-                {
-                    title: "List Methods",
-                    items: [
-                        { name: "append()", desc: "Add end", code: "list.append(x)" },
-                        { name: "insert()", desc: "Insert at", code: "list.insert(i,x)" },
-                        { name: "remove()", desc: "Remove", code: "list.remove(x)" },
-                        { name: "pop()", desc: "Remove last", code: "list.pop()" },
-                        { name: "sort()", desc: "Sort", code: "list.sort()" },
-                        { name: "reverse()", desc: "Reverse", code: "list.reverse()" }
-                    ]
-                },
-                {
-                    title: "Dict Methods",
-                    items: [
-                        { name: "keys()", desc: "Get keys", code: "d.keys()" },
-                        { name: "values()", desc: "Get values", code: "d.values()" },
-                        { name: "items()", desc: "Key-value", code: "d.items()" },
-                        { name: "get()", desc: "Get value", code: "d.get(k)" },
-                        { name: "update()", desc: "Merge", code: "d.update(d2)" },
-                        { name: "pop()", desc: "Remove key", code: "d.pop(k)" }
-                    ]
-                },
-                {
-                    title: "Operators",
-                    items: [
-                        { name: "+", desc: "Add", code: "5 + 3  # 8" },
-                        { name: "-", desc: "Subtract", code: "5 - 3  # 2" },
-                        { name: "*", desc: "Multiply", code: "5 * 3  # 15" },
-                        { name: "/", desc: "Divide", code: "5 / 2  # 2.5" },
-                        { name: "//", desc: "Floor div", code: "5 // 2  # 2" },
-                        { name: "%", desc: "Modulo", code: "5 % 2  # 1" }
-                    ]
-                },
-                {
-                    title: "Conditionals",
-                    items: [
-                        { name: "if", desc: "If statement", code: "if x > 5:" },
-                        { name: "elif", desc: "Else if", code: "elif x == 5:" },
-                        { name: "else", desc: "Else", code: "else:" },
-                        { name: "and", desc: "AND logic", code: "if a and b:" },
-                        { name: "or", desc: "OR logic", code: "if a or b:" },
-                        { name: "not", desc: "NOT logic", code: "if not a:" }
-                    ]
-                },
-                {
-                    title: "Loops",
-                    items: [
-                        { name: "for", desc: "For loop", code: "for x in list:" },
-                        { name: "while", desc: "While loop", code: "while x < 10:" },
-                        { name: "break", desc: "Exit loop", code: "break" },
-                        { name: "continue", desc: "Skip", code: "continue" },
-                        { name: "range()", desc: "Range", code: "for i in range(10):" },
-                        { name: "enumerate()", desc: "Index+value", code: "for i,v in enumerate(l):" }
-                    ]
-                },
-                {
-                    title: "Functions",
-                    items: [
-                        { name: "def", desc: "Define", code: "def func():" },
-                        { name: "return", desc: "Return value", code: "return x" },
-                        { name: "lambda", desc: "Anonymous", code: "lambda x: x*2" },
-                        { name: "args", desc: "Multiple args", code: "def f(*args):" },
-                        { name: "kwargs", desc: "Keyword args", code: "def f(**kwargs):" },
-                        { name: "default", desc: "Default param", code: "def f(x=10):" }
-                    ]
-                },
-                {
-                    title: "File I/O",
-                    items: [
-                        { name: "open()", desc: "Open file", code: "f = open('file.txt')" },
-                        { name: "read()", desc: "Read all", code: "f.read()" },
-                        { name: "readline()", desc: "Read line", code: "f.readline()" },
-                        { name: "write()", desc: "Write", code: "f.write('text')" },
-                        { name: "close()", desc: "Close file", code: "f.close()" },
-                        { name: "with", desc: "Context", code: "with open('f') as f:" }
+        const templates = {
+            python: {
+                name: "Python Complete",
+                description: "Complete Python reference",
+                data: {
+                    title: "Python Complete Reference",
+                    subtitle: "All Essential Functions & Operations",
+                    layout: "compact",
+                    sections: [
+                        {
+                            title: "String Methods",
+                            items: [
+                                { name: "upper()", desc: "Convert to uppercase", code: "text.upper()", example: "'hello'.upper() → 'HELLO'", noteType: "tip", note: "Doesn't modify original string", related: "lower(), capitalize()" },
+                                { name: "lower()", desc: "Convert to lowercase", code: "text.lower()", example: "'HELLO'.lower() → 'hello'", noteType: "", note: "", related: "upper()" },
+                                { name: "strip()", desc: "Remove whitespace", code: "text.strip()", example: "'  hi  '.strip() → 'hi'", noteType: "info", note: "Also removes \\n and \\t", related: "lstrip(), rstrip()" }
+                            ]
+                        },
+                        {
+                            title: "List Methods",
+                            items: [
+                                { name: "append()", desc: "Add to end", code: "list.append(x)", example: "[1,2].append(3) → [1,2,3]", noteType: "info", note: "Modifies list in place", related: "extend(), insert()" },
+                                { name: "pop()", desc: "Remove last", code: "list.pop()", example: "[1,2,3].pop() → 3", noteType: "", note: "", related: "remove()" }
+                            ]
+                        }
                     ]
                 }
-            ]
+            }
         };
+
+        let currentData = {
+            title: "Python Reference",
+            subtitle: "Quick Guide",
+            layout: "compact",
+            sections: JSON.parse(JSON.stringify(templates.python.data.sections))
+        };
+
+        // NEW: Auto-save functionality
+        function autoSave() {
+            if (!settings.autoSave) return;
+            
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                if (currentFileId) {
+                    files[currentFileId].data = JSON.parse(JSON.stringify(currentData));
+                    saveFiles();
+                    showAutoSaveIndicator();
+                }
+            }, 3000);
+        }
+
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('autosaveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+        }
+
+        function toggleAutoSave() {
+            settings.autoSave = document.getElementById('autoSaveToggle').checked;
+            saveSettings();
+        }
+
+        // NEW: Undo/Redo functionality
+        function saveState() {
+            undoStack.push(JSON.parse(JSON.stringify(currentData)));
+            if (undoStack.length > 50) undoStack.shift(); // Keep last 50 states
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            redoStack.push(JSON.parse(JSON.stringify(currentData)));
+            currentData = undoStack.pop();
+            syncFormFields();
+            renderEditor();
+            updatePreview();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            undoStack.push(JSON.parse(JSON.stringify(currentData)));
+            currentData = redoStack.pop();
+            syncFormFields();
+            renderEditor();
+            updatePreview();
+        }
+
+        function syncFormFields() {
+            document.getElementById('sheetTitle').value = currentData.title;
+            document.getElementById('sheetSubtitle').value = currentData.subtitle;
+            document.getElementById('layoutSelect').value = currentData.layout || 'compact';
+        }
+
+        // NEW: Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+S - Save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveFile();
+            }
+            // Ctrl+N - New file
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                createNewFile();
+            }
+            // Ctrl+Z - Undo
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+            // Ctrl+Y - Redo
+            if (e.ctrlKey && e.key === 'y') {
+                e.preventDefault();
+                redo();
+            }
+            // Ctrl+Q - Quick add
+            if (e.ctrlKey && e.key === 'q') {
+                e.preventDefault();
+                toggleQuickAdd();
+            }
+            // Ctrl+E - Toggle editor
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                toggleSplitView();
+            }
+            // Ctrl+F - Focus search
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchFiles').focus();
+            }
+            // +/- for zoom
+            if (e.key === '+' || e.key === '=') {
+                e.preventDefault();
+                zoomIn();
+            }
+            if (e.key === '-' || e.key === '_') {
+                e.preventDefault();
+                zoomOut();
+            }
+            if (e.key === '0') {
+                e.preventDefault();
+                zoomReset();
+            }
+        });
+
+        // Quick add Enter key support
+        document.addEventListener('DOMContentLoaded', () => {
+            const quickCode = document.getElementById('quickCode');
+            if (quickCode) {
+                quickCode.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        quickAddItem();
+                    }
+                });
+            }
+        });
+
+        // NEW: Toggle keyboard shortcuts help
+        function toggleShortcuts() {
+            document.getElementById('shortcutsHelp').classList.toggle('show');
+        }
+
+        // NEW: Favorites functionality
+        function toggleFavorite(fileId) {
+            if (favorites.has(fileId)) {
+                favorites.delete(fileId);
+            } else {
+                favorites.add(fileId);
+            }
+            localStorage.setItem('cheatSheetFavorites', JSON.stringify([...favorites]));
+            renderFilesList();
+        }
+
+        function loadFavorites() {
+            const stored = localStorage.getItem('cheatSheetFavorites');
+            if (stored) {
+                favorites = new Set(JSON.parse(stored));
+            }
+        }
+
+        // NEW: Bulk selection and operations
+        function toggleItemSelection(sIdx, iIdx) {
+            const key = `${sIdx}-${iIdx}`;
+            if (selectedItems.has(key)) {
+                selectedItems.delete(key);
+            } else {
+                selectedItems.add(key);
+            }
+            updateBulkActions();
+            renderEditor();
+        }
+
+        function updateBulkActions() {
+            const bulkBar = document.getElementById('bulkActions');
+            const count = selectedItems.size;
+            document.getElementById('selectedCount').textContent = count;
+            
+            if (count > 0) {
+                bulkBar.classList.add('show');
+            } else {
+                bulkBar.classList.remove('show');
+            }
+        }
+
+        function clearSelection() {
+            selectedItems.clear();
+            updateBulkActions();
+            renderEditor();
+        }
+
+        function deleteSelectedItems() {
+            if (!confirm(`Delete ${selectedItems.size} selected items?`)) return;
+            
+            saveState();
+            
+            // Convert to array and sort in reverse to delete from end
+            const toDelete = Array.from(selectedItems).map(key => {
+                const [sIdx, iIdx] = key.split('-').map(Number);
+                return { sIdx, iIdx };
+            }).sort((a, b) => {
+                if (a.sIdx !== b.sIdx) return b.sIdx - a.sIdx;
+                return b.iIdx - a.iIdx;
+            });
+            
+            toDelete.forEach(({sIdx, iIdx}) => {
+                if (currentData.sections[sIdx] && currentData.sections[sIdx].items[iIdx]) {
+                    currentData.sections[sIdx].items.splice(iIdx, 1);
+                }
+            });
+            
+            // Remove empty sections
+            currentData.sections = currentData.sections.filter(s => s.items.length > 0);
+            
+            clearSelection();
+            renderEditor();
+            updatePreview();
+            autoSave();
+        }
+
+        // NEW: Editor section collapse
+        function toggleEditorSection(sIdx) {
+            if (collapsedEditorSections.has(sIdx)) {
+                collapsedEditorSections.delete(sIdx);
+            } else {
+                collapsedEditorSections.add(sIdx);
+            }
+            renderEditor();
+        }
+
+        function expandAllSections() {
+            collapsedEditorSections.clear();
+            renderEditor();
+        }
+
+        function collapseAllSections() {
+            currentData.sections.forEach((_, idx) => collapsedEditorSections.add(idx));
+            renderEditor();
+        }
+
+        // Zoom Controls
+        let currentZoom = 1;
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.1, 2);
+            applyZoom();
+        }
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.1, 0.5);
+            applyZoom();
+        }
+        function zoomReset() {
+            currentZoom = 1;
+            applyZoom();
+        }
+        function applyZoom() {
+            document.getElementById('cheatSheet').style.transform = `scale(${currentZoom})`;
+            settings.zoom = currentZoom;
+            saveSettings();
+        }
+
+        // Split View Toggle
+        function toggleSplitView() {
+            const editor = document.getElementById('editorSide');
+            const preview = document.getElementById('previewSide');
+            editor.classList.toggle('hidden');
+            if (editor.classList.contains('hidden')) {
+                preview.classList.add('full');
+            } else {
+                preview.classList.remove('full');
+            }
+        }
+
+        // Toggle Sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('filesSidebar');
+            const main = document.getElementById('mainContainer');
+            sidebar.classList.toggle('hidden');
+            main.classList.toggle('sidebar-hidden');
+        }
+
+        // Quick Add Mode
+        function toggleQuickAdd() {
+            const panel = document.getElementById('quickAddPanel');
+            panel.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                updateQuickAddSections();
+                document.getElementById('quickName').focus();
+            }
+        }
+
+        function updateQuickAddSections() {
+            const select = document.getElementById('quickSection');
+            select.innerHTML = '<option value="">Select Section</option>' + 
+                currentData.sections.map((s, i) => `<option value="${i}">${s.title}</option>`).join('');
+        }
+
+        function quickAddItem() {
+            const sIdx = document.getElementById('quickSection').value;
+            if (sIdx === '') {
+                alert('Please select a section');
+                return;
+            }
+            
+            saveState();
+            
+            const item = {
+                name: document.getElementById('quickName').value || 'New Item',
+                desc: document.getElementById('quickDesc').value || '',
+                code: document.getElementById('quickCode').value || '',
+                example: '',
+                noteType: '',
+                note: '',
+                related: ''
+            };
+            
+            currentData.sections[parseInt(sIdx)].items.push(item);
+            
+            // Clear form
+            document.getElementById('quickName').value = '';
+            document.getElementById('quickDesc').value = '';
+            document.getElementById('quickCode').value = '';
+            document.getElementById('quickName').focus();
+            
+            renderEditor();
+            updatePreview();
+            autoSave();
+        }
+
+        // Layout Templates
+        function changeLayout() {
+            const layout = document.getElementById('layoutSelect').value;
+            currentData.layout = layout;
+            const body = document.getElementById('previewContent');
+            body.className = 'sheet-body layout-' + layout;
+            saveSettings();
+        }
+
+        // Collapsible Sections in Preview
+        function toggleSection(sIdx) {
+            if (collapsedSections.has(sIdx)) {
+                collapsedSections.delete(sIdx);
+            } else {
+                collapsedSections.add(sIdx);
+            }
+            updatePreview();
+        }
+
+        // Copy Button
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                // Visual feedback handled by button
+            });
+        }
+
+        // Drag and Drop Sorting
+        function initSortable() {
+            const container = document.getElementById('sectionsContainer');
+            if (container && !container.sortableInstance) {
+                container.sortableInstance = new Sortable(container, {
+                    animation: 150,
+                    handle: '.section-box',
+                    ghostClass: 'dragging',
+                    onEnd: function(evt) {
+                        saveState();
+                        const item = currentData.sections.splice(evt.oldIndex, 1)[0];
+                        currentData.sections.splice(evt.newIndex, 0, item);
+                        updatePreview();
+                        autoSave();
+                    }
+                });
+            }
+        }
+
+        // Item drag and drop
+        function initItemSortable(sIdx) {
+            const container = document.querySelector(`[data-section="${sIdx}"] .section-items`);
+            if (container && !container.sortableInstance) {
+                container.sortableInstance = new Sortable(container, {
+                    animation: 150,
+                    handle: '.item-mini',
+                    ghostClass: 'dragging',
+                    onEnd: function(evt) {
+                        saveState();
+                        const item = currentData.sections[sIdx].items.splice(evt.oldIndex, 1)[0];
+                        currentData.sections[sIdx].items.splice(evt.newIndex, 0, item);
+                        renderEditor();
+                        updatePreview();
+                        autoSave();
+                    }
+                });
+            }
+        }
+
+        // Duplicate Section
+        function duplicateSection(sIdx) {
+            saveState();
+            const copy = JSON.parse(JSON.stringify(currentData.sections[sIdx]));
+            copy.title = copy.title + ' (Copy)';
+            currentData.sections.splice(sIdx + 1, 0, copy);
+            renderEditor();
+            updatePreview();
+            autoSave();
+        }
+
+        // PDF Export
+        function downloadPDF() {
+            const btn = event.target;
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            html2canvas(document.getElementById('cheatSheet'), {
+                scale: 2,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                const imgWidth = 210;
+                const pageHeight = 297;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                pdf.save(`${currentData.title.replace(/\s+/g, '_')}.pdf`);
+                
+                btn.innerHTML = '<i class="fas fa-check"></i> Done!';
+                setTimeout(() => {
+                    btn.innerHTML = orig;
+                    btn.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                alert('Error generating PDF');
+                btn.innerHTML = orig;
+                btn.disabled = false;
+            });
+        }
+
+        function loadSettings() {
+            const stored = localStorage.getItem(SETTINGS_KEY);
+            if (stored) {
+                settings = JSON.parse(stored);
+                changeTheme(settings.theme);
+                changeFontSize(settings.fontSize);
+                currentZoom = settings.zoom || 1;
+                applyZoom();
+                if (settings.autoSave !== undefined) {
+                    document.getElementById('autoSaveToggle').checked = settings.autoSave;
+                }
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        function changeTheme(theme) {
+            settings.theme = theme;
+            document.body.className = `theme-${theme}`;
+            saveSettings();
+        }
+
+        function changeFontSize(multiplier) {
+            settings.fontSize = parseFloat(multiplier);
+            document.getElementById('fontSizeValue').textContent = multiplier + 'x';
+            document.getElementById('cheatSheet').style.fontSize = (multiplier * 100) + '%';
+            saveSettings();
+        }
 
         function loadFiles() {
             const stored = localStorage.getItem(STORAGE_KEY);
@@ -459,13 +1307,14 @@
                 files = JSON.parse(stored);
             } else {
                 files = {
-                    'python_essentials': {
-                        name: 'Python Essentials',
-                        data: JSON.parse(JSON.stringify(currentData))
+                    'python_complete': {
+                        name: 'Python Complete',
+                        data: JSON.parse(JSON.stringify(templates.python.data))
                     }
                 };
                 saveFiles();
             }
+            loadFavorites();
             renderFilesList();
             if (!currentFileId && Object.keys(files).length > 0) {
                 loadFile(Object.keys(files)[0]);
@@ -476,11 +1325,32 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
         }
 
-        function renderFilesList() {
+        function searchFiles() {
+            const search = document.getElementById('searchFiles').value.toLowerCase();
+            renderFilesList(search);
+        }
+
+        function renderFilesList(search = '') {
             const container = document.getElementById('filesList');
-            container.innerHTML = Object.keys(files).map(id => `
-                <div class="file-item ${id === currentFileId ? 'active' : ''}" onclick="loadFile('${id}')">
-                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><i class="fas fa-file"></i> ${files[id].name}</span>
+            const filtered = Object.keys(files).filter(id => 
+                files[id].name.toLowerCase().includes(search)
+            );
+            
+            // Sort: favorites first
+            filtered.sort((a, b) => {
+                if (favorites.has(a) && !favorites.has(b)) return -1;
+                if (!favorites.has(a) && favorites.has(b)) return 1;
+                return 0;
+            });
+            
+            container.innerHTML = filtered.map(id => `
+                <div class="file-item ${id === currentFileId ? 'active' : ''} ${favorites.has(id) ? 'favorite' : ''}" onclick="loadFile('${id}')">
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
+                        <button class="file-favorite" onclick="event.stopPropagation(); toggleFavorite('${id}')">
+                            <i class="fas fa-star${favorites.has(id) ? '' : '-o'}"></i>
+                        </button>
+                        <i class="fas fa-file"></i> ${files[id].name}
+                    </span>
                     <button class="file-delete" onclick="event.stopPropagation(); deleteFile('${id}')">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -498,11 +1368,10 @@
                 data: {
                     title: name,
                     subtitle: "Quick Reference",
-                    columns: 3,
+                    layout: "compact",
                     sections: [
                         { title: "Section 1", items: [
-                            { name: "Item 1", desc: "Description", code: "code()" },
-                            { name: "Item 2", desc: "Description", code: "code()" }
+                            { name: "Item 1", desc: "Description", code: "code()", example: "", noteType: "", note: "", related: "" }
                         ]}
                     ]
                 }
@@ -518,7 +1387,11 @@
             document.getElementById('currentFileName').value = files[id].name;
             document.getElementById('sheetTitle').value = currentData.title;
             document.getElementById('sheetSubtitle').value = currentData.subtitle;
-            document.getElementById('columnCount').value = currentData.columns || 3;
+            document.getElementById('layoutSelect').value = currentData.layout || 'compact';
+            changeLayout();
+            undoStack = [];
+            redoStack = [];
+            clearSelection();
             renderFilesList();
             renderEditor();
             updatePreview();
@@ -543,6 +1416,9 @@
         function deleteFile(id) {
             if (confirm('Delete this cheat sheet?')) {
                 delete files[id];
+                favorites.delete(id);
+                localStorage.setItem('cheatSheetFavorites', JSON.stringify([...favorites]));
+                
                 if (id === currentFileId) {
                     currentFileId = null;
                     const remaining = Object.keys(files);
@@ -557,31 +1433,66 @@
 
         function renderEditor() {
             const container = document.getElementById('sectionsContainer');
-            container.innerHTML = currentData.sections.map((section, sIdx) => `
-                <div class="section-box">
-                    <div class="section-header">
-                        <span>${sIdx + 1}. ${section.title}</span>
-                        <button class="btn-small btn-remove" onclick="removeSection(${sIdx})">×</button>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" value="${section.title}" placeholder="Section Title" oninput="updateSectionTitle(${sIdx}, this.value)">
-                    </div>
-                    ${section.items.map((item, iIdx) => `
-                        <div class="item-mini">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                                <span style="font-size: 9px; font-weight: bold;">#${iIdx + 1}</span>
-                                <button class="btn-small btn-remove" style="padding: 1px 4px; font-size: 8px;" onclick="removeItem(${sIdx}, ${iIdx})">×</button>
+            container.innerHTML = currentData.sections.map((section, sIdx) => {
+                const isCollapsed = collapsedEditorSections.has(sIdx);
+                return `
+                    <div class="section-box ${isCollapsed ? 'collapsed' : ''}" data-index="${sIdx}" data-section="${sIdx}">
+                        <div class="section-header" onclick="toggleEditorSection(${sIdx})">
+                            <span>
+                                <i class="fas fa-chevron-down section-collapse-icon"></i>
+                                <i class="fas fa-grip-vertical"></i> ${sIdx + 1}. ${section.title}
+                            </span>
+                            <div onclick="event.stopPropagation()">
+                                <button class="btn-small btn-duplicate" onclick="duplicateSection(${sIdx})" title="Duplicate"><i class="fas fa-copy"></i></button>
+                                <button class="btn-small btn-remove" onclick="removeSection(${sIdx})">×</button>
                             </div>
-                            <input type="text" value="${item.name}" placeholder="Name" oninput="updateItem(${sIdx}, ${iIdx}, 'name', this.value)">
-                            <input type="text" value="${item.desc}" placeholder="Description" oninput="updateItem(${sIdx}, ${iIdx}, 'desc', this.value)">
-                            <textarea rows="2" placeholder="Code" oninput="updateItem(${sIdx}, ${iIdx}, 'code', this.value)">${item.code}</textarea>
                         </div>
-                    `).join('')}
-                    <button class="btn-small btn-add" style="width: 100%; margin-top: 4px;" onclick="addItem(${sIdx})">
-                        <i class="fas fa-plus"></i> Add Item
-                    </button>
-                </div>
-            `).join('');
+                        <div class="section-items">
+                            <div class="form-group">
+                                <input type="text" value="${section.title}" placeholder="Section Title" oninput="updateSectionTitle(${sIdx}, this.value); autoSave()">
+                            </div>
+                            ${section.items.map((item, iIdx) => {
+                                const itemKey = `${sIdx}-${iIdx}`;
+                                const isSelected = selectedItems.has(itemKey);
+                                return `
+                                    <div class="item-mini ${isSelected ? 'selected' : ''}" data-item="${iIdx}">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                            <span style="font-size: 9px; font-weight: bold;">
+                                                <input type="checkbox" class="item-checkbox" ${isSelected ? 'checked' : ''} 
+                                                    onchange="toggleItemSelection(${sIdx}, ${iIdx})" 
+                                                    onclick="event.stopPropagation()">
+                                                <i class="fas fa-grip-vertical"></i> #${iIdx + 1}
+                                            </span>
+                                            <button class="btn-small btn-remove" style="padding: 1px 4px; font-size: 8px;" onclick="removeItem(${sIdx}, ${iIdx})">×</button>
+                                        </div>
+                                        <input type="text" value="${item.name}" placeholder="Name" oninput="updateItem(${sIdx}, ${iIdx}, 'name', this.value); autoSave()">
+                                        <input type="text" value="${item.desc || ''}" placeholder="Description" oninput="updateItem(${sIdx}, ${iIdx}, 'desc', this.value); autoSave()">
+                                        <textarea rows="2" placeholder="Code" oninput="updateItem(${sIdx}, ${iIdx}, 'code', this.value); autoSave()">${item.code || ''}</textarea>
+                                        <textarea rows="1" placeholder="Example (optional)" oninput="updateItem(${sIdx}, ${iIdx}, 'example', this.value); autoSave()">${item.example || ''}</textarea>
+                                        <select onchange="updateItem(${sIdx}, ${iIdx}, 'noteType', this.value); autoSave()" style="margin-bottom: 3px;">
+                                            <option value="" ${!item.noteType ? 'selected' : ''}>No Note</option>
+                                            <option value="info" ${item.noteType === 'info' ? 'selected' : ''}>ℹ️ Info</option>
+                                            <option value="tip" ${item.noteType === 'tip' ? 'selected' : ''}>💡 Tip</option>
+                                            <option value="warning" ${item.noteType === 'warning' ? 'selected' : ''}>⚠️ Warning</option>
+                                            <option value="danger" ${item.noteType === 'danger' ? 'selected' : ''}>🚫 Danger</option>
+                                        </select>
+                                        ${item.noteType ? `<textarea rows="1" placeholder="Note text" oninput="updateItem(${sIdx}, ${iIdx}, 'note', this.value); autoSave()">${item.note || ''}</textarea>` : ''}
+                                        <input type="text" value="${item.related || ''}" placeholder="Related items" oninput="updateItem(${sIdx}, ${iIdx}, 'related', this.value); autoSave()">
+                                    </div>
+                                `;
+                            }).join('')}
+                            <button class="btn-small btn-add" style="width: 100%; margin-top: 4px;" onclick="addItem(${sIdx})">
+                                <i class="fas fa-plus"></i> Add Item
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            setTimeout(() => {
+                initSortable();
+                currentData.sections.forEach((_, idx) => initItemSortable(idx));
+            }, 100);
         }
 
         function updatePreview() {
@@ -592,42 +1503,64 @@
             document.getElementById('previewSubtitle').textContent = currentData.subtitle || '';
             
             const content = document.getElementById('previewContent');
-            content.innerHTML = currentData.sections.map(section => `
-                <div class="section-card">
-                    <div class="section-card-title">${section.title}</div>
-                    ${section.items.map(item => `
-                        <div class="sheet-item-micro">
-                            <strong>${item.name}</strong>
-                            ${item.desc ? `<p>${item.desc}</p>` : ''}
-                            ${item.code ? `<code>${item.code}</code>` : ''}
+            content.innerHTML = currentData.sections.map((section, sIdx) => {
+                const isCollapsed = collapsedSections.has(sIdx);
+                return `
+                    <div class="section-card">
+                        <div class="section-card-title" onclick="toggleSection(${sIdx})">
+                            <span>${section.title}</span>
+                            <i class="fas fa-chevron-${isCollapsed ? 'down' : 'up'}"></i>
                         </div>
-                    `).join('')}
-                </div>
-            `).join('');
-        }
-
-        function updateColumns() {
-            currentData.columns = parseInt(document.getElementById('columnCount').value);
-            document.getElementById('previewContent').style.gridTemplateColumns = `repeat(${currentData.columns}, 1fr)`;
+                        <div class="section-content ${isCollapsed ? 'collapsed' : ''}">
+                            ${section.items.map(item => {
+                                const codeHighlighted = item.code ? hljs.highlightAuto(item.code).value : '';
+                                return `
+                                    <div class="sheet-item-micro">
+                                        <strong>${item.name}</strong>
+                                        ${item.desc ? `<p>${item.desc}</p>` : ''}
+                                        ${item.code ? `
+                                            <pre><code class="hljs">${codeHighlighted}</code></pre>
+                                            <button class="copy-btn-mini" onclick="copyCode(\`${item.code.replace(/`/g, '\\`')}\`)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        ` : ''}
+                                        ${item.example ? `<span class="example">📝 ${item.example}</span>` : ''}
+                                        ${item.noteType && item.note ? `
+                                            <div class="note-box ${item.noteType}">
+                                                <span>${item.noteType === 'info' ? 'ℹ️' : item.noteType === 'tip' ? '💡' : item.noteType === 'warning' ? '⚠️' : '🚫'}</span>
+                                                <span>${item.note}</span>
+                                            </div>
+                                        ` : ''}
+                                        ${item.related ? `<div class="related-items">→ See also: ${item.related}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function addSection() {
+            saveState();
             currentData.sections.push({
                 title: "New Section",
                 items: [
-                    { name: "Item 1", desc: "Description", code: "code()" },
-                    { name: "Item 2", desc: "Description", code: "code()" }
+                    { name: "Item 1", desc: "Description", code: "code()", example: "", noteType: "", note: "", related: "" }
                 ]
             });
             renderEditor();
             updatePreview();
+            autoSave();
         }
 
         function removeSection(idx) {
             if (confirm('Remove section?')) {
+                saveState();
                 currentData.sections.splice(idx, 1);
                 renderEditor();
                 updatePreview();
+                autoSave();
             }
         }
 
@@ -637,19 +1570,34 @@
         }
 
         function addItem(sIdx) {
-            currentData.sections[sIdx].items.push({ name: "New", desc: "", code: "" });
+            saveState();
+            currentData.sections[sIdx].items.push({ 
+                name: "New", 
+                desc: "", 
+                code: "", 
+                example: "", 
+                noteType: "", 
+                note: "", 
+                related: "" 
+            });
             renderEditor();
             updatePreview();
+            autoSave();
         }
 
         function removeItem(sIdx, iIdx) {
+            saveState();
             currentData.sections[sIdx].items.splice(iIdx, 1);
             renderEditor();
             updatePreview();
+            autoSave();
         }
 
         function updateItem(sIdx, iIdx, field, value) {
             currentData.sections[sIdx].items[iIdx][field] = value;
+            if (field === 'noteType') {
+                renderEditor();
+            }
             updatePreview();
         }
 
@@ -684,6 +1632,52 @@
             });
         }
 
+        function downloadHTML() {
+            const sheetHTML = document.getElementById('cheatSheet').outerHTML;
+            const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${currentData.title}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #ecf0f1; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        #cheatSheet { width: 100%; max-width: 950px; background: white; box-shadow: 0 3px 12px rgba(0,0,0,0.2); border-radius: 6px; overflow: hidden; }
+        .sheet-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 12px; text-align: center; }
+        .sheet-header h1 { font-size: 1.3em; margin: 0 0 2px 0; font-weight: bold; }
+        .sheet-header p { font-size: 0.7em; margin: 0; opacity: 0.9; }
+        .sheet-body { padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .section-card { background: #f8f9fa; border-radius: 4px; padding: 6px; border: 1px solid #dee2e6; }
+        .section-card-title { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 6px; border-radius: 3px; font-size: 0.65em; font-weight: bold; margin-bottom: 5px; text-align: center; text-transform: uppercase; }
+        .sheet-item-micro { background: white; padding: 4px 5px; margin-bottom: 4px; border-radius: 2px; border-left: 2px solid #667eea; font-size: 0.58em; line-height: 1.25; }
+        .sheet-item-micro strong { color: #2c3e50; display: block; font-size: 1.08em; margin-bottom: 1px; font-weight: 700; }
+        .sheet-item-micro p { margin: 1px 0; color: #666; font-size: 0.96em; }
+        .sheet-item-micro pre { background: #2d3748; padding: 3px 5px; border-radius: 2px; font-size: 0.92em; margin: 2px 0; }
+        .sheet-item-micro .example { display: block; background: #fff3cd; color: #856404; padding: 2px 4px; border-radius: 2px; font-size: 0.88em; margin-top: 2px; border-left: 2px solid #ffc107; }
+        .note-box { padding: 3px 5px; border-radius: 2px; font-size: 0.88em; margin-top: 2px; }
+        .note-box.info { background: #d1ecf1; color: #0c5460; border-left: 2px solid #17a2b8; }
+        .note-box.warning { background: #fff3cd; color: #856404; border-left: 2px solid #ffc107; }
+        .note-box.tip { background: #d4edda; color: #155724; border-left: 2px solid #28a745; }
+        .note-box.danger { background: #f8d7da; color: #721c24; border-left: 2px solid #dc3545; }
+        .related-items { font-size: 0.85em; color: #3498db; margin-top: 2px; font-style: italic; }
+    </style>
+</head>
+<body>
+    ${sheetHTML}
+</body>
+</html>`;
+
+            const blob = new Blob([fullHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `${currentData.title.replace(/\s+/g, '_')}.html`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
         function exportJSON() {
             const blob = new Blob([JSON.stringify(files, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -716,7 +1710,95 @@
             event.target.value = '';
         }
 
+        function openTemplates() {
+            const modal = document.getElementById('templatesModal');
+            const list = document.getElementById('templatesList');
+            list.innerHTML = Object.keys(templates).map(key => {
+                const t = templates[key];
+                return `
+                    <div class="template-card" onclick="loadTemplate('${key}')">
+                        <h4 style="margin-bottom: 5px; color: #2c3e50;"><i class="fas fa-file-code"></i> ${t.name}</h4>
+                        <p style="font-size: 12px; color: #666;">${t.description}</p>
+                    </div>
+                `;
+            }).join('');
+            modal.classList.add('show');
+        }
+
+        function filterTemplates() {
+            const search = document.getElementById('searchTemplates').value.toLowerCase();
+            const list = document.getElementById('templatesList');
+            list.innerHTML = Object.keys(templates).filter(key => 
+                templates[key].name.toLowerCase().includes(search) ||
+                templates[key].description.toLowerCase().includes(search)
+            ).map(key => {
+                const t = templates[key];
+                return `
+                    <div class="template-card" onclick="loadTemplate('${key}')">
+                        <h4 style="margin-bottom: 5px; color: #2c3e50;"><i class="fas fa-file-code"></i> ${t.name}</h4>
+                        <p style="font-size: 12px; color: #666;">${t.description}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadTemplate(key) {
+            if (confirm('Load this template? Current unsaved changes will be lost.')) {
+                currentData = JSON.parse(JSON.stringify(templates[key].data));
+                document.getElementById('sheetTitle').value = currentData.title;
+                document.getElementById('sheetSubtitle').value = currentData.subtitle;
+                document.getElementById('layoutSelect').value = currentData.layout || 'compact';
+                changeLayout();
+                undoStack = [];
+                redoStack = [];
+                renderEditor();
+                updatePreview();
+                closeModal('templatesModal');
+            }
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('show');
+            document.getElementById('fontSizeSlider').value = settings.fontSize;
+            document.getElementById('fontSizeValue').textContent = settings.fontSize + 'x';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function exportAllData() {
+            const allData = {
+                files: files,
+                settings: settings,
+                favorites: [...favorites]
+            };
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'cheatsheet_backup.json';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function clearAllData() {
+            if (confirm('Delete ALL cheat sheets? This cannot be undone!')) {
+                if (confirm('Are you absolutely sure? All data will be lost!')) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem('cheatSheetFavorites');
+                    files = {};
+                    favorites.clear();
+                    currentFileId = null;
+                    renderFilesList();
+                    closeModal('settingsModal');
+                    alert('All data cleared!');
+                }
+            }
+        }
+
         // Initialize
+        loadSettings();
         loadFiles();
     </script>
 </body>
