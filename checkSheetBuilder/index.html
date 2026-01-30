@@ -108,6 +108,7 @@
         
         .main-container { 
             margin-left: 180px; 
+            margin-top: 45px;
             display: flex; 
             height: calc(100vh - 45px);
             transition: margin-left 0.3s;
@@ -125,15 +126,30 @@
         .editor-side.hidden { width: 0; padding: 0; overflow: hidden; }
         
         .form-group { margin-bottom: 8px; }
-        .form-group label { display: block; margin-bottom: 2px; font-size: 10px; font-weight: bold; }
+        .form-group label { 
+            display: block; 
+            margin-bottom: 2px; 
+            font-size: 10px; 
+            font-weight: 600; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #bdc3c7;
+        }
         .form-group input, .form-group textarea, .form-group select { 
             width: 100%; 
             padding: 4px 6px; 
-            border: none; 
+            border: 1px solid #2c3e50;
             border-radius: 3px; 
             background: #2c3e50; 
             color: white; 
             font-size: 10px;
+            transition: all 0.2s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            background: #1a252f;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
         .form-group textarea { 
             font-family: 'Courier New', monospace; 
@@ -143,7 +159,7 @@
         /* Section collapse in editor */
         .section-box {
             background: #2c3e50;
-            padding: 3px;
+            padding: 8px;
             border-radius: 4px;
             margin-bottom: 8px;
             border-left: 2px solid #3498db;
@@ -156,6 +172,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 6px;
             font-size: 11px;
             font-weight: bold;
             cursor: pointer;
@@ -214,7 +231,7 @@
             left: 180px;
             background: #e74c3c;
             color: white;
-            padding: 4px;
+            padding: 10px;
             display: none;
             z-index: 90;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
@@ -322,7 +339,7 @@
             gap: 8px;
         }
         
-        /* Layout Templates */
+        /* Layout Templates - MORE COMPACT */
         .sheet-body.layout-compact { grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .sheet-body.layout-detailed { grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .sheet-body.layout-single { grid-template-columns: 1fr; gap: 10px; }
@@ -354,30 +371,31 @@
         .section-content { transition: max-height 0.3s, opacity 0.3s; overflow: hidden; }
         .section-content.collapsed { max-height: 0; opacity: 0; }
         
+        /* ULTRA COMPACT ITEMS - MORE SPACE SAVING */
         .sheet-item-micro {
             background: white;
-            padding: 4px 5px;
-            margin-bottom: 4px;
+            padding: 3px 4px;
+            margin-bottom: 3px;
             border-radius: 2px;
             border-left: 2px solid var(--primary-color);
-            font-size: 0.58em;
-            line-height: 1.25;
+            font-size: 0.50em;
+            line-height: 1.15;
             position: relative;
         }
         
         .sheet-item-micro strong {
             color: #2c3e50;
             display: block;
-            font-size: 1.08em;
+            font-size: 1.1em;
             margin-bottom: 1px;
             font-weight: 700;
         }
         
         .sheet-item-micro p {
-            margin: 1px 0;
+            margin: 0;
             color: #666;
-            font-size: 0.96em;
-            line-height: 1.2;
+            font-size: 0.95em;
+            line-height: 1.1;
         }
         
         .sheet-item-micro pre {
@@ -890,8 +908,13 @@
             document.getElementById('layoutSelect').value = currentData.layout || 'compact';
         }
 
-        // NEW: Keyboard shortcuts
+        // FIXED: Keyboard shortcuts - only work when not typing in input fields
         document.addEventListener('keydown', (e) => {
+            // Skip if user is typing in input/textarea/select
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                return;
+            }
+            
             // Ctrl+S - Save
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
@@ -927,7 +950,7 @@
                 e.preventDefault();
                 document.getElementById('searchFiles').focus();
             }
-            // +/- for zoom
+            // +/- for zoom - ONLY when not typing
             if (e.key === '+' || e.key === '=') {
                 e.preventDefault();
                 zoomIn();
