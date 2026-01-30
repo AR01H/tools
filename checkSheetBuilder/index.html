@@ -108,7 +108,6 @@
         
         .main-container { 
             margin-left: 180px; 
-            margin-top: 45px;
             display: flex; 
             height: calc(100vh - 45px);
             transition: margin-left 0.3s;
@@ -159,7 +158,7 @@
         /* Section collapse in editor */
         .section-box {
             background: #2c3e50;
-            padding: 8px;
+            padding: 5px;
             border-radius: 4px;
             margin-bottom: 8px;
             border-left: 2px solid #3498db;
@@ -172,7 +171,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
             font-size: 11px;
             font-weight: bold;
             cursor: pointer;
@@ -663,8 +661,10 @@
         <div class="preview-side" id="previewSide">
             <div id="cheatSheet">
                 <div class="sheet-header">
-                    <h1 id="previewTitle">Your Cheat Sheet</h1>
-                    <p id="previewSubtitle">Create your content</p>
+                    <span>
+                        <h1 id="previewTitle">Your Cheat Sheet</h1>
+                        <p id="previewSubtitle">Create your content</p>
+                    </span>
                 </div>
                 <div class="sheet-body layout-compact" id="previewContent"></div>
             </div>
@@ -704,7 +704,7 @@
     <!-- Zoom Controls -->
     <div class="zoom-controls">
         <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (+)"><i class="fas fa-plus"></i></button>
-        <button class="zoom-btn" onclick="zoomReset()" title="Reset (0)">100%</button>
+        <button class="zoom-btn" onclick="zoomReset()" title="Reset (0)">Fit</button>
         <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (-)"><i class="fas fa-minus"></i></button>
     </div>
 
@@ -1537,6 +1537,7 @@
                         <div class="section-content ${isCollapsed ? 'collapsed' : ''}">
                             ${section.items.map(item => {
                                 const codeHighlighted = item.code ? hljs.highlightAuto(item.code).value : '';
+                                const exampleHighlighted = item.example ? hljs.highlightAuto(item.example).value : '';
                                 return `
                                     <div class="sheet-item-micro">
                                         <strong>${item.name}</strong>
@@ -1547,7 +1548,8 @@
                                                 <i class="fas fa-copy"></i>
                                             </button>
                                         ` : ''}
-                                        ${item.example ? `<span class="example">📝 ${item.example}</span>` : ''}
+                                        ${item.example ? `<span class="example">
+                                            <i class="fas fa-code"></i> 📝 <pre><code class="hljs">${exampleHighlighted}</code></pre></span>` : ''}
                                         ${item.noteType && item.note ? `
                                             <div class="note-box ${item.noteType}">
                                                 <span>${item.noteType === 'info' ? 'ℹ️' : item.noteType === 'tip' ? '💡' : item.noteType === 'warning' ? '⚠️' : '🚫'}</span>
