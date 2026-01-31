@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.js" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f1419;
+            color: #e4e6eb;
+            min-height: 100vh;
+            padding: 8px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header - Ultra compact */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 8px;
+            background: #1a1f2e;
+            border: 1px solid #2a3f5f;
+            border-radius: 4px;
+        }
+
+        .logo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #4da6ff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #4da6ff;
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #6bb3ff;
+            transform: translateY(-1px);
+        }
+
+        .btn-sm {
+            padding: 3px 6px;
+            font-size: 0.7rem;
+            background: #2a3f5f;
+            color: #9ab;
+            border: 1px solid #3a5f7f;
+        }
+
+        .btn-sm:hover {
+            background: #3a5f7f;
+            color: #4da6ff;
+        }
+
+        /* Stats - Compact horizontal */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .stat {
+            background: #1a1f2e;
+            border: 1px solid #2a3f5f;
+            border-radius: 3px;
+            padding: 6px 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: #9ab;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #4da6ff;
+        }
+
+        /* Form - Ultra compact */
+        .add-form {
+            display: grid;
+            grid-template-columns: 0.8fr 0.8fr 1.5fr 0.8fr 0.8fr auto;
+            gap: 6px;
+            margin-bottom: 8px;
+            background: #1a1f2e;
+            padding: 6px;
+            border: 1px solid #2a3f5f;
+            border-radius: 4px;
+            align-items: end;
+        }
+
+        .add-form input {
+            padding: 5px 6px;
+            border: 1px solid #2a3f5f;
+            background: #0f1419;
+            color: #e4e6eb;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-family: inherit;
+        }
+
+        .add-form input:focus {
+            outline: none;
+            border-color: #4da6ff;
+            box-shadow: 0 0 0 2px rgba(77, 166, 255, 0.1);
+        }
+
+        .add-form label {
+            font-size: 0.6rem;
+            color: #9ab;
+            text-transform: uppercase;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar {
+            flex: 1;
+            min-width: 150px;
+            padding: 5px 8px 5px 24px;
+            border: 1px solid #2a3f5f;
+            background: #1a1f2e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ab' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cpath d='m21 21-4.35-4.35'%3E%3C/path%3E%3C/svg%3E") no-repeat 6px center;
+            color: #e4e6eb;
+            border-radius: 3px;
+            font-size: 0.75rem;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: #4da6ff;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            background: #1a1f2e;
+            padding: 5px 8px;
+            border: 1px solid #2a3f5f;
+            border-radius: 3px;
+            display: none;
+        }
+
+        .bulk-actions.show {
+            display: flex;
+        }
+
+        .bulk-count {
+            font-size: 0.7rem;
+            color: #4da6ff;
+            font-weight: 600;
+        }
+
+        /* Table Header */
+        .table-header {
+            display: grid;
+            grid-template-columns: 25px 1.1fr 1fr 80px 1fr 1fr 1fr;
+            gap: 4px;
+            background: #0f1419;
+            padding: 5px 6px;
+            border: 1px solid #2a3f5f;
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #4da6ff;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .table-header span {
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Entries */
+        .entries {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border: 1px solid #2a3f5f;
+            border-top: none;
+            overflow: hidden;
+            border-radius: 0 0 4px 4px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+
+        .entry {
+            display: grid;
+            grid-template-columns: 25px 1.1fr 1fr 80px 1fr 1fr 1fr;
+            gap: 4px;
+            align-items: center;
+            padding: 5px 6px;
+            background: #1a1f2e;
+            border-bottom: 1px solid #2a3f5f;
+            transition: all 0.2s;
+            font-size: 0.75rem;
+            animation: slideIn 0.2s ease-out;
+        }
+
+        .entry:hover {
+            background: #242933;
+        }
+
+        .entry:last-child {
+            border-bottom: none;
+        }
+
+        .entry.pinned {
+            background: #1f2a1a;
+            border-left: 2px solid #4da6ff;
+            padding-left: 4px;
+        }
+
+        .entry.editing {
+            background: #2a1f3a;
+            border-left: 2px solid #d946ef;
+            padding-left: 4px;
+            box-shadow: inset 0 0 0 1px #d946ef;
+        }
+
+        .entry-checkbox {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: #4da6ff;
+        }
+
+        .entry-app {
+            font-weight: 600;
+            color: #4da6ff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .entry-name {
+            font-weight: 500;
+            color: #9ab;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .entry-key {
+            display: flex;
+            align-items: center;
+        }
+
+        .key-indicator {
+            background: rgba(16, 185, 129, 0.15);
+            color: #22c55e;
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            white-space: nowrap;
+            border: 1px solid #22c55e;
+            text-align: center;
+        }
+
+        .key-indicator.not-set {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .entry-tags {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+            overflow: hidden;
+        }
+
+        .tag {
+            background: #4da6ff;
+            color: #000;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            white-space: nowrap;
+            min-width: fit-content;
+        }
+
+        .entry-note {
+            font-size: 0.7rem;
+            color: #9ab;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 2px 4px;
+        }
+
+        .entry-actions {
+            display: flex;
+            gap: 2px;
+        }
+
+        .icon-btn {
+            background: #2a3f5f;
+            color: #4da6ff;
+            border: none;
+            padding: 3px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+        }
+
+        .icon-btn:hover {
+            background: #4da6ff;
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        .icon-btn.pin-btn.pinned {
+            background: #4da6ff;
+            color: #000;
+        }
+
+        .icon-btn.delete-btn {
+            color: #ef4444;
+        }
+
+        .icon-btn.delete-btn:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ab;
+            font-size: 0.9rem;
+        }
+
+        .empty i {
+            font-size: 2rem;
+            color: #4da6ff;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: #1a1f2e;
+            color: #4da6ff;
+            padding: 8px 12px;
+            border: 1px solid #4da6ff;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            animation: slideUp 0.3s ease-out;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(77, 166, 255, 0.2);
+        }
+
+        .toast.error {
+            background: #3a2a2a;
+            color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input-wrapper input[type=file] {
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scrollbar */
+        .entries::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .entries::-webkit-scrollbar-track {
+            background: #0f1419;
+        }
+
+        .entries::-webkit-scrollbar-thumb {
+            background: #2a3f5f;
+            border-radius: 3px;
+        }
+
+        .entries::-webkit-scrollbar-thumb:hover {
+            background: #4da6ff;
+        }
+
+        @media (max-width: 1200px) {
+            .add-form {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .add-form input:nth-child(3),
+            .add-form input:nth-child(5),
+            .add-form button {
+                grid-column: span 2;
+            }
+
+            .table-header,
+            .entry {
+                grid-template-columns: 20px 60px 60px 50px 80px 1fr 50px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .add-form {
+                grid-template-columns: 1fr;
+            }
+
+            .add-form label {
+                display: none;
+            }
+
+            .table-header,
+            .entry {
+                grid-template-columns: 18px 55px 55px 45px 1fr 45px;
+                gap: 3px;
+                padding: 4px;
+                font-size: 0.7rem;
+            }
+
+            .entry-tags {
+                display: none;
+            }
+
+            .table-header span:nth-child(5),
+            .entry > div:nth-child(5) {
+                display: none;
+            }
+
+            .icon-btn {
+                width: 20px;
+                height: 20px;
+                padding: 2px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 4px;
+            }
+
+            .header {
+                padding: 6px;
+                margin-bottom: 4px;
+            }
+
+            .stats {
+                gap: 3px;
+                margin-bottom: 4px;
+            }
+
+            .stat {
+                padding: 5px 6px;
+            }
+
+            .add-form {
+                grid-template-columns: 1fr 1fr;
+                padding: 4px;
+                gap: 4px;
+                margin-bottom: 4px;
+            }
+
+            .table-header,
+            .entry {
+                grid-template-columns: 16px 50px 50px 40px 1fr 40px;
+                gap: 2px;
+                padding: 3px 4px;
+                font-size: 0.65rem;
+            }
+
+            .entry-note {
+                display: none;
+            }
+
+            .table-header span:nth-child(6),
+            .entry > div:nth-child(6) {
+                display: none;
+            }
+
+            .icon-btn {
+                width: 18px;
+                height: 18px;
+                font-size: 0.65rem;
+                padding: 1px;
+            }
+
+            .logo {
+                font-size: 0.9rem;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-key"></i> Secrets
+            </div>
+            <div class="header-right">
+                <div class="file-input-wrapper">
+                    <button class="btn btn-sm" id="importBtn" title="Import Json">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                    <input type="file" id="importFile" accept=".json">
+                </div>
+                <button class="btn btn-sm" id="exportBtn" title="Export Json">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="btn btn-sm" id="clearBtn" title="Clear All">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">Apps</div>
+                <div class="stat-value" id="totalApps">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Secrets</div>
+                <div class="stat-value" id="totalSecrets">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Pinned</div>
+                <div class="stat-value" id="totalPinned">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Last</div>
+                <div class="stat-value" id="lastAdded">—</div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form class="add-form" id="addForm">
+            <div class="form-group">
+                <label>App</label>
+                <input type="text" id="app" placeholder="Google" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Key</label>
+                <input type="text" id="name" placeholder="API_KEY" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Secret</label>
+                <input type="text" id="value" placeholder="Value..." autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <input type="text" id="note" placeholder="Optional" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label>Tags</label>
+                <input type="text" id="tags" placeholder="prod..." autocomplete="off">
+            </div>
+            <div style="display: flex; gap: 4px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitBtn" title="Add Secret">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button type="button" class="btn btn-sm" id="cancelEditBtn" style="display: none;" title="Cancel Edit">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </form>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <input type="text" class="search-bar" id="search" placeholder="Search...">
+            
+            <div class="bulk-actions" id="bulkActions">
+                <span class="bulk-count" id="bulkCount">0</span>
+                <button class="btn btn-sm" id="bulkDeleteBtn">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="btn btn-sm" id="bulkExportBtn">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table Header -->
+        <div class="table-header">
+            <span></span>
+            <span>App</span>
+            <span>Key</span>
+            <span>Secret</span>
+            <span>Tags</span>
+            <span>Notes</span>
+            <span>Actions</span>
+        </div>
+
+        <!-- Entries -->
+        <div class="entries" id="entries"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const STORAGE_KEY = 'secrets';
+            let editingId = null;
+            let editingApp = null;
+
+            const load = () => JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+            const save = (d) => {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+                render();
+                stats();
+            };
+
+            $('#addForm').submit(function(e) {
+                e.preventDefault();
+                const app = $('#app').val().trim();
+                const name = $('#name').val().trim();
+                const value = $('#value').val().trim();
+                const note = $('#note').val().trim();
+                const tags = $('#tags').val().trim();
+
+                if (!app || !name || !value) {
+                    toast('Fill required!', 'error');
+                    return;
+                }
+
+                let d = load();
+                if (!d[app]) d[app] = [];
+                
+                if (editingId && editingApp) {
+                    d[editingApp] = d[editingApp].map(e => {
+                        if (e.id === editingId) {
+                            return { ...e, name, value, note, tags, app };
+                        }
+                        return e;
+                    });
+                    if (app !== editingApp) {
+                        const entry = d[editingApp].find(e => e.id === editingId);
+                        d[editingApp] = d[editingApp].filter(e => e.id !== editingId);
+                        if (!d[editingApp].length) delete d[editingApp];
+                        if (!d[app]) d[app] = [];
+                        d[app].push(entry);
+                    }
+                } else {
+                    d[app].push({
+                        id: Date.now(),
+                        name,
+                        value,
+                        note,
+                        tags,
+                        pinned: false,
+                        created: new Date().toLocaleString()
+                    });
+                }
+
+                save(d);
+                toast(editingId ? 'Updated!' : 'Added!');
+                clearForm();
+                $('.entry.editing').removeClass('editing');
+                $('#submitBtn').html('<i class="fas fa-plus"></i>');
+                editingId = null;
+                editingApp = null;
+                $('#cancelEditBtn').hide();
+            });
+
+            $('#cancelEditBtn').click(function() {
+                clearForm();
+                editingId = null;
+                editingApp = null;
+                $('.entry.editing').removeClass('editing');
+                $('#submitBtn').html('<i class="fas fa-plus"></i>');
+                $('#cancelEditBtn').hide();
+                toast('Cancelled!');
+            });
+
+            $(document).on('click', '.delete-btn', function() {
+                const app = $(this).data('app');
+                const id = $(this).data('id');
+
+                if (confirm('Delete?')) {
+                    let d = load();
+                    d[app] = d[app].filter(e => e.id != id);
+                    if (!d[app].length) delete d[app];
+                    save(d);
+                    toast('Deleted!');
+                }
+            });
+
+            $(document).on('click', '.edit-btn', function() {
+                $('.entry.editing').removeClass('editing');
+                
+                const entry = $(this).closest('.entry');
+                const app = entry.find('.delete-btn').data('app');
+                const id = entry.find('.delete-btn').data('id');
+                
+                let d = load();
+                const secret = d[app].find(e => e.id == id);
+                
+                editingId = id;
+                editingApp = app;
+                entry.addClass('editing');
+                
+                $('#app').val(app);
+                $('#name').val(secret.name);
+                $('#value').val(secret.value);
+                $('#note').val(secret.note);
+                $('#tags').val(secret.tags || '');
+                
+                $('#submitBtn').html('<i class="fas fa-check"></i>');
+                
+                $('#cancelEditBtn').show();
+                $('#app').focus();
+                toast('Editing...');
+            });
+
+            $(document).on('click', '.pin-btn', function() {
+                const entry = $(this).closest('.entry');
+                const app = entry.find('.delete-btn').data('app');
+                const id = entry.find('.delete-btn').data('id');
+                
+                let d = load();
+                const secret = d[app].find(e => e.id == id);
+                secret.pinned = !secret.pinned;
+                save(d);
+                toast(secret.pinned ? 'Pinned!' : 'Unpinned!');
+            });
+
+            $(document).on('click', '.copy-btn', function() {
+                const val = $(this).data('value');
+                navigator.clipboard.writeText(val).then(() => {
+                    toast('Copied!');
+                }).catch(() => {
+                    toast('Failed', 'error');
+                });
+            });
+
+            $(document).on('change', '.entry-checkbox', function() {
+                const count = $('.entry-checkbox:checked').length;
+                if (count > 0) {
+                    $('#bulkActions').addClass('show');
+                    $('#bulkCount').text(count);
+                } else {
+                    $('#bulkActions').removeClass('show');
+                }
+            });
+
+            $('#bulkDeleteBtn').click(() => {
+                const count = $('.entry-checkbox:checked').length;
+                if (confirm(`Delete ${count}?`)) {
+                    let d = load();
+                    $('.entry-checkbox:checked').closest('.entry').each(function() {
+                        const app = $(this).find('.delete-btn').data('app');
+                        const id = $(this).find('.delete-btn').data('id');
+                        d[app] = d[app].filter(e => e.id != id);
+                        if (!d[app].length) delete d[app];
+                    });
+                    save(d);
+                    toast(`Deleted ${count}!`);
+                }
+            });
+
+            $('#bulkExportBtn').click(() => {
+                const selected = {};
+                $('.entry-checkbox:checked').closest('.entry').each(function() {
+                    const app = $(this).find('.delete-btn').data('app');
+                    const id = $(this).find('.delete-btn').data('id');
+                    let d = load();
+                    if (!selected[app]) selected[app] = [];
+                    selected[app].push(d[app].find(e => e.id == id));
+                });
+                
+                const json = JSON.stringify(selected, null, 2);
+                const blob = new Blob([json], {type: 'application/json'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `secrets-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                toast('Exported!');
+            });
+
+            $('#search').on('keyup', function() {
+                const q = $(this).val().toLowerCase();
+                $('.entry').each(function() {
+                    $(this).toggle($(this).text().toLowerCase().includes(q));
+                });
+            });
+
+            const stats = () => {
+                const d = load();
+                const apps = Object.keys(d).length;
+                let secrets = 0;
+                let pinned = 0;
+                Object.values(d).forEach(a => {
+                    a.forEach(s => {
+                        secrets++;
+                        if (s.pinned) pinned++;
+                    });
+                });
+
+                $('#totalApps').text(apps);
+                $('#totalSecrets').text(secrets);
+                $('#totalPinned').text(pinned);
+
+                if (secrets > 0) {
+                    const all = [];
+                    Object.values(d).forEach(a => all.push(...a));
+                    const last = all[all.length - 1];
+                    const mins = Math.floor((new Date() - new Date(last.created)) / 60000);
+                    if (mins < 1) $('#lastAdded').text('now');
+                    else if (mins < 60) $('#lastAdded').text(mins + 'm');
+                    else if (mins < 1440) $('#lastAdded').text(Math.floor(mins / 60) + 'h');
+                    else $('#lastAdded').text(Math.floor(mins / 1440) + 'd');
+                } else {
+                    $('#lastAdded').text('—');
+                }
+            };
+
+            const render = () => {
+                const d = load();
+                const c = $('#entries');
+                c.empty();
+
+                if (!Object.keys(d).length) {
+                    c.html('<div class="empty"><i class="fas fa-inbox"></i><p>No secrets yet</p></div>');
+                    return;
+                }
+
+                const allEntries = [];
+                Object.entries(d).forEach(([app, entries]) => {
+                    entries.forEach(e => {
+                        allEntries.push({app, ...e});
+                    });
+                });
+                allEntries.sort((a, b) => b.pinned - a.pinned);
+
+                allEntries.forEach(e => {
+                    const pinnedClass = e.pinned ? 'pinned' : '';
+                    const tagsHtml = e.tags ? e.tags.split(',').map(tag => `<div class="tag">${tag.trim()}</div>`).join('') : '';
+                    const secretIndicator = e.value ? '<span class="key-indicator">✓ SET</span>' : '<span class="key-indicator not-set">✗ NOT</span>';
+                    
+                    const h = `
+                        <div class="entry ${pinnedClass}">
+                            <input type="checkbox" class="entry-checkbox">
+                            <div class="entry-app" title="${e.app}">${e.app}</div>
+                            <div class="entry-name" title="${e.name}">${e.name}</div>
+                            <div class="entry-key">${secretIndicator}</div>
+                            <div class="entry-tags">${tagsHtml}</div>
+                            <div class="entry-note" title="${e.note || ''}">${e.note || ''}</div>
+                            <div class="entry-actions">
+                                <button class="icon-btn copy-btn" data-value="${e.value}" title="Copy Secret">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button class="icon-btn pin-btn ${e.pinned ? 'pinned' : ''}" title="Pin">
+                                    <i class="fas fa-thumbtack"></i>
+                                </button>
+                                <button class="icon-btn edit-btn" title="Edit">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </button>
+                                <button class="icon-btn delete-btn" data-app="${e.app}" data-id="${e.id}" title="Delete">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    c.append(h);
+                });
+            };
+
+            const clearForm = () => {
+                $('#app, #name, #value, #note, #tags').val('');
+            };
+
+            const toast = (msg, type = 'success') => {
+                const t = $(`<div class="toast ${type === 'error' ? 'error' : ''}">${msg}</div>`);
+                $('body').append(t);
+                setTimeout(() => t.fadeOut(300, () => t.remove()), 2000);
+            };
+
+            $('#importBtn').click(() => $('#importFile').click());
+            $('#importFile').change(function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        let d = load();
+                        let count = 0;
+                        Object.entries(imported).forEach(([app, entries]) => {
+                            if (!d[app]) d[app] = [];
+                            if (Array.isArray(entries)) {
+                                entries.forEach(e => {
+                                    d[app].push({
+                                        id: Date.now() + Math.random(),
+                                        name: e.name,
+                                        value: e.value,
+                                        note: e.note || '',
+                                        tags: e.tags || '',
+                                        pinned: e.pinned || false,
+                                        created: e.created || new Date().toLocaleString()
+                                    });
+                                    count++;
+                                });
+                            }
+                        });
+                        save(d);
+                        toast(`Imported ${count}!`);
+                        $('#importFile').val('');
+                    } catch (err) {
+                        toast('Invalid JSON', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            });
+
+            $('#exportBtn').click(() => {
+                const json = JSON.stringify(load(), null, 2);
+                const blob = new Blob([json], {type: 'application/json'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `secrets-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                toast('Exported!');
+            });
+
+            $('#clearBtn').click(() => {
+                if (confirm('Delete ALL?') && confirm('REALLY?')) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    save({});
+                    toast('Cleared!');
+                }
+            });
+
+            $(document).keydown(e => {
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    $('#app').focus();
+                }
+            });
+
+            stats();
+            render();
+        });
+    </script>
+</body>
+</html>

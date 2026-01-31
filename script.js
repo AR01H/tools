@@ -167,6 +167,15 @@ const tools = [
   },
   {
     icon: "fas fa-shield-alt",
+    title: "Secrets Keeper",
+    description: "Securely store and manage your sensitive information with encryption and easy access.",
+    tags: ["Security", "Password Viewer", "Encryption", "JSON"],
+    status: "live",
+    link: "./secretsKeeper/index.html",
+    groupname: ["Password Store"]
+  },
+  {
+    icon: "fas fa-shield-alt",
     title: "Simple Password Bank",
     description: "Secure password manager that stores your credentials in encrypted JSON format with advanced security features.",
     tags: ["Security", "Password Manager", "Encryption", "JSON"],
