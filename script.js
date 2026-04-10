@@ -228,16 +228,7 @@ const tools = [
       "Generate reports and analytics"
     ],
     link: "./testCaseManager/index.html",
-    groupname: ["Soptware Testing"]
-  },
-  {
-    icon: "fas fa-cloud-upload-alt",
-    title: "Task Maker",
-    description: "create task and reminders.",
-    tags: ["Task Maker", "Reminders", "Productivity"],
-    status: "live",
-    link: "./taskMaker/index.html",
-    groupname: ["Task Maker"]
+    groupname: ["Software Testing"]
   },
   {
     icon: "fas fa-cloud-upload-alt",
