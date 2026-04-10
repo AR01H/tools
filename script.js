@@ -233,10 +233,19 @@ const tools = [
   {
     icon: "fas fa-cloud-upload-alt",
     title: "Preparation Tracker",
-    description: "create task and reminders.",
+    description: "create task and view.",
     tags: ["Tracker", "Reminders", "Productivity","Preparation"],
     status: "live",
     link: "./preparationTracker/interview_prep_tracker.html",
+    groupname: ["Task Maker"]
+  },
+  {
+    icon: "fas fa-cloud-upload-alt",
+    title: "Adv Preparation Tracker",
+    description: "create task and view.",
+    tags: ["Tracker", "Reminders", "Productivity","Preparation",Quiz],
+    status: "live",
+    link: "./preparationTracker/advpointstore.html",
     groupname: ["Task Maker"]
   }
 ];
