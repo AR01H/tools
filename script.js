@@ -238,6 +238,15 @@ const tools = [
     status: "live",
     link: "./taskMaker/index.html",
     groupname: ["Task Maker"]
+  },
+  {
+    icon: "fas fa-cloud-upload-alt",
+    title: "Preparation Tracker",
+    description: "create task and reminders.",
+    tags: ["Tracker", "Reminders", "Productivity","Preparation"],
+    status: "live",
+    link: "./preparationTracker/interview_prep_tracker.html",
+    groupname: ["Task Maker"]
   }
 ];
 

@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --border: #e5e5e5;
+  --border-md: #d0d0d0;
+  --text: #111111;
+  --text-2: #555555;
+  --text-3: #999999;
+  --accent: #2563eb;
+  --accent-bg: #eff6ff;
+  --accent-text: #1d4ed8;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --green-text: #15803d;
+  --amber: #b45309;
+  --amber-bg: #fffbeb;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --red-text: #b91c1c;
+  --r: 8px;
+  --r-lg: 12px;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── LAYOUT ─────────────────────────────── */
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ─────────────────────────────── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sb-head {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sb-title { font-size: 14px; font-weight: 600; }
+.sb-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+.sb-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.sb-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  padding: 8px 14px 4px;
+}
+
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.1s;
+  border-radius: 0;
+}
+
+.sb-item:hover { background: var(--bg); color: var(--text); }
+
+.sb-item.active {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font-weight: 500;
+}
+
+.sb-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border-md);
+  flex-shrink: 0;
+}
+
+.sb-item.active .sb-dot { background: var(--accent); }
+
+.sb-count {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-3);
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.sb-item.active .sb-count {
+  background: var(--accent-bg);
+  border-color: transparent;
+  color: var(--accent-text);
+}
+
+.sb-foot {
+  border-top: 1px solid var(--border);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* ── MAIN ────────────────────────────────── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── TOP BAR ─────────────────────────────── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 0 0 auto;
+  min-width: 100px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  max-width: 240px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 5px 9px;
+}
+
+.search-box svg { color: var(--text-3); flex-shrink: 0; }
+
+.search-box input {
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 12px;
+  color: var(--text);
+  width: 100%;
+  font-family: inherit;
+}
+
+.search-box input::placeholder { color: var(--text-3); }
+
+.filters { display: flex; gap: 3px; margin-left: auto; }
+
+.fpill {
+  font-size: 12px;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 400;
+  transition: all 0.1s;
+  white-space: nowrap;
+}
+
+.fpill:hover { border-color: var(--border-md); color: var(--text); }
+.fpill.on { background: var(--text); color: var(--surface); border-color: var(--text); font-weight: 500; }
+
+/* ── STATS ───────────────────────────────── */
+.statsbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.stat-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px 10px 0;
+  margin-right: 16px;
+  border-right: 1px solid var(--border);
+}
+
+.stat-cell:last-child { border-right: none; margin-right: 0; }
+
+.stat-n { font-size: 18px; font-weight: 600; line-height: 1; }
+.stat-n.g { color: var(--green); }
+.stat-n.a { color: var(--amber); }
+.stat-lbl { font-size: 10px; color: var(--text-3); }
+
+.prog-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  min-width: 80px;
+}
+
+.prog-track {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.prog-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.prog-pct { font-size: 11px; font-weight: 500; color: var(--green); min-width: 28px; text-align: right; }
+
+/* ── CONTENT ─────────────────────────────── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+
+/* ── SECTION CARD ────────────────────────── */
+.sec-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.sec-hdr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.1s;
+}
+
+.sec-hdr:hover { background: #fafafa; }
+
+.chev {
+  width: 14px;
+  height: 14px;
+  color: var(--text-3);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chev.open { transform: rotate(90deg); }
+
+.sec-name { font-size: 13px; font-weight: 600; flex: 1; }
+
+.sec-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.bd-done { background: var(--green-bg); color: var(--green-text); }
+.bd-part { background: var(--amber-bg); color: var(--amber); }
+.bd-none { background: var(--bg); color: var(--text-3); border: 1px solid var(--border); }
+
+.sec-btns { display: flex; gap: 2px; }
+
+.ic-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+  flex-shrink: 0;
+}
+
+.ic-btn:hover { background: var(--bg); color: var(--text); }
+.ic-btn.d:hover { background: var(--red-bg); color: var(--red-text); }
+
+.sec-body {
+  display: none;
+  border-top: 1px solid var(--border);
+}
+
+.sec-body.open { display: block; }
+
+/* ── POINT ROW ───────────────────────────── */
+.pt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.pt-row:hover { background: #fafafa; }
+.pt-row:last-of-type { border-bottom: none; }
+
+.pt-cb {
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: var(--green);
+  flex-shrink: 0;
+}
+
+.pt-body { flex: 1; min-width: 0; }
+
+.pt-title {
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: color 0.1s;
+}
+
+.pt-title:hover { color: var(--accent); }
+.pt-title.done { text-decoration: line-through; color: var(--text-3); font-weight: 400; }
+
+.pt-desc {
+  display: none;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin-top: 6px;
+  padding: 7px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  border-left: 2px solid var(--accent);
+}
+
+.pt-desc.open { display: block; }
+
+.pt-acts {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.mini {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.1s;
+}
+
+.mini:hover { border-color: var(--border-md); color: var(--text); background: var(--surface); }
+.mini.d { color: var(--red-text); border-color: transparent; }
+.mini.d:hover { background: var(--red-bg); }
+
+/* ── INLINE ADD FORM ─────────────────────── */
+.add-form {
+  display: none;
+  padding: 10px 14px 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  flex-direction: column;
+  gap: 6px;
+}
+
+.add-form.open { display: flex; }
+
+.add-form input,
+.add-form textarea {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.add-form input:focus,
+.add-form textarea:focus { border-color: var(--accent); }
+.add-form textarea { resize: vertical; min-height: 56px; }
+.add-form-row { display: flex; gap: 6px; }
+
+.sec-foot {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  background: #fafafa;
+}
+
+/* ── BUTTONS ─────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.1s;
+  text-align: center;
+  justify-content: center;
+}
+
+.btn:hover { border-color: var(--border-md); color: var(--text); background: var(--bg); }
+.btn.p { background: var(--text); color: var(--surface); border-color: var(--text); }
+.btn.p:hover { opacity: 0.82; }
+.btn.da { color: var(--red-text); border-color: var(--red-bg); background: var(--red-bg); }
+.btn.da:hover { background: #fecaca; border-color: #fecaca; }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.btn.w { width: 100%; }
+
+/* ── MODAL ───────────────────────────────── */
+.mask {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.mask.open { display: flex; }
+
+.mbox {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  width: 100%;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.m-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.m-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-3);
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.m-close:hover { color: var(--text); }
+
+.mbox label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-3);
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+
+.mbox label:first-of-type { margin-top: 0; }
+
+.mbox input,
+.mbox textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.mbox input:focus,
+.mbox textarea:focus { border-color: var(--accent); }
+.mbox textarea { resize: vertical; min-height: 80px; }
+
+.m-note { font-size: 12px; color: var(--text-3); margin-bottom: 10px; line-height: 1.5; }
+.m-foot { display: flex; gap: 6px; margin-top: 14px; }
+.m-foot .btn { flex: 1; }
+
+.imp-ta { font-family: monospace !important; font-size: 11px !important; min-height: 90px !important; }
+
+/* ── TOAST ───────────────────────────────── */
+#toast-wrap {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  pointer-events: none;
+}
+
+#toast {
+  background: var(--text);
+  color: var(--surface);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 20px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── EMPTY ───────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-3);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ── MOBILE ──────────────────────────────── */
+@media (max-width: 640px) {
+  .layout { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
+  .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .sb-nav { max-height: 180px; }
+  .main { overflow: visible; }
+  .content { overflow: visible; }
+  .statsbar { gap: 0; }
+  .stat-cell { padding: 8px 12px 8px 0; margin-right: 12px; }
+  .stat-n { font-size: 16px; }
+  .topbar { padding: 8px 12px; gap: 6px; }
+  .search-box { max-width: none; flex: 1; }
+  .filters { flex-wrap: wrap; }
+  .content { padding: 10px 12px; }
+  .mask { align-items: flex-end; padding: 0; }
+  .mbox { border-radius: var(--r-lg) var(--r-lg) 0 0; max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-title">PrepTrack</div>
+      <div class="sb-sub">Interview preparation</div>
+    </div>
+
+    <nav class="sb-nav" id="sb-nav">
+      <div class="sb-group-label">Sections</div>
+    </nav>
+
+    <div class="sb-foot">
+      <button class="btn sm w" onclick="openM('addSec')">+ Add section</button>
+      <button class="btn sm w" onclick="openM('import')">Import JSON</button>
+      <button class="btn sm w" onclick="exportJSON()">Export JSON</button>
+      <button class="btn sm w p" onclick="dlSheet()">Download sheet</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="top-title">All sections</div>
+      <div class="search-box">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search" placeholder="Search topics..." oninput="render()">
+      </div>
+      <div class="filters">
+        <button class="fpill on" data-f="all" onclick="setF(this)">All</button>
+        <button class="fpill" data-f="pending" onclick="setF(this)">Pending</button>
+        <button class="fpill" data-f="done" onclick="setF(this)">Done</button>
+      </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="statsbar">
+      <div class="stat-cell">
+        <div>
+          <div class="stat-n" id="s-tot">0</div>
+          <div class="stat-lbl">Total</div>
+        </div>
+      </div>
+      <div class="stat-cell">
+        <div>
+          <div class="stat-n g" id="s-dn">0</div>
+          <div class="stat-lbl">Done</div>
+        </div>
+      </div>
+      <div class="stat-cell">
+        <div>
+          <div class="stat-n a" id="s-pd">0</div>
+          <div class="stat-lbl">Pending</div>
+        </div>
+      </div>
+      <div class="stat-cell">
+        <div>
+          <div class="stat-n" id="s-sc">0</div>
+          <div class="stat-lbl">Sections</div>
+        </div>
+      </div>
+      <div class="prog-cell">
+        <div class="prog-track">
+          <div class="prog-fill" id="prog" style="width:0%"></div>
+        </div>
+        <div class="prog-pct" id="pct">0%</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content" id="content"></div>
+
+  </main>
+</div>
+
+<!-- MODAL: Add Section -->
+<div class="mask" id="m-addSec" onclick="bgClose(event,'addSec')">
+  <div class="mbox">
+    <div class="m-title">New section <button class="m-close" onclick="closeM('addSec')">×</button></div>
+    <label>Section name</label>
+    <input id="i-sn" placeholder="e.g. Docker, ACID, AWS basics" onkeydown="if(event.key==='Enter')doAddSec()">
+    <div class="m-foot">
+      <button class="btn" onclick="closeM('addSec')">Cancel</button>
+      <button class="btn p" onclick="doAddSec()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Section -->
+<div class="mask" id="m-editSec" onclick="bgClose(event,'editSec')">
+  <div class="mbox">
+    <div class="m-title">Rename section <button class="m-close" onclick="closeM('editSec')">×</button></div>
+    <label>Section name</label>
+    <input id="i-esn" placeholder="Section name" onkeydown="if(event.key==='Enter')doSaveSec()">
+    <input type="hidden" id="i-esi">
+    <div class="m-foot">
+      <button class="btn" onclick="closeM('editSec')">Cancel</button>
+      <button class="btn p" onclick="doSaveSec()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Point -->
+<div class="mask" id="m-editPt" onclick="bgClose(event,'editPt')">
+  <div class="mbox">
+    <div class="m-title">Edit point <button class="m-close" onclick="closeM('editPt')">×</button></div>
+    <label>Topic / question</label>
+    <input id="i-ept" placeholder="e.g. What is ACID?">
+    <label>Description / answer</label>
+    <textarea id="i-epd" placeholder="Write your notes or answer here..."></textarea>
+    <input type="hidden" id="i-epid">
+    <input type="hidden" id="i-epsid">
+    <div class="m-foot">
+      <button class="btn" onclick="closeM('editPt')">Cancel</button>
+      <button class="btn p" onclick="doSavePt()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Import -->
+<div class="mask" id="m-import" onclick="bgClose(event,'import')">
+  <div class="mbox">
+    <div class="m-title">Import data <button class="m-close" onclick="closeM('import')">×</button></div>
+    <p class="m-note">Paste exported JSON. Merge keeps existing data. Replace overwrites everything.</p>
+    <textarea class="imp-ta" id="i-imp" placeholder="Paste JSON here..."></textarea>
+    <div class="m-foot">
+      <button class="btn" onclick="closeM('import')">Cancel</button>
+      <button class="btn da" onclick="doImport(true)">Replace all</button>
+      <button class="btn p" onclick="doImport(false)">Merge</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-wrap"><div id="toast"></div></div>
+
+<script>
+const KEY = 'preptrack_v3';
+let DB = { sections: [] };
+let filt = 'all';
+let actSec = 'all';
+
+const SEED = { sections: [
+  { id:'s1', name:'About yourself', open:true, points:[
+    { id:'p1', title:'Who + years + domain (15 sec)', desc:"Say: 'I am a backend/fullstack developer with X years of experience.' Keep it punchy.", done:false },
+    { id:'p2', title:'Tech stack to mention', desc:'Node.js, Python, MySQL, MongoDB, Docker, AWS (S3/EC2), REST APIs, WebSockets.', done:false },
+    { id:'p3', title:'2 key projects to highlight', desc:'URL Shortener with DDoS + rate limiting. Hussein Sports Portal with real-time WebSocket.', done:false },
+    { id:'p4', title:'Why this company or role', desc:"Say: 'Looking to work on larger-scale systems and challenging backend problems.'", done:false },
+  ]},
+  { id:'s2', name:'Resume checklist', open:false, points:[
+    { id:'p5', title:'GitHub link added?', desc:'Red flag if missing. Add github.com/yourusername at the top. Interviewers check it.', done:false },
+    { id:'p6', title:'ATS keywords present?', desc:'REST API, Microservices, Docker, CI/CD, Agile, SQL, NoSQL, AWS. Match the job description.', done:false },
+    { id:'p7', title:'Project format: Problem → Built → Tech → Impact', desc:'Every project needs this 4-part format. No vague descriptions.', done:false },
+    { id:'p8', title:'ATS safe — no images or tables', desc:'ATS cannot parse images/tables/columns. Use plain text, single-column layout.', done:false },
+  ]}
+]};
+
+function uid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+
+function load() {
+  try {
+    const r = localStorage.getItem(KEY);
+    if (r) DB = JSON.parse(r);
+    else { DB = JSON.parse(JSON.stringify(SEED)); save(); }
+  } catch(e) { DB = JSON.parse(JSON.stringify(SEED)); }
+  render();
+}
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch(e) {} }
+
+function setF(el) {
+  filt = el.dataset.f;
+  document.querySelectorAll('.fpill').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  render();
+}
+
+function setSec(id) { actSec = id; render(); }
+
+function render() {
+  const q = (document.getElementById('search')?.value || '').toLowerCase().trim();
+
+  let tot = 0, dn = 0;
+  DB.sections.forEach(s => { tot += s.points.length; dn += s.points.filter(p => p.done).length; });
+  document.getElementById('s-tot').textContent = tot;
+  document.getElementById('s-dn').textContent = dn;
+  document.getElementById('s-pd').textContent = tot - dn;
+  document.getElementById('s-sc').textContent = DB.sections.length;
+  const pct = tot > 0 ? Math.round((dn / tot) * 100) : 0;
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('pct').textContent = pct + '%';
+
+  // Sidebar
+  const nav = document.getElementById('sb-nav');
+  nav.innerHTML = '<div class="sb-group-label">Sections</div>' +
+    `<button class="sb-item${actSec==='all'?' active':''}" onclick="setSec('all')">
+      <span class="sb-dot"></span>All sections<span class="sb-count">${tot}</span>
+    </button>` +
+    DB.sections.map(s => {
+      const sd = s.points.filter(p => p.done).length;
+      return `<button class="sb-item${actSec===s.id?' active':''}" onclick="setSec('${s.id}')">
+        <span class="sb-dot"></span>${s.name}<span class="sb-count">${sd}/${s.points.length}</span>
+      </button>`;
+    }).join('');
+
+  // Top bar title
+  if (actSec === 'all') {
+    document.getElementById('top-title').textContent = 'All sections';
+  } else {
+    const fs = DB.sections.find(s => s.id === actSec);
+    document.getElementById('top-title').textContent = fs ? fs.name : 'All sections';
+  }
+
+  const secsToShow = actSec === 'all' ? DB.sections : DB.sections.filter(s => s.id === actSec);
+  const area = document.getElementById('content');
+
+  if (!DB.sections.length) {
+    area.innerHTML = '<div class="empty">No sections yet.<br>Click "+ Add section" in the sidebar to get started.</div>';
+    return;
+  }
+
+  area.innerHTML = secsToShow.map(sec => {
+    const pts = sec.points.filter(p => {
+      const mf = filt === 'all' || (filt === 'done' && p.done) || (filt === 'pending' && !p.done);
+      const mq = !q || p.title.toLowerCase().includes(q) || (p.desc && p.desc.toLowerCase().includes(q));
+      return mf && mq;
+    });
+
+    const sd = sec.points.filter(p => p.done).length;
+    const st = sec.points.length;
+    const bc = sd === st && st > 0 ? 'bd-done' : sd > 0 ? 'bd-part' : 'bd-none';
+
+    const pHtml = pts.map(p => `
+      <div class="pt-row">
+        <input type="checkbox" class="pt-cb" ${p.done?'checked':''} onchange="tPt('${sec.id}','${p.id}')">
+        <div class="pt-body">
+          <div class="pt-title${p.done?' done':''}" onclick="tDesc('d-${p.id}')">${p.title}</div>
+          ${p.desc ? `<div class="pt-desc" id="d-${p.id}">${p.desc}</div>` : ''}
+          <div class="pt-acts">
+            ${p.desc ? `<button class="mini" onclick="tDesc('d-${p.id}')">Answer</button>` : ''}
+            <button class="mini" onclick="oEditPt('${sec.id}','${p.id}')">Edit</button>
+            <button class="mini d" onclick="dPt('${sec.id}','${p.id}')">Remove</button>
+          </div>
+        </div>
+      </div>`).join('') || `<div style="padding:10px 14px;font-size:12px;color:var(--text-3)">${
+        q ? 'No points match your search.' : filt !== 'all' ? 'No ' + filt + ' points here.' : 'No points yet.'
+      }</div>`;
+
+    return `<div class="sec-card">
+      <div class="sec-hdr" onclick="tSec('${sec.id}')">
+        <svg class="chev${sec.open?' open':''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        <span class="sec-name">${sec.name}</span>
+        <span class="sec-badge ${bc}">${sd}/${st}</span>
+        <div class="sec-btns" onclick="event.stopPropagation()">
+          <button class="ic-btn" title="Rename" onclick="oEditSec('${sec.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+          </button>
+          <button class="ic-btn d" title="Delete" onclick="dSec('${sec.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="sec-body${sec.open?' open':''}">
+        ${pHtml}
+        <div class="sec-foot">
+          <button class="btn sm" onclick="tForm('f-${sec.id}')">+ Add point</button>
+        </div>
+        <div class="add-form" id="f-${sec.id}">
+          <input id="nt-${sec.id}" placeholder="Topic / question" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();dAddPt('${sec.id}')}">
+          <textarea id="nd-${sec.id}" placeholder="Description / answer (optional)"></textarea>
+          <div class="add-form-row">
+            <button class="btn sm" onclick="tForm('f-${sec.id}')">Cancel</button>
+            <button class="btn sm p" onclick="dAddPt('${sec.id}')">Add point</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tSec(id) {
+  const s = DB.sections.find(s => s.id === id);
+  if (s) { s.open = !s.open; save(); render(); }
+}
+
+function tPt(sid, pid) {
+  const s = DB.sections.find(s => s.id === sid);
+  if (!s) return;
+  const p = s.points.find(p => p.id === pid);
+  if (p) { p.done = !p.done; save(); render(); }
+}
+
+function tDesc(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function tForm(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('open');
+  if (el.classList.contains('open')) el.querySelector('input')?.focus();
+}
+
+function dAddPt(sid) {
+  const t = (document.getElementById('nt-' + sid)?.value || '').trim();
+  const d = (document.getElementById('nd-' + sid)?.value || '').trim();
+  if (!t) return;
+  const s = DB.sections.find(s => s.id === sid);
+  if (s) { s.points.push({ id: uid(), title: t, desc: d, done: false }); save(); render(); toast('Point added'); }
+}
+
+function doAddSec() {
+  const name = (document.getElementById('i-sn')?.value || '').trim();
+  if (!name) return;
+  DB.sections.push({ id: uid(), name, open: true, points: [] });
+  save(); render();
+  document.getElementById('i-sn').value = '';
+  closeM('addSec');
+  toast('Section created');
+}
+
+function oEditSec(id) {
+  const s = DB.sections.find(s => s.id === id);
+  if (!s) return;
+  document.getElementById('i-esn').value = s.name;
+  document.getElementById('i-esi').value = id;
+  openM('editSec');
+}
+
+function doSaveSec() {
+  const id = document.getElementById('i-esi').value;
+  const name = (document.getElementById('i-esn')?.value || '').trim();
+  if (!name) return;
+  const s = DB.sections.find(s => s.id === id);
+  if (s) { s.name = name; save(); render(); }
+  closeM('editSec');
+  toast('Section renamed');
+}
+
+function dSec(id) {
+  if (!confirm('Delete this section and all its points?')) return;
+  DB.sections = DB.sections.filter(s => s.id !== id);
+  if (actSec === id) actSec = 'all';
+  save(); render(); toast('Section deleted');
+}
+
+function oEditPt(sid, pid) {
+  const s = DB.sections.find(s => s.id === sid);
+  if (!s) return;
+  const p = s.points.find(p => p.id === pid);
+  if (!p) return;
+  document.getElementById('i-ept').value = p.title;
+  document.getElementById('i-epd').value = p.desc || '';
+  document.getElementById('i-epid').value = pid;
+  document.getElementById('i-epsid').value = sid;
+  openM('editPt');
+}
+
+function doSavePt() {
+  const sid = document.getElementById('i-epsid').value;
+  const pid = document.getElementById('i-epid').value;
+  const title = (document.getElementById('i-ept')?.value || '').trim();
+  const desc = (document.getElementById('i-epd')?.value || '').trim();
+  if (!title) return;
+  const s = DB.sections.find(s => s.id === sid);
+  if (s) {
+    const p = s.points.find(p => p.id === pid);
+    if (p) { p.title = title; p.desc = desc; save(); render(); }
+  }
+  closeM('editPt');
+  toast('Point updated');
+}
+
+function dPt(sid, pid) {
+  const s = DB.sections.find(s => s.id === sid);
+  if (!s) return;
+  s.points = s.points.filter(p => p.id !== pid);
+  save(); render(); toast('Point removed');
+}
+
+function openM(id) {
+  document.getElementById('m-' + id).classList.add('open');
+  setTimeout(() => {
+    const el = document.querySelector('#m-' + id + ' input:not([type=hidden]), #m-' + id + ' textarea');
+    if (el) el.focus();
+  }, 60);
+}
+
+function closeM(id) { document.getElementById('m-' + id).classList.remove('open'); }
+function bgClose(e, id) { if (e.target === e.currentTarget) closeM(id); }
+
+function exportJSON() {
+  const b = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'preptrack_backup.json';
+  a.click();
+  toast('JSON exported');
+}
+
+function doImport(replace) {
+  const text = (document.getElementById('i-imp')?.value || '').trim();
+  try {
+    const imp = JSON.parse(text);
+    if (!imp.sections) throw new Error();
+    if (replace) {
+      DB = imp;
+    } else {
+      imp.sections.forEach(s => {
+        const ex = DB.sections.find(e => e.name === s.name);
+        if (ex) {
+          s.points.forEach(p => {
+            if (!ex.points.find(e => e.title === p.title)) ex.points.push({ ...p, id: uid() });
+          });
+        } else {
+          DB.sections.push({ ...s, id: uid(), points: s.points.map(p => ({ ...p, id: uid() })) });
+        }
+      });
+    }
+    save(); render();
+    closeM('import');
+    document.getElementById('i-imp').value = '';
+    toast(replace ? 'Data replaced' : 'Data merged');
+  } catch(e) { alert('Invalid JSON. Please paste a valid exported file.'); }
+}
+
+function dlSheet() {
+  let tot = 0, dn = 0;
+  DB.sections.forEach(s => { tot += s.points.length; dn += s.points.filter(p => p.done).length; });
+  const pct = tot > 0 ? Math.round((dn / tot) * 100) : 0;
+
+  const secsHtml = DB.sections.map(s => {
+    const sd = s.points.filter(p => p.done).length;
+    const rows = s.points.map(p => `<tr style="${p.done?'opacity:0.5':''}">
+      <td style="width:22px;text-align:center;font-size:12px;padding:7px 6px 7px 12px">${p.done ? '✓' : '○'}</td>
+      <td style="padding:7px 12px 7px 0">
+        <div style="font-size:13px;font-weight:500${p.done?';text-decoration:line-through':''}">${p.title}</div>
+        ${p.desc ? `<div style="font-size:11px;color:#777;margin-top:3px;line-height:1.5">${p.desc}</div>` : ''}
+      </td></tr>`).join('');
+    const bdone = sd === s.points.length && s.points.length > 0;
+    return `<div style="border:1px solid #e5e5e5;border-radius:10px;margin-bottom:10px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#f9f9f9;border-bottom:1px solid #e5e5e5">
+        <span style="font-size:13px;font-weight:600">${s.name}</span>
+        <span style="font-size:10px;font-weight:500;padding:2px 7px;border-radius:8px;background:${bdone?'#f0fdf4':'#f5f5f5'};color:${bdone?'#15803d':'#999'};border:1px solid ${bdone?'#bbf7d0':'#e5e5e5'}">${sd}/${s.points.length}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse">${rows}</table>
+    </div>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interview Prep Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:#fff;color:#111;padding:24px;max-width:720px;margin:auto}@media print{body{padding:0;max-width:none}}</style>
+</head><body>
+<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e5e5e5">
+  <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:4px">Interview preparation</div>
+  <div style="font-size:20px;font-weight:600">PrepTrack</div>
+  <div style="font-size:11px;color:#aaa;margin-top:3px">${new Date().toLocaleString()}</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+  <div style="background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;padding:10px">
+    <div style="font-size:18px;font-weight:600">${tot}</div>
+    <div style="font-size:10px;color:#aaa;margin-top:1px">Total</div>
+  </div>
+  <div style="background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;padding:10px">
+    <div style="font-size:18px;font-weight:600;color:#16a34a">${dn}</div>
+    <div style="font-size:10px;color:#aaa;margin-top:1px">Done</div>
+  </div>
+  <div style="background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;padding:10px">
+    <div style="font-size:18px;font-weight:600;color:#b45309">${tot-dn}</div>
+    <div style="font-size:10px;color:#aaa;margin-top:1px">Pending</div>
+  </div>
+  <div style="background:#f9f9f9;border:1px solid #e5e5e5;border-radius:8px;padding:10px">
+    <div style="font-size:18px;font-weight:600">${pct}%</div>
+    <div style="font-size:10px;color:#aaa;margin-top:1px">Complete</div>
+  </div>
+</div>
+<div style="height:4px;background:#e5e5e5;border-radius:2px;margin-bottom:18px;overflow:hidden">
+  <div style="height:100%;width:${pct}%;background:#16a34a;border-radius:2px"></div>
+</div>
+${secsHtml}
+<div style="margin-top:18px;text-align:center;font-size:10px;color:#ccc">PrepTrack — ${new Date().toLocaleDateString()}</div>
+</body></html>`;
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+  a.download = 'interview_prep_sheet.html';
+  a.click();
+  toast('Sheet downloaded');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['addSec', 'editSec', 'editPt', 'import'].forEach(id => closeM(id));
+  }
+});
+
+load();
+</script>
+</body>
+</html>
