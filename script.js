@@ -243,7 +243,7 @@ const tools = [
     icon: "fas fa-cloud-upload-alt",
     title: "Adv Preparation Tracker",
     description: "create task and view.",
-    tags: ["Tracker", "Reminders", "Productivity","Preparation",Quiz],
+    tags: ["Tracker", "Reminders", "Productivity","Preparation","Quiz"],
     status: "live",
     link: "./preparationTracker/advpointstore.html",
     groupname: ["Task Maker"]
