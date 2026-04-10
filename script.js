@@ -247,6 +247,15 @@ const tools = [
     status: "live",
     link: "./preparationTracker/advpointstore.html",
     groupname: ["Task Maker"]
+  },
+  {
+    icon: "fas fa-cloud-upload-alt",
+    title: "Resume - ATS Score",
+    description: "ATS Finder",
+    tags: ["Resume"],
+    status: "live",
+    link: "./resumeMatcher/resume-matcher.html",
+    groupname: ["Resume Matcher"]
   }
 ];
 
