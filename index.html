@@ -4,80 +4,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>We1 | All Tools</title>
+  <title>We1 | All-in-One Tools Portfolio</title>
   <link rel="icon" href="logo.png" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body data-theme="dark">
-  <div  class="header">
-    <!-- Primary Header -->
-    <header>
-      <div class="header-content">
-        <div class="logo">
-          <img src="logo.png" alt="Logo" width="40" height="40">
-          <span>All Tools</span>
-        </div>
-  
-        
-        <div class="header-controls">
-          <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" class="search-bar" placeholder="Search tools..." id="searchInput">
-          </div>
-          <button class="control-btn" id="themeToggle">
-            <i class="fas fa-moon"></i>
-          </button>
-          <button class="control-btn" id="layoutToggle">
-            <i class="fas fa-th"></i>
-          </button>
-        </div>
-      </div>
-    </header>
-  
-    <!-- Group Filter Section -->
-    <div class="group-filter-section">
-      <div class="group-filters" id="groupFilters"></div>
-    </div>
-  
-    <!-- Secondary Header -->
-    <div class="secondary-header">
-      <div class="secondary-header-content">
-        <div class="filters" id="filterContainer">
-          <button class="filter-btn active" data-filter="all">All Tools</button>
-          <button class="filter-btn" data-filter="live">Live</button>
-          <button class="filter-btn" data-filter="onbuild">In Progress</button>
-          <button class="filter-btn" data-filter="upcoming">Upcoming</button>
-        </div>
-  
-        <div class="view-toggle">
-          <button class="view-btn active" data-view="grid">
-            <i class="fas fa-th"></i>
-          </button>
-          <button class="view-btn" data-view="list">
-            <i class="fas fa-list"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-
+  <div class="bg-mesh">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
   </div>
 
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-area">
+          <a href="#" class="logo">
+            <img src="./logo.png" alt="We1 Logo" class="logo-img">
+            <span class="logo-text">We1<span class="dim">Tools</span></span>
+          </a>
+          <button id="collapseToggle" class="collapse-btn" data-tooltip="Toggle Sidebar">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+        </div>
+      </div>
 
+      <div class="sidebar-content">
+        <div class="search-section">
+        <div class="search-container">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="searchInput" class="search-bar" placeholder="Quick find...">
+          <span class="search-kbd">⌘K</span>
+        </div>
+      </div>
 
-  <!-- Main Container -->
-  <main class="main-container">
-    <div id="toolsContainer"></div>
+        <nav class="side-nav">
+          <div class="nav-label">ECOSYSTEM</div>
+          <div class="filters" id="filterContainer">
+            <button class="filter-link active" data-filter="all"><i class="fas fa-layer-group"></i> <span>All Ecosystem</span></button>
+            <button class="filter-link" data-filter="live"><i class="fas fa-check-circle"></i> <span>Professional</span></button>
+            <button class="filter-link" data-filter="onbuild"><i class="fas fa-flask"></i> <span>Experimental</span></button>
+            <button class="filter-link" data-filter="upcoming"><i class="fas fa-clock"></i> <span>Pipeline</span></button>
+          </div>
 
+          <div class="nav-label">CATEGORIES</div>
+          <div class="category-list" id="groupFilters">
+            <!-- Categories will be injected here -->
+          </div>
+        </nav>
+      </div>
 
-    <!-- No Results Message -->
-    <div class="no-results" id="noResults" style="display: none;">
-      <i class="fas fa-search"></i>
-      <h3>No tools found</h3>
-      <p>Try adjusting your search or filter criteria</p>
-    </div>
-  </main>
+      <div class="sidebar-footer">
+        <a href="./exportasDrive/drivesync.html" class="sync-tile">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <div class="sync-info">
+            <span class="sync-title">Cloud Drive Sync</span>
+            <span class="sync-desc">Secure Data Backup</span>
+          </div>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-stage">
+      <header class="main-header">
+        <div class="header-left">
+          <div class="greeting-box">
+            <h1 id="greeting">Good Morning, Explorer</h1>
+            <p id="currentDate">Saturday, April 11, 2026</p>
+          </div>
+          <div class="header-stats">
+            <div class="stat-item">
+              <span class="stat-value" id="totalTools">0</span>
+              <span class="stat-label">Total Utilities</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="liveTools">0</span>
+              <span class="stat-label">Live Tools</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-ctrls">
+            <button class="header-btn" id="themeToggle" data-tooltip="Toggle Mode"><i class="fas fa-moon"></i></button>
+            <button class="header-btn" id="layoutToggle" data-tooltip="Switch Layout"><i class="fas fa-th"></i></button>
+          </div>
+          <div class="global-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="globalSearch" placeholder="Search entire ecosystem...">
+          </div>
+        </div>
+      </header>
+
+      <div class="tools-content">
+        <div id="toolsContainer">
+          <!-- Tools will be rendered here -->
+        </div>
+      </div>
+      
+      <div id="noResults" class="no-results" style="display: none;">
+        <i class="fas fa-search"></i>
+        <p>No tools found matching your search.</p>
+      </div>
+    </main>
+  </div>
 
   <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
@@ -96,4 +132,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>

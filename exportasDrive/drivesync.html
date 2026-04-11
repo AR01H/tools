@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>We1 | Cloud Drive Sync</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --ink: #0a0a0f;
+      --ink2: #1a1a28;
+      --ink3: #2e2e45;
+      --muted: #6b6b8a;
+      --muted2: #9898b8;
+      --line: #e8e8f0;
+      --line2: #f0f0f8;
+      --bg: #f7f7fc;
+      --white: #ffffff;
+      --accent: #5b4fff;
+      --accent2: #7c6fff;
+      --accent-bg: #eeecff;
+      --green: #00b97c;
+      --green-bg: #e6faf4;
+      --red: #e8344e;
+      --red-bg: #fdeef1;
+      --amber: #e8900a;
+      --amber-bg: #fef6e6;
+      --r: 10px;
+      --r2: 16px;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Instrument Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* Auth shell */
+    .auth-shell {
+      min-height: 100vh;
+      display: flex;
+      background: var(--white);
+    }
+
+    .auth-left {
+      width: 420px;
+      flex-shrink: 0;
+      background: var(--ink);
+      padding: 48px 44px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-left::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      right: -120px;
+      width: 340px;
+      height: 340px;
+      background: radial-gradient(circle, rgba(91, 79, 255, 0.35) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .auth-left::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: -80px;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(0, 185, 124, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 52px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #5b4fff, #00b97c);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .auth-tagline {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .auth-tagline h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+      letter-spacing: -0.8px;
+      margin-bottom: 14px;
+    }
+
+    .auth-tagline p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1.7;
+    }
+
+    .auth-dots {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 8px;
+      margin-top: 40px;
+    }
+
+    .auth-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .auth-dot.on {
+      background: var(--accent2);
+    }
+
+    .auth-right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 60px;
+      background: var(--white);
+    }
+
+    .auth-form-wrap {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .auth-form-wrap h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .auth-form-wrap .sub {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    /* Fields */
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink2);
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--r);
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91, 79, 255, 0.1);
+    }
+
+    .field input[readonly] {
+      background: var(--bg);
+      color: var(--muted);
+    }
+
+    .field .hint {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .field .hint code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      background: var(--line2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 11px 20px;
+      border: none;
+      border-radius: var(--r);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(91, 79, 255, 0.3);
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--line);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--muted2);
+      color: var(--ink);
+    }
+
+    .btn-danger {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1.5px solid rgba(232, 52, 78, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .btn-success {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1.5px solid rgba(0, 185, 124, 0.2);
+    }
+
+    .btn-success:hover {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 7px 13px;
+      font-size: 12px;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Messages */
+    .msg {
+      padding: 10px 14px;
+      border-radius: var(--r);
+      font-size: 13px;
+      margin-top: 12px;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .msg.ok {
+      display: block;
+      background: var(--green-bg);
+      color: #007a52;
+      border: 1px solid rgba(0, 185, 124, 0.25);
+    }
+
+    .msg.err {
+      display: block;
+      background: var(--red-bg);
+      color: #c01830;
+      border: 1px solid rgba(232, 52, 78, 0.25);
+    }
+
+    .msg.info {
+      display: block;
+      background: var(--accent-bg);
+      color: #3726cc;
+      border: 1px solid rgba(91, 79, 255, 0.2);
+    }
+
+    /* Dashboard */
+    .dash-shell {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 56px;
+      background: var(--white);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .topbar-brand-icon {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #5b4fff, #00b97c);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .topbar-div {
+      width: 1px;
+      height: 20px;
+      background: var(--line);
+    }
+
+    .nav-pills {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .nav-pill {
+      padding: 5px 14px;
+      border: none;
+      border-radius: 6px;
+      background: none;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .nav-pill.active {
+      background: var(--white);
+      color: var(--ink);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-pill:hover:not(.active) {
+      color: var(--ink2);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 5px 12px 5px 5px;
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #5b4fff, #7c6fff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #fff;
+      font-weight: 700;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink2);
+    }
+
+    .dash-main {
+      flex: 1;
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Tabs */
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: fadeUp 0.2s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .card-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Key list */
+    .key-list {
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      overflow: hidden;
+      max-height: 240px;
+      overflow-y: auto;
+      margin: 10px 0 16px;
+    }
+
+    .key-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .key-list::-webkit-scrollbar-thumb {
+      background: var(--line);
+      border-radius: 4px;
+    }
+
+    .key-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 13px;
+      border-bottom: 1px solid var(--line2);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .key-row:last-child {
+      border-bottom: none;
+    }
+
+    .key-row:hover {
+      background: var(--bg);
+    }
+
+    .key-row input[type=checkbox] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .key-name {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .key-preview {
+      font-size: 11px;
+      color: var(--muted2);
+      font-family: 'JetBrains Mono', monospace;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .key-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .key-badge.new {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .key-badge.overwrite {
+      background: var(--amber-bg);
+      color: var(--amber);
+    }
+
+    .empty-state {
+      padding: 28px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted2);
+    }
+
+    .select-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .select-links {
+      display: flex;
+      gap: 12px;
+    }
+
+    .select-link {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .select-link:hover {
+      text-decoration: underline;
+    }
+
+    /* File cards */
+    .file-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 8px;
+    }
+
+    .file-card:hover {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .file-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+    }
+
+    .file-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .file-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .app-group-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      padding: 14px 0 6px;
+    }
+
+    /* Settings */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line2);
+    }
+
+    .settings-row:last-child {
+      border-bottom: none;
+    }
+
+    .settings-row-label {
+      flex: 1;
+    }
+
+    .settings-row-label strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .settings-row-label span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Help */
+    .help-intro {
+      background: linear-gradient(135deg, var(--ink) 0%, var(--ink3) 100%);
+      border-radius: var(--r2);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .help-intro::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(91, 79, 255, 0.4) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .help-intro h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .help-intro p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 24px;
+      margin-bottom: 14px;
+    }
+
+    .step-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .step-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-num.warn {
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1.5px solid rgba(232, 144, 10, 0.3);
+    }
+
+    .step-head-text h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .step-head-text p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .step-body {
+      padding-left: 50px;
+    }
+
+    .step-instruction {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--ink2);
+    }
+
+    .step-instruction .num {
+      width: 22px;
+      height: 22px;
+      background: var(--bg);
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .code-pill {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 5px;
+      word-break: break-all;
+    }
+
+    .option-box {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      padding: 12px 16px;
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .option-row .label {
+      color: var(--muted);
+      width: 110px;
+      flex-shrink: 0;
+    }
+
+    .option-row .val {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .tip-box {
+      display: flex;
+      gap: 10px;
+      background: var(--amber-bg);
+      border: 1px solid rgba(232, 144, 10, 0.25);
+      border-radius: var(--r);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #8b5a00;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    .tip-icon {
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .privacy-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13.5px;
+      color: var(--ink2);
+      line-height: 1.6;
+    }
+
+    .privacy-check {
+      width: 20px;
+      height: 20px;
+      background: var(--green-bg);
+      color: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Overlay / Toast */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(250, 250, 253, 0.85);
+      backdrop-filter: blur(3px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay-box {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      padding: 28px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2.5px solid var(--line);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .overlay-msg {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .toast-rack {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9998;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      min-width: 240px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      animation: toastIn 0.25s ease;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .toast-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .toast-dot.ok {
+      background: var(--green);
+    }
+
+    .toast-dot.err {
+      background: var(--red);
+    }
+
+    .toast-dot.info {
+      background: var(--accent2);
+    }
+
+    /* Utils */
+    .hidden {
+      display: none !important;
+    }
+
+    #page-setup,
+    #page-login,
+    #page-dashboard {
+      display: none;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 15, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-box {
+      background: var(--white);
+      width: 90%;
+      max-width: 700px;
+      max-height: 85vh;
+      border-radius: var(--r2);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-close {
+      background: var(--bg);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .modal-close:hover {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    /* Code Box */
+    .code-box-wrap {
+      margin: 16px 0;
+      position: relative;
+      border: 1.5px solid var(--line);
+      border-radius: var(--r);
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .code-box-header {
+      padding: 8px 16px;
+      background: var(--line2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .code-box-header span {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .code-box-pre {
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--ink2);
+      margin: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre;
+    }
+
+    /* Floating Help */
+    .float-help {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 9000;
+      transition: all 0.3s;
+    }
+
+    .float-help .btn {
+      border-radius: 50px;
+      padding: 12px 20px;
+      box-shadow: 0 8px 24px rgba(91, 79, 255, 0.25);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      background: var(--ink);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .float-help .btn:hover {
+      background: var(--accent);
+      transform: scale(1.05) translateY(-2px);
+    }
+
+    @media(max-width:700px) {
+      .auth-left {
+        display: none;
+      }
+
+      .auth-right {
+        padding: 32px 24px;
+      }
+
+      .dash-main {
+        padding: 20px 16px;
+      }
+
+      .topbar {
+        padding: 0 16px;
+      }
+
+      .row-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-box {
+        width: 95%;
+        max-height: 90vh;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SETUP -->
+  <div id="page-setup">
+    <div class="auth-shell">
+      <div class="auth-left">
+        <div class="brand">
+          <div class="brand-icon">☁</div><span class="brand-name">Cloud Drive Sync</span>
+        </div>
+        <div class="auth-tagline">
+          <h2>Sync your browser to Google Drive.</h2>
+          <p>Back up and restore localStorage keys — powered entirely by your own Google Apps Script. No third-party
+            servers.</p>
+        </div>
+        <div class="auth-dots">
+          <div class="auth-dot on"></div>
+          <div class="auth-dot"></div>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-form-wrap">
+          <div class="step-label">Step 1 of 2</div>
+          <h3>Connect your script</h3>
+          <p class="sub">Paste your Google Apps Script Web App URL. Don't have one yet? Log in first — the
+            <strong>Help</strong> tab has full instructions.</p>
+          <div class="field">
+            <label>Web App URL</label>
+            <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/.../exec">
+            <div class="hint">Must start with <code>https://script.google.com/macros/s/</code></div>
+          </div>
+          <div id="setup-msg" class="msg"></div>
+          <button class="btn btn-primary btn-full" onclick="doSetup()">Continue →</button>
+          <div style="text-align:center;margin-top:16px;">
+            <button class="btn btn-ghost btn-sm" onclick="openHelpModal()">📙 Get Code.gs & Setup Guide</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="page-login">
+    <div class="auth-shell">
+      <div class="auth-left">
+        <div class="brand">
+          <div class="brand-icon">☁</div><span class="brand-name">Cloud Drive Sync</span>
+        </div>
+        <div class="auth-tagline">
+          <h2>Welcome back.</h2>
+          <p>Sign in with the credentials you set inside your <code
+              style="font-size:12px;background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;">Code.gs</code>
+            file.</p>
+        </div>
+        <div class="auth-dots">
+          <div class="auth-dot"></div>
+          <div class="auth-dot on"></div>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-form-wrap">
+          <div class="step-label">Step 2 of 2</div>
+          <h3>Sign in</h3>
+          <p class="sub">Enter the USERNAME and PASSWORD from the <strong>CONFIG</strong> block at the top of your
+            <strong>Code.gs</strong> file.</p>
+          <div class="field">
+            <label>Username</label>
+            <input type="text" id="login-user" placeholder="admin" autocomplete="username">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"
+              onkeydown="if(event.key==='Enter')doLogin()">
+          </div>
+          <div id="login-msg" class="msg"></div>
+          <button class="btn btn-primary btn-full" onclick="doLogin()" id="login-btn">Sign In</button>
+          <button class="btn btn-ghost btn-full" style="margin-top:10px;" onclick="showPage('page-setup')">← Change
+            URL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard">
+    <div class="dash-shell">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-brand">
+            <div class="topbar-brand-icon">☁</div>Cloud Drive Sync
+          </div>
+          <div class="topbar-div"></div>
+          <nav class="nav-pills">
+            <button class="nav-pill active" data-tab="export" onclick="switchTab('export')">📤 Export</button>
+            <button class="nav-pill" data-tab="import" onclick="switchTab('import')">📥 Import</button>
+            <button class="nav-pill" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+            <button class="nav-pill" data-tab="help" onclick="switchTab('help')">📖 Help</button>
+          </nav>
+        </div>
+        <div class="topbar-right">
+          <div class="user-badge">
+            <div class="user-avatar" id="user-avatar">?</div>
+            <span class="user-name" id="dash-user">—</span>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="doLogout()">Sign out</button>
+        </div>
+      </div>
+
+      <div class="dash-main">
+
+        <!-- EXPORT TAB -->
+        <div class="tab-panel active" id="tab-export">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Export to Google Drive</div>
+                <div class="card-sub">Select keys and save a backup to your Drive folder</div>
+              </div>
+            </div>
+            <div class="row-2">
+              <div class="field">
+                <label>App Name <span style="font-weight:400;color:var(--muted)">(folder in Drive)</span></label>
+                <input type="text" id="exp-app" value="MyApp">
+              </div>
+              <div class="field">
+                <label>Backup Label</label>
+                <input type="text" id="exp-label" value="backup">
+              </div>
+            </div>
+            <div class="select-bar">
+              <span id="exp-count" style="color:var(--muted)">0 keys</span>
+              <div class="select-links">
+                <button class="select-link" onclick="selectAllKeys(true)">Select all</button>
+                <button class="select-link" onclick="selectAllKeys(false)">Deselect all</button>
+                <button class="select-link" onclick="renderExportKeys()">↻ Refresh</button>
+              </div>
+            </div>
+            <div class="key-list" id="exp-key-list">
+              <div class="empty-state">No localStorage keys found.</div>
+            </div>
+            <div id="export-msg" class="msg"></div>
+            <button class="btn btn-primary" onclick="doExport()">📤 Export Selected Keys</button>
+          </div>
+        </div>
+
+        <!-- IMPORT TAB -->
+        <div class="tab-panel" id="tab-import">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Import from Google Drive</div>
+                <div class="card-sub">Browse backups and restore keys into localStorage</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="loadBackups()">↻ Load backups</button>
+            </div>
+            <div id="backup-list">
+              <div class="empty-state">Click "Load backups" to browse your Drive files.</div>
+            </div>
+          </div>
+          <div class="card hidden" id="import-preview">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Keys in this backup</div>
+                <div class="card-sub">Select which keys to restore</div>
+              </div>
+            </div>
+            <div class="select-bar">
+              <span id="imp-count" style="color:var(--muted)">0 keys</span>
+              <div class="select-links">
+                <button class="select-link" onclick="selectImportKeys(true)">Select all</button>
+                <button class="select-link" onclick="selectImportKeys(false)">Deselect all</button>
+              </div>
+            </div>
+            <div class="key-list" id="imp-key-list"></div>
+            <div id="import-msg" class="msg"></div>
+            <button class="btn btn-primary" onclick="doImport()" style="margin-top:4px;">📥 Import Selected
+              Keys</button>
+          </div>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div class="tab-panel" id="tab-settings">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:4px;">Connection</div>
+            <div class="settings-row">
+              <div class="settings-row-label"><strong>Script URL</strong><span>Your connected Google Apps Script
+                  endpoint</span></div>
+              <button class="btn btn-ghost btn-sm" onclick="changeURL()">Change</button>
+            </div>
+            <div class="field" style="margin-top:12px;"><input type="url" id="settings-url" readonly></div>
+            <button class="btn btn-success btn-sm" onclick="saveConfigToDrive()">☁ Backup URL to Drive</button>
+            <div id="settings-msg" class="msg"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:4px;">Danger Zone</div>
+            <div class="settings-row">
+              <div class="settings-row-label"><strong>Clear LocalStorage</strong><span>Remove all app keys (DriveSync
+                  settings are kept)</span></div>
+              <button class="btn btn-danger btn-sm" onclick="clearLS()">Clear all</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- HELP TAB -->
+        <div class="tab-panel" id="tab-help">
+
+          <div class="help-intro">
+            <h2>📖 How to set up DriveSync</h2>
+            <p>DriveSync uses a Google Apps Script as your personal backend. Your data goes directly to your own Google
+              Drive — no third-party servers, ever.</p>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="openHelpModal()">📄 View Code.gs &
+              Setup Guide</button>
+          </div>
+
+          <!-- Step 1 -->
+          <div class="step-card">
+            <div class="step-head">
+              <div class="step-num">1</div>
+              <div class="step-head-text">
+                <h4>Create the Apps Script project</h4>
+                <p>Set up the backend code in your Google account</p>
+              </div>
+            </div>
+            <div class="step-body">
+              <div class="step-instruction">
+                <div class="num">①</div>
+                <div>Go to <strong>script.google.com</strong> and click <strong>New project</strong></div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">②</div>
+                <div>Delete all existing code in the editor and paste the entire contents of <span
+                    class="code-pill">Code.gs</span> (the file provided alongside this HTML)</div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">③</div>
+                <div>At the very top of the file, find the <span class="code-pill">CONFIG</span> block and set your own
+                  username and password:</div>
+              </div>
+              <div class="option-box"
+                style="font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.9;color:var(--ink2);">
+                <div><span style="color:var(--muted)">USERNAME</span> : <span
+                    style="color:var(--accent)">"admin"</span>, &nbsp;<span
+                    style="color:var(--muted2);font-size:11px;">← change to anything you want</span></div>
+                <div><span style="color:var(--muted)">PASSWORD</span> : <span
+                    style="color:var(--accent)">"yourpassword123"</span>, &nbsp;<span
+                    style="color:var(--muted2);font-size:11px;">← change to a strong password</span></div>
+              </div>
+              <div class="step-instruction" style="margin-top:12px;">
+                <div class="num">④</div>
+                <div>Click <strong>Save</strong> (Ctrl+S / Cmd+S) and give your project a name like <em>DriveSync</em>
+                </div>
+              </div>
+              <div class="tip-box">
+                <div class="tip-icon">💡</div>
+                <div>These credentials are <strong>set by you</strong> — DriveSync has no signup system. Whatever you
+                  put here is what you type on the login screen.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-card">
+            <div class="step-head">
+              <div class="step-num">2</div>
+              <div class="step-head-text">
+                <h4>Deploy as a Web App</h4>
+                <p>This generates the Script URL you'll paste into the Setup screen</p>
+              </div>
+            </div>
+            <div class="step-body">
+              <div class="step-instruction">
+                <div class="num">①</div>
+                <div>In the Apps Script editor, click <strong>Deploy</strong> (top right) → <strong>New
+                    deployment</strong></div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">②</div>
+                <div>Click the <strong>gear icon ⚙</strong> next to "Select type" and choose <strong>Web app</strong>
+                </div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">③</div>
+                <div>Set these two settings exactly — both are required for DriveSync to work:</div>
+              </div>
+              <div class="option-box">
+                <div class="option-row"><span class="label">Execute as</span><span class="val">Me</span></div>
+                <div class="option-row"><span class="label">Who has access</span><span class="val">Anyone</span></div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">④</div>
+                <div>Click <strong>Deploy</strong> → click <strong>Authorize access</strong> → sign in with Google →
+                  click <strong>Allow</strong></div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">⑤</div>
+                <div>Copy the <strong>Web App URL</strong> — it looks like:</div>
+              </div>
+              <div style="margin:8px 0 12px;"><span
+                  class="code-pill">https://script.google.com/macros/s/AKfycb.../exec</span></div>
+              <div class="step-instruction">
+                <div class="num">⑥</div>
+                <div>Paste this URL into the <strong>Setup screen</strong> of this app</div>
+              </div>
+              <div class="tip-box">
+                <div class="tip-icon">⚠️</div>
+                <div><strong>Every time you change Code.gs</strong>, you must redeploy or the old code keeps
+                  running:<br>Deploy → Manage deployments → click the pencil ✏️ → change version to <em>New version</em>
+                  → Deploy.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-card">
+            <div class="step-head">
+              <div class="step-num">3</div>
+              <div class="step-head-text">
+                <h4>Connect &amp; log in</h4>
+                <p>Paste your URL and sign in</p>
+              </div>
+            </div>
+            <div class="step-body">
+              <div class="step-instruction">
+                <div class="num">①</div>
+                <div>On the <strong>Setup screen</strong>, paste your Web App URL and click Continue</div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">②</div>
+                <div>On the <strong>Login screen</strong>, enter the username and password you set in Step 1 above</div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">③</div>
+                <div>After logging in, go to <strong>Settings → Backup URL to Drive</strong> — this saves your Script
+                  URL inside your own Drive so you never lose it</div>
+              </div>
+              <div class="tip-box">
+                <div class="tip-icon">💡</div>
+                <div>Your Script URL is saved in your browser after first login. You only need to enter it once per
+                  device.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recovery -->
+          <div class="step-card">
+            <div class="step-head">
+              <div class="step-num warn">?</div>
+              <div class="step-head-text">
+                <h4>Forgot your URL or password?</h4>
+                <p>How to recover everything</p>
+              </div>
+            </div>
+            <div class="step-body">
+              <div style="font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:8px;">🔗 Forgot the Script URL
+              </div>
+              <div class="step-instruction">
+                <div class="num">①</div>
+                <div>Open <strong>Google Drive</strong> and search for the folder <span
+                    class="code-pill">LocalStorageBackups</span></div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">②</div>
+                <div>Open the file <span class="code-pill">_config.json</span> — it contains your Script URL, username,
+                  and the save date</div>
+              </div>
+              <div style="font-size:13px;font-weight:600;color:var(--ink2);margin:14px 0 8px;">🔑 Forgot the password
+              </div>
+              <div class="step-instruction">
+                <div class="num">①</div>
+                <div>Go to <strong>script.google.com</strong> and open your DriveSync project</div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">②</div>
+                <div>Look at the top of <span class="code-pill">Code.gs</span> — your USERNAME and PASSWORD are written
+                  there in plain text</div>
+              </div>
+              <div class="step-instruction">
+                <div class="num">③</div>
+                <div>Change them if needed, then <strong>redeploy</strong>: Deploy → Manage Deployments → Edit → New
+                  version → Deploy</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Privacy -->
+          <div class="step-card">
+            <div class="card-title" style="margin-bottom:16px;">🔒 How your data stays private</div>
+            <div class="privacy-row">
+              <div class="privacy-check">✓</div>
+              <div>Your data flows <strong>directly: browser → your Apps Script → your Google Drive</strong>. No
+                third-party servers.</div>
+            </div>
+            <div class="privacy-row">
+              <div class="privacy-check">✓</div>
+              <div>The Apps Script runs under <strong>your Google account</strong> — backups are in your personal Drive.
+              </div>
+            </div>
+            <div class="privacy-row">
+              <div class="privacy-check">✓</div>
+              <div>Your password is <strong>never stored permanently</strong> — it's held in memory only during your
+                active session.</div>
+            </div>
+            <div class="privacy-row">
+              <div class="privacy-check">✓</div>
+              <div>Backups are plain JSON files in <span class="code-pill">LocalStorageBackups/{AppName}/</span> —
+                readable and downloadable directly from Drive.</div>
+            </div>
+          </div>
+
+        </div><!-- /tab-help -->
+      </div><!-- /dash-main -->
+    </div><!-- /dash-shell -->
+  </div><!-- /dashboard -->
+
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-box">
+      <div class="spinner"></div><span class="overlay-msg" id="overlay-msg">Working…</span>
+    </div>
+  </div>
+  <div class="toast-rack" id="toast-rack"></div>
+
+  <!-- HELP MODAL -->
+  <div id="modal-help" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="card-title">🚀 Cloud Drive Sync Setup Guide</div>
+        <button class="modal-close" onclick="closeHelpModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.6;">Follow these steps to create
+          your own private Google Drive backend. You only need to do this once.</p>
+
+        <div class="step-head" style="margin-bottom:12px;">
+          <div class="step-num" style="width:28px;height:28px;font-size:13px;">1</div>
+          <div class="step-head-text">
+            <h4 style="font-size:15px;">Copy the code below</h4>
+            <p>This is your "Code.gs" file contents</p>
+          </div>
+        </div>
+
+        <div class="code-box-wrap">
+          <div class="code-box-header">
+            <span>Code.gs</span>
+            <button class="btn btn-primary btn-sm" onclick="copyCodeGS()" id="copy-btn">📋 Copy Code</button>
+          </div>
+          <pre class="code-box-pre" id="code-gs-block">/* Code will appear here */</pre>
+        </div>
+
+        <div class="step-head" style="margin-top:24px;margin-bottom:12px;">
+          <div class="step-num" style="width:28px;height:28px;font-size:13px;">2</div>
+          <div class="step-head-text">
+            <h4 style="font-size:15px;">Paste into Apps Script</h4>
+            <p>Create your personal API</p>
+          </div>
+        </div>
+        <div class="step-body" style="padding-left:42px;">
+          <div class="step-instruction">
+            <div class="num">①</div>
+            <div>Go to <a href="https://script.google.com" target="_blank"
+                style="color:var(--accent);text-decoration:none;font-weight:600;">script.google.com</a></div>
+          </div>
+          <div class="step-instruction">
+            <div class="num">②</div>
+            <div>Click <strong>New Project</strong>, delete everything, and paste the code.</div>
+          </div>
+          <div class="step-instruction">
+            <div class="num">③</div>
+            <div>Change the <strong>USERNAME</strong> and <strong>PASSWORD</strong> at the top.</div>
+          </div>
+          <div class="step-instruction">
+            <div class="num">④</div>
+            <div>Deploy: <strong>Deploy → New Deployment → Web App</strong>.</div>
+          </div>
+          <div class="step-instruction">
+            <div class="num">⑤</div>
+            <div>Set <strong>Execute as: Me</strong> and <strong>Who has access: Anyone</strong>.</div>
+          </div>
+          <div class="step-instruction">
+            <div class="num">⑥</div>
+            <div>Copy the <strong>Web App URL</strong> and paste it into the setup screen.</div>
+          </div>
+        </div>
+
+        <div class="tip-box" style="margin-top:24px;">
+          <div class="tip-icon">💡</div>
+          <div>For more details, check the <strong>Help tab</strong> inside the app after you log in.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="float-help" id="float-help">
+    <button class="btn" onclick="openHelpModal()">📖 Help & Code.gs</button>
+  </div>
+
+  <script>
+    const LS_URL_KEY = "__drivesync_url__";
+    let scriptURL = localStorage.getItem(LS_URL_KEY) || "", username = "", password = "", selectedFileId = null;
+
+    (function () { showPage("page-setup"); })();
+
+    function showPage(id) { ["page-setup", "page-login", "page-dashboard"].forEach(p => document.getElementById(p).style.display = (p === id ? "block" : "none")); }
+
+    function msg(id, type, text) { const el = document.getElementById(id); if (!el) return; el.className = "msg " + type; el.textContent = text; if (type === "ok") setTimeout(() => { el.className = "msg"; el.textContent = ""; }, 5000); }
+
+    function setLoading(on, text) { document.getElementById("overlay").classList.toggle("hidden", !on); if (text) document.getElementById("overlay-msg").textContent = text; }
+
+    function toast(type, text) { const rack = document.getElementById("toast-rack"), t = document.createElement("div"); t.className = "toast"; t.innerHTML = `<div class="toast-dot ${type}"></div><span>${text}</span>`; rack.appendChild(t); setTimeout(() => t.remove(), 3500); }
+
+    function doSetup() { const url = document.getElementById("setup-url").value.trim(); if (!url.startsWith("https://script.google.com/macros/s/")) return msg("setup-msg", "err", "URL must start with https://script.google.com/macros/s/"); scriptURL = url; localStorage.setItem(LS_URL_KEY, url); showPage("page-login"); }
+
+    async function doLogin() {
+      const user = document.getElementById("login-user").value.trim();
+      const pass = document.getElementById("login-pass").value;
+      if (!user || !pass) return msg("login-msg", "err", "Enter username and password.");
+      const btn = document.getElementById("login-btn");
+      btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;margin-right:8px;display:inline-block;"></span> Verifying…';
+      msg("login-msg", "info", "Connecting to your script…");
+      try {
+        const res = await api({ action: "verify", username: user, password: pass });
+        if (res.success) {
+          username = user; password = pass;
+          document.getElementById("dash-user").textContent = username;
+          document.getElementById("user-avatar").textContent = username[0].toUpperCase();
+          document.getElementById("settings-url").value = scriptURL;
+          renderExportKeys(); showPage("page-dashboard"); toast("ok", "Signed in as " + username);
+        } else { msg("login-msg", "err", res.error || "Login failed. Check username/password in Code.gs."); }
+      } catch (e) { msg("login-msg", "err", "Connection error: " + e.message); }
+      btn.disabled = false; btn.textContent = "Sign In";
+    }
+
+    function doLogout() { username = ""; password = ""; document.getElementById("login-pass").value = ""; showPage("page-login"); }
+    function changeURL() { localStorage.removeItem(LS_URL_KEY); scriptURL = ""; document.getElementById("setup-url").value = ""; showPage("page-setup"); }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".nav-pill").forEach(p => p.classList.toggle("active", p.dataset.tab === tab));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "tab-" + tab));
+      if (tab === "import") loadBackups();
+      if (tab === "settings") document.getElementById("settings-url").value = scriptURL;
+    }
+
+    function renderExportKeys() {
+      const keys = Object.keys(localStorage).filter(k => !k.startsWith("__drivesync_"));
+      const list = document.getElementById("exp-key-list");
+      if (!keys.length) { list.innerHTML = '<div class="empty-state">No localStorage keys found.</div>'; document.getElementById("exp-count").textContent = "0 keys"; return; }
+      list.innerHTML = keys.map(k => {
+        const val = localStorage.getItem(k) || "", preview = val.length > 48 ? val.slice(0, 48) + "…" : val;
+        return `<label class="key-row"><input type="checkbox" class="exp-cb" value="${esc(k)}" checked onchange="updateExpCount()"><span class="key-name">${esc(k)}</span><span class="key-preview" title="${esc(val)}">${esc(preview)}</span></label>`;
+      }).join(""); updateExpCount();
+    }
+
+    function updateExpCount() { const t = document.querySelectorAll(".exp-cb").length, s = document.querySelectorAll(".exp-cb:checked").length; document.getElementById("exp-count").textContent = `${s} / ${t} selected`; }
+    function selectAllKeys(v) { document.querySelectorAll(".exp-cb").forEach(c => c.checked = v); updateExpCount(); }
+
+    async function doExport() {
+      const sel = [...document.querySelectorAll(".exp-cb:checked")].map(c => c.value);
+      if (!sel.length) return msg("export-msg", "err", "Select at least one key.");
+      const appName = document.getElementById("exp-app").value.trim() || "MyApp";
+      const label = document.getElementById("exp-label").value.trim() || "backup";
+      const data = {}; sel.forEach(k => data[k] = localStorage.getItem(k));
+      setLoading(true, `Exporting ${sel.length} key(s) to Drive…`);
+      try {
+        const res = await api({ action: "export", appName, label, data }); setLoading(false);
+        if (res.success) { msg("export-msg", "ok", "✓ Exported: " + res.fileName); toast("ok", "Exported to Drive!"); }
+        else msg("export-msg", "err", res.error);
+      } catch (e) { setLoading(false); msg("export-msg", "err", "Error: " + e.message); }
+    }
+
+    async function loadBackups() {
+      const listEl = document.getElementById("backup-list");
+      listEl.innerHTML = '<div class="empty-state">Loading from Drive…</div>';
+      document.getElementById("import-preview").classList.add("hidden"); selectedFileId = null;
+      try {
+        const res = await api({ action: "list_files" }); if (!res.success) throw new Error(res.error);
+        const files = res.files || {}, apps = Object.keys(files);
+        if (!apps.length) { listEl.innerHTML = '<div class="empty-state">No backups found. Export something first!</div>'; return; }
+        let html = "";
+        apps.forEach(app => {
+          html += `<div class="app-group-label">📁 ${esc(app)}</div>`;
+          (files[app] || []).forEach(f => {
+            const date = new Date(f.modified).toLocaleString();
+            html += `<div class="file-card" id="fr-${esc(f.id)}" onclick="selectFile('${esc(f.id)}')">
+          <div class="file-icon">📄</div>
+          <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${date} · ${fmtSize(f.size)}</div></div>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteBackup('${esc(f.id)}')">🗑 Delete</button>
+        </div>`;
+          });
+        });
+        listEl.innerHTML = html;
+      } catch (e) { listEl.innerHTML = `<div class="msg err" style="display:block">Error: ${esc(e.message)}</div>`; }
+    }
+
+    async function selectFile(fileId) {
+      document.querySelectorAll(".file-card").forEach(el => el.classList.toggle("selected", el.id === "fr-" + fileId));
+      selectedFileId = fileId; document.getElementById("import-preview").classList.add("hidden");
+      setLoading(true, "Loading backup contents…");
+      try {
+        const res = await api({ action: "list_keys", fileId }); setLoading(false);
+        if (!res.success) throw new Error(res.error);
+        const keys = res.keys || [];
+        const listEl = document.getElementById("imp-key-list");
+        listEl.innerHTML = keys.length ? keys.map(k => {
+          const exists = localStorage.getItem(k) !== null;
+          return `<label class="key-row"><input type="checkbox" class="imp-cb" value="${esc(k)}" checked onchange="updateImpCount()"><span class="key-name">${esc(k)}</span><span class="key-badge ${exists ? "overwrite" : "new"}">${exists ? "overwrite" : "new"}</span></label>`;
+        }).join("") : '<div class="empty-state">No keys in this backup.</div>';
+        document.getElementById("imp-count").textContent = `${keys.length} / ${keys.length} selected`;
+        document.getElementById("import-preview").classList.remove("hidden");
+      } catch (e) { setLoading(false); msg("import-msg", "err", "Could not load keys: " + e.message); }
+    }
+
+    function updateImpCount() { const t = document.querySelectorAll(".imp-cb").length, s = document.querySelectorAll(".imp-cb:checked").length; document.getElementById("imp-count").textContent = `${s} / ${t} selected`; }
+    function selectImportKeys(v) { document.querySelectorAll(".imp-cb").forEach(c => c.checked = v); updateImpCount(); }
+
+    async function doImport() {
+      if (!selectedFileId) return msg("import-msg", "err", "Select a backup file first.");
+      const keys = [...document.querySelectorAll(".imp-cb:checked")].map(c => c.value);
+      if (!keys.length) return msg("import-msg", "err", "Select at least one key.");
+      setLoading(true, "Importing from Drive…");
+      try {
+        const res = await api({ action: "import", fileId: selectedFileId }); setLoading(false);
+        if (!res.success) throw new Error(res.error);
+        let count = 0; keys.forEach(k => { if (res.data && res.data[k] !== undefined) { localStorage.setItem(k, res.data[k]); count++; } });
+        msg("import-msg", "ok", `✓ Imported ${count} key(s) into localStorage.`); toast("ok", `Imported ${count} key(s)`); renderExportKeys();
+      } catch (e) { setLoading(false); msg("import-msg", "err", "Import failed: " + e.message); }
+    }
+
+    async function deleteBackup(fileId) {
+      if (!confirm("Delete this backup? Cannot be undone.")) return;
+      setLoading(true, "Deleting…");
+      try {
+        const res = await api({ action: "delete_backup", fileId }); setLoading(false);
+        if (res.success) { toast("ok", "Backup deleted"); loadBackups(); } else toast("err", "Delete failed: " + res.error);
+      } catch (e) { setLoading(false); toast("err", "Error: " + e.message); }
+    }
+
+    async function saveConfigToDrive() {
+      setLoading(true, "Saving config to Drive…");
+      try {
+        const res = await api({ action: "save_config", scriptURL }); setLoading(false);
+        if (res.success) { msg("settings-msg", "ok", "✓ Script URL backed up to your Drive folder."); toast("ok", "Config saved!"); }
+        else msg("settings-msg", "err", res.error);
+      } catch (e) { setLoading(false); msg("settings-msg", "err", "Error: " + e.message); }
+    }
+
+    function clearLS() {
+      const keys = Object.keys(localStorage).filter(k => !k.startsWith("__drivesync_"));
+      if (!confirm(`Clear ${keys.length} key(s)? DriveSync settings will be kept.`)) return;
+      keys.forEach(k => localStorage.removeItem(k)); renderExportKeys(); toast("info", "LocalStorage cleared");
+    }
+
+    async function api(payload) {
+      if (!payload.username) payload.username = username;
+      if (!payload.password) payload.password = password;
+      const res = await fetch(scriptURL, { method: "POST", body: JSON.stringify(payload), headers: { "Content-Type": "text/plain" }, redirect: "follow" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return await res.json();
+    }
+
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+    function fmtSize(b) { if (b < 1024) return b + " B"; if (b < 1048576) return (b / 1024).toFixed(1) + " KB"; return (b / 1048576).toFixed(2) + " MB"; }
+
+    // HELP MODAL LOGIC
+    const CODE_GS = `// ================================================================
+// DriveSync — Google Apps Script Backend  (Code.gs)
+// ================================================================
+const CONFIG = {
+  FOLDER_NAME : "LocalStorageBackups",
+  META_FILE   : "_config.json",
+  USERNAME    : "admin",           // ← Change this
+  PASSWORD    : "yourpassword123", // ← Change this
+};
+
+function doPost(e) {
+  try {
+    const body   = JSON.parse(e.postData.contents);
+    const action = body.action;
+    if (!authenticate(body.username, body.password)) {
+      return respond({ error: "Invalid username or password.", auth: false });
+    }
+    switch (action) {
+      case "export"       : return handleExport(body);
+      case "import"       : return handleImport(body);
+      case "list_files"   : return handleListFiles();
+      case "list_keys"    : return handleListKeys(body);
+      case "delete_backup": return handleDeleteBackup(body);
+      case "verify"       : return respond({ success: true, message: "Auth OK" });
+      case "save_config"  : return handleSaveConfig(body);
+      default             : return respond({ error: "Unknown action: " + action });
+    }
+  } catch (err) {
+    return respond({ error: "Server error: " + err.message });
+  }
+}
+
+function doGet() {
+  return respond({ status: "ok", service: "DriveSync API", version: "2.0" });
+}
+
+function authenticate(username, password) {
+  return username === CONFIG.USERNAME && password === CONFIG.PASSWORD;
+}
+
+function handleExport(params) {
+  const { appName, data, label } = params;
+  if (!appName || !data) return respond({ error: "Missing appName or data" });
+  const root      = getOrCreateFolder(CONFIG.FOLDER_NAME);
+  const appFolder = getOrCreateFolder(appName, root);
+  const ts        = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const safeName  = (label || "backup").replace(/[^a-z0-9_\\-]/gi, "_");
+  const fileName  = safeName + "_" + ts + ".json";
+  const content = JSON.stringify({
+    _meta: { appName, exportedAt: new Date().toISOString(), keyCount: Object.keys(data).length },
+    data
+  }, null, 2);
+  const file = appFolder.createFile(fileName, content, MimeType.PLAIN_TEXT);
+  pruneOldBackups(appFolder, 20);
+  return respond({ success: true, fileId: file.getId(), fileName, message: "Exported to Drive ✓" });
+}
+
+function handleImport(params) {
+  const { fileId } = params;
+  if (!fileId) return respond({ error: "Missing fileId" });
+  try {
+    const file    = DriveApp.getFileById(fileId);
+    const content = JSON.parse(file.getBlob().getDataAsString());
+    return respond({ success: true, data: content.data, meta: content._meta });
+  } catch (err) {
+    return respond({ error: "Could not read file: " + err.message });
+  }
+}
+
+function handleListFiles() {
+  const root   = getOrCreateFolder(CONFIG.FOLDER_NAME);
+  const subs   = root.getFolders();
+  const result = {};
+  while (subs.hasNext()) {
+    const sub   = subs.next();
+    const name  = sub.getName();
+    const files = sub.getFiles();
+    result[name] = [];
+    while (files.hasNext()) {
+      const f = files.next();
+      result[name].push({
+        id      : f.getId(),
+        name    : f.getName(),
+        size    : f.getSize(),
+        modified: f.getLastUpdated().toISOString()
+      });
+    }
+    result[name].sort((a, b) => new Date(b.modified) - new Date(a.modified));
+  }
+  return respond({ success: true, files: result });
+}
+
+function handleListKeys(params) {
+  const { fileId } = params;
+  if (!fileId) return respond({ error: "Missing fileId" });
+  try {
+    const content = JSON.parse(DriveApp.getFileById(fileId).getBlob().getDataAsString());
+    return respond({ success: true, keys: Object.keys(content.data || {}), meta: content._meta });
+  } catch (err) {
+    return respond({ error: "Could not read file: " + err.message });
+  }
+}
+
+function handleDeleteBackup(params) {
+  const { fileId } = params;
+  if (!fileId) return respond({ error: "Missing fileId" });
+  try {
+    DriveApp.getFileById(fileId).setTrashed(true);
+    return respond({ success: true, message: "Deleted" });
+  } catch (err) {
+    return respond({ error: "Could not delete: " + err.message });
+  }
+}
+
+function handleSaveConfig(params) {
+  const root    = getOrCreateFolder(CONFIG.FOLDER_NAME);
+  const content = JSON.stringify({
+    note     : "DriveSync configuration — keep this file safe!",
+    scriptURL: params.scriptURL || "",
+    username : CONFIG.USERNAME,
+    savedAt  : new Date().toISOString()
+  }, null, 2);
+  const existing = root.getFilesByName(CONFIG.META_FILE);
+  while (existing.hasNext()) existing.next().setTrashed(true);
+  root.createFile(CONFIG.META_FILE, content, MimeType.PLAIN_TEXT);
+  return respond({ success: true, message: "Config saved to Drive" });
+}
+
+function getOrCreateFolder(name, parent) {
+  const root    = parent || DriveApp;
+  const folders = root.getFoldersByName(name);
+  return folders.hasNext() ? folders.next() : root.createFolder(name);
+}
+
+function pruneOldBackups(folder, maxCount) {
+  const files = [];
+  const iter  = folder.getFiles();
+  while (iter.hasNext()) files.push(iter.next());
+  files.sort((a, b) => a.getLastUpdated() - b.getLastUpdated());
+  while (files.length > maxCount) files.shift().setTrashed(true);
+}
+
+function respond(data) {
+  const out = ContentService.createTextOutput(JSON.stringify(data));
+  out.setMimeType(ContentService.MimeType.JSON);
+  return out;
+}
+`;
+
+    function openHelpModal() {
+      document.getElementById("modal-help").classList.add("active");
+      document.getElementById("code-gs-block").textContent = CODE_GS;
+      document.getElementById("float-help").style.display = "none";
+    }
+    function closeHelpModal() {
+      document.getElementById("modal-help").classList.remove("active");
+      document.getElementById("float-help").style.display = "block";
+    }
+    function copyCodeGS() {
+      const btn = document.getElementById("copy-btn");
+      navigator.clipboard.writeText(CODE_GS).then(() => {
+        btn.textContent = "✓ Copied!";
+        btn.classList.replace("btn-primary", "btn-success");
+        setTimeout(() => {
+          btn.textContent = "📋 Copy Code";
+          btn.classList.replace("btn-success", "btn-primary");
+        }, 2000);
+      });
+    }
+    // Close on overlay click
+    document.getElementById('modal-help').addEventListener('click', function (e) {
+      if (e.target === this) closeHelpModal();
+    });
+  </script>
+</body>
+
+</html>

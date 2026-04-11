@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DriveSync</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+  h2 { margin-bottom: 6px; }
+  .box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  input[type=text], input[type=password], input[type=url] { width: 100%; padding: 8px; margin: 6px 0 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+  button { padding: 9px 18px; background: #4285f4; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 6px; margin-bottom: 6px; }
+  button:hover { background: #3367d6; }
+  button.red { background: #e53935; }
+  button.red:hover { background: #c62828; }
+  button.grey { background: #757575; }
+  button.grey:hover { background: #555; }
+  .msg { padding: 10px 14px; border-radius: 4px; margin: 10px 0; font-size: 13px; }
+  .ok   { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .err  { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+  .info { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+  .hidden { display: none; }
+  label { font-size: 13px; font-weight: bold; color: #444; }
+  .key-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+  .key-row:last-child { border-bottom: none; }
+  .key-list { border: 1px solid #ddd; border-radius: 4px; max-height: 220px; overflow-y: auto; margin: 8px 0 12px; }
+  .file-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; cursor: pointer; }
+  .file-row:hover { background: #f0f4ff; }
+  .file-row.selected { background: #dbeafe; }
+  .file-row:last-child { border-bottom: none; }
+  small { color: #888; font-size: 11px; }
+  hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+  #page-setup, #page-login, #page-dashboard { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ── SETUP PAGE ─────────────────────────── -->
+<div id="page-setup">
+  <div class="box">
+    <h2>🔗 DriveSync Setup</h2>
+    <p style="font-size:13px;color:#555;">Paste your Google Apps Script Web App URL below.</p>
+    <label>Script URL</label>
+    <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/.../exec">
+    <div id="setup-msg"></div>
+    <button onclick="doSetup()">Continue →</button>
+  </div>
+</div>
+
+<!-- ── LOGIN PAGE ─────────────────────────── -->
+<div id="page-login">
+  <div class="box">
+    <h2>🔐 Login</h2>
+    <p style="font-size:13px;color:#555;">Use the username &amp; password you set in <code>Code.gs</code>.</p>
+    <label>Username</label>
+    <input type="text" id="login-user" placeholder="admin">
+    <label>Password</label>
+    <input type="password" id="login-pass" placeholder="yourpassword123">
+    <div id="login-msg"></div>
+    <button onclick="doLogin()">Sign In</button>
+    <button class="grey" onclick="showPage('page-setup')">← Change URL</button>
+  </div>
+</div>
+
+<!-- ── DASHBOARD PAGE ─────────────────────── -->
+<div id="page-dashboard">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <h2 style="margin:0;">☁️ DriveSync</h2>
+    <div>
+      <span id="dash-user" style="font-size:13px;color:#555;margin-right:10px;"></span>
+      <button class="red" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="box">
+    <h3 style="margin-top:0;">📤 Export to Drive</h3>
+    <label>App Name (folder name in Drive)</label>
+    <input type="text" id="exp-app" value="MyApp">
+    <label>Backup Label</label>
+    <input type="text" id="exp-label" value="backup">
+    <label>Keys to export:</label>
+    <div class="key-list" id="exp-key-list"><div style="padding:12px;color:#999;font-size:13px;">No localStorage keys found.</div></div>
+    <div id="export-msg"></div>
+    <button onclick="doExport()">Export Selected Keys</button>
+    <button class="grey" onclick="renderExportKeys()">↻ Refresh</button>
+  </div>
+
+  <!-- IMPORT -->
+  <div class="box">
+    <h3 style="margin-top:0;">📥 Import from Drive</h3>
+    <button onclick="loadBackups()">Load Backup Files</button>
+    <div id="backup-list" style="margin-top:10px;"></div>
+    <div id="import-preview" class="hidden" style="margin-top:10px;">
+      <label>Keys in selected backup:</label>
+      <div class="key-list" id="imp-key-list"></div>
+      <div id="import-msg"></div>
+      <button onclick="doImport()">Import Selected Keys</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="box">
+    <h3 style="margin-top:0;">⚙️ Settings</h3>
+    <label>Script URL</label>
+    <input type="url" id="settings-url" readonly style="background:#f9f9f9;color:#555;">
+    <button onclick="saveConfigToDrive()">Backup URL to Drive</button>
+    <button class="grey" onclick="changeURL()">Change URL</button>
+    <div id="settings-msg"></div>
+    <hr>
+    <button class="red" onclick="clearLS()">Clear All LocalStorage Keys</button>
+  </div>
+
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────
+const LS_URL_KEY = "__drivesync_url__";
+let scriptURL = localStorage.getItem(LS_URL_KEY) || "";
+let username  = "";
+let password  = "";
+let selectedFileId = null;
+
+// ── Boot ──────────────────────────────────────────────
+(function() {
+  if (scriptURL) {
+    showPage("page-login");
+  } else {
+    showPage("page-setup");
+  }
+})();
+
+// ── Page control ──────────────────────────────────────
+function showPage(id) {
+  ["page-setup","page-login","page-dashboard"].forEach(p =>
+    document.getElementById(p).style.display = (p === id ? "block" : "none")
+  );
+}
+
+function msg(id, type, text) {
+  const el = document.getElementById(id);
+  el.className = "msg " + type;
+  el.textContent = text;
+  el.classList.remove("hidden");
+  if (type === "ok") setTimeout(() => el.textContent = "", 5000);
+}
+
+// ── Setup ─────────────────────────────────────────────
+function doSetup() {
+  const url = document.getElementById("setup-url").value.trim();
+  if (!url.startsWith("https://script.google.com/macros/s/")) {
+    return msg("setup-msg", "err", "URL must start with https://script.google.com/macros/s/");
+  }
+  scriptURL = url;
+  localStorage.setItem(LS_URL_KEY, url);
+  showPage("page-login");
+}
+
+// ── Login ─────────────────────────────────────────────
+async function doLogin() {
+  const user = document.getElementById("login-user").value.trim();
+  const pass = document.getElementById("login-pass").value;
+  if (!user || !pass) return msg("login-msg", "err", "Enter username and password.");
+
+  msg("login-msg", "info", "Verifying…");
+
+  try {
+    const res = await api({ action: "verify", username: user, password: pass });
+    if (res.success) {
+      username = user;
+      password = pass;
+      document.getElementById("dash-user").textContent = "👤 " + username;
+      document.getElementById("settings-url").value = scriptURL;
+      renderExportKeys();
+      showPage("page-dashboard");
+    } else {
+      msg("login-msg", "err", res.error || "Login failed. Check your username/password in Code.gs.");
+    }
+  } catch(e) {
+    msg("login-msg", "err", "Connection error: " + e.message);
+  }
+}
+
+function doLogout() {
+  username = "";
+  password = "";
+  document.getElementById("login-pass").value = "";
+  showPage("page-login");
+}
+
+function changeURL() {
+  localStorage.removeItem(LS_URL_KEY);
+  scriptURL = "";
+  document.getElementById("setup-url").value = "";
+  showPage("page-setup");
+}
+
+// ── Export ────────────────────────────────────────────
+function renderExportKeys() {
+  const keys = Object.keys(localStorage).filter(k => !k.startsWith("__drivesync_"));
+  const list = document.getElementById("exp-key-list");
+  if (keys.length === 0) {
+    list.innerHTML = '<div style="padding:12px;color:#999;font-size:13px;">No localStorage keys found.</div>';
+    return;
+  }
+  list.innerHTML = keys.map(k => {
+    const val = localStorage.getItem(k) || "";
+    const preview = val.length > 50 ? val.slice(0, 50) + "…" : val;
+    return `<label class="key-row">
+      <input type="checkbox" class="exp-cb" value="${esc(k)}" checked>
+      <span style="flex:1;font-family:monospace;">${esc(k)}</span>
+      <small title="${esc(val)}">${esc(preview)}</small>
+    </label>`;
+  }).join("");
+}
+
+async function doExport() {
+  const selected = [...document.querySelectorAll(".exp-cb:checked")].map(cb => cb.value);
+  if (selected.length === 0) return msg("export-msg", "err", "Select at least one key.");
+  const appName = document.getElementById("exp-app").value.trim() || "MyApp";
+  const label   = document.getElementById("exp-label").value.trim() || "backup";
+  const data = {};
+  selected.forEach(k => data[k] = localStorage.getItem(k));
+  msg("export-msg", "info", "Exporting…");
+  try {
+    const res = await api({ action: "export", appName, label, data });
+    if (res.success) msg("export-msg", "ok", "✓ Exported: " + res.fileName);
+    else msg("export-msg", "err", res.error);
+  } catch(e) {
+    msg("export-msg", "err", "Error: " + e.message);
+  }
+}
+
+// ── Import ────────────────────────────────────────────
+async function loadBackups() {
+  const listEl = document.getElementById("backup-list");
+  listEl.innerHTML = '<div style="font-size:13px;color:#555;">Loading from Drive…</div>';
+  document.getElementById("import-preview").classList.add("hidden");
+  selectedFileId = null;
+  try {
+    const res = await api({ action: "list_files" });
+    if (!res.success) throw new Error(res.error);
+    const files = res.files || {};
+    const apps  = Object.keys(files);
+    if (apps.length === 0) {
+      listEl.innerHTML = '<div style="font-size:13px;color:#999;">No backups found. Export something first!</div>';
+      return;
+    }
+    let html = '<div class="key-list">';
+    apps.forEach(app => {
+      html += `<div style="padding:6px 10px;background:#f5f5f5;font-size:12px;font-weight:bold;color:#555;">${esc(app)}</div>`;
+      (files[app] || []).forEach(f => {
+        const date = new Date(f.modified).toLocaleString();
+        html += `<div class="file-row" id="fr-${esc(f.id)}" onclick="selectFile('${esc(f.id)}')">
+          📄 <span style="flex:1;">${esc(f.name)}</span>
+          <small>${date}</small>
+          <button class="red" style="padding:4px 8px;font-size:11px;" onclick="event.stopPropagation();deleteBackup('${esc(f.id)}')">🗑</button>
+        </div>`;
+      });
+    });
+    html += '</div>';
+    listEl.innerHTML = html;
+  } catch(e) {
+    listEl.innerHTML = `<div class="msg err">Error: ${esc(e.message)}</div>`;
+  }
+}
+
+async function selectFile(fileId) {
+  document.querySelectorAll(".file-row").forEach(el =>
+    el.classList.toggle("selected", el.id === "fr-" + fileId)
+  );
+  selectedFileId = fileId;
+  document.getElementById("import-preview").classList.add("hidden");
+  try {
+    const res = await api({ action: "list_keys", fileId });
+    if (!res.success) throw new Error(res.error);
+    const keys = res.keys || [];
+    const listEl = document.getElementById("imp-key-list");
+    if (keys.length === 0) {
+      listEl.innerHTML = '<div style="padding:12px;color:#999;font-size:13px;">No keys in this backup.</div>';
+    } else {
+      listEl.innerHTML = keys.map(k => {
+        const exists = localStorage.getItem(k) !== null;
+        return `<label class="key-row">
+          <input type="checkbox" class="imp-cb" value="${esc(k)}" checked>
+          <span style="flex:1;font-family:monospace;">${esc(k)}</span>
+          <small style="color:${exists ? '#e65100' : '#2e7d32'}">${exists ? "will overwrite" : "new"}</small>
+        </label>`;
+      }).join("");
+    }
+    document.getElementById("import-preview").classList.remove("hidden");
+  } catch(e) {
+    msg("import-msg", "err", "Could not load keys: " + e.message);
+  }
+}
+
+async function doImport() {
+  if (!selectedFileId) return msg("import-msg", "err", "Select a backup file first.");
+  const keys = [...document.querySelectorAll(".imp-cb:checked")].map(cb => cb.value);
+  if (keys.length === 0) return msg("import-msg", "err", "Select at least one key.");
+  msg("import-msg", "info", "Importing…");
+  try {
+    const res = await api({ action: "import", fileId: selectedFileId });
+    if (!res.success) throw new Error(res.error);
+    let count = 0;
+    keys.forEach(k => {
+      if (res.data && res.data[k] !== undefined) {
+        localStorage.setItem(k, res.data[k]);
+        count++;
+      }
+    });
+    msg("import-msg", "ok", `✓ Imported ${count} key(s) into localStorage.`);
+    renderExportKeys();
+  } catch(e) {
+    msg("import-msg", "err", "Import failed: " + e.message);
+  }
+}
+
+async function deleteBackup(fileId) {
+  if (!confirm("Delete this backup? Cannot be undone.")) return;
+  try {
+    const res = await api({ action: "delete_backup", fileId });
+    if (res.success) loadBackups();
+    else alert("Delete failed: " + res.error);
+  } catch(e) {
+    alert("Error: " + e.message);
+  }
+}
+
+// ── Settings ──────────────────────────────────────────
+async function saveConfigToDrive() {
+  msg("settings-msg", "info", "Saving…");
+  try {
+    const res = await api({ action: "save_config", scriptURL });
+    if (res.success) msg("settings-msg", "ok", "✓ Script URL backed up to your Drive folder.");
+    else msg("settings-msg", "err", res.error);
+  } catch(e) {
+    msg("settings-msg", "err", "Error: " + e.message);
+  }
+}
+
+function clearLS() {
+  const keys = Object.keys(localStorage).filter(k => !k.startsWith("__drivesync_"));
+  if (!confirm(`Clear ${keys.length} key(s)? DriveSync settings will be kept.`)) return;
+  keys.forEach(k => localStorage.removeItem(k));
+  renderExportKeys();
+  alert("LocalStorage cleared.");
+}
+
+// ── API call ──────────────────────────────────────────
+// KEY FIXES:
+// 1. During login, global username/password are still "". Don't overwrite
+//    payload fields that the caller already set.
+// 2. Google Apps Script /exec does a 302 redirect but the POST body IS
+//    processed before the redirect — the response comes back via the
+//    googleusercontent.com echo URL. This works fine with redirect:"follow"
+//    as long as the body is sent correctly (Content-Type: text/plain).
+async function api(payload) {
+  // Only inject globals if caller didn't already provide credentials
+  if (!payload.username) payload.username = username;
+  if (!payload.password) payload.password = password;
+
+  const res = await fetch(scriptURL, {
+    method  : "POST",
+    body    : JSON.stringify(payload),
+    headers : { "Content-Type": "text/plain" },
+    redirect: "follow",
+  });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return await res.json();
+}
+
+// ── Helpers ───────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])
+  );
+}
+</script>
+</body>
+</html>

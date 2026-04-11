@@ -1,0 +1,79 @@
+# DriveSync — LocalStorage ↔ Google Drive
+
+Back up your browser's localStorage to your own Google Drive. Clean, secure, no third-party servers.
+
+---
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `index.html` | The web app — host this on GitHub Pages |
+| `Code.gs` | Paste this into Google Apps Script |
+
+---
+
+## Setup Guide (one-time, ~5 minutes)
+
+### Step 1 — Create the Apps Script
+
+1. Go to [script.google.com](https://script.google.com) and click **New Project**
+2. Delete any existing code, paste the contents of `Code.gs`
+3. At the top, **change** `USERNAME` and `PASSWORD` to your own values:
+   ```js
+   USERNAME : "yourname",
+   PASSWORD : "your-secret-password",
+   ```
+4. Click **Save** (Ctrl+S)
+
+### Step 2 — Deploy as Web App
+
+1. Click **Deploy → New Deployment**
+2. Click the gear icon next to "Type" → select **Web app**
+3. Set:
+   - **Description**: DriveSync
+   - **Execute as**: Me
+   - **Who has access**: Anyone
+4. Click **Deploy**
+5. **Copy the Web App URL** (looks like `https://script.google.com/macros/s/ABC.../exec`)
+
+> ⚠️ **Save this URL somewhere safe** — email it to yourself, or use the "Backup URL to Drive" button in the app after first login.
+
+### Step 3 — Host on GitHub Pages
+
+1. Create a GitHub repository
+2. Upload `index.html` to it
+3. Go to **Settings → Pages → Source → main branch**
+4. Your app is live at `https://yourusername.github.io/reponame/`
+
+### Step 4 — First Login
+
+1. Open your GitHub Pages URL
+2. Paste your **Web App URL** from Step 2 → Continue
+3. Enter your **username and password** → Sign in
+4. Click **Settings → Backup URL to Drive** to save your URL to Drive
+
+---
+
+## How it works
+
+- **Export**: Select localStorage keys → choose an App Name → Export to Drive
+  - Saved as `DriveSync_Backups/{AppName}/backup_2025-01-01.json` in your Google Drive
+  - Keeps last 20 backups per app automatically
+- **Import**: Browse Drive backups → click a file → select keys → restore to localStorage
+- **Settings**: View/copy your script URL, inspect localStorage, backup config to Drive
+
+---
+
+## Security
+
+- Username + password are stored only in your Apps Script (your Google account)
+- The web app never stores your password permanently (session only)
+- All data goes directly from your browser → your Apps Script → your Drive
+- No third-party servers involved
+
+---
+
+## Recovering if you forget the Script URL
+
+Open **Google Drive → DriveSync_Backups → _config.json** — it contains your Script URL, username, and save date.

@@ -1,295 +1,319 @@
 const tools = [
   {
-    icon: "fas fa-project-diagram",
-    title: "UI FlowForge Creator",
-    description: "Create professional flowcharts with intuitive drag & drop interface. Perfect for wireframing and process documentation.",
-    tags: ["Flowchart Design", "UI", "Drag & Drop"],
+    icon: "fas fa-diagram-project",
+    title: "Flowchart Maker (Basic)",
+    description:
+      "Create simple flowcharts with a drag and drop interface. Good for planning projects and ideas.",
+    tags: ["Planning", "Design", "Flowchart"],
     status: "live",
     instructions: [
-      "Drag and drop elements from the palette to create your flowchart",
-      "Connect elements by clicking and dragging between connection points",
-      "Double-click on elements to edit text and properties",
-      "Use the toolbar to adjust colors, styles, and layouts",
-      "Export your flowchart as PNG, SVG, or PDF"
+      "Drag shapes from the left to the center",
+      "Connect shapes by clicking and dragging between dots",
+      "Double-click to add or change text",
+      "Save your design as an image",
     ],
     link: "./flowChartMaker/uIFlowForge.html",
-    groupname: ["FlowChart Maker", "Design Tools"]
+    groupname: ["Flowchart Tools"],
   },
   {
-    icon: "fas fa-magic",
-    title: "UI FlowForge Enhancer",
-    description: "Advanced flowchart creator with enhanced features, animations, and professional templates.",
-    tags: ["Flowchart Design", "UI", "Enhanced"],
+    icon: "fas fa-wand-sparkles",
+    title: "Flowchart Maker (Advanced)",
+    description:
+      "Advanced flowchart tool with more shapes, animations, and professional layouts.",
+    tags: ["Advanced", "Design", "Animations"],
     status: "live",
     instructions: [
-      "Choose from professional templates or start from scratch",
-      "Access advanced styling options and animations",
-      "Collaborate in real-time with team members",
-      "Auto-arrange and optimize your flowchart layout"
+      "Pick a professional looking template",
+      "Use animations to show how steps work",
+      "Align everything perfectly with auto-spacing",
+      "Export in high quality",
     ],
     link: "./flowChartMaker/uIFlowForgerEnhancer.html",
-    groupname: ["FlowChart Maker", "Design Tools"]
+    groupname: ["Flowchart Tools"],
   },
   {
-    icon: "fas fa-project-diagram",
-    title: "UI FlowChart", 
-    description: "Create professional flowcharts with intuitive drag & drop interface. Perfect for wireframing and process documentation.",
-    tags: ["Flowchart Design", "UI", "Drag & Drop"],
+    icon: "fas fa-code-branch",
+    title: "Logic Diagram Creator",
+    description:
+      "Design logic maps and decision trees quickly. Simple and fast for brainstorming.",
+    tags: ["Logic", "Planning", "Trees"],
     status: "live",
     instructions: [
-      "Drag and drop elements from the palette to create your flowchart",
-      "Connect elements by clicking and dragging between connection points",
-      "Double-click on elements to edit text and properties",
-      "Use the toolbar to adjust colors, styles, and layouts",
-      "Export your flowchart as PNG, SVG, or PDF"
+      "Start with a main idea box",
+      "Add branches for each possible decision",
+      "Color code your boxes to organize better",
+      "Save your work to continue later",
     ],
     link: "./flowChartMaker/uIFlowChart.html",
-    groupname: ["FlowChart Maker", "Design Tools"]
+    groupname: ["Flowchart Tools"],
   },
   {
-    icon: "fas fa-project-diagram",
-    title: "UI FlowChart Enhancer", 
-    description: "Create professional flowcharts with intuitive drag & drop interface. Perfect for wireframing and process documentation.",
-    tags: ["Flowchart Design", "UI", "Drag & Drop"],
+    icon: "fas fa-microchip",
+    title: "System Design Tool",
+    description:
+      "Draw complex system architectures and technical diagrams for engineering projects.",
+    tags: ["Technical", "System Design", "Engineering"],
     status: "live",
     instructions: [
-      "Drag and drop elements from the palette to create your flowchart",
-      "Connect elements by clicking and dragging between connection points",
-      "Double-click on elements to edit text and properties",
-      "Use the toolbar to adjust colors, styles, and layouts",
-      "Export your flowchart as PNG, SVG, or PDF"
+      "Use technical icons to show how systems connect",
+      "Detail your architecture with notes",
+      "Export technical data from your diagram",
+      "Keep track of different system versions",
     ],
     link: "./flowChartMaker/uIFlowChart_Enhancer.html",
-    groupname: ["FlowChart Maker", "Design Tools"]
+    groupname: ["Flowchart Tools"],
   },
   {
-    icon: "fas fa-code",
-    title: "Code FlowForge",
-    description: "Generate flowcharts programmatically using code. Perfect for developers who prefer coding over UI.",
-    tags: ["Flowchart Design", "Code", "Programming", "API"],
+    icon: "fas fa-terminal",
+    title: "Diagram from Code",
+    description:
+      "Type simple code to generate flowcharts automatically. Fast for developers.",
+    tags: ["Coding", "Automation", "Charts"],
     status: "live",
     instructions: [
-      "Write flowchart definitions using our simple syntax",
-      "Use variables and loops for dynamic chart generation",
-      "Import/export flowchart data as JSON",
-      "Integrate with your existing development workflow"
+      "Write your flowchart steps in the code editor",
+      "The diagram updates instantly as you type",
+      "Use loops to handle repeating steps",
+      "Download the result as a file",
     ],
     link: "./flowChartMaker/codeFlowForge.html",
-    groupname: ["FlowChart Maker"]
+    groupname: ["Coder Tools"],
   },
   {
     icon: "fas fa-palette",
-    title: "Code FlowForge Colorizer",
-    description: "Add beautiful colors and themes to your code-generated flowcharts with advanced styling options.",
-    tags: ["Flowchart Design", "Code", "Styling", "Themes"],
+    title: "Code Diagram Stylist",
+    description: "Add colors and themes to the diagrams you created from code.",
+    tags: ["Styling", "Colors", "Themes"],
     status: "live",
     instructions: [
-      "Apply predefined color schemes to your flowcharts",
-      "Create custom color palettes and save them",
-      "Use gradient effects and advanced styling",
-      "Preview changes in real-time"
+      "Load your code-generated diagram",
+      "Pick a color theme that looks good",
+      "Customize colors for individual boxes",
+      "Export the styled version",
     ],
     link: "./flowChartMaker/codeFlowForgeColorizer.html",
-    groupname: ["FlowChart Maker"]
+    groupname: ["Coder Tools"],
   },
   {
-    icon: "fas fa-markdown",
-    title: "Live Markdown Editor",
-    description: "Real-time markdown editor with instant preview, syntax highlighting, and export options.",
-    tags: ["Markdown", "Editor", "Live Preview", "Documentation"],
+    icon: "fas fa-edit",
+    title: "Markdown Editor",
+    description:
+      "Write markdown text and see how it looks in real-time. Easy for documents.",
+    tags: ["Writing", "Editing", "Docs"],
     status: "live",
     instructions: [
-      "Type markdown in the left pane and see instant preview",
-      "Use toolbar shortcuts for common formatting",
-      "Export to HTML, PDF, or save as markdown file",
-      "Support for tables, code blocks, and math expressions"
+      "Type your markdown text on the left side",
+      "See the formatted view on the right side",
+      "Use buttons for bold, italics, and links",
+      "Save as a PDF or HTML file",
     ],
     link: "./mdFileWriter/liveCommonMarkdown.html",
-    groupname: ["Md - HTML Designer"]
+    groupname: ["Writing Tools"],
   },
   {
-    icon: "fas fa-file-code",
-    title: "Enhanced Markdown Designer",
-    description: "Advanced markdown editor with custom themes, plugins, and collaboration features.",
-    tags: ["Markdown", "Designer", "Enhanced", "Collaboration"],
+    icon: "fas fa-pen-nib",
+    title: "Markdown Designer",
+    description:
+      "Professional markdown tool with extra features like diagrams and table creators.",
+    tags: ["Pro Writing", "Design", "Plugins"],
     status: "live",
     instructions: [
-      "Choose from multiple editor themes and layouts",
-      "Install plugins for extended functionality",
-      "Share documents with team members for collaboration",
-      "Use advanced features like diagrams and presentations"
+      "Use the sidebar to manage your files",
+      "Add diagrams and math formulas to your text",
+      "Pick a custom theme for the editor",
+      "Publish your work directly",
     ],
     link: "./mdFileWriter/liveEnhancedMarkdown.html",
-    groupname: ["Md - HTML Designer"]
+    groupname: ["Writing Tools"],
   },
   {
-    icon: "fas fa-shield-alt",
-    title: "Complex Password Bank",
-    description: "Secure password manager that stores your credentials in encrypted JSON format with advanced security features.",
-    tags: ["Security", "Password Manager", "Encryption", "JSON"],
+    icon: "fas fa-vault",
+    title: "Secure Password Bank",
+    description:
+      "Save all your passwords safely in an encrypted vault. Organize by project.",
+    tags: ["Security", "Privacy", "Passwords"],
     status: "live",
     instructions: [
-      "Create strong passwords with customizable criteria",
-      "Store passwords in encrypted JSON format",
-      "Organize passwords by categories and tags",
-      "Import/export password data securely",
-      "Use two-factor authentication for extra security"
+      "Create new passwords for your accounts",
+      "Store them safely with strong encryption",
+      "Search for specific passwords easily",
+      "Keep everything organized in groups",
     ],
     link: "./passwordBank/index.html",
-    groupname: ["Password Store"]
+    groupname: ["Security Tools"],
   },
   {
-    icon: "fas fa-shield-alt",
-    title: "Info Storage",
-    description: "Store your information in a secure and easy to use format.",
-    tags: ["Info Storage",  "JSON"],
+    icon: "fas fa-box-archive",
+    title: "Info & Config Box",
+    description:
+      "Store bits of text, configurations, and private info in one safe place.",
+    tags: ["Storage", "Security", "Notes"],
     status: "live",
     link: "./StorageInfoBox/index.html",
-    groupname: ["Info Storage"]
+    groupname: ["Security Tools"],
   },
   {
-    icon: "fas fa-shield-alt",
-    title: "Cheat Sheet Maker",
-    description: "Create the cheat sheet you need.",
-    tags: ["Learning",  "Cheat Sheets"],
+    icon: "fas fa-book-open",
+    title: "Cheat Sheet Builder",
+    description:
+      "Make your own quick reference guides and cheat sheets for learning.",
+    tags: ["Ref", "Learning", "Guides"],
     status: "live",
     link: "./checkSheetBuilder/index.html",
-    groupname: ["Info Storage"]
+    groupname: ["Learning Tools"],
   },
   {
-    icon: "fas fa-shield-alt",
-    title: "Notes Maker",
-    description: "Store your information",
-    tags: ["Info Storage",  "JSON"],
+    icon: "fas fa-note-sticky",
+    title: "Notes Manager",
+    description:
+      "Quickly take notes and keep them organized. Fast and easy to use.",
+    tags: ["Notes", "Tasks", "Drafts"],
     status: "live",
     link: "./NotesManager/index.html",
-    groupname: ["Info Storage"]
+    groupname: ["Writing Tools"],
   },
   {
-    icon: "fas fa-shield-alt",
-    title: "Secrets Keeper",
-    description: "Securely store and manage your sensitive information with encryption and easy access.",
-    tags: ["Security", "Password Viewer", "Encryption", "JSON"],
+    icon: "fas fa-key",
+    title: "Secret Keeper",
+    description:
+      "A private place to hide your most sensitive secrets and information.",
+    tags: ["Privacy", "Secrets", "Encryption"],
     status: "live",
     link: "./secretsKeeper/index.html",
-    groupname: ["Password Store"]
+    groupname: ["Security Tools"],
   },
   {
-    icon: "fas fa-shield-alt",
-    title: "Simple Password Bank",
-    description: "Secure password manager that stores your credentials in encrypted JSON format with advanced security features.",
-    tags: ["Security", "Password Manager", "Encryption", "JSON"],
+    icon: "fas fa-user-shield",
+    title: "Simple Pass Bank",
+    description:
+      "A very easy tool to save your common passwords and login info.",
+    tags: ["Easy", "Logins"],
     status: "live",
     instructions: [
-      "Create strong passwords with customizable criteria",
-      "Store passwords in encrypted JSON format",
-      "Organize passwords by categories and tags",
-      "Import/export password data securely",
-      "Use two-factor authentication for extra security"
+      "Add your login details quickly",
+      "Search to find what you need",
+      "Save and back up your data",
     ],
     link: "./simplePasswordBank/index.html",
-    groupname: ["Password Store"] 
+    groupname: ["Security Tools"],
   },
   {
-    icon: "fas fa-chart-bar",
-    title: "Hangouts",
-    description: "Play hangouts with your friends.",
-    tags: ["Hangouts", "GamePlay", "Interactive"],
+    icon: "fas fa-gamepad",
+    title: "Hangouts Game",
+    description:
+      "Play interactive games like hangouts with your friends online.",
+    tags: ["Games", "Fun", "Friends"],
     status: "onbuild",
     instructions: [
-      "Play hangouts with your friends",
+      "Start a new game with your friends",
+      "Guess the words to win",
+      "Keep track of your score",
     ],
-    groupname: ["GamePlay"]
+    groupname: ["Fun & Games"],
   },
   {
-    icon: "fas fa-cloud-upload-alt",
-    title: "File Converter Suite",
-    description: "Convert between various file formats with batch processing capabilities.",
-    tags: ["File Conversion", "Batch Processing", "Multiple Formats"],
+    icon: "fas fa-shuffle",
+    title: "File Converter",
+    description:
+      "Convert your files from one format to another (PDF, JPG, PNG, etc).",
+    tags: ["Universal", "Utility", "Converter"],
     status: "upcoming",
     instructions: [
-      "Upload single files or entire folders",
-      "Choose target format from supported options",
-      "Apply batch processing for multiple files",
-      "Download converted files individually or as ZIP"
+      "Drop your file into the box",
+      "Pick the new format you want",
+      "Click convert and download",
     ],
-    groupname: ["Resume Maker"]
+    groupname: ["Office Utilities"],
   },
   {
-    icon: "fas fa-cloud-upload-alt",
-    title: "Test Case Manager",
-    description: "Test case management tool for organizing and tracking software tests.",
-    tags: ["Test Management", "Software Testing", "Tracking"],
+    icon: "fas fa-list-check",
+    title: "Test Case Tracker",
+    description:
+      "Professional tool for software testers to manage and track test cases.",
+    tags: ["Testing", "Software", "QA"],
     status: "live",
     instructions: [
-      "Create and organize test cases",
-      "Assign test cases to team members",
-      "Track test execution and results",
-      "Generate reports and analytics"
+      "Create new test cases for your software",
+      "Update if they pass or fail",
+      "See a total report of your tests",
+      "Keep track of which version you tested",
     ],
     link: "./testCaseManager/index.html",
-    groupname: ["Software Testing"]
+    groupname: ["Coder Tools"],
   },
   {
-    icon: "fas fa-cloud-upload-alt",
-    title: "Preparation Tracker",
-    description: "create task and view.",
-    tags: ["Tracker", "Reminders", "Productivity","Preparation"],
+    icon: "fas fa-bullseye",
+    title: "Interview Prep",
+    description:
+      "Track your progress and tasks when preparing for job interviews.",
+    tags: ["Interviews", "Jobs", "Focus"],
     status: "live",
     link: "./preparationTracker/interview_prep_tracker.html",
-    groupname: ["Task Maker"]
+    groupname: ["Career Tools"],
   },
   {
-    icon: "fas fa-cloud-upload-alt",
-    title: "Adv Preparation Tracker",
-    description: "create task and view.",
-    tags: ["Tracker", "Reminders", "Productivity","Preparation","Quiz"],
+    icon: "fas fa-star",
+    title: "Interview Prep (Advanced)",
+    description:
+      "Advanced preparation tool with points, challenges, and progress charts.",
+    tags: ["Advanced", "Goals", "Success"],
     status: "live",
     link: "./preparationTracker/advpointstore.html",
-    groupname: ["Task Maker"]
+    groupname: ["Career Tools"],
   },
   {
-    icon: "fas fa-cloud-upload-alt",
-    title: "Resume - ATS Score",
-    description: "ATS Finder",
-    tags: ["Resume"],
+    icon: "fas fa-file-invoice",
+    title: "Resume Checker",
+    description:
+      "Check your resume score and see how well it fits different job roles.",
+    tags: ["Resume", "Jobs", "Score"],
     status: "live",
     link: "./resumeMatcher/resume-matcher.html",
-    groupname: ["Resume Matcher"]
-  }
+    groupname: ["Career Tools"],
+  },
 ];
 
 // State management
 const state = {
-  currentFilter: 'all',
-  currentView: 'grid',
-  searchQuery: '',
+  currentFilter: "all",
+  currentView: "grid",
+  searchQuery: "",
   selectedGroup: null, // Add selected group state
-  tools: tools
+  tools: tools,
+  isSidebarCollapsed: false, // Default to expanded, no storage
 };
 
 // DOM elements
 const elements = {
-  container: document.getElementById('toolsContainer'),
-  searchInput: document.getElementById('searchInput'),
-  themeToggle: document.getElementById('themeToggle'),
-  layoutToggle: document.getElementById('layoutToggle'),
-  filterButtons: document.querySelectorAll('.filter-btn'),
-  viewButtons: document.querySelectorAll('.view-btn'),
-  modal: document.getElementById('modalOverlay'),
-  modalTitle: document.getElementById('modalTitle'),
-  instructionsList: document.getElementById('instructionsList'),
-  closeModal: document.getElementById('closeModal'),
-  noResults: document.getElementById('noResults'),
-  groupFilters: document.getElementById('groupFilters') // Add group filters element
+  container: document.getElementById("toolsContainer"),
+  searchInput: document.getElementById("searchInput"),
+  globalSearch: document.getElementById("globalSearch"),
+  themeToggle: document.getElementById("themeToggle"),
+  layoutToggle: document.getElementById("layoutToggle"),
+  filterButtons: document.querySelectorAll(".filter-link"),
+  viewButtons: document.querySelectorAll(".view-btn"),
+  modal: document.getElementById("modalOverlay"),
+  modalTitle: document.getElementById("modalTitle"),
+  instructionsList: document.getElementById("instructionsList"),
+  closeModal: document.getElementById("closeModal"),
+  noResults: document.getElementById("noResults"),
+  groupFilters: document.getElementById("groupFilters"),
+  greeting: document.getElementById("greeting"),
+  currentDate: document.getElementById("currentDate"),
+  totalTools: document.getElementById("totalTools"),
+  liveTools: document.getElementById("liveTools"),
+  collapseToggle: document.getElementById("collapseToggle"),
+  appLayout: document.querySelector(".app-layout"),
 };
 
 // Initialize the application
 function init() {
+  updateDashboardHeader();
   renderTools();
   renderGroupFilters(); // Add group filters rendering
   bindEvents();
   updateThemeIcon();
+  applySidebarState();
 
   // Initialize tooltips after rendering
   setTimeout(() => {
@@ -297,32 +321,60 @@ function init() {
   }, 100);
 }
 
+// Update Dashboard Stats and Greeting
+function updateDashboardHeader() {
+  if (!elements.greeting) return;
+
+  const hour = new Date().getHours();
+  let greetingText = "Good Morning";
+  if (hour >= 12 && hour < 17) greetingText = "Good Afternoon";
+  else if (hour >= 17) greetingText = "Good Evening";
+  elements.greeting.innerText = `${greetingText}, Explorer`;
+
+  if (elements.currentDate) {
+    elements.currentDate.innerText = new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  if (elements.totalTools) elements.totalTools.innerText = tools.length;
+  if (elements.liveTools)
+    elements.liveTools.innerText = tools.filter(
+      (t) => t.status === "live"
+    ).length;
+}
+
 // Render all tools grouped by category
 function renderTools() {
   const filteredTools = getFilteredTools();
 
   if (filteredTools.length === 0) {
-    elements.container.innerHTML = '';
-    elements.noResults.style.display = 'block';
+    elements.container.innerHTML = "";
+    elements.noResults.style.display = "block";
     return;
   }
 
-  elements.noResults.style.display = 'none';
+  elements.noResults.style.display = "none";
 
   // Group tools by category
   const groupedTools = groupToolsByCategory(filteredTools);
 
-  let html = '';
+  let html = "";
 
   for (const [groupName, groupTools] of Object.entries(groupedTools)) {
     html += `
-  <div class="group-section fade-in">
+  <div class="group-section">
     <div class="group-header">
       <h2 class="group-title">${groupName}</h2>
-      <span class="group-count">${groupTools.length} tools</span>
+      <span class="group-count">${groupTools.length}</span>
     </div>
-    <div class="cards-grid ${state.currentView === 'list' ? 'list-view' : ''}">
-      ${groupTools.map(tool => renderToolCard(tool)).join('')}
+    <div class="cards-grid ${state.currentView === "list" ? "list-view" : ""}">
+      ${groupTools
+        .map((tool, index) => renderToolCard(tool, index))
+        .join("")}
     </div>
   </div>
 `;
@@ -335,63 +387,75 @@ function renderTools() {
 }
 
 // Render individual tool card - Fixed button functionality
-function renderToolCard(tool) {
-    const isDisabled = tool.status === 'upcoming';
-    const hasValidLink = tool.link && tool.link !== '#' && !isDisabled;
-  
-    let html = '';
-  
-    html += `<div class="tool-card" data-status="${tool.status}" data-tags="${tool.tags.join(',').toLowerCase()}">`;
-  
-    // Header
-    html += `
+function renderToolCard(tool, index = 0) {
+  const isDisabled = tool.status === "upcoming";
+  const hasValidLink = tool.link && tool.link !== "#" && !isDisabled;
+
+  let html = "";
+
+  html += `<div class="tool-card" style="animation-delay: ${
+    index * 0.05
+  }s" data-status="${tool.status}" data-tags="${tool.tags
+    .join(",")
+    .toLowerCase()}">`;
+
+  // Header
+  html += `
       <div class="card-header">
         <div class="card-icon">
           <i class="${tool.icon}"></i>
         </div>
         <div class="card-actions">
-          ${tool.instructions ? `<button class="info-btn" data-tool-title="${tool.title}" data-tooltip="View Instructions"><i class="fas fa-info"></i></button>` : ''}
+          ${
+            tool.instructions
+              ? `<button class="info-btn" data-tool-title="${tool.title}" data-tooltip="View Instructions"><i class="fas fa-info"></i></button>`
+              : ""
+          }
         </div>
       </div>
     `;
-  
-    // Content
-    html += `
+
+  // Content
+  html += `
       <div class="card-content">
         <h3>${tool.title}</h3>
         <p>${tool.description}</p>
         <div class="tags">
-          ${tool.tags.map(tag => `<span class="tag" data-tooltip="Click to search">${tag}</span>`).join('')}
+          ${tool.tags
+            .map(
+              (tag) =>
+                `<span class="tag" data-tooltip="Click to search">${tag}</span>`
+            )
+            .join("")}
         </div>
       </div>
     `;
-    // Footer
-    html += `
-      <div class="card-footer">
-        <span class="status-badge status-${tool.status}">${formatStatus(tool.status)}</span>
-        ${hasValidLink
-          ? (tool.link && tool.link.length > 0
-              ? `<a href="${tool.link}" target="_blank" class="launch-btn" data-tooltip="Open in new tab">
-                      Launch <i class="fas fa-external-link-alt"></i>
-                  </a>`
-              : ``)
-          : ``
-        }
-      </div>
+  // Footer
+  html += `
+        <div class="card-footer">
+          <span class="status-badge status-${tool.status}">${tool.status}</span>
+          <a href="${tool.link}" class="launch-btn" target="_blank">
+            Launch <i class="fas fa-external-link-alt"></i>
+          </a>
+        </div>
     `;
-  
-    html += `</div>`;
-  
-    return html;
-  }
-  
+
+  html += `</div>`;
+
+  return html;
+}
+
 // Format status text
 function formatStatus(status) {
   switch (status) {
-    case 'live': return 'Live';
-    case 'onbuild': return 'In Progress';
-    case 'upcoming': return 'Coming Soon';
-    default: return status;
+    case "live":
+      return "Live";
+    case "onbuild":
+      return "In Progress";
+    case "upcoming":
+      return "Coming Soon";
+    default:
+      return status;
   }
 }
 
@@ -399,16 +463,18 @@ function formatStatus(status) {
 function groupToolsByCategory(tools) {
   const grouped = {};
 
-  tools.forEach(tool => {
-    const categories = Array.isArray(tool.groupname) ? tool.groupname : [tool.groupname || 'Others'];
+  tools.forEach((tool) => {
+    const categories = Array.isArray(tool.groupname)
+      ? tool.groupname
+      : [tool.groupname || "Others"];
 
-    categories.forEach(category => {
+    categories.forEach((category) => {
       if (!grouped[category]) {
         grouped[category] = [];
       }
 
       // Check if tool is already in this group to avoid duplicates
-      if (!grouped[category].find(t => t.title === tool.title)) {
+      if (!grouped[category].find((t) => t.title === tool.title)) {
         grouped[category].push(tool);
       }
     });
@@ -422,14 +488,16 @@ function getFilteredTools() {
   let filtered = [...state.tools];
 
   // Apply status filter
-  if (state.currentFilter !== 'all') {
-    filtered = filtered.filter(tool => tool.status === state.currentFilter);
+  if (state.currentFilter !== "all") {
+    filtered = filtered.filter((tool) => tool.status === state.currentFilter);
   }
 
   // Apply group filter
   if (state.selectedGroup) {
-    filtered = filtered.filter(tool => {
-      const groups = Array.isArray(tool.groupname) ? tool.groupname : [tool.groupname || 'Others'];
+    filtered = filtered.filter((tool) => {
+      const groups = Array.isArray(tool.groupname)
+        ? tool.groupname
+        : [tool.groupname || "Others"];
       return groups.includes(state.selectedGroup);
     });
   }
@@ -437,12 +505,16 @@ function getFilteredTools() {
   // Apply search filter
   if (state.searchQuery) {
     const query = state.searchQuery.toLowerCase();
-    filtered = filtered.filter(tool => {
-      const groupNames = Array.isArray(tool.groupname) ? tool.groupname.join(' ') : (tool.groupname || '');
-      return tool.title.toLowerCase().includes(query) ||
+    filtered = filtered.filter((tool) => {
+      const groupNames = Array.isArray(tool.groupname)
+        ? tool.groupname.join(" ")
+        : tool.groupname || "";
+      return (
+        tool.title.toLowerCase().includes(query) ||
         tool.description.toLowerCase().includes(query) ||
-        tool.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        groupNames.toLowerCase().includes(query);
+        tool.tags.some((tag) => tag.toLowerCase().includes(query)) ||
+        groupNames.toLowerCase().includes(query)
+      );
     });
   }
 
@@ -452,32 +524,43 @@ function getFilteredTools() {
 // Bind all event listeners
 function bindEvents() {
   // Search functionality
-  elements.searchInput.addEventListener('input', handleSearch);
+  elements.searchInput.addEventListener("input", handleSearch);
+  if (elements.globalSearch) {
+    elements.globalSearch.addEventListener("input", (e) => {
+      elements.searchInput.value = e.target.value;
+      handleSearch(e);
+    });
+  }
 
   // Theme toggle
-  elements.themeToggle.addEventListener('click', toggleTheme);
+  elements.themeToggle.addEventListener("click", toggleTheme);
+
+  // Sidebar toggle
+  if (elements.collapseToggle) {
+    elements.collapseToggle.addEventListener("click", toggleSidebar);
+  }
 
   // Layout toggle
-  elements.layoutToggle.addEventListener('click', toggleLayout);
+  elements.layoutToggle.addEventListener("click", toggleLayout);
 
   // Filter buttons
-  elements.filterButtons.forEach(btn => {
-    btn.addEventListener('click', () => handleFilter(btn.dataset.filter));
+  elements.filterButtons.forEach((btn) => {
+    btn.addEventListener("click", () => handleFilter(btn.dataset.filter));
   });
 
   // View toggle buttons
-  elements.viewButtons.forEach(btn => {
-    btn.addEventListener('click', () => handleViewChange(btn.dataset.view));
+  elements.viewButtons.forEach((btn) => {
+    btn.addEventListener("click", () => handleViewChange(btn.dataset.view));
   });
 
   // Modal events
-  elements.closeModal.addEventListener('click', closeModal);
-  elements.modal.addEventListener('click', (e) => {
+  elements.closeModal.addEventListener("click", closeModal);
+  elements.modal.addEventListener("click", (e) => {
     if (e.target === elements.modal) closeModal();
   });
 
   // Keyboard shortcuts
-  document.addEventListener('keydown', handleKeyboard);
+  document.addEventListener("keydown", handleKeyboard);
 }
 
 // Render group filter cards
@@ -485,26 +568,46 @@ function renderGroupFilters() {
   // Get all unique groups and their tool counts
   const groupCounts = {};
 
-  state.tools.forEach(tool => {
-    const groups = Array.isArray(tool.groupname) ? tool.groupname : [tool.groupname || 'Others'];
-    groups.forEach(group => {
+  state.tools.forEach((tool) => {
+    const groups = Array.isArray(tool.groupname)
+      ? tool.groupname
+      : [tool.groupname || "Others"];
+    groups.forEach((group) => {
       groupCounts[group] = (groupCounts[group] || 0) + 1;
     });
   });
 
   // Sort groups by tool count (descending)
-  const sortedGroups = Object.entries(groupCounts)
-    .sort(([, a], [, b]) => b - a);
+  const sortedGroups = Object.entries(groupCounts).sort(
+    ([, a], [, b]) => b - a
+  );
 
-  const groupFiltersHTML = sortedGroups.map(([groupName, count]) => {
-    const isActive = state.selectedGroup === groupName;
+  const groupFiltersHTML = sortedGroups
+    .map(([groupName, count]) => {
+      const isActive = state.selectedGroup === groupName;
+      // Map icons to groups
+      const iconMap = {
+        "Flowchart Tools": "fa-diagram-project",
+        "Security Tools": "fa-shield-halved",
+        "Coder Tools": "fa-code",
+        "Writing Tools": "fa-pen-fancy",
+        "Career Tools": "fa-briefcase",
+        "Learning Tools": "fa-graduation-cap",
+        "Fun & Games": "fa-gamepad",
+        "Office Utilities": "fa-folder-tree",
+      };
+      const iconClass = iconMap[groupName] || "fa-folder";
 
-    return `
-  <div class="group-filter-card ${isActive ? 'active' : ''}" data-group="${groupName}">
-      <div class="group-filter-title">${groupName}</div>
-  </div>
-`;
-  }).join('');
+      return `
+      <button class="group-filter-card ${
+        isActive ? "active" : ""
+      }" data-group="${groupName}" title="${groupName}">
+          <i class="fas ${iconClass}"></i>
+          <span>${groupName}</span>
+      </button>
+    `;
+    })
+    .join("");
 
   elements.groupFilters.innerHTML = groupFiltersHTML;
 
@@ -514,8 +617,8 @@ function renderGroupFilters() {
 
 // Bind group filter events
 function bindGroupFilterEvents() {
-  document.querySelectorAll('.group-filter-card').forEach(card => {
-    card.addEventListener('click', (e) => {
+  document.querySelectorAll(".group-filter-card").forEach((card) => {
+    card.addEventListener("click", (e) => {
       e.preventDefault();
       const groupName = card.dataset.group;
 
@@ -527,36 +630,36 @@ function bindGroupFilterEvents() {
       }
 
       // Update active states
-      document.querySelectorAll('.group-filter-card').forEach(c => {
-        c.classList.remove('active');
+      document.querySelectorAll(".group-filter-card").forEach((c) => {
+        c.classList.remove("active");
       });
 
       if (state.selectedGroup) {
-        card.classList.add('active');
+        card.classList.add("active");
       }
 
       // Clear search when group filter is applied
       if (state.selectedGroup && state.searchQuery) {
-        elements.searchInput.value = '';
-        state.searchQuery = '';
+        elements.searchInput.value = "";
+        state.searchQuery = "";
       }
 
       // Re-render tools with new filter
       renderTools();
 
       // Scroll to tools section
-    //   elements.container.scrollIntoView({ behavior: 'smooth' });
+      //   elements.container.scrollIntoView({ behavior: 'smooth' });
     });
   });
 }
 function bindCardEvents() {
   // Info button events
-  document.querySelectorAll('.info-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+  document.querySelectorAll(".info-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const toolTitle = btn.dataset.toolTitle;
-      const tool = state.tools.find(t => t.title === toolTitle);
+      const tool = state.tools.find((t) => t.title === toolTitle);
       if (tool && tool.instructions) {
         showModal(tool);
       }
@@ -564,8 +667,8 @@ function bindCardEvents() {
   });
 
   // Tag click events for search
-  document.querySelectorAll('.tag').forEach(tag => {
-    tag.addEventListener('click', (e) => {
+  document.querySelectorAll(".tag").forEach((tag) => {
+    tag.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const tagText = tag.textContent.trim();
@@ -576,12 +679,12 @@ function bindCardEvents() {
   });
 
   // Launch button events (for non-link buttons)
-  document.querySelectorAll('.launch-btn:not([href])').forEach(btn => {
+  document.querySelectorAll(".launch-btn:not([href])").forEach((btn) => {
     if (!btn.disabled) {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
         // You can add custom logic here for tools without direct links
-        console.log('Tool launch requested but no valid link available');
+        console.log("Tool launch requested but no valid link available");
       });
     }
   });
@@ -594,13 +697,21 @@ function handleSearch(e) {
   // Clear group filter when searching
   if (state.searchQuery && state.selectedGroup) {
     state.selectedGroup = null;
-    document.querySelectorAll('.group-filter-card').forEach(card => {
-      card.classList.remove('active');
+    document.querySelectorAll(".group-filter-card").forEach((card) => {
+      card.classList.remove("active");
     });
   }
 
   debounce(renderTools, 300)();
 }
+
+// Add shortcut for search focus
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+    e.preventDefault();
+    elements.searchInput.focus();
+  }
+});
 
 // Handle filter changes - Updated to clear group filter
 function handleFilter(filter) {
@@ -609,14 +720,14 @@ function handleFilter(filter) {
   // Clear group filter when status filter changes
   if (state.selectedGroup) {
     state.selectedGroup = null;
-    document.querySelectorAll('.group-filter-card').forEach(card => {
-      card.classList.remove('active');
+    document.querySelectorAll(".group-filter-card").forEach((card) => {
+      card.classList.remove("active");
     });
   }
 
   // Update active filter button
-  elements.filterButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filter === filter);
+  elements.filterButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.filter === filter);
   });
 
   renderTools();
@@ -627,48 +738,63 @@ function handleViewChange(view) {
   state.currentView = view;
 
   // Update active view button
-  elements.viewButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.view === view);
+  elements.viewButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.view === view);
   });
 
   // Update grid layout
-  document.querySelectorAll('.cards-grid').forEach(grid => {
-    grid.classList.toggle('list-view', view === 'list');
+  document.querySelectorAll(".cards-grid").forEach((grid) => {
+    grid.classList.toggle("list-view", view === "list");
   });
 
   // Update layout toggle icon
-  const icon = elements.layoutToggle.querySelector('i');
-  icon.className = view === 'grid' ? 'fas fa-th' : 'fas fa-list';
+  const icon = elements.layoutToggle.querySelector("i");
+  icon.className = view === "grid" ? "fas fa-th" : "fas fa-list";
 }
 
 // Toggle theme
 function toggleTheme() {
   const body = document.body;
-  const currentTheme = body.getAttribute('data-theme');
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  const currentTheme = body.getAttribute("data-theme");
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
 
-  body.setAttribute('data-theme', newTheme);
+  body.setAttribute("data-theme", newTheme);
   updateThemeIcon();
 
   // Store theme preference
-  localStorage.setItem('theme', newTheme);
+  localStorage.setItem("theme", newTheme);
+}
+
+// Sidebar Functions
+function toggleSidebar() {
+  state.isSidebarCollapsed = !state.isSidebarCollapsed;
+  // localStorage storage removed as requested
+  applySidebarState();
+}
+
+function applySidebarState() {
+  if (state.isSidebarCollapsed) {
+    elements.appLayout.classList.add("collapsed");
+  } else {
+    elements.appLayout.classList.remove("collapsed");
+  }
 }
 
 // Update theme icon
 function updateThemeIcon() {
-  const theme = document.body.getAttribute('data-theme');
-  const icon = elements.themeToggle.querySelector('i');
-  icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  const theme = document.body.getAttribute("data-theme");
+  const icon = elements.themeToggle.querySelector("i");
+  icon.className = theme === "dark" ? "fas fa-sun" : "fas fa-moon";
 }
 
 // Toggle layout
 function toggleLayout() {
-  const newView = state.currentView === 'grid' ? 'list' : 'grid';
+  const newView = state.currentView === "grid" ? "list" : "grid";
   handleViewChange(newView);
 
   // Update view buttons
-  elements.viewButtons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.view === newView);
+  elements.viewButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.view === newView);
   });
 }
 
@@ -676,38 +802,38 @@ function toggleLayout() {
 function showModal(tool) {
   elements.modalTitle.textContent = `${tool.title} - Instructions`;
 
-  const instructionsHTML = tool.instructions.map(instruction =>
-    `<li>${instruction}</li>`
-  ).join('');
+  const instructionsHTML = tool.instructions
+    .map((instruction) => `<li>${instruction}</li>`)
+    .join("");
 
   elements.instructionsList.innerHTML = instructionsHTML;
-  elements.modal.classList.add('active');
+  elements.modal.classList.add("active");
 
   // Prevent body scroll
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow = "hidden";
 }
 
 // Close modal
 function closeModal() {
-  elements.modal.classList.remove('active');
-  document.body.style.overflow = '';
+  elements.modal.classList.remove("active");
+  document.body.style.overflow = "";
 }
 
 // Handle keyboard shortcuts
 function handleKeyboard(e) {
   // ESC to close modal
-  if (e.key === 'Escape') {
+  if (e.key === "Escape") {
     closeModal();
   }
 
   // Ctrl/Cmd + K to focus search
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
     e.preventDefault();
     elements.searchInput.focus();
   }
 
   // Ctrl/Cmd + D to toggle theme
-  if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+  if ((e.ctrlKey || e.metaKey) && e.key === "d") {
     e.preventDefault();
     toggleTheme();
   }
@@ -729,11 +855,11 @@ function debounce(func, wait) {
 // Load saved preferences
 function loadPreferences() {
   // Load saved theme
-  const savedTheme = localStorage.getItem('theme') || 'dark';
-  document.body.setAttribute('data-theme', savedTheme);
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  document.body.setAttribute("data-theme", savedTheme);
 
   // Load saved view preference
-  const savedView = localStorage.getItem('view') || 'grid';
+  const savedView = localStorage.getItem("view") || "grid";
   handleViewChange(savedView);
 }
 
@@ -750,14 +876,14 @@ function showLoading() {
 // Add tooltip functionality - Fixed tooltip system
 function initTooltips() {
   // Remove existing tooltip if any
-  const existingTooltip = document.querySelector('.tooltip');
+  const existingTooltip = document.querySelector(".tooltip");
   if (existingTooltip) {
     existingTooltip.remove();
   }
 
   // Create tooltip element
-  const tooltip = document.createElement('div');
-  tooltip.className = 'tooltip';
+  const tooltip = document.createElement("div");
+  tooltip.className = "tooltip";
   tooltip.style.cssText = `
 position: absolute;
 background: var(--card-bg);
@@ -780,17 +906,17 @@ white-space: nowrap;
   let currentTooltipElement = null;
 
   // Add tooltip to elements with data-tooltip
-  document.addEventListener('mouseover', (e) => {
-    const element = e.target.closest('[data-tooltip]');
+  document.addEventListener("mouseover", (e) => {
+    const element = e.target.closest("[data-tooltip]");
     if (element && element !== currentTooltipElement) {
       currentTooltipElement = element;
       tooltip.textContent = element.dataset.tooltip;
-      tooltip.style.opacity = '1';
+      tooltip.style.opacity = "1";
 
       const rect = element.getBoundingClientRect();
       const tooltipRect = tooltip.getBoundingClientRect();
 
-      let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+      let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
       let top = rect.bottom + 8;
 
       // Keep tooltip within viewport
@@ -803,16 +929,16 @@ white-space: nowrap;
         top = rect.top - tooltipRect.height - 8;
       }
 
-      tooltip.style.left = left + 'px';
-      tooltip.style.top = top + 'px';
+      tooltip.style.left = left + "px";
+      tooltip.style.top = top + "px";
     }
   });
 
-  document.addEventListener('mouseout', (e) => {
-    const element = e.target.closest('[data-tooltip]');
+  document.addEventListener("mouseout", (e) => {
+    const element = e.target.closest("[data-tooltip]");
     if (element && element === currentTooltipElement) {
       currentTooltipElement = null;
-      tooltip.style.opacity = '0';
+      tooltip.style.opacity = "0";
     }
   });
 }
@@ -820,8 +946,8 @@ white-space: nowrap;
 // Add smooth scrolling for navigation
 function smoothScrollTo(element) {
   element.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start'
+    behavior: "smooth",
+    block: "start",
   });
 }
 
@@ -829,24 +955,27 @@ function smoothScrollTo(element) {
 function highlightSearchTerm(text, searchTerm) {
   if (!searchTerm) return text;
 
-  const regex = new RegExp(`(${searchTerm})`, 'gi');
-  return text.replace(regex, '<mark>$1</mark>');
+  const regex = new RegExp(`(${searchTerm})`, "gi");
+  return text.replace(regex, "<mark>$1</mark>");
 }
 
 // Add animation observer for cards
 function observeCardAnimations() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.animationDelay = `${Math.random() * 0.3}s`;
-        entry.target.classList.add('fade-in');
-      }
-    });
-  }, {
-    threshold: 0.1
-  });
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationDelay = `${Math.random() * 0.3}s`;
+          entry.target.classList.add("fade-in");
+        }
+      });
+    },
+    {
+      threshold: 0.1,
+    }
+  );
 
-  document.querySelectorAll('.tool-card').forEach(card => {
+  document.querySelectorAll(".tool-card").forEach((card) => {
     observer.observe(card);
   });
 }
@@ -859,133 +988,13 @@ function initApp() {
 
   // Add some demo notifications
   setTimeout(() => {
-    console.log('🚀 All Tools Dashboard loaded successfully!');
+    console.log("🚀 All Tools Dashboard loaded successfully!");
   }, 1000);
 }
 
 // Start the application when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
 } else {
   initApp();
-}
-
-// Add CSS for tooltip and other dynamic styles
-const dynamicStyles = document.createElement('style');
-dynamicStyles.textContent = `
-.tooltip {
-backdrop-filter: var(--blur);
-box-shadow: var(--shadow-light);
-}
-
-mark {
-background: rgba(102, 126, 234, 0.3);
-color: inherit;
-padding: 0.1em 0.2em;
-border-radius: 3px;
-}
-
-.tool-card.fade-in {
-animation: cardFadeIn 0.6s ease-out forwards;
-}
-
-@keyframes cardFadeIn {
-from {
-  opacity: 0;
-  transform: translateY(30px) scale(0.95);
-}
-to {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-}
-
-.search-bar:focus + .search-results {
-display: block;
-}
-
-.status-badge {
-animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-0% { opacity: 1; }
-50% { opacity: 0.7; }
-100% { opacity: 1; }
-}
-
-.launch-btn:hover i {
-transform: translateX(3px);
-}
-
-.tag:hover {
-cursor: pointer;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-width: 8px;
-}
-
-::-webkit-scrollbar-track {
-background: var(--glass-bg);
-}
-
-::-webkit-scrollbar-thumb {
-background: var(--accent);
-border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-background: var(--primary);
-}
-`;
-
-document.head.appendChild(dynamicStyles);
-// Bind events for individual cards - Fixed event binding
-function bindCardEvents() {
-  // Info button events
-  document.querySelectorAll('.info-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const toolTitle = btn.dataset.toolTitle;
-      const tool = state.tools.find(t => t.title === toolTitle);
-      if (tool && tool.instructions) {
-        showModal(tool);
-      }
-    });
-  });
-
-  // Tag click events for search
-  document.querySelectorAll('.tag').forEach(tag => {
-    tag.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const tagText = tag.textContent.trim();
-      elements.searchInput.value = tagText;
-      state.searchQuery = tagText;
-
-      // Clear group filter when searching by tag
-      if (state.selectedGroup) {
-        state.selectedGroup = null;
-        document.querySelectorAll('.group-filter-card').forEach(card => {
-          card.classList.remove('active');
-        });
-      }
-
-      renderTools();
-    });
-  });
-
-  // Launch button events (for non-link buttons)
-  document.querySelectorAll('.launch-btn:not([href])').forEach(btn => {
-    if (!btn.disabled) {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        // You can add custom logic here for tools without direct links
-        console.log('Tool launch requested but no valid link available');
-      });
-    }
-  });
 }
