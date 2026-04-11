@@ -243,7 +243,7 @@ const tools = [
   },
   {
     icon: "fas fa-star",
-    title: "Interview Prep (Advanced)",
+    title: "Interview Prep",
     description:
       "Advanced preparation tool with points, challenges, and progress charts.",
     tags: ["Advanced", "Goals", "Success"],
@@ -260,6 +260,16 @@ const tools = [
     status: "live",
     link: "./resumeMatcher/resume-matcher.html",
     groupname: ["Career Tools"],
+  },
+  {
+    icon: "fas fa-file-invoice",
+    title: "Task Remainder",
+    description:
+      "Add the remainder and track the items",
+    tags: ["Remainder","Task"],
+    status: "live",
+    link: "./remainderTasks/taskRemainder.html",
+    groupname: ["Remainder"],
   },
 ];
 
