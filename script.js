@@ -1,69 +1,5 @@
 const tools = [
   {
-    icon: "fas fa-diagram-project",
-    title: "Flowchart Maker (Basic)",
-    description:
-      "Create simple flowcharts with a drag and drop interface. Good for planning projects and ideas.",
-    tags: ["Planning", "Design", "Flowchart"],
-    status: "live",
-    instructions: [
-      "Drag shapes from the left to the center",
-      "Connect shapes by clicking and dragging between dots",
-      "Double-click to add or change text",
-      "Save your design as an image",
-    ],
-    link: "./flowChartMaker/uIFlowForge.html",
-    groupname: ["Flowchart Tools"],
-  },
-  {
-    icon: "fas fa-wand-sparkles",
-    title: "Flowchart Maker (Advanced)",
-    description:
-      "Advanced flowchart tool with more shapes, animations, and professional layouts.",
-    tags: ["Advanced", "Design", "Animations"],
-    status: "live",
-    instructions: [
-      "Pick a professional looking template",
-      "Use animations to show how steps work",
-      "Align everything perfectly with auto-spacing",
-      "Export in high quality",
-    ],
-    link: "./flowChartMaker/uIFlowForgerEnhancer.html",
-    groupname: ["Flowchart Tools"],
-  },
-  {
-    icon: "fas fa-code-branch",
-    title: "Logic Diagram Creator",
-    description:
-      "Design logic maps and decision trees quickly. Simple and fast for brainstorming.",
-    tags: ["Logic", "Planning", "Trees"],
-    status: "live",
-    instructions: [
-      "Start with a main idea box",
-      "Add branches for each possible decision",
-      "Color code your boxes to organize better",
-      "Save your work to continue later",
-    ],
-    link: "./flowChartMaker/uIFlowChart.html",
-    groupname: ["Flowchart Tools"],
-  },
-  {
-    icon: "fas fa-microchip",
-    title: "System Design Tool",
-    description:
-      "Draw complex system architectures and technical diagrams for engineering projects.",
-    tags: ["Technical", "System Design", "Engineering"],
-    status: "live",
-    instructions: [
-      "Use technical icons to show how systems connect",
-      "Detail your architecture with notes",
-      "Export technical data from your diagram",
-      "Keep track of different system versions",
-    ],
-    link: "./flowChartMaker/uIFlowChart_Enhancer.html",
-    groupname: ["Flowchart Tools"],
-  },
-  {
     icon: "fas fa-terminal",
     title: "Diagram from Code",
     description:
@@ -80,21 +16,6 @@ const tools = [
     groupname: ["Coder Tools"],
   },
   {
-    icon: "fas fa-palette",
-    title: "Code Diagram Stylist",
-    description: "Add colors and themes to the diagrams you created from code.",
-    tags: ["Styling", "Colors", "Themes"],
-    status: "live",
-    instructions: [
-      "Load your code-generated diagram",
-      "Pick a color theme that looks good",
-      "Customize colors for individual boxes",
-      "Export the styled version",
-    ],
-    link: "./flowChartMaker/codeFlowForgeColorizer.html",
-    groupname: ["Coder Tools"],
-  },
-  {
     icon: "fas fa-edit",
     title: "Markdown Editor",
     description:
@@ -108,22 +29,6 @@ const tools = [
       "Save as a PDF or HTML file",
     ],
     link: "./mdFileWriter/liveCommonMarkdown.html",
-    groupname: ["Writing Tools"],
-  },
-  {
-    icon: "fas fa-pen-nib",
-    title: "Markdown Designer",
-    description:
-      "Professional markdown tool with extra features like diagrams and table creators.",
-    tags: ["Pro Writing", "Design", "Plugins"],
-    status: "live",
-    instructions: [
-      "Use the sidebar to manage your files",
-      "Add diagrams and math formulas to your text",
-      "Pick a custom theme for the editor",
-      "Publish your work directly",
-    ],
-    link: "./mdFileWriter/liveEnhancedMarkdown.html",
     groupname: ["Writing Tools"],
   },
   {
