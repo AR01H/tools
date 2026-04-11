@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultKit</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08090c;--s1:#0e1018;--s2:#13161f;--s3:#1b1f2d;
+  --b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.11);--b3:rgba(255,255,255,0.18);
+  --txt:#dde0eb;--muted:#636880;--dim:#9498ad;
+  --gold:#c9a84c;--gold2:#e8c86a;--gold-bg:rgba(201,168,76,0.08);--gold-bd:rgba(201,168,76,0.2);
+  --red:#e05555;--green:#4caf82;--blue:#4f8ef5;
+  --r:10px;--r-sm:7px;
+}
+body{
+  background:var(--bg);color:var(--txt);font-family:'Syne',sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:32px 20px;
+  background-image:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(201,168,76,0.04) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 90%,rgba(79,142,245,0.03) 0%,transparent 60%);
+}
+.wrap{width:100%;max-width:640px}
+
+.mode-bar{display:flex;gap:6px;background:var(--s1);border:0.5px solid var(--b2);border-radius:var(--r);padding:5px;margin-bottom:32px}
+.mode-btn{flex:1;padding:10px;border:none;border-radius:var(--r-sm);font-family:'Syne',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--muted);background:transparent;letter-spacing:.03em}
+.mode-btn.active{background:var(--s3);color:var(--txt);border:0.5px solid var(--b3)}
+.mode-btn:hover:not(.active){color:var(--dim)}
+
+.panel{display:none;animation:up .3s ease}
+.panel.active{display:block}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.field-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+input[type=text],input[type=password],input[type=url]{
+  width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:var(--r-sm);
+  padding:11px 14px;color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:13px;
+  outline:none;transition:border-color .2s,background .2s;
+}
+input:focus{border-color:var(--gold);background:var(--s3)}
+input::placeholder{color:var(--muted)}
+
+.enc-header{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.enc-icon{width:48px;height:48px;background:var(--gold-bg);border:0.5px solid var(--gold-bd);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.enc-header h1{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.enc-header p{font-size:13px;color:var(--muted);margin-top:3px}
+
+.row-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.col-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:0 0 4px 2px}
+
+.entries-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.entry-row{
+  display:grid;grid-template-columns:1fr 1fr 36px;gap:0;align-items:stretch;
+  background:var(--s1);border:0.5px solid var(--b1);border-radius:var(--r-sm);
+  overflow:hidden;transition:border-color .2s;animation:up .25s ease;
+}
+.entry-row:hover{border-color:var(--b2)}
+.entry-row input{background:transparent;border:none;border-radius:0;padding:10px 12px;font-size:13px}
+.entry-row input:first-child{border-right:0.5px solid var(--b1)}
+.entry-row input:focus{background:rgba(255,255,255,0.02);border-color:transparent}
+.del-btn{width:36px;background:none;border:none;border-left:0.5px solid var(--b1);color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.del-btn:hover{color:var(--red);background:rgba(224,85,85,0.08)}
+
+.add-row-btn{width:100%;background:transparent;border:0.5px dashed var(--b2);border-radius:var(--r-sm);color:var(--muted);padding:10px;font-family:'Syne',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px}
+.add-row-btn:hover{border-color:var(--gold-bd);color:var(--gold);background:var(--gold-bg)}
+
+.sep{height:0.5px;background:var(--b1);margin:24px 0}
+
+.pw-row{position:relative}
+.pw-row input{padding-right:44px}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;transition:color .2s;padding:4px}
+.eye-btn:hover{color:var(--txt)}
+.pw-strength{height:3px;border-radius:2px;margin-top:7px;background:var(--s3)}
+.pw-strength-bar{height:100%;border-radius:2px;width:0;transition:width .3s,background .3s}
+
+.encrypt-btn{width:100%;background:var(--gold);color:#0a0800;border:none;border-radius:var(--r-sm);padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.encrypt-btn:hover{background:var(--gold2);transform:translateY(-1px)}
+.encrypt-btn:active{transform:translateY(0)}
+.encrypt-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+.output-area{margin-top:20px;background:var(--s1);border:0.5px solid var(--b2);border-radius:var(--r);overflow:hidden;display:none;animation:up .3s ease}
+.output-header{padding:12px 16px;border-bottom:0.5px solid var(--b1);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.output-header span{font-size:12px;font-weight:500;color:var(--green);letter-spacing:.06em;text-transform:uppercase}
+.dl-btn{background:var(--gold);border:none;color:#0a0800;border-radius:6px;padding:6px 16px;font-size:13px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;transition:all .2s}
+.dl-btn:hover{background:var(--gold2)}
+.output-preview{padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);word-break:break-all;line-height:1.7;max-height:80px;overflow:hidden;position:relative}
+.output-preview::after{content:'';position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(transparent,var(--s1))}
+.output-hint{font-size:12px;color:var(--muted);padding:10px 16px 14px;line-height:1.6;border-top:0.5px solid var(--b1)}
+
+.no-enc-notice{background:var(--s1);border:0.5px dashed var(--b2);border-radius:var(--r);padding:32px;text-align:center;color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:20px}
+.no-enc-notice .hl{color:var(--gold)}
+
+.lock-box{background:var(--s1);border:0.5px solid var(--b2);border-radius:var(--r);padding:44px 40px;text-align:center;margin-bottom:16px}
+.lock-ico{width:64px;height:64px;background:var(--gold-bg);border:0.5px solid var(--gold-bd);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 20px;transition:all .4s}
+.lock-ico.open{background:rgba(76,175,130,0.1);border-color:rgba(76,175,130,0.3)}
+.lock-box h2{font-size:21px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}
+.lock-box .sub{color:var(--muted);font-size:13px;margin-bottom:26px;line-height:1.6}
+.unlock-btn{width:100%;background:var(--s3);border:0.5px solid var(--gold-bd);color:var(--gold);border-radius:var(--r-sm);padding:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.03em}
+.unlock-btn:hover{background:var(--gold-bg);border-color:var(--gold)}
+.unlock-btn:disabled{opacity:.4;cursor:not-allowed}
+.err-msg{color:var(--red);font-size:12px;margin-top:10px;display:none;align-items:center;justify-content:center;gap:5px}
+
+.vault-view{display:none;animation:up .3s ease}
+.v-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.v-header h3{font-size:16px;font-weight:600}
+.re-lock-btn{background:transparent;border:0.5px solid var(--b2);color:var(--muted);border-radius:6px;padding:6px 12px;font-size:12px;font-family:'Syne',sans-serif;cursor:pointer;transition:all .2s}
+.re-lock-btn:hover{color:var(--txt);border-color:var(--b3)}
+.v-stats{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.v-stat{background:var(--s1);border:0.5px solid var(--b1);border-radius:6px;padding:6px 13px;font-size:12px;color:var(--muted)}
+.v-stat b{color:var(--txt);font-weight:500}
+.v-search{position:relative;margin-bottom:12px}
+.v-search input{padding-left:34px;font-size:13px}
+.si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+.v-entries{display:flex;flex-direction:column;gap:8px}
+.v-card{background:var(--s1);border:0.5px solid var(--b1);border-radius:var(--r-sm);padding:14px 16px;transition:border-color .2s,background .2s;animation:up .2s ease}
+.v-card:hover{border-color:var(--b2);background:var(--s2)}
+.v-key{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.v-val{font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;line-height:1.6}
+.v-val a{color:var(--blue);text-decoration:none}
+.v-val a:hover{text-decoration:underline}
+.v-actions{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap}
+.vbtn{background:var(--s2);border:0.5px solid var(--b2);color:var(--muted);border-radius:6px;padding:4px 11px;font-size:11px;font-family:'Syne',sans-serif;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px}
+.vbtn:hover{color:var(--txt);border-color:var(--b3)}
+.vbtn.ok{color:var(--green);border-color:rgba(76,175,130,.3)}
+.tag{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600;letter-spacing:.04em}
+.tag-url{background:rgba(79,142,245,.12);color:#6fa8f7;border:0.5px solid rgba(79,142,245,.2)}
+.tag-pass{background:rgba(224,85,85,.1);color:#e88;border:0.5px solid rgba(224,85,85,.2)}
+.tag-key{background:rgba(201,168,76,.1);color:var(--gold);border:0.5px solid var(--gold-bd)}
+.tag-other{background:var(--s2);color:var(--muted);border:0.5px solid var(--b1)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s2);border:0.5px solid var(--b3);color:var(--txt);padding:9px 18px;border-radius:var(--r-sm);font-size:12px;font-family:'Syne',sans-serif;transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{color:var(--green)}
+@keyframes shake{0%,100%{transform:none}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="mode-bar">
+    <button class="mode-btn active" data-mode="encrypt">&#9881; Encrypt &amp; Export</button>
+    <button class="mode-btn" data-mode="decrypt">&#128275; Decrypt &amp; View</button>
+  </div>
+
+  <!-- ENCRYPT PANEL -->
+  <div class="panel active" id="panel-encrypt">
+    <div class="enc-header">
+      <div class="enc-icon">&#128271;</div>
+      <div>
+        <h1>Build Your Vault</h1>
+        <p>Add your keys &amp; URLs, set a password, export a locked HTML file</p>
+      </div>
+    </div>
+
+    <div class="row-cols" style="margin-bottom:8px">
+      <div class="col-label">Key / Label</div>
+      <div class="col-label">Value / URL</div>
+    </div>
+    <div class="entries-list" id="entriesList"></div>
+    <button class="add-row-btn" id="addRowBtn"><span style="font-size:16px;line-height:1">+</span> Add entry</button>
+
+    <div class="sep"></div>
+
+    <label class="field-label">Master password</label>
+    <div style="margin-bottom:20px">
+      <div class="pw-row">
+        <input type="password" id="encPassword" placeholder="Set a strong password…" autocomplete="new-password"/>
+        <button class="eye-btn" id="encEye">show</button>
+      </div>
+      <div class="pw-strength"><div class="pw-strength-bar" id="pwBar"></div></div>
+    </div>
+
+    <button class="encrypt-btn" id="encryptBtn"><span>&#9889;</span> Encrypt &amp; Generate vault.html</button>
+
+    <div class="output-area" id="outputArea">
+      <div class="output-header">
+        <span>&#10003; Encrypted successfully</span>
+        <button class="dl-btn" id="dlBtn">&#8659; Download vault.html</button>
+      </div>
+      <div class="output-preview" id="outputPreview"></div>
+      <div class="output-hint" id="outputHint"></div>
+    </div>
+  </div>
+
+  <!-- DECRYPT PANEL -->
+  <div class="panel" id="panel-decrypt">
+    <div class="no-enc-notice" id="noEncNotice">
+      <div style="font-size:32px;margin-bottom:12px">&#128228;</div>
+      This is the <span class="hl">Encrypt &amp; Export</span> builder tool.<br>
+      Switch to the left tab &#8594; add your data &#8594; click <b>Download vault.html</b><br>
+      Then open that downloaded file to unlock with your password.
+    </div>
+
+    <div class="lock-box" id="lockWrap" style="display:none">
+      <div class="lock-ico" id="lockAnim">&#128272;</div>
+      <h2>Vault Locked</h2>
+      <p class="sub">Enter your master password to decrypt and view all stored entries.</p>
+      <div class="pw-row" style="margin-bottom:12px">
+        <input type="password" id="decPassword" placeholder="Master password…" autocomplete="current-password"/>
+        <button class="eye-btn" id="decEye">show</button>
+      </div>
+      <button class="unlock-btn" id="unlockBtn">Unlock Vault &#8594;</button>
+      <div class="err-msg" id="errMsg"><span>&#10005;</span><span id="errTxt">Wrong password — try again</span></div>
+    </div>
+
+    <div class="vault-view" id="vaultView">
+      <div class="v-header">
+        <h3>&#128275; Vault</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="vCount" style="font-size:12px;color:var(--muted)"></span>
+          <button class="re-lock-btn" id="reLockBtn">&#128272; Lock</button>
+        </div>
+      </div>
+      <div class="v-stats" id="vStats"></div>
+      <div class="v-search"><span class="si">&#8981;</span><input type="text" id="vSearch" placeholder="Search entries…"/></div>
+      <div class="v-entries" id="vEntries"></div>
+      <div style="text-align:center;color:var(--muted);font-size:13px;padding:30px;display:none" id="vNoRes">No results found.</div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const __VAULT_PAYLOAD__ = "U2FsdGVkX18r8GBIjroSUuJhB5XqSJR4rK80KInK2CV7qYudhuJsoGVApa+l7CDewroc/NlEGrn3ZTxxpe+NadVrWBZMc0u21iO4y8YBTe8LmxSQbxPWaqNltWAj56vviMhH3KzhWbanhtQLE7MsO6c5hdlHTTsf4bGt7mlr9n3PbfvLvEJZMYcZKiq/a9CjxKCXdcCd1CnnkCopWrhq8Q==";
+
+
+function toast(msg, type) {
+  type = type || "";
+  var t = $("#toast");
+  t.text(msg).removeClass("ok").addClass(type).addClass("show");
+  clearTimeout(t[0]._tid);
+  t[0]._tid = setTimeout(function(){ t.removeClass("show"); }, 2600);
+}
+function esc(s){ return $("<div>").text(s).html(); }
+function detectType(k, v) {
+  var kl = k.toLowerCase();
+  if (/^https?:\/\//.test(v)) return "url";
+  if (/pass|secret|pwd|token/.test(kl)) return "pass";
+  if (/key|api|id|auth/.test(kl)) return "key";
+  return "other";
+}
+function tagHtml(t) {
+  var map = {url:"URL", pass:"Secret", key:"API Key", other:"Value"};
+  return '<span class="tag tag-'+t+'">'+map[t]+'</span>';
+}
+
+// Mode bar
+$(".mode-btn").on("click", function(){
+  var m = $(this).data("mode");
+  $(".mode-btn").removeClass("active");
+  $(this).addClass("active");
+  $(".panel").removeClass("active");
+  $("#panel-"+m).addClass("active");
+});
+
+// Entries
+var rowId = 0;
+function addRow(k, v) {
+  k = k || ""; v = v || "";
+  rowId++;
+  var id = rowId;
+  var row = $('<div class="entry-row" id="row-'+id+'">'+
+    '<input type="text" class="e-key" placeholder="Label  (e.g. GitHub)" value="'+esc(k)+'"/>'+
+    '<input type="text" class="e-val" placeholder="Value or URL" value="'+esc(v)+'"/>'+
+    '<button class="del-btn" data-id="'+id+'" title="Remove">&#10005;</button>'+
+    '</div>');
+  $("#entriesList").append(row);
+}
+addRow(); addRow(); addRow();
+
+$("#addRowBtn").on("click", function(){ addRow(); });
+$(document).on("click", ".del-btn", function(){
+  var id = $(this).data("id");
+  if ($("#entriesList .entry-row").length === 1) { toast("Keep at least one entry"); return; }
+  $("#row-"+id).slideUp(160, function(){ $(this).remove(); });
+});
+
+// Password strength
+$("#encPassword").on("input", function(){
+  var v = $(this).val(), s = 0;
+  if (v.length >= 8) s++;
+  if (v.length >= 14) s++;
+  if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  var colors = ["#e05555","#e07a30","#d4b84c","#4caf82","#4caf82"];
+  $("#pwBar").css({width: (s/5*100)+"%", background: colors[Math.max(0,s-1)]});
+});
+$("#encEye").on("click", function(){
+  var i = $("#encPassword"), show = i.attr("type") === "password";
+  i.attr("type", show ? "text" : "password");
+  $(this).text(show ? "hide" : "show");
+});
+
+// Encrypt
+var _vaultHtml = "";
+$("#encryptBtn").on("click", function(){
+  var pw = $("#encPassword").val().trim();
+  if (!pw) { toast("Set a master password first"); return; }
+  var data = {};
+  $(".entry-row").each(function(){
+    var k = $(this).find(".e-key").val().trim();
+    var v = $(this).find(".e-val").val().trim();
+    if (k && v) data[k] = v;
+  });
+  if (Object.keys(data).length === 0) { toast("Add at least one complete entry"); return; }
+  var encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), pw).toString();
+  _vaultHtml = buildVaultHtml(encrypted);
+  var count = Object.keys(data).length;
+  $("#outputPreview").text(encrypted);
+  $("#outputHint").html('<span style="color:var(--green)">&#10003;</span> '+count+' entries encrypted &middot; Download <b>vault.html</b> and open it &mdash; it asks for your password before showing anything.');
+  $("#outputArea").fadeIn(220);
+  toast("Vault encrypted! Download the HTML file.", "ok");
+  $("html,body").animate({scrollTop: $("#outputArea").offset().top - 20}, 300);
+});
+
+$("#dlBtn").on("click", function(){
+  if (!_vaultHtml) return;
+  var blob = new Blob([_vaultHtml], {type:"text/html"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "vault.html";
+  a.click();
+  toast("vault.html downloaded!", "ok");
+});
+
+// Decrypt panel init
+(function(){
+  if (__VAULT_PAYLOAD__ === "NONE") {
+    $("#noEncNotice").show();
+    $("#lockWrap").hide();
+  } else {
+    $("#noEncNotice").hide();
+    $("#lockWrap").show();
+  }
+})();
+
+$("#decEye").on("click", function(){
+  var i = $("#decPassword"), show = i.attr("type") === "password";
+  i.attr("type", show ? "text" : "password");
+  $(this).text(show ? "hide" : "show");
+});
+
+function attemptDecrypt() {
+  var pw = $("#decPassword").val();
+  if (!pw) return;
+  $("#unlockBtn").prop("disabled", true).text("Unlocking…");
+  $("#errMsg").hide();
+  setTimeout(function(){
+    try {
+      var bytes = CryptoJS.AES.decrypt(__VAULT_PAYLOAD__, pw);
+      var plain = bytes.toString(CryptoJS.enc.Utf8);
+      if (!plain) throw 0;
+      var data = JSON.parse(plain);
+      showVault(data);
+    } catch(e) {
+      $("#errTxt").text("Wrong password — try again");
+      $("#errMsg").css("display","flex");
+      $("#decPassword").val("").focus();
+      $("#lockAnim").css("animation","shake 0.35s ease");
+      setTimeout(function(){ $("#lockAnim").css("animation",""); }, 400);
+    }
+    $("#unlockBtn").prop("disabled", false).text("Unlock Vault \u2192");
+  }, 250);
+}
+$("#unlockBtn").on("click", attemptDecrypt);
+$("#decPassword").on("keydown", function(e){ if (e.key === "Enter") attemptDecrypt(); });
+
+var _allEntries = [];
+function showVault(data) {
+  _allEntries = Object.entries(data);
+  $("#lockWrap").fadeOut(180, function(){
+    $("#vaultView").fadeIn(200);
+  });
+  $("#lockAnim").addClass("open").text("\uD83D\uDD13");
+  var counts = {url:0,pass:0,key:0,other:0};
+  _allEntries.forEach(function(e){ counts[detectType(e[0],e[1])]++; });
+  $("#vCount").text(_allEntries.length + " entries");
+  var statsHtml = '<div class="v-stat"><b>'+_allEntries.length+'</b> total</div>';
+  if (counts.url) statsHtml += '<div class="v-stat"><b>'+counts.url+'</b> URLs</div>';
+  if (counts.key) statsHtml += '<div class="v-stat"><b>'+counts.key+'</b> keys</div>';
+  if (counts.pass) statsHtml += '<div class="v-stat"><b>'+counts.pass+'</b> secrets</div>';
+  $("#vStats").html(statsHtml);
+  renderEntries("");
+  toast("Vault unlocked", "ok");
+}
+
+function renderEntries(q) {
+  var filtered = _allEntries.filter(function(e){
+    return !q || e[0].toLowerCase().includes(q) || e[1].toLowerCase().includes(q);
+  });
+  if (!filtered.length) { $("#vEntries").empty(); $("#vNoRes").show(); return; }
+  $("#vNoRes").hide();
+  var html = filtered.map(function(e){
+    var k = e[0], v = e[1], t = detectType(k, v);
+    var dv = t === "url"
+      ? '<a href="'+esc(v)+'" target="_blank">'+esc(v)+'</a>'
+      : esc(v);
+    return '<div class="v-card">'+
+      '<div class="v-key">'+esc(k)+'</div>'+
+      '<div class="v-val">'+dv+'</div>'+
+      '<div class="v-actions">'+tagHtml(t)+
+      '<button class="vbtn copy-v" data-v="'+esc(v)+'">&#9078; Copy</button>'+
+      (t==="url" ? '<button class="vbtn open-v" data-u="'+esc(v)+'">&#8599; Open</button>' : '')+
+      '</div></div>';
+  }).join("");
+  $("#vEntries").html(html);
+}
+$(document).on("input","#vSearch",function(){ renderEntries($(this).val().trim().toLowerCase()); });
+$(document).on("click",".copy-v",function(){
+  var val = $(this).data("v"), btn = this;
+  navigator.clipboard.writeText(val).then(function(){
+    $(btn).addClass("ok").text("\u2713 Copied");
+    setTimeout(function(){ $(btn).removeClass("ok").html("\u235E Copy"); }, 1800);
+  });
+});
+$(document).on("click",".open-v",function(){ window.open($(this).data("u"),"_blank"); });
+$("#reLockBtn").on("click", function(){
+  $("#vaultView").hide();
+  _allEntries = [];
+  $("#vEntries").empty(); $("#vSearch").val(""); $("#decPassword").val("");
+  $("#lockAnim").removeClass("open").text("\uD83D\uDD10");
+  $("#lockWrap").fadeIn(200);
+});
+
+// Build exported vault HTML
+function buildVaultHtml(payload) {
+  var safePayload = payload.replace(/\\/g,"\\\\").replace(/`/g,"\\`");
+  return '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>Vault \u2014 Locked</title>\n<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\n<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"><\/script>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"><\/script>\n<style>\n*{box-sizing:border-box;margin:0;padding:0}\n:root{--bg:#08090c;--s1:#0e1018;--s2:#13161f;--s3:#1b1f2d;--b1:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.11);--b3:rgba(255,255,255,0.18);--txt:#dde0eb;--muted:#636880;--gold:#c9a84c;--gold2:#e8c86a;--gold-bg:rgba(201,168,76,0.08);--gold-bd:rgba(201,168,76,0.2);--red:#e05555;--green:#4caf82;--blue:#4f8ef5;--r:10px;--r-sm:7px}\nbody{background:var(--bg);color:var(--txt);font-family:"Syne",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;background-image:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(201,168,76,0.04) 0%,transparent 60%)}\n.wrap{width:100%;max-width:580px}\n.lock-box{background:var(--s1);border:0.5px solid var(--b2);border-radius:var(--r);padding:48px 40px;text-align:center}\n.lock-ico{width:64px;height:64px;background:var(--gold-bg);border:0.5px solid var(--gold-bd);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 22px;transition:all .4s}\n.lock-ico.open{background:rgba(76,175,130,0.1);border-color:rgba(76,175,130,0.3)}\nh2{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px}\n.sub{color:var(--muted);font-size:13px;margin-bottom:26px;line-height:1.6}\n.pw-r{position:relative;margin-bottom:12px}\ninput[type=password],input[type=text]{width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:var(--r-sm);padding:12px 44px 12px 14px;color:var(--txt);font-family:"JetBrains Mono",monospace;font-size:14px;outline:none;transition:border-color .2s}\ninput:focus{border-color:var(--gold)}\ninput::placeholder{color:var(--muted)}\n.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;font-family:"JetBrains Mono",monospace;transition:color .2s;padding:4px}\n.eye:hover{color:var(--txt)}\n.ubtn{width:100%;background:var(--s3);border:0.5px solid var(--gold-bd);color:var(--gold);border-radius:var(--r-sm);padding:13px;font-family:"Syne",sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}\n.ubtn:hover{background:var(--gold-bg);border-color:var(--gold)}\n.ubtn:disabled{opacity:.4;cursor:not-allowed}\n.err{color:var(--red);font-size:12px;margin-top:10px;display:none;align-items:center;justify-content:center;gap:6px}\n.vault{display:none;animation:up .3s ease}\n@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}\n@keyframes shake{0%,100%{transform:none}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}\n.v-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}\n.v-hd h3{font-size:16px;font-weight:600}\n.lkbtn{background:transparent;border:0.5px solid var(--b2);color:var(--muted);border-radius:6px;padding:6px 12px;font-size:12px;font-family:"Syne",sans-serif;cursor:pointer;transition:all .2s}\n.lkbtn:hover{color:var(--txt);border-color:var(--b3)}\n.stats{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}\n.stat{background:var(--s1);border:0.5px solid var(--b1);border-radius:6px;padding:6px 13px;font-size:12px;color:var(--muted)}\n.stat b{color:var(--txt);font-weight:500}\n.srch{position:relative;margin-bottom:12px}\n.srch input{padding-left:34px;font-size:13px}\n.si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}\n.cards{display:flex;flex-direction:column;gap:8px}\n.card{background:var(--s1);border:0.5px solid var(--b1);border-radius:var(--r-sm);padding:14px 16px;transition:border-color .2s}\n.card:hover{border-color:var(--b2)}\n.ck{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}\n.cv{font-family:"JetBrains Mono",monospace;font-size:13px;word-break:break-all;line-height:1.6}\n.cv a{color:var(--blue);text-decoration:none}\n.cv a:hover{text-decoration:underline}\n.cact{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap}\n.cb{background:var(--s2);border:0.5px solid var(--b2);color:var(--muted);border-radius:6px;padding:4px 11px;font-size:11px;font-family:"Syne",sans-serif;cursor:pointer;transition:all .15s}\n.cb:hover{color:var(--txt);border-color:var(--b3)}\n.cb.ok{color:var(--green);border-color:rgba(76,175,130,.3)}\n.tag{font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600;letter-spacing:.04em}\n.tu{background:rgba(79,142,245,.12);color:#6fa8f7;border:0.5px solid rgba(79,142,245,.2)}\n.tp{background:rgba(224,85,85,.1);color:#e88;border:0.5px solid rgba(224,85,85,.2)}\n.tk{background:rgba(201,168,76,.1);color:var(--gold);border:0.5px solid var(--gold-bd)}\n.to{background:var(--s2);color:var(--muted);border:0.5px solid var(--b1)}\n.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s2);border:0.5px solid var(--b3);color:var(--txt);padding:9px 18px;border-radius:var(--r-sm);font-size:12px;font-family:"Syne",sans-serif;transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:999;pointer-events:none}\n.toast.show{transform:translateX(-50%) translateY(0)}\n.toast.ok{color:var(--green)}\n</style>\n</head>\n<body>\n<div class="wrap">\n  <div class="lock-box" id="lb">\n    <div class="lock-ico" id="li">&#128272;</div>\n    <h2>Vault Locked</h2>\n    <p class="sub">Enter your master password to decrypt and view your secure data.</p>\n    <div class="pw-r">\n      <input type="password" id="pw" placeholder="Master password\u2026" autocomplete="current-password"/>\n      <button class="eye" id="ey">show</button>\n    </div>\n    <button class="ubtn" id="ub">Unlock Vault \u2192</button>\n    <div class="err" id="er"><span>&#10005;</span><span id="et">Wrong password</span></div>\n  </div>\n  <div class="vault" id="vt">\n    <div class="v-hd">\n      <h3>&#128275; Vault</h3>\n      <div style="display:flex;gap:8px;align-items:center">\n        <span id="vc" style="font-size:12px;color:var(--muted)"></span>\n        <button class="lkbtn" id="rlb">&#128272; Lock</button>\n      </div>\n    </div>\n    <div class="stats" id="st"></div>\n    <div class="srch"><span class="si">&#8981;</span><input type="text" id="vs" placeholder="Search\u2026"/></div>\n    <div class="cards" id="cr"></div>\n    <div style="text-align:center;color:var(--muted);font-size:13px;padding:28px;display:none" id="nr">No results.</div>\n  </div>\n</div>\n<div class="toast" id="toast"></div>\n<script>\nvar P=`' + safePayload + '`;\nfunction toast(m,t){t=t||"";var e=$("#toast");e.text(m).removeClass("ok").addClass(t).addClass("show");clearTimeout(e[0]._t);e[0]._t=setTimeout(function(){e.removeClass("show");},2400);}\nfunction esc(s){return $("<div>").text(s).html();}\nfunction dt(k,v){var l=k.toLowerCase();if(/^https?:\\/\\//.test(v))return"u";if(/pass|secret|pwd|token/.test(l))return"p";if(/key|api|id|auth/.test(l))return"k";return"o";}\nvar tags={u:\'<span class="tag tu">URL</span>\',p:\'<span class="tag tp">Secret</span>\',k:\'<span class="tag tk">API Key</span>\',o:\'<span class="tag to">Value</span>\'};\nvar _d=[];\nfunction renderCards(q){\n  var f=_d.filter(function(e){return !q||e[0].toLowerCase().includes(q)||e[1].toLowerCase().includes(q);});\n  if(!f.length){$("#cr").empty();$("#nr").show();return;}$("#nr").hide();\n  $("#cr").html(f.map(function(e){\n    var k=e[0],v=e[1],t=dt(k,v);\n    var dv=t==="u"?\'<a href="\'+esc(v)+\'" target="_blank">\'+esc(v)+\'</a>\':esc(v);\n    return \'<div class="card"><div class="ck">\'+esc(k)+\'</div><div class="cv">\'+dv+\'</div><div class="cact">\'+tags[t]+\'<button class="cb cpb" data-v="\'+esc(v)+\'">\u235E Copy</button>\'+(t==="u"?\'<button class="cb opb" data-u="\'+esc(v)+\'">\u2197 Open</button>":"")+\'</div></div>\';\n  }).join(""));\n}\nfunction unlock(){\n  var pw=$("#pw").val();if(!pw)return;\n  $("#ub").prop("disabled",true).text("Unlocking\u2026");$("#er").hide();\n  setTimeout(function(){\n    try{\n      var b=CryptoJS.AES.decrypt(P,pw);\n      var pl=b.toString(CryptoJS.enc.Utf8);if(!pl)throw 0;\n      var data=JSON.parse(pl);\n      _d=Object.entries(data);\n      var cs={u:0,p:0,k:0,o:0};\n      _d.forEach(function(e){cs[dt(e[0],e[1])]++;});\n      $("#vc").text(_d.length+" entries");\n      var sh=\'<div class="stat"><b>\'+_d.length+\'</b> total</div>\';\n      if(cs.u)sh+=\'<div class="stat"><b>\'+cs.u+\'</b> URLs</div>\';\n      if(cs.k)sh+=\'<div class="stat"><b>\'+cs.k+\'</b> keys</div>\';\n      if(cs.p)sh+=\'<div class="stat"><b>\'+cs.p+\'</b> secrets</div>\';\n      $("#st").html(sh);\n      renderCards("");\n      $("#lb").fadeOut(180,function(){$("#vt").fadeIn(200);});\n      $("#li").addClass("open").text("\uD83D\uDD13");\n      toast("Vault unlocked","ok");\n    }catch(e){\n      $("#et").text("Wrong password \u2014 try again");\n      $("#er").css("display","flex");\n      $("#pw").val("").focus();\n      $("#li").css("animation","shake 0.35s ease");\n      setTimeout(function(){$("#li").css("animation","");},400);\n    }\n    $("#ub").prop("disabled",false).text("Unlock Vault \u2192");\n  },250);\n}\n$("#ub").on("click",unlock);\n$("#pw").on("keydown",function(e){if(e.key==="Enter")unlock();});\n$("#ey").on("click",function(){var i=$("#pw"),s=i.attr("type")==="password";i.attr("type",s?"text":"password");$(this).text(s?"hide":"show");});\n$(document).on("click",".cpb",function(){var v=$(this).data("v"),b=this;navigator.clipboard.writeText(v).then(function(){$(b).addClass("ok").text("\u2713 Copied");setTimeout(function(){$(b).removeClass("ok").text("\u235E Copy");},1800);});});\n$(document).on("click",".opb",function(){window.open($(this).data("u"),"_blank");});\n$(document).on("input","#vs",function(){renderCards($(this).val().trim().toLowerCase());});\n$("#rlb").on("click",function(){$("#vt").hide();_d=[];$("#cr").empty();$("#vs").val("");$("#pw").val("");$("#li").removeClass("open").text("\uD83D\uDD10");$("#lb").fadeIn(200);});\n<\/script>\n</body>\n</html>';
+}
+</script>
+</body>
+</html>

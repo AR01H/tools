@@ -132,8 +132,8 @@ const tools = [
     link: "./remainderTasks/taskRemainder.html",
     groupname: ["Remainder"],
   },
-    {
-  icon: "fas fa-file-download",
+  {
+    icon: "fas fa-file-download",
     title: "Google Drive Management",
     description:
       "Drive Management Tool for Google Drive",
