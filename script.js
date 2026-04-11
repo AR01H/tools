@@ -242,16 +242,6 @@ const tools = [
     groupname: ["Coder Tools"],
   },
   {
-    icon: "fas fa-bullseye",
-    title: "Interview Prep",
-    description:
-      "Track your progress and tasks when preparing for job interviews.",
-    tags: ["Interviews", "Jobs", "Focus"],
-    status: "live",
-    link: "./preparationTracker/interview_prep_tracker.html",
-    groupname: ["Career Tools"],
-  },
-  {
     icon: "fas fa-star",
     title: "Interview Prep (Advanced)",
     description:
@@ -311,10 +301,10 @@ function init() {
   // Load and apply persistent theme preference
   const savedTheme = localStorage.getItem("theme") || "dark";
   document.body.setAttribute("data-theme", savedTheme);
-  
+
   updateDashboardHeader();
   renderTools();
-  renderGroupFilters(); 
+  renderGroupFilters();
   bindEvents();
   updateThemeIcon();
   applySidebarState();
@@ -375,9 +365,7 @@ function renderTools() {
       <span class="group-count">${groupTools.length}</span>
     </div>
     <div class="cards-grid ${state.currentView === "list" ? "list-view" : ""}">
-      ${groupTools
-        .map((tool, index) => renderToolCard(tool, index))
-        .join("")}
+      ${groupTools.map((tool, index) => renderToolCard(tool, index)).join("")}
     </div>
   </div>
 `;
