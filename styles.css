@@ -751,3 +751,14 @@ body {
   pointer-events: none;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
+
+#no-results{
+  font-size: xx-large;
+  padding: 11px;
+  display: block;
+  text-align: center;
+  border: 2px dashed #e4e4e4;
+  border-radius: 4px;
+  margin: 10px;
+  color: gainsboro;
+}
