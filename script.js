@@ -308,14 +308,17 @@ const elements = {
 
 // Initialize the application
 function init() {
+  // Load and apply persistent theme preference
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  document.body.setAttribute("data-theme", savedTheme);
+  
   updateDashboardHeader();
   renderTools();
-  renderGroupFilters(); // Add group filters rendering
+  renderGroupFilters(); 
   bindEvents();
   updateThemeIcon();
   applySidebarState();
 
-  // Initialize tooltips after rendering
   setTimeout(() => {
     initTooltips();
   }, 100);
