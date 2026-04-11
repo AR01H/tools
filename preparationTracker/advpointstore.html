@@ -1027,7 +1027,6 @@
 
     .q-unit label {
       position: absolute;
-      top: -8px;
       left: 6px;
       font-size: 7.5px;
       font-weight: 800;
@@ -2647,12 +2646,12 @@
       S.view = name;
       if (name === 'dashboard') renderDashboard();
       if (name === 'quick') populateAll();
-      if (name === 'points') { 
-        if (opts.section !== undefined) S.filterSection = opts.section; 
-        if (opts.status !== undefined) S.filterStatus = opts.status; 
-        populateAll(); 
+      if (name === 'points') {
+        if (opts.section !== undefined) S.filterSection = opts.section;
+        if (opts.status !== undefined) S.filterStatus = opts.status;
+        populateAll();
         const el = document.getElementById('secFilter'); if (el) el.value = S.filterSection;
-        renderPoints(); 
+        renderPoints();
       }
       if (name === 'sections') renderSections();
       if (name === 'quiz') populateAll();
@@ -3020,11 +3019,11 @@
           .point-card { box-shadow: none; border-color: #cbd5e1; }
         }
       </style></head><body>`;
-      
+
       html += `<div class="noprint" style="position:fixed;top:20px;right:20px;display:flex;gap:10px;z-index:100">
         <button onclick="window.print()" style="padding:10px 20px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.1);font-family:'Inter'">🖨 Print / Save as PDF</button>
       </div>`;
-      
+
       html += `<div class="page-content">
         <div class="header">
           <div>
@@ -3036,22 +3035,22 @@
             <div>${S.points.length} Points Total</div>
           </div>
         </div>`;
-      
+
       S.sections.forEach(sec => {
         const pts = ptsInSec(sec.id);
-        if(!pts.length) return;
+        if (!pts.length) return;
         html += `<div class="sec-block">
           <div class="sec-title">
             <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${cv(sec.color)};box-shadow:0 0 0 2px ${cv(sec.color)}40"></span>
             ${esc(sec.name)} <span style="font-size:13px;color:var(--text3);font-weight:500;margin-left:auto">${pts.length} items</span>
           </div>`;
-          
+
         pts.forEach((p, i) => {
           let badges = `<span class="badge st">${esc(p.status)}</span>`;
           if (p.priority && p.priority !== 'medium') badges += `<span class="badge pr">${esc(p.priority)}</span>`;
           if (p.category) badges += `<span class="badge">${esc(p.category)}</span>`;
           if (p.tags && p.tags.length) badges += (p.tags.map(t => `<span class="badge">#${esc(t)}</span>`).join(''));
-          
+
           html += `<div class="point-card">
             <div class="p-head">
               <h3 class="p-title">${i + 1}. ${esc(p.title)}</h3>
@@ -3062,8 +3061,8 @@
         });
         html += `</div>`;
       });
-      
-      html += `</div></body></html>`; 
+
+      html += `</div></body></html>`;
       const w = window.open('', '_blank'); w.document.write(html); w.document.close();
     }
     function updateExportPreview() { document.getElementById('exportPreview').value = JSON.stringify({ points: S.points.slice(0, 2), sections: S.sections }, null, 2); }
@@ -3213,7 +3212,7 @@
         if (sec && sec.getAttribute('draggable')) { dragEl = sec; dragType = 'sec'; }
         else if (card && card.getAttribute('draggable')) { dragEl = card; dragType = 'pt'; }
         else if (row && row.getAttribute('draggable')) { dragEl = row; dragType = 'pt'; }
-        
+
         if (dragEl) { dragEl.style.opacity = '0.5'; e.dataTransfer.effectAllowed = 'move'; }
       });
       document.addEventListener('dragover', e => {
@@ -3234,7 +3233,7 @@
           const pNode = dragEl.parentNode;
           const ids = Array.from(pNode.children).map(c => c.dataset.secId || c.dataset.navSec).filter(Boolean);
           if (ids.length) {
-            S.sections.sort((a,b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+            S.sections.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
             autoSave(); updateCounts(); populateAll(); // UI already reordered
           }
         } else if (dragType === 'pt') {
@@ -3262,8 +3261,8 @@
           if (pt) {
             const u = new SpeechSynthesisUtterance(pt.title + ". " + (pt.desc || ""));
             if (!curVoice) {
-                const voices = window.speechSynthesis.getVoices();
-                curVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+              const voices = window.speechSynthesis.getVoices();
+              curVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
             }
             if (curVoice) u.voice = curVoice;
             window.speechSynthesis.speak(u);
