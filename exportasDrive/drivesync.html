@@ -2053,16 +2053,35 @@ function respond(data) {
       document.getElementById("modal-help").classList.remove("active");
       document.getElementById("float-help").style.display = "block";
     }
-    function copyCodeGS() {
+    async function copyCodeGS() {
       const btn = document.getElementById("copy-btn");
-      navigator.clipboard.writeText(CODE_GS).then(() => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(CODE_GS);
+        } else {
+          // Fallback
+          const ta = document.createElement("textarea");
+          ta.value = CODE_GS;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
         btn.textContent = "✓ Copied!";
         btn.classList.replace("btn-primary", "btn-success");
         setTimeout(() => {
           btn.textContent = "📋 Copy Code";
           btn.classList.replace("btn-success", "btn-primary");
         }, 2000);
-      });
+      } catch (err) {
+        console.error("Copy failed", err);
+        btn.textContent = "❌ Failed";
+        setTimeout(() => {
+          btn.textContent = "📋 Copy Code";
+        }, 2000);
+      }
     }
     // Close on overlay click
     document.getElementById('modal-help').addEventListener('click', function (e) {
