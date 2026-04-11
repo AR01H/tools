@@ -203,12 +203,6 @@ function updateDashboardHeader() {
       year: "numeric",
     });
   }
-
-  if (elements.totalTools) elements.totalTools.innerText = tools.length;
-  if (elements.liveTools)
-    elements.liveTools.innerText = tools.filter(
-      (t) => t.status === "live"
-    ).length;
 }
 
 // Render all tools grouped by category
