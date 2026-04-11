@@ -132,6 +132,16 @@ const tools = [
     link: "./remainderTasks/taskRemainder.html",
     groupname: ["Remainder"],
   },
+    {
+  icon: "fas fa-file-download",
+    title: "Google Drive Management",
+    description:
+      "Drive Management Tool for Google Drive",
+    tags: ["Google Drive", "ManagementTask"],
+    status: "live",
+    link: "./driveManagement/index.html",
+    groupname: ["Storage Tools"],
+  },
 ];
 
 // State management
