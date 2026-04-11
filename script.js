@@ -32,22 +32,6 @@ const tools = [
     groupname: ["Writing Tools"],
   },
   {
-    icon: "fas fa-vault",
-    title: "Secure Password Bank",
-    description:
-      "Save all your passwords safely in an encrypted vault. Organize by project.",
-    tags: ["Security", "Privacy", "Passwords"],
-    status: "live",
-    instructions: [
-      "Create new passwords for your accounts",
-      "Store them safely with strong encryption",
-      "Search for specific passwords easily",
-      "Keep everything organized in groups",
-    ],
-    link: "./passwordBank/index.html",
-    groupname: ["Security Tools"],
-  },
-  {
     icon: "fas fa-box-archive",
     title: "Info & Config Box",
     description:
@@ -101,34 +85,6 @@ const tools = [
     ],
     link: "./simplePasswordBank/index.html",
     groupname: ["Security Tools"],
-  },
-  {
-    icon: "fas fa-gamepad",
-    title: "Hangouts Game",
-    description:
-      "Play interactive games like hangouts with your friends online.",
-    tags: ["Games", "Fun", "Friends"],
-    status: "onbuild",
-    instructions: [
-      "Start a new game with your friends",
-      "Guess the words to win",
-      "Keep track of your score",
-    ],
-    groupname: ["Fun & Games"],
-  },
-  {
-    icon: "fas fa-shuffle",
-    title: "File Converter",
-    description:
-      "Convert your files from one format to another (PDF, JPG, PNG, etc).",
-    tags: ["Universal", "Utility", "Converter"],
-    status: "upcoming",
-    instructions: [
-      "Drop your file into the box",
-      "Pick the new format you want",
-      "Click convert and download",
-    ],
-    groupname: ["Office Utilities"],
   },
   {
     icon: "fas fa-list-check",
