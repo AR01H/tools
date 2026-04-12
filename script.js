@@ -122,6 +122,16 @@ const tools = [
     groupname: ["Coder Tools"],
   },
   {
+    icon: "fas fa-code-branch",
+    title: "Snippet Manager",
+    description:
+      "Organize and manage your code snippets for quick access and reuse.",
+    tags: ["Coding", "Snippets"],
+    status: "live",
+    link: "./snippetManager/index.html",
+    groupname: ["Coder Tools"],
+  },
+  {
     icon: "fas fa-star",
     title: "Points Noter",
     description:
@@ -204,6 +214,24 @@ const tools = [
     status: "live",
     link: "./ImageEdits/thumbnail-designer.html",
     groupname: ["Image Tools"],
+  },
+  {
+    icon: "fas fa-file-image",
+    title: "Chart View",
+    description: "Chart View Tool",
+    tags: ["Chart", "Designer"],
+    status: "live",
+    link: "./ChartVisualizer/index.html",
+    groupname: ["Visual Tools"],
+  },
+  {
+    icon: "fas fa-file-image",
+    title: "Quiz App",
+    description: "Quiz App Tool",
+    tags: ["Learn", "Quiz"],
+    status: "live",
+    link: "./QuizApp/index.html",
+    groupname: ["Quiz Tools"],
   },
 ];
 

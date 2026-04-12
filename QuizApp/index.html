@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ExamForge – Professional Quiz Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0d0e12;
+  --surface: #16181f;
+  --surface2: #1e2029;
+  --surface3: #252833;
+  --border: #2e3140;
+  --accent: #6c63ff;
+  --accent2: #00d4aa;
+  --accent3: #ff6b6b;
+  --accent4: #ffd166;
+  --text: #e8eaf0;
+  --text2: #9da3b8;
+  --text3: #5a6075;
+  --success: #00d4aa;
+  --danger: #ff6b6b;
+  --warning: #ffd166;
+  --info: #6c63ff;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+.light-mode {
+  --bg: #f0f2f8;
+  --surface: #ffffff;
+  --surface2: #f5f6fa;
+  --surface3: #eaecf5;
+  --border: #d8dce8;
+  --text: #1a1d2e;
+  --text2: #4a5068;
+  --text3: #9da3b8;
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background var(--transition),color var(--transition);}
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;height:100vh;width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:width var(--transition),transform var(--transition);}
+.sidebar.collapsed{width:64px;}
+.sidebar.mobile-hidden{transform:translateX(-100%);}
+.sidebar-logo{padding:20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);min-height:64px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;white-space:nowrap;overflow:hidden;transition:opacity var(--transition);}
+.sidebar.collapsed .logo-text{opacity:0;width:0;}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition);color:var(--text2);margin-bottom:4px;white-space:nowrap;overflow:hidden;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:linear-gradient(135deg,rgba(108,99,255,0.2),rgba(0,212,170,0.1));color:var(--accent);border:1px solid rgba(108,99,255,0.3);}
+.nav-icon{font-size:18px;flex-shrink:0;width:24px;text-align:center;}
+.nav-label{font-size:14px;font-weight:500;transition:opacity var(--transition);}
+.sidebar.collapsed .nav-label{opacity:0;width:0;}
+.sidebar-footer{padding:12px 8px;border-top:1px solid var(--border);}
+.collapse-btn{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);transition:all var(--transition);background:none;border:none;width:100%;font-size:18px;}
+.collapse-btn:hover{background:var(--surface2);color:var(--text);}
+/* MAIN */
+.main{margin-left:240px;min-height:100vh;transition:margin-left var(--transition);}
+.sidebar.collapsed~.main{margin-left:64px;}
+.sidebar.mobile-hidden~.main{margin-left:0;}
+.topbar{height:64px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;flex:1;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;transition:all var(--transition);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#5a52e0;transform:translateY(-1px);}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{background:var(--surface3);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{background:#e05555;}
+.btn-success{background:var(--success);color:#000;}
+.btn-success:hover{background:#00b894;}
+.btn-sm{padding:6px 12px;font-size:13px;}
+.btn-icon{padding:8px;width:36px;height:36px;justify-content:center;}
+.page{display:none;padding:24px;}
+.page.active{display:block;}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.grid{display:grid;gap:16px;}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+/* STATS */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 var(--radius) 0 60px;opacity:0.15;}
+.stat-card.blue::before{background:var(--accent);}
+.stat-card.green::before{background:var(--accent2);}
+.stat-card.red::before{background:var(--accent3);}
+.stat-card.yellow::before{background:var(--accent4);}
+.stat-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.stat-value{font-family:'Syne',sans-serif;font-weight:800;font-size:32px;}
+.stat-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+/* FORM */
+.form-group{margin-bottom:16px;}
+.form-label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color var(--transition);}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent);}
+.form-textarea{resize:vertical;min-height:80px;}
+.form-select option{background:var(--surface2);}
+.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.toggle-input{width:36px;height:20px;background:var(--surface3);border-radius:10px;position:relative;transition:background var(--transition);}
+.toggle-input.on{background:var(--accent);}
+.toggle-input::after{content:'';width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left var(--transition);}
+.toggle-input.on::after{left:18px;}
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.badge-blue{background:rgba(108,99,255,0.2);color:var(--accent);}
+.badge-green{background:rgba(0,212,170,0.2);color:var(--accent2);}
+.badge-red{background:rgba(255,107,107,0.2);color:var(--accent3);}
+.badge-yellow{background:rgba(255,209,102,0.2);color:var(--accent4);}
+/* EXAM UI */
+#exam-page{display:none;background:var(--bg);min-height:100vh;}
+#exam-page.active{display:flex;flex-direction:column;}
+.exam-topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50;}
+.exam-timer{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;padding:6px 16px;border-radius:var(--radius-sm);min-width:100px;text-align:center;}
+.exam-timer.normal{background:rgba(108,99,255,0.1);color:var(--accent);}
+.exam-timer.warning{background:rgba(255,209,102,0.1);color:var(--warning);animation:pulse 1s infinite;}
+.exam-timer.danger{background:rgba(255,107,107,0.1);color:var(--danger);animation:pulse 0.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.exam-progress{flex:1;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;}
+.exam-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.3s;}
+.exam-body{display:flex;flex:1;overflow:hidden;}
+.question-palette{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:16px;overflow-y:auto;flex-shrink:0;transition:width var(--transition);}
+.question-palette.collapsed{width:0;padding:0;overflow:hidden;}
+.palette-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.palette-btn{aspect-ratio:1;border-radius:6px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;transition:all var(--transition);}
+.palette-btn.not-visited{background:var(--surface3);color:var(--text2);}
+.palette-btn.visited{background:rgba(255,209,102,0.2);color:var(--warning);border:1px solid rgba(255,209,102,0.3);}
+.palette-btn.answered{background:rgba(0,212,170,0.2);color:var(--success);border:1px solid rgba(0,212,170,0.3);}
+.palette-btn.marked{background:rgba(108,99,255,0.2);color:var(--accent);border:1px solid rgba(108,99,255,0.3);}
+.palette-btn.answered-marked{background:rgba(108,99,255,0.3);color:var(--accent);border:2px solid var(--accent);}
+.palette-btn.current{outline:2px solid var(--text);outline-offset:2px;}
+.question-area{flex:1;padding:24px;overflow-y:auto;}
+.question-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.question-num{font-family:'DM Mono',monospace;font-size:13px;color:var(--text2);}
+.question-type-badge{font-size:11px;padding:3px 8px;border-radius:4px;background:var(--surface2);color:var(--text2);}
+.question-text{font-size:17px;line-height:1.7;margin-bottom:24px;}
+.options-list{display:flex;flex-direction:column;gap:10px;}
+.option{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer;transition:all var(--transition);background:var(--surface);}
+.option:hover{border-color:var(--accent);background:rgba(108,99,255,0.05);}
+.option.selected{border-color:var(--accent);background:rgba(108,99,255,0.1);}
+.option.correct{border-color:var(--success);background:rgba(0,212,170,0.1);}
+.option.wrong{border-color:var(--danger);background:rgba(255,107,107,0.1);}
+.option-key{width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;flex-shrink:0;transition:all var(--transition);}
+.option.selected .option-key{background:var(--accent);color:#fff;}
+.option.correct .option-key{background:var(--success);color:#000;}
+.option.wrong .option-key{background:var(--danger);color:#fff;}
+.option-text{font-size:15px;line-height:1.5;padding-top:2px;}
+.fill-input{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;}
+.fill-input:focus{outline:none;border-color:var(--accent);}
+.exam-bottombar{background:var(--surface);border-top:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.exam-status-legend{display:flex;gap:12px;flex-wrap:wrap;margin-left:auto;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.legend-dot{width:12px;height:12px;border-radius:3px;}
+/* TABLE */
+.table-wrapper{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:left;padding:12px 16px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle;}
+tr:hover td{background:var(--surface2);}
+tr:last-child td{border-bottom:none;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity var(--transition);}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;transform:scale(0.95);transition:transform var(--transition);}
+.modal-overlay.open .modal{transform:scale(1);}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;}
+.modal-body{padding:24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:flex-end;}
+/* SEARCH */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;transition:border-color var(--transition);}
+.search-bar:focus-within{border-color:var(--accent);}
+.search-bar input{background:none;border:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;flex:1;min-width:0;}
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:var(--radius-sm);margin-bottom:20px;}
+.tab{padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);transition:all var(--transition);border:none;background:none;font-family:'DM Sans',sans-serif;}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
+/* EXPLANATION BOX */
+.explanation-box{margin-top:20px;padding:16px;border-radius:var(--radius-sm);background:rgba(108,99,255,0.05);border:1px solid rgba(108,99,255,0.2);}
+.explanation-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:8px;}
+.explanation-text{font-size:14px;line-height:1.6;color:var(--text2);}
+/* SECTION CARD */
+.section-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:12px;}
+.section-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+/* MOBILE OVERLAY */
+.mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px;}
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:all var(--transition);}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(108,99,255,0.05);}
+.upload-zone-icon{font-size:40px;margin-bottom:12px;}
+/* RESPONSIVE */
+@media(max-width:900px){
+  .grid-4{grid-template-columns:repeat(2,1fr);}
+  .grid-3{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .main{margin-left:0!important;}
+  .hamburger{display:flex;}
+  .mobile-overlay{display:block;opacity:0;pointer-events:none;transition:opacity var(--transition);}
+  .mobile-overlay.open{opacity:1;pointer-events:all;}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
+  .page{padding:16px;}
+  .question-palette{width:180px;}
+  .question-palette.collapsed{width:0;}
+  .exam-status-legend{display:none;}
+}
+@media(max-width:480px){
+  .question-area{padding:16px;}
+  .question-text{font-size:15px;}
+  .option-text{font-size:14px;}
+  .exam-bottombar{gap:8px;}
+  .btn{padding:6px 12px;font-size:13px;}
+}
+.chart-container{position:relative;height:220px;}
+.empty-state{text-align:center;padding:48px 24px;color:var(--text3);}
+.empty-state-icon{font-size:48px;margin-bottom:16px;}
+.empty-state-text{font-size:16px;margin-bottom:8px;color:var(--text2);}
+.empty-state-sub{font-size:13px;}
+.section-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto;}
+.section-tab{padding:10px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;white-space:nowrap;transition:all var(--transition);background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;}
+.section-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.checkbox{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all var(--transition);flex-shrink:0;}
+.checkbox.checked{background:var(--accent);border-color:var(--accent);}
+.row-check{display:flex;align-items:center;gap:12px;}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--text2);margin:2px;}
+.chip .remove{cursor:pointer;color:var(--text3);font-size:10px;}
+.floating-add{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(108,99,255,0.4);transition:all var(--transition);z-index:50;display:flex;align-items:center;justify-content:center;}
+.floating-add:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(108,99,255,0.5);}
+</style>
+</head>
+<body>
+
+<!-- Mobile Overlay -->
+<div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileNav()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">ExamForge</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="navigate('quizzes')">
+      <span class="nav-icon">📚</span><span class="nav-label">Question Banks</span>
+    </div>
+    <div class="nav-item" onclick="navigate('start-quiz')">
+      <span class="nav-icon">▶️</span><span class="nav-label">Start Quiz</span>
+    </div>
+    <div class="nav-item" onclick="navigate('history')">
+      <span class="nav-icon">🕐</span><span class="nav-label">History</span>
+    </div>
+    <div class="nav-item" onclick="navigate('settings')">
+      <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="collapse-btn" onclick="toggleSidebar()">◀</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main" id="main">
+  <!-- Topbar -->
+  <div class="topbar">
+    <button class="hamburger" onclick="openMobileNav()">☰</button>
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="btn btn-icon btn-secondary" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <button class="btn btn-primary btn-sm" onclick="navigate('start-quiz')">▶ Start Quiz</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="page active" id="page-dashboard">
+    <div class="grid grid-4" style="margin-bottom:20px;">
+      <div class="stat-card blue">
+        <div class="stat-label">Total Attempts</div>
+        <div class="stat-value" id="stat-attempts">0</div>
+        <div class="stat-sub">Quiz sessions completed</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Avg Score</div>
+        <div class="stat-value" id="stat-avg-score">—</div>
+        <div class="stat-sub">Across all attempts</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">Avg Accuracy</div>
+        <div class="stat-value" id="stat-avg-acc">—</div>
+        <div class="stat-sub">Correct / attempted</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Question Banks</div>
+        <div class="stat-value" id="stat-banks">0</div>
+        <div class="stat-sub">Loaded in system</div>
+      </div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title">📈 Score Trend</div>
+        <div class="chart-container"><canvas id="chart-trend"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 Topic Accuracy</div>
+        <div class="chart-container"><canvas id="chart-topic"></canvas></div>
+      </div>
+    </div>
+    <div class="card" id="dash-recent">
+      <div class="card-title" style="justify-content:space-between;">
+        <span>🕐 Recent Attempts</span>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('history')">View All</button>
+      </div>
+      <div id="dash-recent-list"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No attempts yet</div><div class="empty-state-sub">Start a quiz to see your results here</div></div></div>
+    </div>
+  </div>
+
+  <!-- Question Banks -->
+  <div class="page" id="page-quizzes">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div class="search-bar" style="flex:1;max-width:320px;">
+        <span>🔍</span><input type="text" id="bank-search" placeholder="Search question banks..." oninput="renderBanks()">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="showImportModal()">📥 Import JSON/CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportAllBanks()">📤 Export All</button>
+        <button class="btn btn-primary btn-sm" onclick="showCreateBankModal()">+ New Bank</button>
+      </div>
+    </div>
+    <div id="banks-grid" class="grid grid-3"></div>
+  </div>
+
+  <!-- Start Quiz -->
+  <div class="page" id="page-start-quiz">
+    <div class="grid grid-2" style="max-width:900px;">
+      <div class="card">
+        <div class="card-title">📚 Select Question Bank</div>
+        <div class="form-group">
+          <select class="form-select" id="cfg-bank" onchange="updateSectionList()">
+            <option value="">-- Choose a question bank --</option>
+          </select>
+        </div>
+        <div id="cfg-sections-area" style="display:none;">
+          <div class="card-title" style="margin-top:16px;">📑 Select Sections</div>
+          <div id="cfg-sections-list"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙️ Test Configuration</div>
+        <div class="form-group">
+          <label class="form-label">Number of Questions</label>
+          <input type="number" class="form-input" id="cfg-num-q" value="10" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time Limit (minutes, 0 = unlimited)</label>
+          <input type="number" class="form-input" id="cfg-time" value="30" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difficulty</label>
+          <select class="form-select" id="cfg-difficulty">
+            <option value="all">All Levels</option>
+            <option value="easy">Easy Only</option>
+            <option value="medium">Medium Only</option>
+            <option value="hard">Hard Only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Navigation Mode</label>
+          <select class="form-select" id="cfg-nav-mode">
+            <option value="free">Free Navigation (jump anywhere)</option>
+            <option value="sequential">Sequential (Next only)</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔀 Shuffle Options</div>
+        <label class="toggle" style="margin-bottom:12px;">
+          <div class="toggle-input" id="tog-shuffle-q" onclick="toggleToggle(this)"></div>
+          <span>Shuffle Questions</span>
+        </label>
+        <label class="toggle">
+          <div class="toggle-input" id="tog-shuffle-a" onclick="toggleToggle(this)"></div>
+          <span>Shuffle Answer Options</span>
+        </label>
+      </div>
+      <div class="card">
+        <div class="card-title">🔒 Attempt Rules</div>
+        <label class="toggle" style="margin-bottom:12px;">
+          <div class="toggle-input on" id="tog-back-nav" onclick="toggleToggle(this)"></div>
+          <span>Allow Back Navigation</span>
+        </label>
+        <label class="toggle" style="margin-bottom:12px;">
+          <div class="toggle-input on" id="tog-change-ans" onclick="toggleToggle(this)"></div>
+          <span>Allow Changing Answers</span>
+        </label>
+        <label class="toggle">
+          <div class="toggle-input on" id="tog-auto-submit" onclick="toggleToggle(this)"></div>
+          <span>Auto-submit on Timer End</span>
+        </label>
+      </div>
+    </div>
+    <div style="margin-top:20px;">
+      <button class="btn btn-primary" onclick="startExam()" style="padding:12px 32px;font-size:16px;">▶ Start Exam</button>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="page" id="page-history">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <div class="search-bar">
+          <span>🔍</span><input type="text" id="hist-search" placeholder="Search attempts..." oninput="renderHistory()">
+        </div>
+        <select class="form-select" id="hist-filter-bank" onchange="renderHistory()" style="width:auto;">
+          <option value="">All Banks</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" id="bulk-delete-btn" onclick="bulkDeleteAttempts()" style="display:none;">🗑 Delete Selected</button>
+        <button class="btn btn-secondary btn-sm" id="bulk-export-btn" onclick="bulkExportAttempts()" style="display:none;">📤 Export Selected</button>
+        <button class="btn btn-secondary btn-sm" onclick="toggleSelectAll()">☑ Select All</button>
+      </div>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- Settings -->
+  <div class="page" id="page-settings">
+    <div class="grid grid-2" style="max-width:700px;">
+      <div class="card">
+        <div class="card-title">🎨 Theme</div>
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-secondary" onclick="setTheme('dark')">🌙 Dark</button>
+          <button class="btn btn-secondary" onclick="setTheme('light')">☀️ Light</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗑 Data Management</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button class="btn btn-secondary btn-sm" onclick="clearAllAttempts()">Clear All History</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllData()">Reset Everything</button>
+        </div>
+      </div>
+      <div class="card" style="grid-column:1/-1;">
+        <div class="card-title">⌨️ Keyboard Shortcuts</div>
+        <div class="grid grid-2" style="gap:8px;font-size:14px;">
+          <div><kbd style="background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">1-4</kbd> Select option A-D</div>
+          <div><kbd style="background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">→ / N</kbd> Next question</div>
+          <div><kbd style="background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">← / P</kbd> Previous question</div>
+          <div><kbd style="background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">M</kbd> Mark for review</div>
+          <div><kbd style="background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">C</kbd> Clear response</div>
+          <div><kbd style="background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">Esc</kbd> Toggle palette</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXAM PAGE (full-screen, outside main) -->
+<div id="exam-page">
+  <div class="exam-topbar">
+    <button class="btn btn-icon btn-secondary" onclick="togglePalette()" title="Toggle palette (Esc)">☰</button>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;" id="exam-bank-name">Quiz</div>
+      <div style="font-size:12px;color:var(--text2);" id="exam-section-name">Section 1</div>
+    </div>
+    <div class="exam-progress" id="exam-progress-wrap">
+      <div class="exam-progress-bar" id="exam-progress-bar" style="width:0%"></div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);" id="exam-q-counter">Q 1 / 10</div>
+    <div class="exam-timer normal" id="exam-timer">30:00</div>
+    <button class="btn btn-danger btn-sm" onclick="confirmSubmit()">Submit</button>
+  </div>
+  <div class="exam-body">
+    <div class="question-palette" id="question-palette">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">Questions</div>
+      <div class="palette-grid" id="palette-grid"></div>
+      <div style="margin-top:16px;font-size:12px;color:var(--text2);">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+          <span><span style="color:var(--text3);">⬜</span> Not visited</span>
+          <span><span style="color:var(--warning);">🟨</span> Visited</span>
+          <span><span style="color:var(--success);">🟩</span> Answered</span>
+          <span><span style="color:var(--accent);">🟪</span> Marked</span>
+        </div>
+      </div>
+    </div>
+    <div class="question-area" id="question-area">
+      <div class="question-header">
+        <span class="question-num" id="q-num">Question 1</span>
+        <span class="question-type-badge" id="q-type-badge">MCQ</span>
+        <span class="badge badge-blue" id="q-diff-badge">Medium</span>
+        <span style="margin-left:auto;font-size:13px;color:var(--text2);" id="q-marks-info">+4 / −1</span>
+      </div>
+      <div class="question-text" id="question-text">Loading question...</div>
+      <div class="options-list" id="options-area"></div>
+      <div id="explanation-area"></div>
+    </div>
+  </div>
+  <div class="exam-bottombar">
+    <button class="btn btn-secondary" onclick="clearResponse()">✕ Clear</button>
+    <button class="btn btn-secondary" onclick="markForReview()">🚩 Mark</button>
+    <div style="flex:1;"></div>
+    <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()">◀ Prev</button>
+    <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">Next ▶</button>
+  </div>
+</div>
+
+<!-- RESULT PAGE -->
+<div class="page" id="page-result" style="display:none;">
+  <div class="page active" id="page-result-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;">📊 Results</h2>
+        <div style="color:var(--text2);font-size:14px;" id="result-bank-label">—</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="downloadReport('html')">📄 HTML Report</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadReport('csv')">📊 CSV Export</button>
+        <button class="btn btn-primary btn-sm" onclick="navigate('start-quiz')">🔄 Re-attempt</button>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('dashboard')">🏠 Dashboard</button>
+      </div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:20px;">
+      <div class="stat-card blue"><div class="stat-label">Score</div><div class="stat-value" id="res-score">—</div><div class="stat-sub" id="res-score-sub">—</div></div>
+      <div class="stat-card green"><div class="stat-label">Accuracy</div><div class="stat-value" id="res-acc">—</div><div class="stat-sub" id="res-acc-sub">—</div></div>
+      <div class="stat-card yellow"><div class="stat-label">Time Taken</div><div class="stat-value" id="res-time">—</div><div class="stat-sub">hh:mm:ss</div></div>
+      <div class="stat-card red"><div class="stat-label">Attempted</div><div class="stat-value" id="res-att">—</div><div class="stat-sub" id="res-att-sub">—</div></div>
+    </div>
+    <div class="grid grid-3" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title">📊 Score Distribution</div>
+        <div class="chart-container"><canvas id="res-chart-dist"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⏱ Time per Section</div>
+        <div class="chart-container"><canvas id="res-chart-time"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">💡 Insights</div>
+        <div id="res-insights"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Question Breakdown</div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchResultTab('all',this)">All</button>
+        <button class="tab" onclick="switchResultTab('correct',this)">✅ Correct</button>
+        <button class="tab" onclick="switchResultTab('wrong',this)">❌ Wrong</button>
+        <button class="tab" onclick="switchResultTab('skipped',this)">⏭ Skipped</button>
+      </div>
+      <div class="table-wrapper">
+        <table id="result-table">
+          <thead><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th><th>Time</th></tr></thead>
+          <tbody id="result-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- Create Bank Modal -->
+<div class="modal-overlay" id="modal-create-bank">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-bank-title">Create Question Bank</div>
+      <button class="btn btn-icon btn-secondary" onclick="closeModal('modal-create-bank')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Bank Name *</label>
+        <input type="text" class="form-input" id="bank-name-input" placeholder="e.g. SAT Math Practice">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input type="text" class="form-input" id="bank-desc-input" placeholder="Brief description">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags (comma separated)</label>
+        <input type="text" class="form-input" id="bank-tags-input" placeholder="math, algebra, practice">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-create-bank')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBank()">Create Bank</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Question Modal -->
+<div class="modal-overlay" id="modal-add-question">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-q-title">Add Question</div>
+      <button class="btn btn-icon btn-secondary" onclick="closeModal('modal-add-question')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="q-type" onchange="renderQuestionTypeFields()">
+            <option value="mcq-single">MCQ (Single Answer)</option>
+            <option value="mcq-multi">MCQ (Multiple Answers)</option>
+            <option value="true-false">True / False</option>
+            <option value="fill">Fill in the Blank</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Difficulty</label>
+          <select class="form-select" id="q-difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Topic / Section</label>
+        <input type="text" class="form-input" id="q-topic" placeholder="e.g. Algebra, Reading Comprehension">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Question Text *</label>
+        <textarea class="form-textarea" id="q-text" rows="3" placeholder="Enter your question here..."></textarea>
+      </div>
+      <div id="q-type-fields"></div>
+      <div class="form-group">
+        <label class="form-label">Explanation (shown after submission)</label>
+        <textarea class="form-textarea" id="q-explanation" rows="2" placeholder="Explain the correct answer..."></textarea>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label">Marks (correct)</label>
+          <input type="number" class="form-input" id="q-marks-pos" value="1" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Negative Marks</label>
+          <input type="number" class="form-input" id="q-marks-neg" value="0" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-question')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuestion()">Save Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Add Modal -->
+<div class="modal-overlay" id="modal-bulk-add">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <div class="modal-title">📋 Bulk Add Questions</div>
+      <button class="btn btn-icon btn-secondary" onclick="closeModal('modal-bulk-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text2);font-size:14px;margin-bottom:16px;">Enter questions in this format (one per block, separated by blank line):</p>
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.8;">
+        Q: What is 2 + 2?<br>
+        A: 3<br>
+        B: 4<br>
+        C: 5<br>
+        ANS: B<br>
+        DIFF: easy<br>
+        TOPIC: Math<br>
+        EXP: 2+2 equals 4<br><br>
+        Q: Next question...<br>...
+      </div>
+      <div class="form-group">
+        <textarea class="form-textarea" id="bulk-text" rows="12" placeholder="Paste your questions here..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-bulk-add')">Cancel</button>
+      <button class="btn btn-primary" onclick="processBulkAdd()">Add Questions</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📥 Import Question Bank</div>
+      <button class="btn btn-icon btn-secondary" onclick="closeModal('modal-import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('import-json',this,'import-tabs')">JSON</button>
+        <button class="tab" onclick="switchTab('import-csv',this,'import-tabs')">CSV</button>
+      </div>
+      <div id="import-json">
+        <div class="upload-zone" id="json-drop-zone" onclick="document.getElementById('json-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event,'json')">
+          <div class="upload-zone-icon">📄</div>
+          <div style="font-weight:600;margin-bottom:4px;">Drop JSON file or click to upload</div>
+          <div style="font-size:13px;color:var(--text2);">ExamForge JSON format</div>
+          <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="handleFileSelect(event,'json')">
+        </div>
+        <div style="margin-top:16px;"><label class="form-label">Or paste JSON directly:</label><textarea class="form-textarea" id="json-paste" rows="6" placeholder='{"name":"My Bank","questions":[...]}'></textarea></div>
+      </div>
+      <div id="import-csv" style="display:none;">
+        <div class="upload-zone" id="csv-drop-zone" onclick="document.getElementById('csv-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event,'csv')">
+          <div class="upload-zone-icon">📊</div>
+          <div style="font-weight:600;margin-bottom:4px;">Drop CSV file or click to upload</div>
+          <div style="font-size:13px;color:var(--text2);">Columns: question, optionA, optionB, optionC, optionD, answer, difficulty, topic, explanation</div>
+          <input type="file" id="csv-file-input" accept=".csv" style="display:none" onchange="handleFileSelect(event,'csv')">
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--text2);padding:12px;background:var(--surface2);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;line-height:1.8;">
+          question,optionA,optionB,optionC,optionD,answer,difficulty,topic,explanation<br>
+          "What is 2+2?","3","4","5","6","B","easy","Math","2+2=4"
+        </div>
+        <div style="margin-top:12px;">
+          <label class="form-label">Bank Name for CSV Import</label>
+          <input type="text" class="form-input" id="csv-bank-name" placeholder="Imported Bank">
+        </div>
+      </div>
+      <div id="import-preview" style="display:none;margin-top:16px;padding:12px;background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.3);border-radius:var(--radius-sm);">
+        <div style="color:var(--success);font-weight:600;" id="import-preview-text"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-import')">Cancel</button>
+      <button class="btn btn-primary" onclick="performImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Submit Modal -->
+<div class="modal-overlay" id="modal-confirm-submit">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">Submit Exam?</div></div>
+    <div class="modal-body">
+      <div id="submit-summary" style="font-size:15px;line-height:2;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-confirm-submit')">Continue Exam</button>
+      <button class="btn btn-danger" onclick="submitExam()">Submit Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Bank Modal -->
+<div class="modal-overlay" id="modal-view-bank">
+  <div class="modal" style="max-width:800px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="view-bank-name">Bank Name</div>
+        <div style="font-size:13px;color:var(--text2);" id="view-bank-desc">—</div>
+      </div>
+      <button class="btn btn-icon btn-secondary" onclick="closeModal('modal-view-bank')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="showAddQuestionModal()">+ Add Question</button>
+        <button class="btn btn-secondary btn-sm" onclick="showBulkAddModal()">📋 Bulk Add</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportBank()">📤 Export</button>
+        <button class="btn btn-secondary btn-sm" onclick="showImportModal()">📥 Import More</button>
+      </div>
+      <div id="bank-questions-list" style="max-height:55vh;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let banks = [];
+let attempts = [];
+let currentBankId = null;
+let editingQuestionId = null;
+let editingQuestionIdx = null;
+let pendingImportData = null;
+let pendingImportType = null;
+
+// EXAM STATE
+let examState = {
+  active: false,
+  questions: [],
+  answers: {},
+  status: {}, // not-visited, visited, answered, marked, answered-marked
+  markedForReview: {},
+  currentIdx: 0,
+  timeLeft: 0,
+  timerInterval: null,
+  startTime: null,
+  config: {},
+  questionTimes: {},
+  qStartTime: null,
+  bankId: null,
+  bankName: ''
+};
+
+let resultData = null;
+let resultAllRows = [];
+let selectedAttempts = new Set();
+let trendChart = null, topicChart = null;
+let resDistChart = null, resTimeChart = null;
+let themeMode = 'dark';
+
+// ===== STORAGE =====
+function save() {
+  try {
+    localStorage.setItem('ef_banks', JSON.stringify(banks));
+    localStorage.setItem('ef_attempts', JSON.stringify(attempts));
+    localStorage.setItem('ef_theme', themeMode);
+  } catch(e) {}
+}
+
+function load() {
+  try {
+    const b = localStorage.getItem('ef_banks');
+    if (b) banks = JSON.parse(b);
+    const a = localStorage.getItem('ef_attempts');
+    if (a) attempts = JSON.parse(a);
+    const t = localStorage.getItem('ef_theme');
+    if (t) { themeMode = t; applyTheme(); }
+  } catch(e) {}
+  if (!banks.length) seedSampleBank();
+}
+
+function seedSampleBank() {
+  const sample = {
+    id: uid(), name: 'Sample: General Knowledge', desc: 'A sample bank to get you started', tags: ['general','sample'],
+    created: Date.now(),
+    questions: [
+      {id:uid(),type:'mcq-single',text:'What is the capital of France?',options:['London','Berlin','Paris','Madrid'],answer:2,difficulty:'easy',topic:'Geography',explanation:'Paris is the capital and largest city of France.',marks:1,neg:0},
+      {id:uid(),type:'mcq-single',text:'Which planet is known as the Red Planet?',options:['Venus','Mars','Jupiter','Saturn'],answer:1,difficulty:'easy',topic:'Science',explanation:'Mars appears red due to iron oxide on its surface.',marks:1,neg:0},
+      {id:uid(),type:'true-false',text:'The Great Wall of China is visible from space with the naked eye.',options:['True','False'],answer:1,difficulty:'medium',topic:'Geography',explanation:'This is a common myth. It is not visible from space with the naked eye.',marks:1,neg:0},
+      {id:uid(),type:'mcq-single',text:'Who wrote "Romeo and Juliet"?',options:['Charles Dickens','William Shakespeare','Jane Austen','Mark Twain'],answer:1,difficulty:'easy',topic:'Literature',explanation:'Romeo and Juliet was written by William Shakespeare.',marks:1,neg:0},
+      {id:uid(),type:'mcq-single',text:'What is the chemical symbol for Gold?',options:['Go','Gd','Au','Ag'],answer:2,difficulty:'medium',topic:'Chemistry',explanation:'Gold\'s symbol Au comes from the Latin word "Aurum".',marks:1,neg:0},
+      {id:uid(),type:'fill',text:'The speed of light is approximately ___ km/s.',answer:'300000',difficulty:'hard',topic:'Physics',explanation:'The speed of light in a vacuum is approximately 299,792 km/s, often rounded to 300,000.',marks:2,neg:0},
+      {id:uid(),type:'mcq-multi',text:'Which of the following are programming languages? (Select all that apply)',options:['Python','HTML','JavaScript','CSS'],answer:[0,2],difficulty:'medium',topic:'Technology',explanation:'Python and JavaScript are programming languages. HTML and CSS are markup/style languages.',marks:2,neg:0},
+      {id:uid(),type:'mcq-single',text:'What year did World War II end?',options:['1943','1944','1945','1946'],answer:2,difficulty:'easy',topic:'History',explanation:'World War II ended in 1945 with the surrender of Germany (May) and Japan (September).',marks:1,neg:0},
+    ]
+  };
+  banks.push(sample);
+  save();
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+// ===== NAVIGATION =====
+let currentPage = 'dashboard';
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  if (page === 'result') {
+    document.getElementById('page-result').style.display = 'block';
+    document.getElementById('page-result').classList.add('active');
+    currentPage = page;
+    document.getElementById('page-title').textContent = 'Results';
+    return;
+  }
+
+  document.getElementById('page-result').style.display = 'none';
+
+  const pageEl = document.getElementById('page-' + page);
+  if (pageEl) { pageEl.classList.add('active'); }
+
+  const navMap = {'dashboard':'Dashboard','quizzes':'Question Banks','start-quiz':'Start Quiz','history':'History','settings':'Settings','result':'Results'};
+  document.getElementById('page-title').textContent = navMap[page] || page;
+  currentPage = page;
+
+  const navItems = document.querySelectorAll('.nav-item');
+  const navPageMap = {'dashboard':0,'quizzes':1,'start-quiz':2,'history':3,'settings':4};
+  if (navPageMap[page] !== undefined) navItems[navPageMap[page]].classList.add('active');
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'quizzes') renderBanks();
+  if (page === 'start-quiz') populateStartQuiz();
+  if (page === 'history') renderHistory();
+
+  closeMobileNav();
+}
+
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  s.classList.toggle('collapsed');
+  document.querySelector('.collapse-btn').textContent = s.classList.contains('collapsed') ? '▶' : '◀';
+}
+
+function openMobileNav() {
+  document.getElementById('sidebar').classList.add('mobile-open');
+  document.getElementById('mobile-overlay').classList.add('open');
+}
+
+function closeMobileNav() {
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('mobile-overlay').classList.remove('open');
+}
+
+function toggleTheme() {
+  themeMode = themeMode === 'dark' ? 'light' : 'dark';
+  applyTheme();
+  save();
+}
+
+function setTheme(t) { themeMode = t; applyTheme(); save(); }
+
+function applyTheme() {
+  document.body.classList.toggle('light-mode', themeMode === 'light');
+  document.querySelector('.topbar-actions .btn-icon').textContent = themeMode === 'dark' ? '🌙' : '☀️';
+}
+
+function toggleToggle(el) { el.classList.toggle('on'); }
+
+// ===== MODALS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function switchTab(tabId, btn, groupId) {
+  const modal = btn.closest('.modal-body') || btn.closest('.page');
+  modal.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  modal.querySelectorAll('[id^="' + groupId.replace('-tabs','') + '-"], [id^="import-"]').forEach(el => {
+    if (el.tagName !== 'BUTTON') el.style.display = 'none';
+  });
+  document.getElementById(tabId).style.display = '';
+}
+
+function switchResultTab(filter, btn) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderResultTable(filter);
+}
+
+// ===== QUESTION BANKS =====
+function renderBanks() {
+  const q = document.getElementById('bank-search').value.toLowerCase();
+  const filtered = banks.filter(b => b.name.toLowerCase().includes(q) || (b.desc||'').toLowerCase().includes(q));
+  const grid = document.getElementById('banks-grid');
+  if (!filtered.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">📚</div><div class="empty-state-text">No question banks found</div><div class="empty-state-sub">Create a new bank or import one</div></div>'; return; }
+  grid.innerHTML = filtered.map(b => `
+    <div class="card" style="cursor:pointer;" onclick="viewBank('${b.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:4px;">${esc(b.name)}</div>
+          <div style="font-size:13px;color:var(--text2);">${esc(b.desc||'No description')}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-icon btn-secondary" onclick="event.stopPropagation();exportBank('${b.id}')" title="Export">📤</button>
+          <button class="btn btn-icon btn-secondary" onclick="event.stopPropagation();deleteBank('${b.id}')" title="Delete" style="color:var(--danger);">🗑</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="badge badge-blue">${b.questions.length} Questions</span>
+        <span style="font-size:12px;color:var(--text3);">${new Date(b.created).toLocaleDateString()}</span>
+      </div>
+      ${b.tags&&b.tags.length?`<div style="margin-top:8px;">${b.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>`:''}
+    </div>
+  `).join('');
+}
+
+function showCreateBankModal() {
+  document.getElementById('modal-bank-title').textContent = 'Create Question Bank';
+  document.getElementById('bank-name-input').value = '';
+  document.getElementById('bank-desc-input').value = '';
+  document.getElementById('bank-tags-input').value = '';
+  currentBankId = null;
+  openModal('modal-create-bank');
+}
+
+function saveBank() {
+  const name = document.getElementById('bank-name-input').value.trim();
+  if (!name) { alert('Bank name is required'); return; }
+  const tags = document.getElementById('bank-tags-input').value.split(',').map(t=>t.trim()).filter(Boolean);
+  if (currentBankId) {
+    const b = banks.find(x=>x.id===currentBankId);
+    if (b) { b.name=name; b.desc=document.getElementById('bank-desc-input').value.trim(); b.tags=tags; }
+  } else {
+    banks.push({ id:uid(), name, desc:document.getElementById('bank-desc-input').value.trim(), tags, created:Date.now(), questions:[] });
+  }
+  save(); closeModal('modal-create-bank'); renderBanks();
+}
+
+function deleteBank(id) {
+  if (!confirm('Delete this question bank?')) return;
+  banks = banks.filter(b=>b.id!==id);
+  save(); renderBanks();
+}
+
+function viewBank(id) {
+  currentBankId = id;
+  const b = banks.find(x=>x.id===id);
+  if (!b) return;
+  document.getElementById('view-bank-name').textContent = b.name;
+  document.getElementById('view-bank-desc').textContent = b.desc || '';
+  renderBankQuestions();
+  openModal('modal-view-bank');
+}
+
+function renderBankQuestions() {
+  const b = banks.find(x=>x.id===currentBankId);
+  if (!b) return;
+  const el = document.getElementById('bank-questions-list');
+  if (!b.questions.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">❓</div><div class="empty-state-text">No questions yet</div><div class="empty-state-sub">Add questions manually or import</div></div>'; return; }
+  el.innerHTML = b.questions.map((q,i) => `
+    <div style="padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;">
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);min-width:30px;padding-top:2px;">${i+1}.</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;margin-bottom:6px;">${esc(q.text)}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="badge ${q.difficulty==='easy'?'badge-green':q.difficulty==='hard'?'badge-red':'badge-yellow'}">${q.difficulty}</span>
+          <span class="badge badge-blue">${q.type}</span>
+          ${q.topic?`<span class="chip">${esc(q.topic)}</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="editQuestion('${currentBankId}',${i})" title="Edit">✏️</button>
+        <button class="btn btn-icon btn-secondary btn-sm" onclick="deleteQuestion('${currentBankId}',${i})" title="Delete" style="color:var(--danger);">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== QUESTIONS =====
+function showAddQuestionModal(bankId) {
+  if (bankId) currentBankId = bankId;
+  editingQuestionId = null; editingQuestionIdx = null;
+  document.getElementById('modal-q-title').textContent = 'Add Question';
+  document.getElementById('q-type').value = 'mcq-single';
+  document.getElementById('q-difficulty').value = 'medium';
+  document.getElementById('q-topic').value = '';
+  document.getElementById('q-text').value = '';
+  document.getElementById('q-explanation').value = '';
+  document.getElementById('q-marks-pos').value = 1;
+  document.getElementById('q-marks-neg').value = 0;
+  renderQuestionTypeFields();
+  openModal('modal-add-question');
+}
+
+function editQuestion(bankId, idx) {
+  currentBankId = bankId;
+  editingQuestionIdx = idx;
+  const b = banks.find(x=>x.id===bankId);
+  if (!b) return;
+  const q = b.questions[idx];
+  document.getElementById('modal-q-title').textContent = 'Edit Question';
+  document.getElementById('q-type').value = q.type;
+  document.getElementById('q-difficulty').value = q.difficulty;
+  document.getElementById('q-topic').value = q.topic||'';
+  document.getElementById('q-text').value = q.text;
+  document.getElementById('q-explanation').value = q.explanation||'';
+  document.getElementById('q-marks-pos').value = q.marks||1;
+  document.getElementById('q-marks-neg').value = q.neg||0;
+  renderQuestionTypeFields(q);
+  openModal('modal-add-question');
+}
+
+function renderQuestionTypeFields(existing) {
+  const type = document.getElementById('q-type').value;
+  const area = document.getElementById('q-type-fields');
+  if (type === 'mcq-single' || type === 'mcq-multi') {
+    const opts = existing?.options || ['','','',''];
+    const ans = existing?.answer;
+    const multi = type === 'mcq-multi';
+    area.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div class="form-label">Options${multi?' (check all correct)':' (select correct)'} *</div>
+        ${opts.map((o,i)=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            ${multi
+              ? `<div class="checkbox ${Array.isArray(ans)&&ans.includes(i)?'checked':''}" id="opt-check-${i}" onclick="this.classList.toggle('checked')">✓</div>`
+              : `<input type="radio" name="correct-ans" value="${i}" id="opt-radio-${i}" ${ans===i?'checked':''}>`
+            }
+            <input type="text" class="form-input" id="opt-${i}" value="${esc(o)}" placeholder="Option ${String.fromCharCode(65+i)}">
+          </div>
+        `).join('')}
+        ${multi ? '' : ''}
+      </div>
+    `;
+  } else if (type === 'true-false') {
+    const ans = existing?.answer;
+    area.innerHTML = `
+      <div class="form-group">
+        <div class="form-label">Correct Answer</div>
+        <div style="display:flex;gap:12px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="tf-ans" value="0" ${ans===0?'checked':''}> True</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="tf-ans" value="1" ${ans===1?'checked':''}> False</label>
+        </div>
+      </div>
+    `;
+  } else if (type === 'fill') {
+    area.innerHTML = `
+      <div class="form-group">
+        <label class="form-label">Correct Answer *</label>
+        <input type="text" class="form-input" id="fill-answer" value="${esc(existing?.answer||'')}">
+      </div>
+    `;
+  }
+}
+
+function saveQuestion() {
+  const type = document.getElementById('q-type').value;
+  const text = document.getElementById('q-text').value.trim();
+  if (!text) { alert('Question text is required'); return; }
+  const b = banks.find(x=>x.id===currentBankId);
+  if (!b) return;
+
+  let answer, options;
+  if (type === 'mcq-single') {
+    options = [0,1,2,3].map(i=>document.getElementById('opt-'+i)?.value.trim()||'');
+    const r = document.querySelector('input[name="correct-ans"]:checked');
+    if (!r) { alert('Select correct answer'); return; }
+    answer = parseInt(r.value);
+  } else if (type === 'mcq-multi') {
+    options = [0,1,2,3].map(i=>document.getElementById('opt-'+i)?.value.trim()||'');
+    answer = [0,1,2,3].filter(i=>document.getElementById('opt-check-'+i)?.classList.contains('checked'));
+    if (!answer.length) { alert('Select at least one correct answer'); return; }
+  } else if (type === 'true-false') {
+    options = ['True','False'];
+    const r = document.querySelector('input[name="tf-ans"]:checked');
+    if (!r) { alert('Select True or False'); return; }
+    answer = parseInt(r.value);
+  } else if (type === 'fill') {
+    answer = document.getElementById('fill-answer').value.trim();
+    if (!answer) { alert('Correct answer is required'); return; }
+  }
+
+  const q = {
+    id: editingQuestionIdx !== null ? b.questions[editingQuestionIdx].id : uid(),
+    type, text, options, answer,
+    difficulty: document.getElementById('q-difficulty').value,
+    topic: document.getElementById('q-topic').value.trim(),
+    explanation: document.getElementById('q-explanation').value.trim(),
+    marks: parseFloat(document.getElementById('q-marks-pos').value)||1,
+    neg: parseFloat(document.getElementById('q-marks-neg').value)||0
+  };
+
+  if (editingQuestionIdx !== null) b.questions[editingQuestionIdx] = q;
+  else b.questions.push(q);
+
+  save(); closeModal('modal-add-question'); renderBankQuestions();
+}
+
+function deleteQuestion(bankId, idx) {
+  if (!confirm('Delete this question?')) return;
+  const b = banks.find(x=>x.id===bankId);
+  if (b) { b.questions.splice(idx,1); save(); renderBankQuestions(); }
+}
+
+// ===== BULK ADD =====
+function showBulkAddModal() { openModal('modal-bulk-add'); document.getElementById('bulk-text').value=''; }
+
+function processBulkAdd() {
+  const b = banks.find(x=>x.id===currentBankId);
+  if (!b) return;
+  const text = document.getElementById('bulk-text').value;
+  const blocks = text.split(/\n\s*\n/);
+  let added = 0;
+  blocks.forEach(block => {
+    const lines = block.trim().split('\n');
+    if (!lines.length) return;
+    const q = {};
+    const opts = [];
+    lines.forEach(line => {
+      const m = line.match(/^([A-Z]+):\s*(.*)/);
+      if (!m) return;
+      const [,key,val] = m;
+      if (key==='Q') q.text=val;
+      else if (/^[A-D]$/.test(key)) opts.push(val);
+      else if (key==='ANS') q.ansKey=val;
+      else if (key==='DIFF') q.difficulty=val.toLowerCase();
+      else if (key==='TOPIC') q.topic=val;
+      else if (key==='EXP') q.explanation=val;
+    });
+    if (!q.text||!opts.length) return;
+    const ansIdx = q.ansKey ? 'ABCD'.indexOf(q.ansKey.toUpperCase()) : 0;
+    b.questions.push({ id:uid(), type:'mcq-single', text:q.text, options:opts, answer:ansIdx>=0?ansIdx:0, difficulty:q.difficulty||'medium', topic:q.topic||'', explanation:q.explanation||'', marks:1, neg:0 });
+    added++;
+  });
+  save(); closeModal('modal-bulk-add'); renderBankQuestions();
+  alert(`${added} question(s) added successfully!`);
+}
+
+// ===== IMPORT / EXPORT =====
+function showImportModal() {
+  pendingImportData = null; pendingImportType = null;
+  document.getElementById('json-paste').value = '';
+  document.getElementById('csv-bank-name').value = '';
+  document.getElementById('import-preview').style.display = 'none';
+  openModal('modal-import');
+}
+
+function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function handleDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+function handleFileDrop(e, type) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file, type);
+}
+
+function handleFileSelect(e, type) {
+  const file = e.target.files[0];
+  if (file) readFile(file, type);
+  e.target.value = '';
+}
+
+function readFile(file, type) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if (type==='json') { document.getElementById('json-paste').value = ev.target.result; previewImport('json'); }
+    else previewCSVImport(ev.target.result);
+  };
+  reader.readAsText(file);
+}
+
+function previewImport(type) {
+  pendingImportType = type;
+  try {
+    if (type==='json') {
+      const data = JSON.parse(document.getElementById('json-paste').value);
+      if (Array.isArray(data)) {
+        pendingImportData = data;
+        showImportPreview(`Found ${data.length} bank(s) ready to import`);
+      } else if (data.questions) {
+        pendingImportData = [data];
+        showImportPreview(`Found 1 bank: "${data.name}" with ${data.questions.length} questions`);
+      } else { alert('Invalid JSON format'); }
+    }
+  } catch(e) { alert('Invalid JSON: ' + e.message); }
+}
+
+function previewCSVImport(csv) {
+  pendingImportType = 'csv';
+  const rows = parseCSV(csv);
+  pendingImportData = rows;
+  showImportPreview(`Found ${rows.length} question(s) in CSV`);
+}
+
+function showImportPreview(msg) {
+  document.getElementById('import-preview').style.display = 'block';
+  document.getElementById('import-preview-text').textContent = '✓ ' + msg;
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals = [];
+    let cur='', inQ=false;
+    for (let c of line) {
+      if (c==='"') inQ=!inQ;
+      else if (c===','&&!inQ) { vals.push(cur.trim()); cur=''; }
+      else cur+=c;
+    }
+    vals.push(cur.trim());
+    const obj={};
+    headers.forEach((h,i)=>obj[h]=vals[i]||'');
+    return obj;
+  });
+}
+
+function performImport() {
+  if (!pendingImportData) {
+    if (document.getElementById('import-json').style.display!=='none') previewImport('json');
+    else return;
+    if (!pendingImportData) return;
+  }
+  if (pendingImportType==='json') {
+    pendingImportData.forEach(b => {
+      const existing = banks.find(x=>x.name===b.name);
+      if (existing) { existing.questions.push(...(b.questions||[])); }
+      else banks.push({ id:uid(), name:b.name||'Imported', desc:b.desc||'', tags:b.tags||[], created:Date.now(), questions:b.questions||[] });
+    });
+  } else if (pendingImportType==='csv') {
+    const bankName = document.getElementById('csv-bank-name').value.trim() || 'Imported Bank';
+    const questions = pendingImportData.map(row => ({
+      id: uid(),
+      type: 'mcq-single',
+      text: row.question || row.Question || '',
+      options: ['A','B','C','D'].map(k=>row['option'+k]||row['Option'+k]||'').filter(Boolean),
+      answer: 'ABCD'.indexOf((row.answer||row.Answer||'A').trim().toUpperCase()),
+      difficulty: (row.difficulty||row.Difficulty||'medium').toLowerCase(),
+      topic: row.topic||row.Topic||'',
+      explanation: row.explanation||row.Explanation||'',
+      marks:1, neg:0
+    })).filter(q=>q.text);
+    banks.push({ id:uid(), name:bankName, desc:'Imported from CSV', tags:[], created:Date.now(), questions });
+  }
+  save(); closeModal('modal-import'); renderBanks();
+  alert('Import successful!');
+}
+
+function exportBank(bankId) {
+  const id = bankId || currentBankId;
+  const b = banks.find(x=>x.id===id);
+  if (!b) return;
+  downloadJSON([b], b.name + '_export.json');
+}
+
+function exportAllBanks() { downloadJSON(banks, 'examforge_all_banks.json'); }
+
+function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+}
+
+// ===== START QUIZ =====
+function populateStartQuiz() {
+  const sel = document.getElementById('cfg-bank');
+  sel.innerHTML = '<option value="">-- Choose a question bank --</option>' + banks.map(b=>`<option value="${b.id}">${esc(b.name)} (${b.questions.length} Q)</option>`).join('');
+}
+
+function updateSectionList() {
+  const id = document.getElementById('cfg-bank').value;
+  const area = document.getElementById('cfg-sections-area');
+  if (!id) { area.style.display='none'; return; }
+  const b = banks.find(x=>x.id===id);
+  if (!b) return;
+  const topics = [...new Set(b.questions.map(q=>q.topic).filter(Boolean))];
+  if (!topics.length) { area.style.display='none'; return; }
+  area.style.display='block';
+  document.getElementById('cfg-sections-list').innerHTML = topics.map(t=>`
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;">
+      <div class="checkbox checked sec-check" data-topic="${esc(t)}" onclick="this.classList.toggle('checked')">✓</div>
+      <span style="font-size:14px;">${esc(t)}</span>
+    </label>
+  `).join('');
+}
+
+function startExam() {
+  const bankId = document.getElementById('cfg-bank').value;
+  if (!bankId) { alert('Please select a question bank'); return; }
+  const b = banks.find(x=>x.id===bankId);
+  if (!b || !b.questions.length) { alert('This bank has no questions'); return; }
+
+  const difficulty = document.getElementById('cfg-difficulty').value;
+  const selectedTopics = [...document.querySelectorAll('.sec-check.checked')].map(el=>el.dataset.topic);
+  const hasTopicFilter = document.getElementById('cfg-sections-area').style.display!=='none' && selectedTopics.length;
+
+  let qs = b.questions.filter(q => {
+    if (difficulty!=='all' && q.difficulty!==difficulty) return false;
+    if (hasTopicFilter && !selectedTopics.includes(q.topic)) return false;
+    return true;
+  });
+
+  if (!qs.length) { alert('No questions match your filters'); return; }
+
+  const shuffleQ = document.getElementById('tog-shuffle-q').classList.contains('on');
+  const shuffleA = document.getElementById('tog-shuffle-a').classList.contains('on');
+  if (shuffleQ) qs = [...qs].sort(()=>Math.random()-0.5);
+
+  const numQ = Math.min(parseInt(document.getElementById('cfg-num-q').value)||10, qs.length);
+  qs = qs.slice(0, numQ);
+
+  if (shuffleA) qs = qs.map(q=>{
+    if (q.type==='fill'||q.type==='true-false') return {...q};
+    const opts=[...q.options];
+    const newOpts=[...opts].sort(()=>Math.random()-0.5);
+    let newAns;
+    if (Array.isArray(q.answer)) newAns=q.answer.map(i=>newOpts.indexOf(opts[i]));
+    else newAns=newOpts.indexOf(opts[q.answer]);
+    return {...q,options:newOpts,answer:newAns};
+  });
+
+  const timeLimitMin = parseInt(document.getElementById('cfg-time').value)||0;
+  const config = {
+    backNav: document.getElementById('tog-back-nav').classList.contains('on'),
+    changeAns: document.getElementById('tog-change-ans').classList.contains('on'),
+    autoSubmit: document.getElementById('tog-auto-submit').classList.contains('on'),
+    navMode: document.getElementById('cfg-nav-mode').value,
+    timeLimitSec: timeLimitMin * 60,
+    bankId, bankName: b.name
+  };
+
+  examState = {
+    active: true, questions: qs, answers: {}, status: {}, markedForReview: {},
+    currentIdx: 0, timeLeft: config.timeLimitSec, timerInterval: null,
+    startTime: Date.now(), config, questionTimes: {}, qStartTime: Date.now(),
+    bankId, bankName: b.name
+  };
+  qs.forEach((_,i)=>{ examState.status[i]='not-visited'; examState.questionTimes[i]=0; });
+
+  document.getElementById('exam-bank-name').textContent = b.name;
+  initExamUI();
+  showExam();
+}
+
+function showExam() {
+  document.getElementById('main').style.display='none';
+  document.getElementById('exam-page').style.display='flex';
+  document.getElementById('exam-page').classList.add('active');
+}
+
+function hideExam() {
+  document.getElementById('exam-page').classList.remove('active');
+  document.getElementById('exam-page').style.display='none';
+  document.getElementById('main').style.display='';
+}
+
+function initExamUI() {
+  renderPalette();
+  renderQuestion(0);
+  startTimer();
+}
+
+function startTimer() {
+  if (!examState.config.timeLimitSec) {
+    document.getElementById('exam-timer').textContent = '∞';
+    return;
+  }
+  updateTimerDisplay();
+  examState.timerInterval = setInterval(()=>{
+    examState.timeLeft--;
+    updateTimerDisplay();
+    if (examState.timeLeft<=0) {
+      clearInterval(examState.timerInterval);
+      if (examState.config.autoSubmit) submitExam();
+    }
+  },1000);
+}
+
+function updateTimerDisplay() {
+  const t = examState.timeLeft;
+  const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60;
+  const str = h>0?`${h}:${pad(m)}:${pad(s)}`:`${pad(m)}:${pad(s)}`;
+  const el=document.getElementById('exam-timer');
+  el.textContent=str;
+  const pct = t/examState.config.timeLimitSec;
+  el.className='exam-timer '+(pct>0.3?'normal':pct>0.1?'warning':'danger');
+}
+
+function pad(n){return n.toString().padStart(2,'0');}
+
+function renderPalette() {
+  const grid=document.getElementById('palette-grid');
+  grid.innerHTML=examState.questions.map((_,i)=>`
+    <button class="palette-btn ${examState.status[i]||'not-visited'} ${i===examState.currentIdx?'current':''}"
+      onclick="goToQuestion(${i})">${i+1}</button>
+  `).join('');
+}
+
+function renderQuestion(idx) {
+  examState.currentIdx = idx;
+  const q = examState.questions[idx];
+  if (!q) return;
+
+  if (examState.status[idx]==='not-visited') examState.status[idx]='visited';
+  examState.qStartTime = Date.now();
+
+  document.getElementById('q-num').textContent = `Question ${idx+1}`;
+  document.getElementById('q-type-badge').textContent = q.type.toUpperCase().replace('-',' ');
+  document.getElementById('q-diff-badge').textContent = q.difficulty;
+  document.getElementById('q-diff-badge').className = `badge ${q.difficulty==='easy'?'badge-green':q.difficulty==='hard'?'badge-red':'badge-yellow'}`;
+  document.getElementById('q-marks-info').textContent = `+${q.marks||1} / −${q.neg||0}`;
+  document.getElementById('question-text').textContent = q.text;
+  document.getElementById('explanation-area').innerHTML='';
+
+  const ans=examState.answers[idx];
+  const area=document.getElementById('options-area');
+
+  if (q.type==='fill') {
+    area.innerHTML=`<input type="text" class="fill-input" id="fill-ans-input" placeholder="Type your answer..." value="${esc(ans||'')}">`;
+    document.getElementById('fill-ans-input').oninput=function(){
+      saveAnswer(idx,this.value);
+    };
+  } else {
+    const opts=q.options||[];
+    area.innerHTML=opts.map((o,i)=>{
+      let cls='option';
+      if (q.type==='mcq-multi') { if(Array.isArray(ans)&&ans.includes(i)) cls+=' selected'; }
+      else { if(ans===i) cls+=' selected'; }
+      return `<div class="${cls}" onclick="selectOption(${idx},${i})">
+        <div class="option-key">${String.fromCharCode(65+i)}</div>
+        <div class="option-text">${esc(o)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Update counter/progress
+  const total=examState.questions.length;
+  document.getElementById('exam-q-counter').textContent=`Q ${idx+1} / ${total}`;
+  const answeredCount=Object.values(examState.status).filter(s=>s==='answered'||s==='answered-marked').length;
+  document.getElementById('exam-progress-bar').style.width=(answeredCount/total*100)+'%';
+  document.getElementById('exam-section-name').textContent=q.topic||'General';
+
+  // Nav buttons
+  const isPrev=document.getElementById('btn-prev');
+  const isNext=document.getElementById('btn-next');
+  if (examState.config.navMode==='sequential') isPrev.style.display=examState.config.backNav&&idx>0?'':'none';
+  else isPrev.style.display=idx>0?'':'none';
+  isNext.textContent = idx===total-1?'Finish ⬛':'Next ▶';
+
+  renderPalette();
+}
+
+function selectOption(qIdx,optIdx) {
+  if (!examState.config.changeAns && examState.answers[qIdx]!==undefined) return;
+  const q=examState.questions[qIdx];
+  if (q.type==='mcq-multi') {
+    let arr=examState.answers[qIdx]||[];
+    if (arr.includes(optIdx)) arr=arr.filter(x=>x!==optIdx);
+    else arr=[...arr,optIdx];
+    saveAnswer(qIdx,arr.length?arr:undefined);
+  } else saveAnswer(qIdx,optIdx);
+  renderQuestion(qIdx);
+}
+
+function saveAnswer(idx,val) {
+  if (val===undefined||val===null||(Array.isArray(val)&&!val.length)||(typeof val==='string'&&!val.trim())) {
+    delete examState.answers[idx];
+    if (examState.status[idx]==='answered'||examState.status[idx]==='answered-marked')
+      examState.status[idx]=examState.markedForReview[idx]?'marked':'visited';
+  } else {
+    examState.answers[idx]=val;
+    examState.status[idx]=examState.markedForReview[idx]?'answered-marked':'answered';
+  }
+  renderPalette();
+}
+
+function markForReview() {
+  const idx=examState.currentIdx;
+  examState.markedForReview[idx]=!examState.markedForReview[idx];
+  const s=examState.status[idx];
+  if (examState.markedForReview[idx]) examState.status[idx]=s==='answered'||s==='answered-marked'?'answered-marked':'marked';
+  else examState.status[idx]=examState.answers[idx]!==undefined?'answered':'visited';
+  renderPalette();
+}
+
+function clearResponse() {
+  const idx=examState.currentIdx;
+  delete examState.answers[idx];
+  if (examState.status[idx]==='answered'||examState.status[idx]==='answered-marked')
+    examState.status[idx]=examState.markedForReview[idx]?'marked':'visited';
+  renderQuestion(idx);
+}
+
+function nextQuestion() {
+  recordQuestionTime();
+  const next=examState.currentIdx+1;
+  if (next>=examState.questions.length) { confirmSubmit(); return; }
+  renderQuestion(next);
+}
+
+function prevQuestion() {
+  if (!examState.config.backNav) return;
+  recordQuestionTime();
+  if (examState.currentIdx>0) renderQuestion(examState.currentIdx-1);
+}
+
+function goToQuestion(idx) {
+  if (examState.config.navMode==='sequential'&&idx>examState.currentIdx) return;
+  recordQuestionTime();
+  renderQuestion(idx);
+}
+
+function recordQuestionTime() {
+  const elapsed=Math.round((Date.now()-examState.qStartTime)/1000);
+  examState.questionTimes[examState.currentIdx]=(examState.questionTimes[examState.currentIdx]||0)+elapsed;
+}
+
+function togglePalette() {
+  document.getElementById('question-palette').classList.toggle('collapsed');
+}
+
+function confirmSubmit() {
+  const total=examState.questions.length;
+  const answered=Object.values(examState.status).filter(s=>s==='answered'||s==='answered-marked').length;
+  const marked=Object.values(examState.markedForReview).filter(Boolean).length;
+  const notVisited=Object.values(examState.status).filter(s=>s==='not-visited').length;
+  document.getElementById('submit-summary').innerHTML=`
+    <div>📝 Total Questions: <strong>${total}</strong></div>
+    <div>✅ Answered: <strong>${answered}</strong></div>
+    <div>🚩 Marked for Review: <strong>${marked}</strong></div>
+    <div>⬜ Not Visited: <strong>${notVisited}</strong></div>
+    <div>⏭ Not Answered: <strong>${total-answered}</strong></div>
+  `;
+  openModal('modal-confirm-submit');
+}
+
+function submitExam() {
+  recordQuestionTime();
+  clearInterval(examState.timerInterval);
+  closeModal('modal-confirm-submit');
+  const timeTaken = Math.round((Date.now()-examState.startTime)/1000);
+  calculateAndShowResults(timeTaken);
+  hideExam();
+}
+
+// ===== RESULTS =====
+function calculateAndShowResults(timeTaken) {
+  const qs=examState.questions;
+  let correct=0,wrong=0,skipped=0,totalMarks=0,obtained=0;
+  const rows=[];
+
+  qs.forEach((q,i)=>{
+    const userAns=examState.answers[i];
+    let isCorrect=false;
+    if (userAns===undefined||userAns===null||(Array.isArray(userAns)&&!userAns.length)||(typeof userAns==='string'&&!userAns.trim())) {
+      skipped++;
+    } else {
+      if (q.type==='mcq-multi') {
+        const ua=Array.isArray(userAns)?[...userAns].sort():[];
+        const ca=Array.isArray(q.answer)?[...q.answer].sort():[];
+        isCorrect=JSON.stringify(ua)===JSON.stringify(ca);
+      } else if (q.type==='fill') {
+        isCorrect=String(userAns).trim().toLowerCase()===String(q.answer).trim().toLowerCase();
+      } else {
+        isCorrect=userAns===q.answer;
+      }
+      if(isCorrect){correct++;obtained+=q.marks||1;}
+      else{wrong++;obtained-=(q.neg||0);}
+    }
+    totalMarks+=q.marks||1;
+
+    let userAnsText='—',correctAnsText='';
+    if (q.type==='fill') {
+      userAnsText=userAns||'—'; correctAnsText=q.answer;
+    } else if (q.type==='mcq-multi') {
+      userAnsText=(Array.isArray(userAns)?userAns.map(i=>q.options[i]).join(', '):'—')||'—';
+      correctAnsText=Array.isArray(q.answer)?q.answer.map(i=>q.options[i]).join(', '):q.options[q.answer];
+    } else if (q.options) {
+      userAnsText=userAns!==undefined?q.options[userAns]:'—';
+      correctAnsText=q.options[q.answer];
+    }
+
+    rows.push({
+      num:i+1,text:q.text,userAnsText,correctAnsText,
+      result:userAns===undefined?'skipped':isCorrect?'correct':'wrong',
+      timeSec:examState.questionTimes[i]||0,
+      topic:q.topic||'General',explanation:q.explanation||''
+    });
+  });
+
+  const accuracy=correct/(correct+wrong)||0;
+  const attempt = {
+    id:uid(), bankId:examState.bankId, bankName:examState.bankName,
+    date:Date.now(), score:obtained, totalMarks, correct, wrong, skipped,
+    accuracy, timeTaken, questions:qs.length
+  };
+  attempts.unshift(attempt);
+  save();
+
+  resultData = attempt;
+  resultAllRows = rows;
+
+  // Display results
+  document.getElementById('result-bank-label').textContent = examState.bankName;
+  document.getElementById('res-score').textContent = obtained.toFixed(0);
+  document.getElementById('res-score-sub').textContent = `out of ${totalMarks}`;
+  document.getElementById('res-acc').textContent = Math.round(accuracy*100)+'%';
+  document.getElementById('res-acc-sub').textContent = `${correct} correct / ${correct+wrong} attempted`;
+  document.getElementById('res-time').textContent = formatTime(timeTaken);
+  document.getElementById('res-att').textContent = correct+wrong;
+  document.getElementById('res-att-sub').textContent = `${skipped} skipped`;
+
+  // Insights
+  const topics={};
+  rows.forEach(r=>{
+    if(!topics[r.topic]) topics[r.topic]={c:0,t:0};
+    if(r.result==='correct') topics[r.topic].c++;
+    if(r.result!=='skipped') topics[r.topic].t++;
+  });
+  const topicArr=Object.entries(topics).filter(([,v])=>v.t>0).map(([k,v])=>({name:k,acc:v.c/v.t}));
+  const weak=topicArr.filter(t=>t.acc<0.5).sort((a,b)=>a.acc-b.acc);
+  const strong=topicArr.filter(t=>t.acc>=0.7).sort((a,b)=>b.acc-a.acc);
+  document.getElementById('res-insights').innerHTML=`
+    ${strong.length?`<div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:600;color:var(--success);margin-bottom:6px;">💪 Strong Areas</div>${strong.slice(0,3).map(t=>`<div class="chip" style="margin:2px;">${esc(t.name)} <span style="color:var(--success);">${Math.round(t.acc*100)}%</span></div>`).join('')}</div>`:''}
+    ${weak.length?`<div><div style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:6px;">⚠️ Needs Work</div>${weak.slice(0,3).map(t=>`<div class="chip" style="margin:2px;">${esc(t.name)} <span style="color:var(--danger);">${Math.round(t.acc*100)}%</span></div>`).join('')}</div>`:''}
+    ${!weak.length&&!strong.length?'<div style="color:var(--text2);font-size:14px;">Complete more attempts to see insights.</div>':''}
+  `;
+
+  renderResultTable('all');
+  renderResultCharts(rows,timeTaken,topics);
+  navigate('result');
+}
+
+function renderResultTable(filter) {
+  const rows=filter==='all'?resultAllRows:resultAllRows.filter(r=>r.result===filter);
+  const tbody=document.getElementById('result-tbody');
+  if (!rows.length) { tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px;">No questions in this category</td></tr>`; return; }
+  tbody.innerHTML=rows.map(r=>`
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;">${r.num}</span></td>
+      <td style="max-width:280px;">${esc(r.text)}</td>
+      <td style="color:${r.result==='correct'?'var(--success)':r.result==='wrong'?'var(--danger)':'var(--text3)'};">${esc(r.userAnsText)}</td>
+      <td style="color:var(--success);">${esc(r.correctAnsText)}</td>
+      <td>${r.result==='correct'?'<span style="color:var(--success);">✅</span>':r.result==='wrong'?'<span style="color:var(--danger);">❌</span>':'<span style="color:var(--text3);">⏭</span>'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;">${r.timeSec}s</td>
+    </tr>
+    ${r.explanation&&r.result!=='skipped'?`<tr><td colspan="6" style="padding:8px 16px;background:rgba(108,99,255,0.05);"><span style="font-size:12px;color:var(--accent);font-weight:600;">💡 </span><span style="font-size:12px;color:var(--text2);">${esc(r.explanation)}</span></td></tr>`:''}
+  `).join('');
+}
+
+function renderResultCharts(rows,timeTaken,topics) {
+  if (resDistChart) resDistChart.destroy();
+  if (resTimeChart) resTimeChart.destroy();
+
+  const correct=rows.filter(r=>r.result==='correct').length;
+  const wrong=rows.filter(r=>r.result==='wrong').length;
+  const skipped=rows.filter(r=>r.result==='skipped').length;
+
+  resDistChart=new Chart(document.getElementById('res-chart-dist'),{
+    type:'doughnut',data:{labels:['Correct','Wrong','Skipped'],datasets:[{data:[correct,wrong,skipped],backgroundColor:['rgba(0,212,170,0.8)','rgba(255,107,107,0.8)','rgba(90,96,117,0.5)'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:getComputedStyle(document.body).getPropertyValue('--text'),font:{size:11}}}}}
+  });
+
+  const topicNames=Object.keys(topics);
+  const times=topicNames.map(t=>rows.filter(r=>r.topic===t).reduce((a,r)=>a+r.timeSec,0));
+  resTimeChart=new Chart(document.getElementById('res-chart-time'),{
+    type:'bar',data:{labels:topicNames,datasets:[{label:'Seconds',data:times,backgroundColor:'rgba(108,99,255,0.6)',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--text2')}},x:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--text2')}}}}
+  });
+}
+
+function formatTime(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h?`${h}:${pad(m)}:${pad(sc)}`:`${pad(m)}:${pad(sc)}`;}
+
+// ===== DOWNLOAD REPORT =====
+function downloadReport(format) {
+  if (!resultData || !resultAllRows) return;
+  if (format==='html') downloadHTMLReport();
+  else downloadCSVReport();
+}
+
+function downloadHTMLReport() {
+  const d=resultData;
+  const rows=resultAllRows;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ExamForge Report</title><style>
+    body{font-family:system-ui,sans-serif;max-width:900px;margin:40px auto;padding:20px;color:#1a1d2e;background:#f0f2f8;}
+    h1{font-size:28px;font-weight:800;color:#6c63ff;margin-bottom:4px;}
+    .meta{color:#666;font-size:14px;margin-bottom:24px;}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    .stat{background:#fff;border-radius:12px;padding:16px;text-align:center;border:1px solid #ddd;}
+    .stat-val{font-size:28px;font-weight:800;color:#6c63ff;}
+    .stat-lbl{font-size:12px;color:#888;text-transform:uppercase;margin-top:4px;}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #ddd;}
+    th{padding:12px;text-align:left;background:#f5f5f5;font-size:12px;text-transform:uppercase;color:#666;}
+    td{padding:10px 12px;border-top:1px solid #eee;font-size:13px;}
+    .correct{color:#00b894;} .wrong{color:#ff6b6b;} .skipped{color:#999;}
+    .exp{background:#f0f0ff;font-size:12px;color:#6c63ff;padding:6px 12px;}
+  </style></head><body>
+  <h1>📊 ExamForge Report</h1>
+  <div class="meta">${esc(d.bankName)} • ${new Date(d.date).toLocaleString()}</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-val">${d.score.toFixed(0)}/${d.totalMarks}</div><div class="stat-lbl">Score</div></div>
+    <div class="stat"><div class="stat-val">${Math.round(d.accuracy*100)}%</div><div class="stat-lbl">Accuracy</div></div>
+    <div class="stat"><div class="stat-val">${formatTime(d.timeTaken)}</div><div class="stat-lbl">Time</div></div>
+    <div class="stat"><div class="stat-val">${d.correct}/${d.questions}</div><div class="stat-lbl">Correct</div></div>
+  </div>
+  <table><thead><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th><th>Time</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td>${r.num}</td><td>${esc(r.text)}</td><td class="${r.result}">${esc(r.userAnsText)}</td><td class="correct">${esc(r.correctAnsText)}</td><td>${r.result==='correct'?'✅':r.result==='wrong'?'❌':'⏭'}</td><td>${r.timeSec}s</td></tr>${r.explanation?`<tr><td colspan="6" class="exp">💡 ${esc(r.explanation)}</td></tr>`:''}`).join('')}
+  </tbody></table></body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`ExamForge_Report_${Date.now()}.html`;a.click();
+}
+
+function downloadCSVReport() {
+  const d=resultData;
+  const rows=resultAllRows;
+  const lines=[
+    ['ExamForge Report'],
+    ['Bank',d.bankName],['Date',new Date(d.date).toLocaleString()],
+    ['Score',d.score+'/'+d.totalMarks],['Accuracy',Math.round(d.accuracy*100)+'%'],
+    ['Time',formatTime(d.timeTaken)],[''],
+    ['#','Question','Your Answer','Correct Answer','Result','Time (s)'],
+    ...rows.map(r=>[r.num,r.text,r.userAnsText,r.correctAnsText,r.result,r.timeSec])
+  ];
+  const csv=lines.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`ExamForge_Report_${Date.now()}.csv`;a.click();
+}
+
+// ===== HISTORY =====
+function renderHistory() {
+  const q=(document.getElementById('hist-search').value||'').toLowerCase();
+  const bf=document.getElementById('hist-filter-bank').value;
+
+  // Populate filter
+  const bankIds=[...new Set(attempts.map(a=>a.bankId))];
+  const filterEl=document.getElementById('hist-filter-bank');
+  filterEl.innerHTML='<option value="">All Banks</option>'+bankIds.map(id=>{const b=banks.find(x=>x.id===id);return b?`<option value="${id}" ${bf===id?'selected':''}>${esc(b.name)}</option>`:''}).join('');
+
+  let filtered=attempts.filter(a=>{
+    if (q&&!a.bankName.toLowerCase().includes(q)) return false;
+    if (bf&&a.bankId!==bf) return false;
+    return true;
+  });
+
+  const el=document.getElementById('history-list');
+  if (!filtered.length) {el.innerHTML='<div class="empty-state"><div class="empty-state-icon">🕐</div><div class="empty-state-text">No attempts found</div><div class="empty-state-sub">Complete a quiz to see history here</div></div>';return;}
+
+  const bulkDel=document.getElementById('bulk-delete-btn');
+  const bulkExp=document.getElementById('bulk-export-btn');
+  bulkDel.style.display=selectedAttempts.size?'':'none';
+  bulkExp.style.display=selectedAttempts.size?'':'none';
+
+  el.innerHTML=filtered.map(a=>`
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="checkbox ${selectedAttempts.has(a.id)?'checked':''}" onclick="toggleSelectAttempt('${a.id}',this)">✓</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:15px;">${esc(a.bankName)}</div>
+          <div style="font-size:13px;color:var(--text2);">${new Date(a.date).toLocaleString()}</div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          <div style="text-align:center;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--accent);">${a.score.toFixed(0)}/${a.totalMarks}</div><div style="font-size:11px;color:var(--text2);">Score</div></div>
+          <div style="text-align:center;"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--success);">${Math.round(a.accuracy*100)}%</div><div style="font-size:11px;color:var(--text2);">Accuracy</div></div>
+          <div style="text-align:center;"><div style="font-family:'DM Mono',monospace;font-weight:500;font-size:16px;">${formatTime(a.timeTaken)}</div><div style="font-size:11px;color:var(--text2);">Time</div></div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-secondary btn-sm" onclick="deleteAttempt('${a.id}')">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleSelectAttempt(id, el) {
+  if (selectedAttempts.has(id)) { selectedAttempts.delete(id); el.classList.remove('checked'); }
+  else { selectedAttempts.add(id); el.classList.add('checked'); }
+  document.getElementById('bulk-delete-btn').style.display=selectedAttempts.size?'':'none';
+  document.getElementById('bulk-export-btn').style.display=selectedAttempts.size?'':'none';
+}
+
+function toggleSelectAll() {
+  const all=attempts.map(a=>a.id);
+  if (selectedAttempts.size===all.length) selectedAttempts.clear();
+  else all.forEach(id=>selectedAttempts.add(id));
+  renderHistory();
+}
+
+function deleteAttempt(id) {
+  if(!confirm('Delete this attempt?')) return;
+  attempts=attempts.filter(a=>a.id!==id);
+  selectedAttempts.delete(id);
+  save(); renderHistory(); renderDashboard();
+}
+
+function bulkDeleteAttempts() {
+  if(!confirm(`Delete ${selectedAttempts.size} attempt(s)?`)) return;
+  attempts=attempts.filter(a=>!selectedAttempts.has(a.id));
+  selectedAttempts.clear();
+  save(); renderHistory(); renderDashboard();
+}
+
+function bulkExportAttempts() {
+  const sel=attempts.filter(a=>selectedAttempts.has(a.id));
+  downloadJSON(sel,'examforge_attempts_export.json');
+}
+
+function clearAllAttempts() {
+  if(!confirm('Clear all attempt history?')) return;
+  attempts=[]; save(); renderHistory(); renderDashboard();
+}
+
+function clearAllData() {
+  if(!confirm('This will delete ALL data including question banks and history. Continue?')) return;
+  banks=[]; attempts=[]; save(); seedSampleBank(); renderBanks(); renderDashboard(); renderHistory();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  document.getElementById('stat-attempts').textContent=attempts.length;
+  document.getElementById('stat-banks').textContent=banks.length;
+  if (attempts.length) {
+    const avgScore=attempts.reduce((a,x)=>a+x.score/x.totalMarks,0)/attempts.length;
+    const avgAcc=attempts.reduce((a,x)=>a+x.accuracy,0)/attempts.length;
+    document.getElementById('stat-avg-score').textContent=Math.round(avgScore*100)+'%';
+    document.getElementById('stat-avg-acc').textContent=Math.round(avgAcc*100)+'%';
+  } else {
+    document.getElementById('stat-avg-score').textContent='—';
+    document.getElementById('stat-avg-acc').textContent='—';
+  }
+
+  // Recent attempts
+  const list=document.getElementById('dash-recent-list');
+  const recent=attempts.slice(0,5);
+  if (!recent.length) { list.innerHTML='<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No attempts yet</div></div>'; }
+  else list.innerHTML=`<div class="table-wrapper"><table><thead><tr><th>Bank</th><th>Score</th><th>Accuracy</th><th>Date</th><th>Time</th></tr></thead><tbody>
+  ${recent.map(a=>`<tr><td>${esc(a.bankName)}</td><td>${a.score.toFixed(0)}/${a.totalMarks}</td><td style="color:var(--${a.accuracy>=0.7?'success':a.accuracy>=0.4?'warning':'danger'});">${Math.round(a.accuracy*100)}%</td><td style="font-size:12px;color:var(--text2);">${new Date(a.date).toLocaleDateString()}</td><td style="font-family:'DM Mono',monospace;font-size:12px;">${formatTime(a.timeTaken)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+
+  renderDashboardCharts();
+}
+
+function renderDashboardCharts() {
+  if (trendChart) trendChart.destroy();
+  if (topicChart) topicChart.destroy();
+
+  const recent=[...attempts].reverse().slice(-10);
+  const tc=document.getElementById('chart-trend');
+  if (recent.length>1) {
+    trendChart=new Chart(tc,{type:'line',data:{labels:recent.map((_,i)=>'#'+(i+1)),datasets:[{label:'Accuracy %',data:recent.map(a=>Math.round(a.accuracy*100)),borderColor:'rgba(108,99,255,0.8)',backgroundColor:'rgba(108,99,255,0.1)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'rgba(108,99,255,1)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:getComputedStyle(document.body).getPropertyValue('--text')}}},scales:{y:{min:0,max:100,ticks:{color:getComputedStyle(document.body).getPropertyValue('--text2')}},x:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--text2')}}}}});
+  } else {tc.parentElement.innerHTML='<div class="empty-state"><div class="empty-state-icon">📈</div><div class="empty-state-text">Need 2+ attempts</div></div>';}
+
+  // Topic accuracy
+  const topicMap={};
+  attempts.forEach(a=>{});// We'd need per-question data for topic accuracy, so show bank perf
+  const bankMap={};
+  attempts.forEach(a=>{if(!bankMap[a.bankName])bankMap[a.bankName]={total:0,acc:0};bankMap[a.bankName].total++;bankMap[a.bankName].acc+=a.accuracy;});
+  const bNames=Object.keys(bankMap).slice(0,5);
+  const bc=document.getElementById('chart-topic');
+  if (bNames.length) {
+    topicChart=new Chart(bc,{type:'bar',data:{labels:bNames,datasets:[{label:'Avg Accuracy %',data:bNames.map(n=>Math.round(bankMap[n].acc/bankMap[n].total*100)),backgroundColor:['rgba(108,99,255,0.7)','rgba(0,212,170,0.7)','rgba(255,209,102,0.7)','rgba(255,107,107,0.7)','rgba(100,200,255,0.7)'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:getComputedStyle(document.body).getPropertyValue('--text2')}},x:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--text2'),font:{size:11}}}}}});
+  } else {bc.parentElement.innerHTML='<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">No data yet</div></div>';}
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown',e=>{
+  if (!examState.active) return;
+  if (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  const k=e.key.toLowerCase();
+  if (k==='arrowright'||k==='n') nextQuestion();
+  else if (k==='arrowleft'||k==='p') prevQuestion();
+  else if (k==='m') markForReview();
+  else if (k==='c') clearResponse();
+  else if (k==='escape') togglePalette();
+  else if (['1','2','3','4'].includes(k)) {
+    const q=examState.questions[examState.currentIdx];
+    if (q&&q.options&&q.type!=='fill') {
+      const idx=parseInt(k)-1;
+      if (idx<q.options.length) { selectOption(examState.currentIdx,idx); renderQuestion(examState.currentIdx); }
+    }
+  }
+});
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ===== INIT =====
+load();
+renderDashboard();
+</script>
+</body>
+</html>
