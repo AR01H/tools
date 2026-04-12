@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Timeline Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f2f5; --bg2:#e4e8ef; --surf:#fff; --surf2:#f5f7fb; --surf3:#eceef5;
+  --bdr:rgba(0,0,0,0.07); --bdr2:rgba(0,0,0,0.12);
+  --txt:#111827; --txt2:#4b5563; --txt3:#9ca3af;
+  --acc:#00c896; --acc2:#00a87e;
+  --red:#ef4444; --amber:#f59e0b; --blue:#3b82f6; --purple:#8b5cf6; --cyan:#06b6d4;
+  --sh:0 2px 16px rgba(0,0,0,0.06);
+  --r:12px;
+}
+[data-theme="dark"] {
+  --bg:#080c14; --bg2:#0d1220; --surf:#0f1521; --surf2:#141d2e; --surf3:#1a2438;
+  --bdr:rgba(255,255,255,0.06); --bdr2:rgba(255,255,255,0.11);
+  --txt:#e2e8f0; --txt2:#64748b; --txt3:#334155;
+  --acc:#00e5aa; --acc2:#00c896;
+  --sh:0 4px 24px rgba(0,0,0,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;transition:background .25s,color .25s}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--surf);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-sq{width:36px;height:36px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;color:#000;font-weight:800}
+.logo-name{font-size:17px;font-weight:800;letter-spacing:-.4px}
+.logo-tag{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);background:rgba(0,200,150,.12);border:1px solid rgba(0,200,150,.25);padding:2px 8px;border-radius:20px}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.tog{width:50px;height:26px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:20px;cursor:pointer;position:relative}
+.tok{width:20px;height:20px;border-radius:50%;background:var(--acc);position:absolute;top:2px;left:3px;transition:transform .22s cubic-bezier(.4,0,.2,1);font-size:11px;display:flex;align-items:center;justify-content:center}
+[data-theme="dark"] .tok{transform:translateX(24px)}
+
+/* MAIN */
+.wrap{max-width:1280px;margin:0 auto;padding:28px 24px 80px}
+.two-col{display:grid;grid-template-columns:380px 1fr;gap:22px;align-items:start}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+
+/* CARD */
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.ch{padding:13px 18px;border-bottom:1px solid var(--bdr);background:var(--surf2);display:flex;align-items:center;justify-content:space-between}
+.cl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt2)}
+.cb{padding:18px}
+
+/* TEXTAREA */
+textarea{width:100%;min-height:220px;resize:vertical;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.7;padding:13px 15px;outline:none;transition:border-color .2s;display:block}
+textarea:focus{border-color:var(--acc)}
+textarea::placeholder{color:var(--txt3)}
+
+/* BUTTONS */
+.btn{font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;padding:8px 17px;border-radius:7px;border:1px solid var(--bdr2);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;background:var(--surf2);color:var(--txt)}
+.btn:hover{background:var(--surf3)}
+.btn-acc{background:var(--acc);color:#000;border-color:transparent;font-weight:700}
+.btn-acc:hover{background:var(--acc2)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* SUMMARY STRIP */
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.scard{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:14px;text-align:center}
+.scard-val{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--acc)}
+.scard-lbl{font-size:11px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+
+/* STATUS BREAKDOWN */
+.status-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.st-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.05em}
+.st-2xx{background:rgba(0,200,150,.12);color:var(--acc);border:1px solid rgba(0,200,150,.3)}
+.st-3xx{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)}
+.st-4xx{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.st-5xx{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+
+/* WATERFALL */
+.waterfall-wrap{overflow-x:auto}
+.wf-table{width:100%;min-width:700px;border-collapse:collapse}
+.wf-table th{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);padding:7px 10px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap}
+.wf-table td{padding:0;border-bottom:1px solid var(--bdr);vertical-align:middle}
+.wf-row{transition:background .1s}
+.wf-row:hover td{background:var(--surf2)}
+.wf-row:hover .bar-cell .bar{opacity:.85}
+
+.td-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt3);padding:9px 10px;min-width:36px}
+.td-method{padding:9px 8px;min-width:70px}
+.method-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;letter-spacing:.04em}
+.m-GET{background:rgba(0,200,150,.12);color:var(--acc)}
+.m-POST{background:rgba(139,92,246,.12);color:var(--purple)}
+.m-PUT{background:rgba(59,130,246,.1);color:var(--blue)}
+.m-PATCH{background:rgba(245,158,11,.1);color:var(--amber)}
+.m-DELETE{background:rgba(239,68,68,.1);color:var(--red)}
+
+.td-url{padding:9px 8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-status{padding:9px 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;min-width:55px}
+.s-2xx{color:var(--acc)} .s-3xx{color:var(--blue)} .s-4xx{color:var(--amber)} .s-5xx{color:var(--red)}
+
+.td-dur{padding:9px 8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt2);min-width:70px;white-space:nowrap}
+.bar-cell{padding:6px 8px;min-width:280px}
+.bar-track{background:var(--surf3);border-radius:3px;height:18px;position:relative;overflow:hidden;border:1px solid var(--bdr)}
+.bar{height:100%;border-radius:3px;position:absolute;top:0;transition:width .5s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:6px}
+.bar-lbl{font-size:9px;font-weight:700;color:rgba(0,0,0,.7);white-space:nowrap;overflow:hidden;font-family:'IBM Plex Mono',monospace}
+
+/* LATENCY BREAKDOWN */
+.lat-chart{padding:18px}
+.lat-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.lat-label{font-size:12px;font-weight:600;color:var(--txt2);min-width:140px}
+.lat-bar-wrap{flex:1;height:28px;background:var(--surf3);border-radius:6px;overflow:hidden;border:1px solid var(--bdr);position:relative}
+.lat-bar{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 10px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.lat-val{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:rgba(0,0,0,.75)}
+.lat-ms{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;min-width:65px;text-align:right}
+
+/* P-VALUES */
+.perc-row{display:flex;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--bdr)}
+.perc-item{flex:1;text-align:center;background:var(--surf2);border-radius:8px;padding:10px}
+.perc-val{font-size:18px;font-weight:800;color:var(--acc);font-family:'IBM Plex Mono',monospace}
+.perc-lbl{font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+
+/* TIMELINE */
+.timeline{padding:18px;position:relative}
+.tl-axis{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt3);margin-bottom:8px;padding-left:180px;padding-right:10px}
+.tl-item{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.tl-name{font-size:11px;color:var(--txt2);min-width:168px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-family:'IBM Plex Mono',monospace}
+.tl-track{flex:1;height:22px;background:var(--surf3);border-radius:4px;position:relative;border:1px solid var(--bdr)}
+.tl-bar{position:absolute;top:2px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:all .5s cubic-bezier(.4,0,.2,1)}
+.tl-bar span{font-size:9px;font-weight:700;color:rgba(0,0,0,.7);white-space:nowrap;overflow:hidden;font-family:'IBM Plex Mono',monospace}
+
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:60px 20px;color:var(--txt3);font-size:14px}
+.empty-ico{font-size:44px;opacity:.25}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--surf);border:1px solid var(--bdr2);border-left:3px solid var(--acc);color:var(--txt);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;padding:10px 18px;border-radius:8px;box-shadow:var(--sh);animation:fup .25s ease}
+@keyframes fup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:5px}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-sq">⚡</div>
+    <div>
+      <div class="logo-name">Network Timeline</div>
+    </div>
+    <span class="logo-tag">Visualizer</span>
+  </div>
+  <div class="hdr-r">
+    <div class="tog" onclick="toggleTheme()"><div class="tok" id="tok">☀️</div></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="two-col">
+    <!-- LEFT -->
+    <div>
+      <div class="card">
+        <div class="ch"><span class="cl">📋 Paste API Logs</span></div>
+        <div class="cb">
+          <textarea id="log-in" placeholder="Paste API logs in any format:
+
+GET /api/users 200 45ms
+POST /api/auth/login 201 120ms
+GET /api/products?page=1 200 33ms
+DELETE /api/session 401 12ms
+GET /api/dashboard 500 890ms
+PUT /api/users/42 200 67ms
+GET /api/metrics 200 234ms
+POST /api/orders 201 445ms
+
+Or HAR-style:
+[INFO] 2024-01-15T10:23:01Z GET /health 200 18ms
+[ERROR] 2024-01-15T10:23:02Z POST /login 500 1240ms"></textarea>
+        </div>
+        <div style="padding:12px 18px;border-top:1px solid var(--bdr);background:var(--surf2);display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-acc" onclick="parse()">⚡ Visualize</button>
+          <button class="btn" onclick="loadSample()">Load Sample</button>
+          <button class="btn" onclick="clearAll()">Clear</button>
+        </div>
+      </div>
+
+      <!-- LEGEND -->
+      <div class="card" style="margin-top:18px">
+        <div class="ch"><span class="cl">📖 Format Guide</span></div>
+        <div class="cb" style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:2;color:var(--txt2)">
+          <div><span style="color:var(--acc)">METHOD</span> /path <span style="color:var(--blue)">STATUS</span> <span style="color:var(--amber)">LAT</span>ms</div>
+          <div style="color:var(--txt3);margin-top:4px;font-family:'Barlow',sans-serif;font-size:12px">Supports GET/POST/PUT/PATCH/DELETE<br>Status codes: 2xx 3xx 4xx 5xx<br>Timestamps optional</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div id="right-panel">
+      <div class="empty"><div class="empty-ico">📡</div><div>Paste API logs to visualize the network timeline</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAMPLE=`GET /api/users 200 45ms
+POST /api/auth/login 201 120ms
+GET /api/products?page=1 200 33ms
+GET /api/products?page=2 200 29ms
+DELETE /api/session/old 401 12ms
+GET /api/dashboard/stats 200 89ms
+POST /api/orders 201 334ms
+GET /api/metrics/realtime 500 890ms
+PUT /api/users/42 200 67ms
+GET /api/notifications 200 156ms
+PATCH /api/settings 200 44ms
+GET /api/health 200 8ms
+POST /api/events/track 201 23ms
+GET /api/search?q=test 200 445ms
+DELETE /api/cache 200 19ms`;
+
+function toggleTheme(){
+  const h=document.documentElement;
+  h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';
+  document.getElementById('tok').textContent=h.dataset.theme==='dark'?'☀️':'🌙';
+}
+document.getElementById('tok').textContent='☀️';
+function loadSample(){document.getElementById('log-in').value=SAMPLE;parse()}
+function clearAll(){document.getElementById('log-in').value='';document.getElementById('right-panel').innerHTML='<div class="empty"><div class="empty-ico">📡</div><div>Paste API logs to visualize the network timeline</div></div>'}
+
+function parse(){
+  const raw=document.getElementById('log-in').value.trim();
+  if(!raw)return;
+  const lines=raw.split('\n').filter(l=>l.trim());
+  const entries=[];
+  lines.forEach((line,i)=>{
+    const m=line.match(/\b(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/i);
+    const method=m?m[1].toUpperCase():'GET';
+    const urlM=line.match(/\s(\/[^\s]*)/);
+    const url=urlM?urlM[1]:'/unknown';
+    const statusM=line.match(/\b([1-5][0-9][0-9])\b/);
+    const status=statusM?parseInt(statusM[1]):200;
+    const durM=line.match(/(\d+)\s*ms/i);
+    const dur=durM?parseInt(durM[1]):Math.floor(Math.random()*200+10);
+    const tsM=line.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+    entries.push({id:i+1,method,url,status,dur,ts:tsM?tsM[1]:null});
+  });
+  if(!entries.length){toast('No valid log entries found');return}
+  render(entries);
+}
+
+function statusClass(s){return s<300?'s-2xx':s<400?'s-3xx':s<500?'s-4xx':'s-5xx'}
+function barColor(s){return s<300?'#00e5aa':s<400?'#3b82f6':s<500?'#f59e0b':'#ef4444'}
+function methodClass(m){return`m-${m}`}
+
+function render(entries){
+  const maxDur=Math.max(...entries.map(e=>e.dur));
+  const totalDur=entries.reduce((a,e)=>a+e.dur,0);
+  const avgDur=Math.round(totalDur/entries.length);
+  const sorted=[...entries].sort((a,b)=>a.dur-b.dur);
+  const p50=sorted[Math.floor(sorted.length*.5)].dur;
+  const p90=sorted[Math.floor(sorted.length*.9)].dur;
+  const p99=sorted[Math.min(sorted.length-1,Math.floor(sorted.length*.99))].dur;
+  const errorCount=entries.filter(e=>e.status>=400).length;
+
+  const counts={_2xx:0,_3xx:0,_4xx:0,_5xx:0};
+  entries.forEach(e=>{if(e.status<300)counts._2xx++;else if(e.status<400)counts._3xx++;else if(e.status<500)counts._4xx++;else counts._5xx++});
+
+  const tStart=0;
+  let cumulative=0;
+  const withOffset=entries.map(e=>{const off=cumulative;cumulative+=e.dur;return{...e,offset:off}});
+  const totalTime=cumulative;
+
+  const wfRows=entries.map(e=>{
+    const pct=Math.max(3,(e.dur/maxDur)*100);
+    const color=barColor(e.status);
+    return`<tr class="wf-row">
+      <td class="td-num">${e.id}</td>
+      <td class="td-method"><span class="method-badge ${methodClass(e.method)}">${e.method}</span></td>
+      <td class="td-url" title="${e.url}">${e.url}</td>
+      <td class="td-status ${statusClass(e.status)}">${e.status}</td>
+      <td class="td-dur">${e.dur}ms</td>
+      <td class="bar-cell"><div class="bar-track"><div class="bar" style="width:${pct}%;background:${color}"><span class="bar-lbl">${e.dur}ms</span></div></div></td>
+    </tr>`;
+  }).join('');
+
+  const tlRows=withOffset.map(e=>{
+    const left=(e.offset/totalTime)*100;
+    const width=Math.max(.5,(e.dur/totalTime)*100);
+    const color=barColor(e.status);
+    return`<div class="tl-item">
+      <div class="tl-name" title="${e.url}">${e.url.length>22?e.url.slice(0,22)+'…':e.url}</div>
+      <div class="tl-track">
+        <div class="tl-bar" style="left:${left}%;width:${width}%;background:${color}"><span>${e.dur}ms</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // latency buckets
+  const buckets={'0–50ms':0,'50–100ms':0,'100–300ms':0,'300–500ms':0,'500ms+':0};
+  entries.forEach(e=>{
+    if(e.dur<=50)buckets['0–50ms']++;
+    else if(e.dur<=100)buckets['50–100ms']++;
+    else if(e.dur<=300)buckets['100–300ms']++;
+    else if(e.dur<=500)buckets['300–500ms']++;
+    else buckets['500ms+']++;
+  });
+  const bmax=Math.max(...Object.values(buckets));
+  const bColors=['#00e5aa','#3b82f6','#f59e0b','#f97316','#ef4444'];
+  const latRows=Object.entries(buckets).map(([k,v],i)=>{
+    const pct=bmax>0?Math.round((v/bmax)*100):0;
+    return`<div class="lat-row">
+      <div class="lat-label">${k}</div>
+      <div class="lat-bar-wrap"><div class="lat-bar" style="width:${pct}%;background:${bColors[i]}"><span class="lat-val">${v} req${v!==1?'s':''}</span></div></div>
+      <div class="lat-ms" style="color:${bColors[i]}">${v}</div>
+    </div>`;
+  }).join('');
+
+  const statusPills=[
+    counts._2xx?`<span class="st-pill st-2xx">${counts._2xx} 2xx</span>`:'',
+    counts._3xx?`<span class="st-pill st-3xx">${counts._3xx} 3xx</span>`:'',
+    counts._4xx?`<span class="st-pill st-4xx">${counts._4xx} 4xx</span>`:'',
+    counts._5xx?`<span class="st-pill st-5xx">${counts._5xx} 5xx</span>`:'',
+  ].join('');
+
+  document.getElementById('right-panel').innerHTML=`
+    <div class="summary">
+      <div class="scard"><div class="scard-val">${entries.length}</div><div class="scard-lbl">Requests</div></div>
+      <div class="scard"><div class="scard-val">${avgDur}ms</div><div class="scard-lbl">Avg Latency</div></div>
+      <div class="scard"><div class="scard-val" style="color:${errorCount>0?'var(--red)':'var(--acc)'}">${errorCount}</div><div class="scard-lbl">Errors</div></div>
+      <div class="scard"><div class="scard-val">${totalTime}ms</div><div class="scard-lbl">Total Time</div></div>
+    </div>
+
+    <div class="status-row">${statusPills}</div>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="ch"><span class="cl">📊 Waterfall Chart</span></div>
+      <div class="waterfall-wrap">
+        <table class="wf-table">
+          <thead><tr>
+            <th>#</th><th>Method</th><th>URL</th><th>Status</th><th>Duration</th><th style="min-width:280px">Waterfall</th>
+          </tr></thead>
+          <tbody>${wfRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:18px">
+      <div class="ch"><span class="cl">⏱ Request Timeline</span></div>
+      <div class="timeline">
+        <div class="tl-axis"><span>0ms</span><span>${Math.round(totalTime/4)}ms</span><span>${Math.round(totalTime/2)}ms</span><span>${Math.round(totalTime*.75)}ms</span><span>${totalTime}ms</span></div>
+        ${tlRows}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="cl">📈 Latency Breakdown</span></div>
+      <div class="lat-chart">
+        ${latRows}
+        <div class="perc-row">
+          <div class="perc-item"><div class="perc-val">${p50}ms</div><div class="perc-lbl">p50</div></div>
+          <div class="perc-item"><div class="perc-val">${p90}ms</div><div class="perc-lbl">p90</div></div>
+          <div class="perc-item"><div class="perc-val">${p99}ms</div><div class="perc-lbl">p99</div></div>
+          <div class="perc-item"><div class="perc-val">${maxDur}ms</div><div class="perc-lbl">Max</div></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+</script>
+</body>
+</html>

@@ -126,9 +126,8 @@ const tools = [
   {
     icon: "fas fa-file-invoice",
     title: "Task Remainder",
-    description:
-      "Add the remainder and track the items",
-    tags: ["Remainder","Task"],
+    description: "Add the remainder and track the items",
+    tags: ["Remainder", "Task"],
     status: "live",
     link: "./remainderTasks/taskRemainder.html",
     groupname: ["Remainder"],
@@ -136,12 +135,57 @@ const tools = [
   {
     icon: "fas fa-file-download",
     title: "Google Drive Management",
-    description:
-      "Drive Management Tool for Google Drive",
+    description: "Drive Management Tool for Google Drive",
     tags: ["Google Drive", "ManagementTask"],
     status: "live",
     link: "./driveManagement/index.html",
     groupname: ["Storage Tools"],
+  },
+
+  {
+    icon: "fas fa-file-code",
+    title: "Log Analyzer",
+    description: "Log Analyzer Tool",
+    tags: ["Log", "Analyzer"],
+    status: "live",
+    link: "./devTools/log-analyzer.html",
+    groupname: ["Dev Tools"],
+  },
+  {
+    icon: "fas fa-file-image",
+    title: "Code Screenshot",
+    description: "Code Screenshot Tool",
+    tags: ["Code", "Screenshot"],
+    status: "live",
+    link: "./devTools/code-screenshot.html",
+    groupname: ["Dev Tools"],
+  },
+  {
+    icon: "fas fa-file-image",
+    title: "Docker Builder",
+    description: "Docker Builder Tool",
+    tags: ["Docker", "Builder"],
+    status: "live",
+    link: "./devTools/docker-builder.html",
+    groupname: ["Dev Tools"],
+  },
+  {
+    icon: "fas fa-file-image",
+    title: "Network Timeline",
+    description: "Network Timeline Tool",
+    tags: ["Network", "Timeline"],
+    status: "live",
+    link: "./devTools/network-timeline.html",
+    groupname: ["Dev Tools"],
+  },
+  {
+    icon: "fas fa-file-image",
+    title: "System Design",
+    description: "System Design Tool",
+    tags: ["System", "Design"],
+    status: "live",
+    link: "./devTools/system-design.html",
+    groupname: ["Dev Tools"],
   },
 ];
 

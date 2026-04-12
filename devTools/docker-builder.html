@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Command Builder</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Nunito:wght@400;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f8fc;
+      --bg2: #eef0f8;
+      --surf: #fff;
+      --surf2: #f2f4fb;
+      --surf3: #e8eaf5;
+      --bdr: rgba(0, 0, 0, 0.07);
+      --bdr2: rgba(0, 0, 0, 0.12);
+      --txt: #1e2035;
+      --txt2: #5a5f80;
+      --txt3: #adb3cc;
+      --acc: #0ea5e9;
+      --acc2: #0284c7;
+      --docker: #1d63ed;
+      --whl: #ffffff;
+      --sh: 0 2px 16px rgba(0, 0, 0, 0.06);
+      --r: 12px;
+    }
+
+    [data-theme="dark"] {
+      --bg: #090c14;
+      --bg2: #0e1220;
+      --surf: #111827;
+      --surf2: #161e2e;
+      --surf3: #1c2438;
+      --bdr: rgba(255, 255, 255, 0.06);
+      --bdr2: rgba(255, 255, 255, 0.11);
+      --txt: #e0e5f5;
+      --txt2: #6b7494;
+      --txt3: #2e3555;
+      --acc: #38bdf8;
+      --acc2: #0ea5e9;
+      --sh: 0 4px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      transition: background .25s, color .25s
+    }
+
+    /* HEADER */
+    .hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      background: var(--surf);
+      border-bottom: 1px solid var(--bdr);
+      box-shadow: var(--sh);
+      position: sticky;
+      top: 0;
+      z-index: 100
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 11px
+    }
+
+    .logo-ico {
+      width: 38px;
+      height: 38px;
+      background: var(--docker);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px
+    }
+
+    .logo-name {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -.3px
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--txt2);
+      font-weight: 600
+    }
+
+    .tog {
+      width: 50px;
+      height: 26px;
+      background: var(--surf2);
+      border: 1px solid var(--bdr2);
+      border-radius: 20px;
+      cursor: pointer;
+      position: relative
+    }
+
+    .tok {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--acc);
+      position: absolute;
+      top: 2px;
+      left: 3px;
+      transition: transform .22s;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    [data-theme="dark"] .tok {
+      transform: translateX(24px)
+    }
+
+    /* LAYOUT */
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 24px 80px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: start
+    }
+
+    @media(max-width:860px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surf);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: var(--sh);
+      margin-bottom: 18px
+    }
+
+    .card:last-child {
+      margin-bottom: 0
+    }
+
+    .ch {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--bdr);
+      background: var(--surf2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .cl {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--txt2)
+    }
+
+    .cb {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    /* FORM */
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .fl {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--txt2);
+      letter-spacing: .05em;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .fl-req {
+      color: var(--acc);
+      font-size: 10px
+    }
+
+    input[type=text],
+    input[type=number],
+    select {
+      font-family: 'Nunito', sans-serif;
+      background: var(--surf2);
+      border: 1px solid var(--bdr2);
+      border-radius: 8px;
+      color: var(--txt);
+      font-size: 13px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color .2s;
+      width: 100%
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--acc)
+    }
+
+    input::placeholder {
+      color: var(--txt3)
+    }
+
+    select option {
+      background: var(--surf)
+    }
+
+    .two-input {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    /* PORT/ENV/VOL LISTS */
+    .list-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .list-item input {
+      flex: 1
+    }
+
+    .list-del {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--bdr2);
+      background: transparent;
+      color: var(--txt3);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+      flex-shrink: 0
+    }
+
+    .list-del:hover {
+      background: rgba(239, 68, 68, .1);
+      border-color: rgba(239, 68, 68, .3);
+      color: #ef4444
+    }
+
+    .add-btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--acc);
+      background: transparent;
+      border: 1px dashed var(--acc);
+      border-radius: 7px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      width: fit-content
+    }
+
+    .add-btn:hover {
+      background: rgba(56, 189, 248, .08)
+    }
+
+    /* TOGGLE CHIPS */
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .chip {
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 13px;
+      border-radius: 20px;
+      border: 1px solid var(--bdr2);
+      cursor: pointer;
+      transition: all .15s;
+      background: transparent;
+      color: var(--txt2)
+    }
+
+    .chip.on {
+      background: rgba(56, 189, 248, .12);
+      color: var(--acc);
+      border-color: rgba(56, 189, 248, .35)
+    }
+
+    .chip:hover:not(.on) {
+      background: var(--surf2)
+    }
+
+    /* RESTART POLICY */
+    .restart-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    /* OUTPUT */
+    .out-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--bdr)
+    }
+
+    .out-tab {
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 9px 18px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      color: var(--txt2);
+      background: transparent;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      letter-spacing: .03em
+    }
+
+    .out-tab.active {
+      color: var(--acc);
+      border-bottom-color: var(--acc)
+    }
+
+    .out-tab:hover:not(.active) {
+      color: var(--txt);
+      background: var(--surf2)
+    }
+
+    .code-out {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.75;
+      background: var(--surf2);
+      padding: 18px;
+      min-height: 180px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--txt);
+      border: none;
+      overflow-x: auto
+    }
+
+    /* syntax highlight classes */
+    .sy-key {
+      color: var(--acc)
+    }
+
+    .sy-str {
+      color: #34d399
+    }
+
+    .sy-num {
+      color: #fb923c
+    }
+
+    .sy-cmt {
+      color: var(--txt3)
+    }
+
+    .sy-flag {
+      color: #c084fc
+    }
+
+    .sy-img {
+      color: #fbbf24
+    }
+
+    .out-foot {
+      padding: 12px 18px;
+      border-top: 1px solid var(--bdr);
+      background: var(--surf2);
+      display: flex;
+      gap: 8px
+    }
+
+    .btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 17px;
+      border-radius: 8px;
+      border: 1px solid var(--bdr2);
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surf2);
+      color: var(--txt)
+    }
+
+    .btn:hover {
+      background: var(--surf3)
+    }
+
+    .btn-acc {
+      background: var(--docker);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 3px 12px rgba(29, 99, 237, .35)
+    }
+
+    .btn-acc:hover {
+      opacity: .88
+    }
+
+    /* HINT */
+    .hint {
+      font-size: 11px;
+      color: var(--txt3);
+      margin-top: 2px;
+      line-height: 1.5
+    }
+
+    /* SECTION DIVIDER */
+    .sdiv {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--acc);
+      margin: 4px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .sdiv::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--bdr)
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bdr2);
+      border-radius: 5px
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      background: var(--surf);
+      border: 1px solid var(--bdr2);
+      border-left: 3px solid var(--acc);
+      color: var(--txt);
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 8px;
+      box-shadow: var(--sh);
+      animation: fup .25s ease
+    }
+
+    @keyframes fup {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-ico">🐳</div>
+      <div>
+        <div class="logo-name">Docker Builder</div>
+        <div class="logo-sub">Visual command generator</div>
+      </div>
+    </div>
+    <div class="tog" onclick="toggleTheme()">
+      <div class="tok" id="tok">☀️</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+      <!-- ─── LEFT: FORM ─── -->
+      <div>
+        <div class="card">
+          <div class="ch"><span class="cl">🐳 Container Config</span></div>
+          <div class="cb">
+            <div class="sdiv">Image</div>
+            <div class="fg">
+              <label class="fl">Image Name <span class="fl-req">*</span></label>
+              <input type="text" id="img" placeholder="nginx, postgres:14, myapp:latest" oninput="gen()">
+              <div class="hint">e.g. nginx:alpine · node:18 · postgres:15 · redis:7</div>
+            </div>
+            <div class="fg">
+              <label class="fl">Container Name</label>
+              <input type="text" id="name" placeholder="my-container" oninput="gen()">
+            </div>
+
+            <div class="sdiv">Ports</div>
+            <div class="list-wrap" id="ports-list"></div>
+            <button class="add-btn" onclick="addPort()">+ Add Port Mapping</button>
+
+            <div class="sdiv">Environment Variables</div>
+            <div class="list-wrap" id="envs-list"></div>
+            <button class="add-btn" onclick="addEnv()">+ Add Env Variable</button>
+
+            <div class="sdiv">Volumes</div>
+            <div class="list-wrap" id="vols-list"></div>
+            <button class="add-btn" onclick="addVol()">+ Add Volume</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch"><span class="cl">⚙️ Advanced Options</span></div>
+          <div class="cb">
+            <div class="sdiv">Network & Resources</div>
+            <div class="fg">
+              <label class="fl">Network Mode</label>
+              <select id="network" onchange="gen()">
+                <option value="">Default (bridge)</option>
+                <option value="host">host</option>
+                <option value="none">none</option>
+                <option value="custom">custom network</option>
+              </select>
+            </div>
+            <div id="custom-net-wrap" style="display:none">
+              <input type="text" id="custom-net" placeholder="my-network" oninput="gen()" style="margin-top:8px">
+            </div>
+            <div class="two-input">
+              <div class="fg">
+                <label class="fl">Memory Limit</label>
+                <input type="text" id="mem" placeholder="512m, 1g" oninput="gen()">
+              </div>
+              <div class="fg">
+                <label class="fl">CPU Limit</label>
+                <input type="text" id="cpu" placeholder="0.5, 1" oninput="gen()">
+              </div>
+            </div>
+
+            <div class="sdiv">Restart Policy</div>
+            <div class="restart-row">
+              <button class="chip" data-v="" onclick="setRestart('',this)">none</button>
+              <button class="chip on" data-v="unless-stopped"
+                onclick="setRestart('unless-stopped',this)">unless-stopped</button>
+              <button class="chip" data-v="always" onclick="setRestart('always',this)">always</button>
+              <button class="chip" data-v="on-failure" onclick="setRestart('on-failure',this)">on-failure</button>
+            </div>
+
+            <div class="sdiv">Flags</div>
+            <div class="chips">
+              <button class="chip on" id="f-detach" onclick="togFlag('f-detach')">-d detached</button>
+              <button class="chip" id="f-rm" onclick="togFlag('f-rm')">--rm auto-remove</button>
+              <button class="chip" id="f-it" onclick="togFlag('f-it')">-it interactive</button>
+              <button class="chip" id="f-priv" onclick="togFlag('f-priv')">--privileged</button>
+              <button class="chip" id="f-ro" onclick="togFlag('f-ro')">--read-only</button>
+            </div>
+
+            <div class="fg">
+              <label class="fl">Working Directory</label>
+              <input type="text" id="workdir" placeholder="/app" oninput="gen()">
+            </div>
+            <div class="fg">
+              <label class="fl">Entrypoint Override</label>
+              <input type="text" id="entry" placeholder="/bin/sh" oninput="gen()">
+            </div>
+            <div class="fg">
+              <label class="fl">Command</label>
+              <input type="text" id="cmd" placeholder="node server.js" oninput="gen()">
+            </div>
+            <div class="fg">
+              <label class="fl">Hostname</label>
+              <input type="text" id="hostname" placeholder="myhost" oninput="gen()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── RIGHT: OUTPUT ─── -->
+      <div>
+        <div class="card">
+          <div class="out-tabs">
+            <button class="out-tab active" id="tab-run" onclick="switchTab('run')">docker run</button>
+            <button class="out-tab" id="tab-compose" onclick="switchTab('compose')">docker-compose.yml</button>
+            <button class="out-tab" id="tab-dockerfile" onclick="switchTab('dockerfile')">Dockerfile hint</button>
+          </div>
+          <div class="code-out" id="code-out"></div>
+          <div class="out-foot">
+            <button class="btn btn-acc" onclick="copyCmd()">📋 Copy</button>
+            <button class="btn" onclick="downloadFile()">💾 Download</button>
+            <button class="btn" onclick="reset()">↺ Reset</button>
+          </div>
+        </div>
+
+        <!-- QUICK PRESETS -->
+        <div class="card">
+          <div class="ch"><span class="cl">⚡ Quick Presets</span></div>
+          <div class="cb" style="gap:10px">
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <button class="btn" onclick="loadPreset('nginx')">🌐 Nginx</button>
+              <button class="btn" onclick="loadPreset('postgres')">🐘 PostgreSQL</button>
+              <button class="btn" onclick="loadPreset('redis')">⚡ Redis</button>
+              <button class="btn" onclick="loadPreset('mysql')">🗄️ MySQL</button>
+              <button class="btn" onclick="loadPreset('node')">💚 Node.js App</button>
+              <button class="btn" onclick="loadPreset('mongo')">🍃 MongoDB</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() { const h = document.documentElement; h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark'; document.getElementById('tok').textContent = h.dataset.theme === 'dark' ? '☀️' : '🌙' }
+    document.getElementById('tok').textContent = '☀️';
+    document.getElementById('network').addEventListener('change', function () { document.getElementById('custom-net-wrap').style.display = this.value === 'custom' ? 'block' : 'none'; gen() });
+
+    let restartVal = 'unless-stopped';
+    let activeTab = 'run';
+    let portCount = 0, envCount = 0, volCount = 0;
+
+    // Init with one of each
+    addPort(); addEnv(); addVol(); gen();
+
+    function setRestart(v, el) { restartVal = v; document.querySelectorAll('.restart-row .chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); gen() }
+    function togFlag(id) { document.getElementById(id).classList.toggle('on'); gen() }
+    function switchTab(t) { activeTab = t; document.querySelectorAll('.out-tab').forEach(b => b.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); gen() }
+
+    function addPort() {
+      portCount++;
+      const id = 'p' + portCount;
+      const wrap = document.createElement('div'); wrap.className = 'list-item'; wrap.id = 'pw' + portCount;
+      wrap.innerHTML = `<input type="text" placeholder="Host port" style="max-width:110px" id="ph${portCount}" oninput="gen()"><span style="color:var(--txt3);font-weight:700;font-size:16px">:</span><input type="text" placeholder="Container port" style="max-width:130px" id="pc${portCount}" oninput="gen()"><select id="pp${portCount}" onchange="gen()" style="max-width:80px"><option>tcp</option><option>udp</option></select><button class="list-del" onclick="this.parentNode.remove();gen()">×</button>`;
+      document.getElementById('ports-list').appendChild(wrap);
+    }
+    function addEnv() {
+      envCount++;
+      const wrap = document.createElement('div'); wrap.className = 'list-item';
+      wrap.innerHTML = `<input type="text" placeholder="KEY" style="max-width:130px" class="env-k" oninput="gen()"><span style="color:var(--txt3);font-weight:700">=</span><input type="text" placeholder="value" class="env-v" oninput="gen()"><button class="list-del" onclick="this.parentNode.remove();gen()">×</button>`;
+      document.getElementById('envs-list').appendChild(wrap);
+    }
+    function addVol() {
+      volCount++;
+      const wrap = document.createElement('div'); wrap.className = 'list-item';
+      wrap.innerHTML = `<input type="text" placeholder="/host/path or volume-name" class="vol-h" oninput="gen()"><span style="color:var(--txt3);font-weight:700">:</span><input type="text" placeholder="/container/path" class="vol-c" oninput="gen()"><button class="list-del" onclick="this.parentNode.remove();gen()">×</button>`;
+      document.getElementById('vols-list').appendChild(wrap);
+    }
+
+    function getPorts() {
+      const rows = document.getElementById('ports-list').querySelectorAll('.list-item');
+      const out = [];
+      rows.forEach(r => { const h = r.querySelectorAll('input')[0].value, c = r.querySelectorAll('input')[1].value, p = r.querySelector('select').value; if (h && c) out.push({ h, c, p }) });
+      return out;
+    }
+    function getEnvs() {
+      const rows = document.getElementById('envs-list').querySelectorAll('.list-item');
+      const out = []; rows.forEach(r => { const k = r.querySelectorAll('input')[0].value, v = r.querySelectorAll('input')[1].value; if (k) out.push({ k, v }) }); return out;
+    }
+    function getVols() {
+      const rows = document.getElementById('vols-list').querySelectorAll('.list-item');
+      const out = []; rows.forEach(r => { const h = r.querySelectorAll('input')[0].value, c = r.querySelectorAll('input')[1].value; if (h && c) out.push({ h, c }) }); return out;
+    }
+
+    function v(id) { return (document.getElementById(id) || {}).value || '' }
+    function on(id) { return document.getElementById(id) && document.getElementById(id).classList.contains('on') }
+
+    function gen() {
+      const img = v('img') || '<image>';
+      const name = v('name'); const net = v('network'); const cnet = v('custom-net');
+      const mem = v('mem'); const cpu = v('cpu'); const wd = v('workdir'); const entry = v('entry'); const cmd = v('cmd'); const hn = v('hostname');
+      const ports = getPorts(); const envs = getEnvs(); const vols = getVols();
+
+      // ─── docker run ───
+      let parts = ['docker run'];
+      if (on('f-detach')) parts.push('-d');
+      if (on('f-rm')) parts.push('--rm');
+      if (on('f-it')) parts.push('-it');
+      if (on('f-priv')) parts.push('--privileged');
+      if (on('f-ro')) parts.push('--read-only');
+      if (name) parts.push(`--name ${name}`);
+      if (hn) parts.push(`--hostname ${hn}`);
+      if (net && net !== 'custom') parts.push(`--network ${net}`);
+      if (net === 'custom' && cnet) parts.push(`--network ${cnet}`);
+      if (restartVal) parts.push(`--restart ${restartVal}`);
+      if (mem) parts.push(`--memory ${mem}`);
+      if (cpu) parts.push(`--cpus ${cpu}`);
+      if (wd) parts.push(`--workdir ${wd}`);
+      if (entry) parts.push(`--entrypoint ${entry}`);
+      ports.forEach(p => parts.push(`-p ${p.h}:${p.c}${p.p === 'udp' ? '/udp' : ''}`));
+      envs.forEach(e => parts.push(`-e ${e.k}=${e.v || '""'}`));
+      vols.forEach(v2 => parts.push(`-v ${v2.h}:${v2.c}`));
+      parts.push(img);
+      if (cmd) parts.push(cmd);
+
+      const runCmd = parts.join(' \\\n  ');
+
+      // ─── docker-compose ───
+      const svcName = (name || img.replace(/[^a-z0-9]/gi, '_').replace(/:.*$/, '').toLowerCase() || 'app');
+      let yml = `version: '3.9'\n\nservices:\n  ${svcName}:\n    image: ${img}`;
+      if (name) yml += `\n    container_name: ${name}`;
+      if (hn) yml += `\n    hostname: ${hn}`;
+      if (restartVal) yml += `\n    restart: ${restartVal}`;
+      if (ports.length) { yml += '\n    ports:'; ports.forEach(p => yml += `\n      - "${p.h}:${p.c}${p.p === 'udp' ? '/udp' : ''}"`); }
+      if (envs.length) { yml += '\n    environment:'; envs.forEach(e => yml += `\n      ${e.k}: ${e.v ? '"' + e.v + '"' : '""'}`); }
+      if (vols.length) { yml += '\n    volumes:'; vols.forEach(v2 => yml += `\n      - ${v2.h}:${v2.c}`); }
+      if (net === 'custom' && cnet) { yml += `\n    networks:\n      - ${cnet}`; }
+      const memB = mem ? `\n      memory: ${mem}` : ''; const cpuB = cpu ? `\n      cpus: '${cpu}'` : '';
+      if (mem || cpu) yml += `\n    deploy:\n      resources:\n        limits:${memB}${cpuB}`;
+      if (wd) yml += `\n    working_dir: ${wd}`;
+      if (entry) yml += `\n    entrypoint: ${entry}`;
+      if (cmd) yml += `\n    command: ${cmd}`;
+      if (on('f-priv')) yml += '\n    privileged: true';
+      if (on('f-ro')) yml += '\n    read_only: true';
+      if (net === 'custom' && cnet) yml += `\n\nnetworks:\n  ${cnet}:\n    driver: bridge`;
+
+      // ─── dockerfile hint ───
+      const imgBase = img.split(':')[0];
+      const df = `# Dockerfile hint based on your config\nFROM ${img}\n${wd ? `WORKDIR ${wd}\n` : ''}${envs.length ? envs.map(e => `ENV ${e.k}=${e.v || ''}`).join('\n') + '\n' : ''}# Copy your application files\nCOPY . .\n\n# Install dependencies (adjust for your stack)\n# RUN npm install\n# RUN pip install -r requirements.txt\n${ports.length ? ports.map(p => `EXPOSE ${p.c}`).join('\n') + '\n' : ''}${entry ? `ENTRYPOINT ["${entry}"]\n` : ''}${cmd ? `CMD ["${cmd.split(' ').join('","')}"]\n` : 'CMD ["sh"]'}`;
+
+      const out = { run: runCmd, compose: yml, dockerfile: df };
+      document.getElementById('code-out').textContent = out[activeTab];
+    }
+
+    function copyCmd() {
+      navigator.clipboard.writeText(document.getElementById('code-out').textContent).then(() => toast('Copied!'));
+    }
+    function downloadFile() {
+      const text = document.getElementById('code-out').textContent;
+      const fname = activeTab === 'compose' ? 'docker-compose.yml' : activeTab === 'dockerfile' ? 'Dockerfile' : 'docker-run.sh';
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' })); a.download = fname; a.click(); toast('Downloaded ' + fname);
+    }
+    function reset() {
+      ['img', 'name', 'mem', 'cpu', 'workdir', 'entry', 'cmd', 'hostname', 'custom-net'].forEach(id => { const el = document.getElementById(id); if (el) el.value = '' });
+      document.getElementById('ports-list').innerHTML = '';
+      document.getElementById('envs-list').innerHTML = '';
+      document.getElementById('vols-list').innerHTML = '';
+      document.querySelectorAll('.restart-row .chip').forEach((c, i) => c.classList.toggle('on', i === 1));
+      restartVal = 'unless-stopped';
+      ['f-detach', 'f-rm', 'f-it', 'f-priv', 'f-ro'].forEach((id, i) => { const el = document.getElementById(id); if (el) el.classList.toggle('on', i === 0) });
+      addPort(); addEnv(); addVol(); gen();
+    }
+
+    const PRESETS = {
+      nginx: { img: 'nginx:alpine', name: 'nginx-server', ports: [{ h: '80', c: '80', p: 'tcp' }, { h: '443', c: '443', p: 'tcp' }], envs: [], vols: [{ h: './html', c: '/usr/share/nginx/html' }, { h: './nginx.conf', c: '/etc/nginx/nginx.conf' }], cmd: '' },
+      postgres: { img: 'postgres:15', name: 'postgres-db', ports: [{ h: '5432', c: '5432', p: 'tcp' }], envs: [{ k: 'POSTGRES_USER', v: 'admin' }, { k: 'POSTGRES_PASSWORD', v: 'secret' }, { k: 'POSTGRES_DB', v: 'mydb' }], vols: [{ h: 'postgres-data', c: '/var/lib/postgresql/data' }], cmd: '' },
+      redis: { img: 'redis:7-alpine', name: 'redis-cache', ports: [{ h: '6379', c: '6379', p: 'tcp' }], envs: [], vols: [{ h: 'redis-data', c: '/data' }], cmd: 'redis-server --appendonly yes' },
+      mysql: { img: 'mysql:8', name: 'mysql-db', ports: [{ h: '3306', c: '3306', p: 'tcp' }], envs: [{ k: 'MYSQL_ROOT_PASSWORD', v: 'rootpass' }, { k: 'MYSQL_DATABASE', v: 'mydb' }, { k: 'MYSQL_USER', v: 'user' }, { k: 'MYSQL_PASSWORD', v: 'pass' }], vols: [{ h: 'mysql-data', c: '/var/lib/mysql' }], cmd: '' },
+      node: { img: 'node:18-alpine', name: 'node-app', ports: [{ h: '3000', c: '3000', p: 'tcp' }], envs: [{ k: 'NODE_ENV', v: 'production' }, { k: 'PORT', v: '3000' }], vols: [{ h: './app', c: '/app' }], cmd: 'node server.js' },
+      mongo: { img: 'mongo:6', name: 'mongodb', ports: [{ h: '27017', c: '27017', p: 'tcp' }], envs: [{ k: 'MONGO_INITDB_ROOT_USERNAME', v: 'admin' }, { k: 'MONGO_INITDB_ROOT_PASSWORD', v: 'secret' }], vols: [{ h: 'mongo-data', c: '/data/db' }], cmd: '' },
+    };
+    function loadPreset(key) {
+      const p = PRESETS[key]; if (!p) return;
+      document.getElementById('img').value = p.img;
+      document.getElementById('name').value = p.name;
+      document.getElementById('cmd').value = p.cmd || '';
+      document.getElementById('ports-list').innerHTML = '';
+      document.getElementById('envs-list').innerHTML = '';
+      document.getElementById('vols-list').innerHTML = '';
+      p.ports.forEach(pt => { addPort(); const rows = document.getElementById('ports-list').querySelectorAll('.list-item'); const r = rows[rows.length - 1]; r.querySelectorAll('input')[0].value = pt.h; r.querySelectorAll('input')[1].value = pt.c });
+      p.envs.forEach(e => { addEnv(); const rows = document.getElementById('envs-list').querySelectorAll('.list-item'); const r = rows[rows.length - 1]; r.querySelectorAll('input')[0].value = e.k; r.querySelectorAll('input')[1].value = e.v });
+      p.vols.forEach(v2 => { addVol(); const rows = document.getElementById('vols-list').querySelectorAll('.list-item'); const r = rows[rows.length - 1]; r.querySelectorAll('input')[0].value = v2.h; r.querySelectorAll('input')[1].value = v2.c });
+      gen(); toast('Loaded ' + key + ' preset!');
+    }
+    function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600) }
+  </script>
+</body>
+
+</html>

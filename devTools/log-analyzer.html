@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #f5f6fa;
+  --bg2:       #eceef5;
+  --surface:   #ffffff;
+  --surface2:  #f0f2f8;
+  --border:    rgba(0,0,0,0.08);
+  --border2:   rgba(0,0,0,0.13);
+  --text:      #1a1d2e;
+  --text2:     #5a5f7a;
+  --text3:     #adb1c8;
+  --accent:    #4f5ef7;
+  --r: #e03b3b; --rBg: #fdf0f0; --rBorder: #f5c0c0;
+  --w: #c47a00; --wBg: #fffbf0; --wBorder: #fce4a0;
+  --g: #1a8a4a; --gBg: #f0faf5; --gBorder: #a8e6c2;
+  --i: #1565c0; --iBg: #f0f5ff; --iBorder: #b3ccf5;
+  --shadow: 0 2px 16px rgba(0,0,0,0.07);
+  --radius: 12px;
+}
+[data-theme="dark"] {
+  --bg:        #0e1018;
+  --bg2:       #131620;
+  --surface:   #171b27;
+  --surface2:  #1d2235;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #dde1f0;
+  --text2:     #7880a0;
+  --text3:     #3d4460;
+  --accent:    #6c7bff;
+  --r: #f87171; --rBg: rgba(248,113,113,0.1); --rBorder: rgba(248,113,113,0.25);
+  --w: #fbbf24; --wBg: rgba(251,191,36,0.1);  --wBorder: rgba(251,191,36,0.25);
+  --g: #34d399; --gBg: rgba(52,211,153,0.08); --gBorder: rgba(52,211,153,0.25);
+  --i: #60a5fa; --iBg: rgba(96,165,250,0.08); --iBorder: rgba(96,165,250,0.25);
+  --shadow: 0 4px 24px rgba(0,0,0,0.35);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* TOPBAR */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; color: #fff;
+}
+.brand-name { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.brand-sub  { font-size: 11px; color: var(--text2); font-weight: 500; letter-spacing: 0.05em; }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+/* THEME TOGGLE */
+.theme-toggle {
+  width: 52px; height: 28px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px; cursor: pointer;
+  position: relative; transition: background 0.2s;
+  display: flex; align-items: center; padding: 3px;
+}
+.theme-toggle-knob {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent);
+  position: absolute; left: 3px;
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+[data-theme="dark"] .theme-toggle-knob { transform: translateX(24px); }
+
+/* MAIN LAYOUT */
+.main { max-width: 1160px; margin: 0 auto; padding: 28px 24px 80px; }
+
+/* INPUT SECTION */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.card-label {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text2);
+  display: flex; align-items: center; gap: 7px;
+}
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface2); color: var(--text);
+}
+.btn:hover { background: var(--bg2); }
+.btn-primary { background: var(--accent); color: #fff; border-color: transparent; box-shadow: 0 3px 12px rgba(108,123,255,0.3); }
+.btn-primary:hover { opacity: 0.88; }
+.btn-danger  { background: var(--rBg); color: var(--r); border-color: var(--rBorder); }
+.btn-danger:hover  { opacity: 0.85; }
+
+textarea {
+  width: 100%; min-height: 200px; resize: vertical;
+  background: var(--surface);
+  border: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; line-height: 1.75;
+  padding: 16px 20px;
+  outline: none;
+  display: block;
+}
+textarea::placeholder { color: var(--text3); }
+
+.card-foot {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+
+/* STATS */
+.stats-bar {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  padding: 12px 20px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.stat-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.sc-total   { background: var(--surface); border:1px solid var(--border2); color: var(--text2); }
+.sc-error   { background: var(--rBg); border:1px solid var(--rBorder); color: var(--r); }
+.sc-warn    { background: var(--wBg); border:1px solid var(--wBorder); color: var(--w); }
+.sc-success { background: var(--gBg); border:1px solid var(--gBorder); color: var(--g); }
+.sc-info    { background: var(--iBg); border:1px solid var(--iBorder); color: var(--i); }
+.sc-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.flt {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  padding: 4px 12px; border-radius: 20px;
+  border: 1px solid transparent; cursor: pointer;
+  transition: all 0.15s; text-transform: uppercase; background: transparent;
+}
+.flt-all     { color: var(--text2);  border-color: var(--border2); }
+.flt-error   { color: var(--r);      border-color: var(--rBorder); }
+.flt-warn    { color: var(--w);      border-color: var(--wBorder); }
+.flt-info    { color: var(--i);      border-color: var(--iBorder); }
+.flt-success { color: var(--g);      border-color: var(--gBorder); }
+.flt.active  { opacity: 1; font-weight: 800; }
+.flt:not(.active) { opacity: 0.42; }
+.flt-all.active     { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+.flt-error.active   { background: var(--rBg); }
+.flt-warn.active    { background: var(--wBg); }
+.flt-info.active    { background: var(--iBg); }
+.flt-success.active { background: var(--gBg); }
+
+.search-box {
+  margin-left: auto;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 5px 12px;
+  outline: none;
+  width: 200px;
+  transition: border-color 0.2s;
+}
+.search-box:focus { border-color: var(--accent); }
+.search-box::placeholder { color: var(--text3); }
+
+/* LOG LINES */
+.log-scroll {
+  max-height: 520px; overflow-y: auto;
+  background: var(--surface);
+}
+.log-line {
+  display: flex;
+  align-items: baseline;
+  padding: 4px 16px 4px 0;
+  border-left: 3px solid transparent;
+  transition: background 0.1s;
+  gap: 0;
+}
+.log-line:hover { background: var(--surface2); }
+.ll-error   { background: var(--rBg); border-left-color: var(--r); }
+.ll-warning { background: var(--wBg); border-left-color: var(--w); }
+.ll-success { background: var(--gBg); border-left-color: var(--g); }
+.ll-info    { background: var(--iBg); border-left-color: var(--i); }
+.ll-plain   { border-left-color: transparent; }
+
+.ll-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text3);
+  min-width: 48px; text-align: right;
+  padding: 0 14px 0 10px;
+  user-select: none; flex-shrink: 0;
+  padding-top: 1px;
+}
+.ll-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  padding: 1px 7px; border-radius: 4px;
+  margin-right: 10px; flex-shrink: 0;
+  text-transform: uppercase; white-space: nowrap;
+  align-self: flex-start; margin-top: 2px;
+}
+.badge-error   { background: var(--rBg); color: var(--r); border: 1px solid var(--rBorder); }
+.badge-warning { background: var(--wBg); color: var(--w); border: 1px solid var(--wBorder); }
+.badge-success { background: var(--gBg); color: var(--g); border: 1px solid var(--gBorder); }
+.badge-info    { background: var(--iBg); color: var(--i); border: 1px solid var(--iBorder); }
+
+.ll-ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--accent);
+  margin-right: 10px; flex-shrink: 0;
+  opacity: 0.8; white-space: nowrap;
+}
+.ll-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; color: var(--text);
+  line-height: 1.7; word-break: break-word;
+  flex: 1;
+}
+/* spans inside ll-text - colored with CSS only, no injection */
+.ll-text .t-key { color: var(--accent); }
+.ll-text .t-num { color: var(--w); }
+.ll-text .t-str { color: var(--g); }
+.ll-text .t-path { color: var(--text2); font-style: italic; }
+
+/* empty & scrollbar */
+.empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px;
+  padding: 60px 20px; color: var(--text3);
+  font-size: 14px;
+}
+.empty-icon { font-size: 40px; opacity: 0.35; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 6px; }
+
+/* RESULT CARD */
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  display: none;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--g);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">🔍</div>
+    <div>
+      <div class="brand-name">Log Analyzer</div>
+      <div class="brand-sub">Paste · Highlight · Debug</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <div class="theme-toggle-knob" id="knob">☀️</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- INPUT CARD -->
+  <div class="input-card">
+    <div class="card-head">
+      <div class="card-label">📋 Paste Logs</div>
+      <div class="btn-row">
+        <button class="btn" onclick="loadSample()">Load Sample</button>
+        <button class="btn btn-danger" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+    <textarea id="log-input" placeholder="Paste your log output here...
+
+Example:
+2024-03-15 10:23:45 [ERROR] NullPointerException at UserService.java:142
+2024-03-15 10:23:46 [WARN]  Connection timeout after 5000ms
+2024-03-15 10:23:47 [INFO]  Server started on port 8080
+2024-03-15 10:23:48 [SUCCESS] Health check passed"></textarea>
+    <div class="card-foot">
+      <button class="btn btn-primary" onclick="analyze()">⚡ Analyze Logs</button>
+      <button class="btn" onclick="copyOutput()">📋 Copy</button>
+      <button class="btn" onclick="exportFile()">💾 Export .txt</button>
+    </div>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="result-card" id="result-card">
+    <div class="stats-bar" id="stats-bar"></div>
+    <div class="filter-bar">
+      <button class="flt flt-all active"     data-f="all"     onclick="setFilter('all',this)">All</button>
+      <button class="flt flt-error"          data-f="error"   onclick="setFilter('error',this)">Errors</button>
+      <button class="flt flt-warn"           data-f="warning" onclick="setFilter('warning',this)">Warnings</button>
+      <button class="flt flt-info"           data-f="info"    onclick="setFilter('info',this)">Info</button>
+      <button class="flt flt-success"        data-f="success" onclick="setFilter('success',this)">Success</button>
+      <input type="text" class="search-box" id="search" placeholder="Search…" oninput="applyFilters()">
+    </div>
+    <div class="log-scroll" id="log-scroll"></div>
+  </div>
+
+</div>
+
+<script>
+// ── helpers ──────────────────────────────────────────────
+function esc(str) {
+  return str
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── theme ────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('knob').textContent = isDark ? '🌙' : '☀️';
+}
+
+// Set initial knob
+document.getElementById('knob').textContent = '☀️';
+
+// ── sample data ──────────────────────────────────────────
+const SAMPLE = `2024-03-15 08:12:03.124 [INFO]  Application starting on port 3000
+2024-03-15 08:12:03.891 [INFO]  Database connection established: postgres://localhost:5432/mydb
+2024-03-15 08:12:04.012 [WARN]  Deprecated API route /v1/users accessed from 192.168.1.42
+2024-03-15 08:12:05.337 [ERROR] NullPointerException at UserService.java:142
+2024-03-15 08:12:05.340 [ERROR]   at com.example.UserService.findById(UserService.java:142)
+2024-03-15 08:12:05.341 [ERROR]   at com.example.UserController.getUser(UserController.java:87)
+2024-03-15 08:12:07.512 [INFO]  Cache warmed up: 2847 entries loaded in 312ms
+2024-03-15 08:12:09.001 [WARN]  High memory usage detected: 87% of 4096MB used
+2024-03-15 08:12:11.772 [ERROR] Connection timeout after 30000ms — retrying (attempt 1/3)
+2024-03-15 08:12:14.992 [ERROR] Connection timeout after 30000ms — retrying (attempt 2/3)
+2024-03-15 08:12:18.113 [WARN]  Rate limit threshold reached for client_id=usr_8a7f3c
+2024-03-15 08:12:19.440 [INFO]  Worker thread pool resized: 4 to 8 threads
+2024-03-15 08:12:21.001 [ERROR] Unhandled rejection: TypeError: Cannot read property map of undefined
+2024-03-15 08:12:22.334 [SUCCESS] Health check passed — all 5 services operational
+2024-03-15 08:12:23.001 [INFO]  Scheduled job cleanup_expired_sessions completed in 234ms
+2024-03-15 08:12:24.112 [WARN]  SSL certificate expires in 7 days for api.example.com
+2024-03-15 08:12:25.009 [SUCCESS] Deployment v2.4.1 pushed to production successfully`;
+
+function loadSample() {
+  document.getElementById('log-input').value = SAMPLE;
+  analyze();
+}
+
+function clearAll() {
+  document.getElementById('log-input').value = '';
+  document.getElementById('result-card').style.display = 'none';
+  parsedLines = [];
+}
+
+// ── parsing ──────────────────────────────────────────────
+let parsedLines = [];
+let activeFilter = 'all';
+
+const TS_RE = /^(\d{4}[-/]\d{2}[-/]\d{2}[\sT]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?)\s*/;
+const LEVEL_RE = /\[(ERROR|ERR|FATAL|CRITICAL)\]|\bERROR\b|\bFATAL\b|\bCRITICAL\b/i;
+const WARN_RE  = /\[(WARN|WARNING|DEPRECATED)\]|\bWARN\b|\bWARNING\b/i;
+const OK_RE    = /\[(SUCCESS|OK|DONE)\]|\bSUCCESS\b|\bSUCCESSFULLY\b|\bCOMPLETED\b|\bPASSED\b/i;
+const INFO_RE  = /\[(INFO|DEBUG|TRACE|LOG)\]|\bINFO\b|\bDEBUG\b/i;
+
+function classifyLine(line) {
+  if (LEVEL_RE.test(line)) return 'error';
+  if (WARN_RE.test(line))  return 'warning';
+  if (OK_RE.test(line))    return 'success';
+  if (INFO_RE.test(line))  return 'info';
+  return 'plain';
+}
+
+// Remove the level tag from display text so we show it as a badge
+const LEVEL_TAG_RE = /\[(ERROR|ERR|FATAL|CRITICAL|WARN|WARNING|SUCCESS|OK|INFO|DEBUG|TRACE|LOG|DONE)\]\s*/i;
+
+function analyze() {
+  const raw = document.getElementById('log-input').value;
+  if (!raw.trim()) return;
+
+  parsedLines = raw.split('\n').map((line, idx) => {
+    const tsMatch = line.match(TS_RE);
+    const timestamp = tsMatch ? tsMatch[1] : null;
+    let rest = timestamp ? line.slice(tsMatch[0].length) : line;
+    const type = classifyLine(line);
+    rest = rest.replace(LEVEL_TAG_RE, '').trim();
+    return { idx: idx + 1, raw: line, timestamp, rest, type };
+  });
+
+  renderStats();
+  activeFilter = 'all';
+  document.querySelectorAll('.flt').forEach(b => b.classList.toggle('active', b.dataset.f === 'all'));
+  applyFilters();
+  document.getElementById('result-card').style.display = 'block';
+}
+
+function renderStats() {
+  const c = { error:0, warning:0, success:0, info:0, plain:0 };
+  parsedLines.forEach(l => c[l.type]++);
+  document.getElementById('stats-bar').innerHTML =
+    `<span class="stat-chip sc-total"><span class="sc-dot" style="background:var(--text2)"></span>${parsedLines.length} Lines</span>` +
+    `<span class="stat-chip sc-error"><span class="sc-dot"></span>${c.error} Errors</span>` +
+    `<span class="stat-chip sc-warn"><span class="sc-dot"></span>${c.warning} Warnings</span>` +
+    `<span class="stat-chip sc-success"><span class="sc-dot"></span>${c.success} Success</span>` +
+    `<span class="stat-chip sc-info"><span class="sc-dot"></span>${c.info} Info</span>`;
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.flt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const query = document.getElementById('search').value.toLowerCase();
+  let lines = parsedLines;
+  if (activeFilter !== 'all') lines = lines.filter(l => l.type === activeFilter);
+  if (query) lines = lines.filter(l => l.raw.toLowerCase().includes(query));
+  renderLines(lines);
+}
+
+// ── SAFE rendering — no innerHTML injection of user content ──
+function renderLines(lines) {
+  const container = document.getElementById('log-scroll');
+  container.innerHTML = '';
+
+  if (!lines.length) {
+    const e = document.createElement('div');
+    e.className = 'empty';
+    e.innerHTML = '<div class="empty-icon">🔎</div><div>No matching log lines</div>';
+    container.appendChild(e);
+    return;
+  }
+
+  const BADGE = { error:'ERROR', warning:'WARN', success:'OK', info:'INFO' };
+  const BADGE_CLS = { error:'badge-error', warning:'badge-warning', success:'badge-success', info:'badge-info' };
+
+  lines.forEach(line => {
+    const row = document.createElement('div');
+    row.className = `log-line ll-${line.type}`;
+
+    // line number
+    const num = document.createElement('span');
+    num.className = 'll-num';
+    num.textContent = line.idx;
+    row.appendChild(num);
+
+    // badge (only for known levels)
+    if (line.type !== 'plain') {
+      const badge = document.createElement('span');
+      badge.className = `ll-badge ${BADGE_CLS[line.type]}`;
+      badge.textContent = BADGE[line.type];
+      row.appendChild(badge);
+    }
+
+    // timestamp
+    if (line.timestamp) {
+      const ts = document.createElement('span');
+      ts.className = 'll-ts';
+      ts.textContent = line.timestamp;
+      row.appendChild(ts);
+    }
+
+    // message text (safely set via textContent only)
+    const msg = document.createElement('span');
+    msg.className = 'll-text';
+    msg.textContent = line.rest;   // ← SAFE: no HTML injection
+    row.appendChild(msg);
+
+    container.appendChild(row);
+  });
+}
+
+function copyOutput() {
+  const text = parsedLines.map(l => l.raw).join('\n');
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!'));
+}
+
+function exportFile() {
+  const text = parsedLines.map(l => l.raw).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'}));
+  a.download = 'analyzed-logs.txt';
+  a.click();
+  toast('Exported!');
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+</script>
+</body>
+</html>

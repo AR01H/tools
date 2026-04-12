@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Screenshot Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- highlight.js -->
+<link rel="stylesheet" id="hljs-theme" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --bg:       #f4f5fb;
+  --bg2:      #eceef6;
+  --surface:  #ffffff;
+  --surface2: #f1f3fa;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.12);
+  --text:     #1a1c2e;
+  --text2:    #5c6080;
+  --text3:    #adb3cc;
+  --accent:   #5046e5;
+  --shadow:   0 2px 20px rgba(0,0,0,0.07);
+  --radius:   14px;
+}
+[data-theme="dark"] {
+  --bg:       #0c0e16;
+  --bg2:      #121521;
+  --surface:  #161926;
+  --surface2: #1c2030;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --text:     #dde0f0;
+  --text2:    #737898;
+  --text3:    #363d5a;
+  --accent:   #7c6fff;
+  --shadow:   0 4px 30px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.brand-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.brand-sub  { font-size: 11px; color: var(--text2); font-weight: 500; }
+
+.theme-toggle {
+  width: 54px; height: 30px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px; cursor: pointer;
+  position: relative;
+}
+.tknob {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent);
+  position: absolute; top: 2px; left: 3px;
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+[data-theme="dark"] .tknob { transform: translateX(24px); }
+
+/* ── LAYOUT ── */
+.main { max-width: 1180px; margin: 0 auto; padding: 28px 24px 80px; }
+.grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.card + .card { margin-top: 18px; }
+.chead {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.clabel {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text2);
+}
+.cbody { padding: 18px; display: flex; flex-direction: column; gap: 15px; }
+
+/* ── FORM CONTROLS ── */
+.ctrl-label {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 6px; display: block;
+}
+select, input[type="text"] {
+  font-family: 'Outfit', sans-serif;
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+select:focus, input[type="text"]:focus { border-color: var(--accent); }
+
+/* CODE THEMES grid */
+.theme-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+}
+.tcard {
+  border-radius: 8px; height: 34px; cursor: pointer;
+  border: 2px solid transparent;
+  position: relative;
+  transition: transform 0.15s, border-color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.tcard:hover { transform: scale(1.07); }
+.tcard.active { border-color: var(--accent); }
+.tcard-check {
+  font-size: 13px; color: #fff;
+  display: none;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.tcard.active .tcard-check { display: block; }
+
+/* BG GRADIENTS */
+.bg-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
+.bgchip {
+  height: 30px; border-radius: 6px; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.15s;
+}
+.bgchip:hover { transform: scale(1.1); }
+.bgchip.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+
+/* TOGGLES */
+.toggle-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.toggle-row label { font-size: 13px; color: var(--text2); cursor: pointer; }
+input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+/* BUTTONS */
+.btn {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 9px 18px; border-radius: 8px;
+  border: 1px solid var(--border2);
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--surface2); color: var(--text);
+}
+.btn:hover { background: var(--bg2); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 4px 16px rgba(124,111,255,0.35);
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-row { display: flex; gap: 10px; }
+
+textarea {
+  width: 100%; min-height: 200px; resize: vertical;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; line-height: 1.7;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  display: block;
+}
+textarea:focus { border-color: var(--accent); }
+textarea::placeholder { color: var(--text3); }
+
+/* ── PREVIEW AREA ── */
+.preview-wrap {
+  padding: 28px;
+  background: var(--surface2);
+  min-height: 280px;
+  display: flex; align-items: flex-start; justify-content: center;
+  border-radius: 0 0 var(--radius) var(--radius);
+  transition: background 0.2s;
+}
+.preview-bg-wrap {
+  width: 100%;
+  padding: 28px;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+/* ── CODE CARD ── */
+.code-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  font-family: 'JetBrains Mono', monospace;
+}
+.code-topbar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.tl-wrap { display: flex; gap: 6px; }
+.tl { width: 12px; height: 12px; border-radius: 50%; }
+.tl-r { background: #ff5f57; }
+.tl-y { background: #ffbd2e; }
+.tl-g { background: #28c840; }
+.code-filename { font-size: 12px; color: rgba(255,255,255,0.38); font-family: 'JetBrains Mono', monospace; }
+.code-body { padding: 20px 22px; overflow-x: auto; }
+.code-body pre { margin: 0; }
+.code-body pre code {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.72 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+.code-footer {
+  padding: 8px 18px 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10.5px; letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.18);
+  text-align: right;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.line-nums { display: inline-block; }
+.ln {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; line-height: 1.72;
+}
+.ln-num {
+  display: inline-block; min-width: 30px;
+  text-align: right; margin-right: 20px;
+  color: rgba(255,255,255,0.2); font-size: 12px;
+  user-select: none;
+}
+
+/* CODE CARD THEMES */
+.ct-midnight   { background: #0d1117; }
+.ct-midnight .code-topbar { background: #161b22; }
+.ct-dracula    { background: #282a36; }
+.ct-dracula .code-topbar  { background: #21222c; }
+.ct-monokai    { background: #272822; }
+.ct-monokai .code-topbar  { background: #1e1f1a; }
+.ct-solarized  { background: #002b36; }
+.ct-solarized .code-topbar{ background: #001f28; }
+.ct-nord       { background: #2e3440; }
+.ct-nord .code-topbar      { background: #252a34; }
+
+/* empty state */
+.empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 48px 20px; color: var(--text3); font-size: 14px;
+}
+.empty-icon { font-size: 42px; opacity: 0.3; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 10px 18px; border-radius: 8px;
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.25s ease;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">📸</div>
+    <div>
+      <div class="brand-name">Code Screenshot</div>
+      <div class="brand-sub">Paste · Style · Export</div>
+    </div>
+  </div>
+  <div class="theme-toggle" onclick="toggleTheme()">
+    <div class="tknob" id="tknob">☀️</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="grid">
+
+    <!-- LEFT: CONTROLS -->
+    <div>
+      <div class="card">
+        <div class="chead"><span class="clabel">⚙️ Settings</span></div>
+        <div class="cbody">
+
+          <div>
+            <span class="ctrl-label">Language</span>
+            <select id="lang" onchange="renderPreview()">
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="python">Python</option>
+              <option value="java">Java</option>
+              <option value="cpp">C++</option>
+              <option value="rust">Rust</option>
+              <option value="go">Go</option>
+              <option value="css">CSS</option>
+              <option value="html">HTML</option>
+              <option value="sql">SQL</option>
+              <option value="bash">Bash / Shell</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+
+          <div>
+            <span class="ctrl-label">Code Theme</span>
+            <div class="theme-grid" id="theme-grid">
+              <div class="tcard active" style="background:#0d1117" data-t="midnight" onclick="setCodeTheme('midnight',this)"><span class="tcard-check">✓</span></div>
+              <div class="tcard" style="background:#282a36" data-t="dracula"   onclick="setCodeTheme('dracula',this)"><span class="tcard-check">✓</span></div>
+              <div class="tcard" style="background:#272822" data-t="monokai"   onclick="setCodeTheme('monokai',this)"><span class="tcard-check">✓</span></div>
+              <div class="tcard" style="background:#002b36" data-t="solarized" onclick="setCodeTheme('solarized',this)"><span class="tcard-check">✓</span></div>
+              <div class="tcard" style="background:#2e3440" data-t="nord"      onclick="setCodeTheme('nord',this)"><span class="tcard-check">✓</span></div>
+            </div>
+          </div>
+
+          <div>
+            <span class="ctrl-label">Background</span>
+            <div class="bg-grid" id="bg-grid">
+              <div class="bgchip active" style="background:linear-gradient(135deg,#667eea,#764ba2)" data-bg="linear-gradient(135deg,#667eea,#764ba2)" onclick="setBg(this)"></div>
+              <div class="bgchip" style="background:linear-gradient(135deg,#f093fb,#f5576c)" data-bg="linear-gradient(135deg,#f093fb,#f5576c)" onclick="setBg(this)"></div>
+              <div class="bgchip" style="background:linear-gradient(135deg,#4facfe,#00f2fe)" data-bg="linear-gradient(135deg,#4facfe,#00f2fe)" onclick="setBg(this)"></div>
+              <div class="bgchip" style="background:linear-gradient(135deg,#43e97b,#38f9d7)" data-bg="linear-gradient(135deg,#43e97b,#38f9d7)" onclick="setBg(this)"></div>
+              <div class="bgchip" style="background:linear-gradient(135deg,#fa709a,#fee140)" data-bg="linear-gradient(135deg,#fa709a,#fee140)" onclick="setBg(this)"></div>
+              <div class="bgchip" style="background:linear-gradient(135deg,#30cfd0,#330867)" data-bg="linear-gradient(135deg,#30cfd0,#330867)" onclick="setBg(this)"></div>
+              <div class="bgchip" style="background:#111118; border:1px solid rgba(255,255,255,0.12);" data-bg="#111118" onclick="setBg(this)"></div>
+            </div>
+          </div>
+
+          <div>
+            <span class="ctrl-label">Filename</span>
+            <input type="text" id="filename" placeholder="e.g. index.js" oninput="renderPreview()">
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:9px;">
+            <label class="toggle-row">
+              <input type="checkbox" id="showLineNums" checked onchange="renderPreview()">
+              <span>Show line numbers</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" id="showWatermark" checked onchange="renderPreview()">
+              <span>Show watermark</span>
+            </label>
+            <label class="toggle-row">
+              <input type="checkbox" id="showBg" checked onchange="renderPreview()">
+              <span>Gradient background</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <div class="cbody" style="padding: 16px 18px;">
+          <div class="btn-row">
+            <button class="btn btn-primary" style="flex:1" onclick="downloadPng()">📥 Download PNG</button>
+            <button class="btn" onclick="copyImage()">📋 Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: INPUT + PREVIEW -->
+    <div>
+      <div class="card">
+        <div class="chead">
+          <span class="clabel">✏️ Your Code</span>
+          <button class="btn" style="font-size:12px;padding:5px 12px" onclick="loadSample()">Load Sample</button>
+        </div>
+        <div style="padding: 16px 18px;">
+          <textarea id="code-input" placeholder="Paste your code here…" oninput="renderPreview()"></textarea>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <div class="chead"><span class="clabel">👁 Live Preview</span></div>
+        <div class="preview-wrap" id="preview-wrap">
+          <div class="preview-bg-wrap" id="preview-bg">
+            <div id="preview-inner">
+              <div class="empty">
+                <div class="empty-icon">📸</div>
+                <div>Paste code above to see your screenshot</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── theme ────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.getElementById('tknob').textContent = html.dataset.theme === 'dark' ? '☀️' : '🌙';
+}
+document.getElementById('tknob').textContent = '☀️';
+
+// ── state ────────────────────────────────────────────────────────────────
+let codeTheme = 'midnight';
+let bgGradient = 'linear-gradient(135deg,#667eea,#764ba2)';
+
+function setCodeTheme(t, el) {
+  codeTheme = t;
+  document.querySelectorAll('.tcard').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderPreview();
+}
+
+function setBg(el) {
+  bgGradient = el.dataset.bg;
+  document.querySelectorAll('.bgchip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderPreview();
+}
+
+// ── samples ──────────────────────────────────────────────────────────────
+const SAMPLES = {
+  javascript:`async function fetchUser(id) {
+  try {
+    const res = await fetch('/api/users/' + id);
+    if (!res.ok) throw new Error('Status: ' + res.status);
+    const user = await res.json();
+    return user;
+  } catch (err) {
+    console.error('Fetch failed:', err);
+    throw err;
+  }
+}`,
+  python:`def fibonacci(n: int) -> list[int]:
+    """Return list of Fibonacci numbers up to n."""
+    sequence = [0, 1]
+    while sequence[-1] + sequence[-2] < n:
+        sequence.append(sequence[-1] + sequence[-2])
+    return sequence
+
+result = fibonacci(100)
+print(f"Fibonacci sequence: {result}")`,
+  rust:`fn bubble_sort(arr: &mut Vec<i32>) {
+    let n = arr.len();
+    for i in 0..n {
+        for j in 0..n - i - 1 {
+            if arr[j] > arr[j + 1] {
+                arr.swap(j, j + 1);
+            }
+        }
+    }
+}`,
+  go:`package main
+
+import "fmt"
+
+func isPrime(n int) bool {
+    if n < 2 { return false }
+    for i := 2; i*i <= n; i++ {
+        if n%i == 0 { return false }
+    }
+    return true
+}
+
+func main() {
+    for i := 2; i <= 50; i++ {
+        if isPrime(i) {
+            fmt.Printf("%d ", i)
+        }
+    }
+}`,
+};
+
+function loadSample() {
+  const lang = document.getElementById('lang').value;
+  document.getElementById('code-input').value = SAMPLES[lang] || SAMPLES.javascript;
+  const exts = {javascript:'js', typescript:'ts', python:'py', java:'Main.java', cpp:'main.cpp', rust:'main.rs', go:'main.go', css:'styles.css', html:'index.html', sql:'query.sql', bash:'script.sh', json:'data.json'};
+  document.getElementById('filename').value = exts[lang] || 'code.txt';
+  renderPreview();
+}
+
+// ── render ───────────────────────────────────────────────────────────────
+function renderPreview() {
+  const code = document.getElementById('code-input').value;
+  const bgEl = document.getElementById('preview-bg');
+  const showBg = document.getElementById('showBg').checked;
+
+  bgEl.style.background = showBg ? bgGradient : 'transparent';
+  bgEl.style.padding = showBg ? '28px' : '0';
+
+  if (!code.trim()) {
+    document.getElementById('preview-inner').innerHTML =
+      '<div class="empty"><div class="empty-icon">📸</div><div>Paste code above to see your screenshot</div></div>';
+    return;
+  }
+
+  const lang       = document.getElementById('lang').value;
+  const filename   = document.getElementById('filename').value || 'code.' + lang;
+  const showLN     = document.getElementById('showLineNums').checked;
+  const showWM     = document.getElementById('showWatermark').checked;
+
+  // Highlight with hljs - get the highlighted HTML string
+  let highlighted;
+  try { highlighted = hljs.highlight(code, {language: lang}).value; }
+  catch(e) { highlighted = hljs.highlightAuto(code).value; }
+
+  // Split by newline and wrap each line
+  const rawLines = highlighted.split('\n');
+  // Remove trailing empty line
+  if (rawLines[rawLines.length - 1] === '') rawLines.pop();
+
+  const linesHtml = rawLines.map((lineHtml, i) => {
+    const lnSpan = showLN
+      ? `<span class="ln-num">${i + 1}</span>`
+      : '';
+    return `<span class="ln">${lnSpan}${lineHtml}</span>`;
+  }).join('');
+
+  const footerHtml = showWM
+    ? `<div class="code-footer">made with Code Screenshot</div>`
+    : '';
+
+  document.getElementById('preview-inner').innerHTML =
+    `<div class="code-card ct-${codeTheme}" id="the-card">
+      <div class="code-topbar">
+        <div class="tl-wrap"><div class="tl tl-r"></div><div class="tl tl-y"></div><div class="tl tl-g"></div></div>
+        <span class="code-filename">${escAttr(filename)}</span>
+      </div>
+      <div class="code-body">
+        <pre><code class="hljs language-${lang}">${linesHtml}</code></pre>
+      </div>
+      ${footerHtml}
+    </div>`;
+}
+
+function escAttr(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── export ───────────────────────────────────────────────────────────────
+async function downloadPng() {
+  const card = document.getElementById('the-card');
+  if (!card) { toast('Paste some code first!'); return; }
+
+  const target = document.getElementById('showBg').checked
+    ? document.getElementById('preview-bg')
+    : card;
+
+  try {
+    const canvas = await html2canvas(target, {
+      scale: 3, backgroundColor: null, useCORS: true, logging: false
+    });
+    const a = document.createElement('a');
+    a.download = 'code-screenshot.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    toast('PNG downloaded!');
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function copyImage() {
+  const card = document.getElementById('the-card');
+  if (!card) { toast('Paste some code first!'); return; }
+
+  const target = document.getElementById('showBg').checked
+    ? document.getElementById('preview-bg')
+    : card;
+
+  try {
+    const canvas = await html2canvas(target, { scale: 2, backgroundColor: null, logging: false });
+    canvas.toBlob(blob => {
+      navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+        .then(() => toast('Image copied to clipboard!'))
+        .catch(() => toast('Copy not supported in this browser'));
+    });
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+</script>
+</body>
+</html>
