@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "NotesManager_index_";
+</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>We1 | Notes Manager</title>
@@ -232,19 +234,19 @@ let activeTagFilter = null;
 function uid(){return 'id_'+Math.random().toString(36).slice(2,10)}
 
 function saveNotes(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+  localStorage.setItem(LS_PREFIX + STORAGE_KEY, JSON.stringify(notes));
   updateStorageInfo();
 }
 
 function loadNotes(){
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(LS_PREFIX + STORAGE_KEY);
     notes = raw? JSON.parse(raw) : [];
   }catch(e){notes=[]}
 }
 
 function updateStorageInfo(){
-  const raw = localStorage.getItem(STORAGE_KEY) || '';
+  const raw = localStorage.getItem(LS_PREFIX + STORAGE_KEY) || '';
   const bytes = new Blob([raw]).size;
   $('#storageInfo').text((notes.length||0)+' notes • '+bytes+' bytes');
 }

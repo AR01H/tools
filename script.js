@@ -1,3 +1,4 @@
+const LS_PREFIX = "script_";
 const tools = [
   {
     icon: "fas fa-terminal",
@@ -180,7 +181,7 @@ const elements = {
 // Initialize the application
 function init() {
   // Load and apply persistent theme preference
-  const savedTheme = localStorage.getItem("theme") || "dark";
+  const savedTheme = localStorage.getItem(LS_PREFIX + "theme") || "dark";
   document.body.setAttribute("data-theme", savedTheme);
 
   updateDashboardHeader();
@@ -628,7 +629,7 @@ function toggleTheme() {
   updateThemeIcon();
 
   // Store theme preference
-  localStorage.setItem("theme", newTheme);
+  localStorage.setItem(LS_PREFIX + "theme", newTheme);
 }
 
 // Sidebar Functions
@@ -721,11 +722,11 @@ function debounce(func, wait) {
 // Load saved preferences
 function loadPreferences() {
   // Load saved theme
-  const savedTheme = localStorage.getItem("theme") || "dark";
+  const savedTheme = localStorage.getItem(LS_PREFIX + "theme") || "dark";
   document.body.setAttribute("data-theme", savedTheme);
 
   // Load saved view preference
-  const savedView = localStorage.getItem("view") || "grid";
+  const savedView = localStorage.getItem(LS_PREFIX + "view") || "grid";
   handleViewChange(savedView);
 }
 

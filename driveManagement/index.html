@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "driveManagement_index_";
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DriveManager — Google Drive</title>
@@ -893,8 +895,8 @@ function copyCode(elId,btnId){
 
 // ══════════════════ CONFIG & STORAGE ════════════════════════════
 var CFG_KEY='dm_config';
-function saveCfg(cfg){localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}
-function loadCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY));}catch{return null;}}
+function saveCfg(cfg){localStorage.setItem(LS_PREFIX + CFG_KEY,JSON.stringify(cfg));}
+function loadCfg(){try{return JSON.parse(localStorage.getItem(LS_PREFIX + CFG_KEY));}catch{return null;}}
 
 // ══════════════════ SETUP SCREEN ════════════════════════════════
 function connectDrive(){
@@ -960,7 +962,7 @@ function launchApp(){
 }
 function disconnect(){
   openConfirm('Disconnect?','Your credentials will be cleared.',function(){
-    localStorage.removeItem(CFG_KEY);
+    localStorage.removeItem(LS_PREFIX + CFG_KEY);
     document.getElementById('setupScreen').style.display='flex';
     document.getElementById('appScreen').style.display='none';
     state={cfg:null,items:[],selIds:new Set(),vm:'grid',mode:'all',folderId:null,folderName:'My Drive',ctxItem:null};

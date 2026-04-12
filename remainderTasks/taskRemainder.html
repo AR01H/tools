@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+    <script>const LS_PREFIX = "remainderTasks_taskRemainder_";
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>taskRemainder_ by husien</title>
@@ -466,15 +468,15 @@ const PO={high:0,medium:1,low:2};
 const SO={pending:0,'in-progress':1,completed:2,cancelled:3};
 
 let tasks=[],editId=null,curView='all',curCat=null,priF='all',vm='card',grp='category',sel=new Set(),coll=new Set(),confCB=null;
-let theme=localStorage.getItem('tr_theme')||'dark';
+let theme=localStorage.getItem(LS_PREFIX + 'tr_theme')||'dark';
 
 // ── Theme ──
 function applyTheme(){document.documentElement.setAttribute('data-theme',theme);document.getElementById('thmbtn').textContent=theme==='dark'?'🌙':'☀️';}
-function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem('tr_theme',theme);applyTheme();}
+function toggleTheme(){theme=theme==='dark'?'light':'dark';localStorage.setItem(LS_PREFIX + 'tr_theme',theme);applyTheme();}
 
 // ── Storage ──
-function load(){try{const d=localStorage.getItem('taskRemainder_tasks');if(d)tasks=JSON.parse(d);}catch{tasks=[]}}
-function save(){try{localStorage.setItem('taskRemainder_tasks',JSON.stringify(tasks));}catch{}}
+function load(){try{const d=localStorage.getItem(LS_PREFIX + 'taskRemainder_tasks');if(d)tasks=JSON.parse(d);}catch{tasks=[]}}
+function save(){try{localStorage.setItem(LS_PREFIX + 'taskRemainder_tasks',JSON.stringify(tasks));}catch{}}
 
 // ── Utils ──
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}

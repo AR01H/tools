@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "testCaseManager_index_";
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>We1 | Test Case Tracker</title>
@@ -1291,9 +1293,9 @@
                 if (!Array.isArray(testCases)) testCases = [];
                 if (!Array.isArray(environments)) environments = ['Staging', 'Production'];
                 
-                localStorage.setItem('azureTickets', JSON.stringify(tickets));
-                localStorage.setItem('azureTestCases', JSON.stringify(testCases));
-                localStorage.setItem('azureEnvironments', JSON.stringify(environments));
+                localStorage.setItem(LS_PREFIX + 'azureTickets', JSON.stringify(tickets));
+                localStorage.setItem(LS_PREFIX + 'azureTestCases', JSON.stringify(testCases));
+                localStorage.setItem(LS_PREFIX + 'azureEnvironments', JSON.stringify(environments));
             } catch (error) {
                 console.error('Error saving data:', error);
             }
@@ -1301,9 +1303,9 @@
 
         function loadData() {
             try {
-                const savedTickets = localStorage.getItem('azureTickets');
-                const savedTestCases = localStorage.getItem('azureTestCases');
-                const savedEnvironments = localStorage.getItem('azureEnvironments');
+                const savedTickets = localStorage.getItem(LS_PREFIX + 'azureTickets');
+                const savedTestCases = localStorage.getItem(LS_PREFIX + 'azureTestCases');
+                const savedEnvironments = localStorage.getItem(LS_PREFIX + 'azureEnvironments');
                 
                 if (savedTickets && savedTickets !== 'undefined') {
                     tickets = JSON.parse(savedTickets);

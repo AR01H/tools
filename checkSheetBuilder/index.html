@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "checkSheetBuilder_index_";
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>We1 | Cheat Sheet Builder</title>
@@ -990,12 +992,12 @@
             } else {
                 favorites.add(fileId);
             }
-            localStorage.setItem('cheatSheetFavorites', JSON.stringify([...favorites]));
+            localStorage.setItem(LS_PREFIX + 'cheatSheetFavorites', JSON.stringify([...favorites]));
             renderFilesList();
         }
 
         function loadFavorites() {
-            const stored = localStorage.getItem('cheatSheetFavorites');
+            const stored = localStorage.getItem(LS_PREFIX + 'cheatSheetFavorites');
             if (stored) {
                 favorites = new Set(JSON.parse(stored));
             }
@@ -1294,7 +1296,7 @@
         }
 
         function loadSettings() {
-            const stored = localStorage.getItem(SETTINGS_KEY);
+            const stored = localStorage.getItem(LS_PREFIX + SETTINGS_KEY);
             if (stored) {
                 settings = JSON.parse(stored);
                 changeTheme(settings.theme);
@@ -1308,7 +1310,7 @@
         }
 
         function saveSettings() {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            localStorage.setItem(LS_PREFIX + SETTINGS_KEY, JSON.stringify(settings));
         }
 
         function changeTheme(theme) {
@@ -1325,7 +1327,7 @@
         }
 
         function loadFiles() {
-            const stored = localStorage.getItem(STORAGE_KEY);
+            const stored = localStorage.getItem(LS_PREFIX + STORAGE_KEY);
             if (stored) {
                 files = JSON.parse(stored);
             } else {
@@ -1345,7 +1347,7 @@
         }
 
         function saveFiles() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+            localStorage.setItem(LS_PREFIX + STORAGE_KEY, JSON.stringify(files));
         }
 
         function searchFiles() {
@@ -1440,7 +1442,7 @@
             if (confirm('Delete this cheat sheet?')) {
                 delete files[id];
                 favorites.delete(id);
-                localStorage.setItem('cheatSheetFavorites', JSON.stringify([...favorites]));
+                localStorage.setItem(LS_PREFIX + 'cheatSheetFavorites', JSON.stringify([...favorites]));
                 
                 if (id === currentFileId) {
                     currentFileId = null;
@@ -1810,8 +1812,8 @@
         function clearAllData() {
             if (confirm('Delete ALL cheat sheets? This cannot be undone!')) {
                 if (confirm('Are you absolutely sure? All data will be lost!')) {
-                    localStorage.removeItem(STORAGE_KEY);
-                    localStorage.removeItem('cheatSheetFavorites');
+                    localStorage.removeItem(LS_PREFIX + STORAGE_KEY);
+                    localStorage.removeItem(LS_PREFIX + 'cheatSheetFavorites');
                     files = {};
                     favorites.clear();
                     currentFileId = null;

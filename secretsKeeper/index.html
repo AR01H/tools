@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "secretsKeeper_index_";
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>We1 | Secret Keeper</title>
@@ -703,9 +705,9 @@
             let editingId = null;
             let editingApp = null;
 
-            const load = () => JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+            const load = () => JSON.parse(localStorage.getItem(LS_PREFIX + STORAGE_KEY)) || {};
             const save = (d) => {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+                localStorage.setItem(LS_PREFIX + STORAGE_KEY, JSON.stringify(d));
                 render();
                 stats();
             };
@@ -1024,7 +1026,7 @@
 
             $('#clearBtn').click(() => {
                 if (confirm('Delete ALL?') && confirm('REALLY?')) {
-                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(LS_PREFIX + STORAGE_KEY);
                     save({});
                     toast('Cleared!');
                 }

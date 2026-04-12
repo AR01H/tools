@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "StorageInfoBox_index_";
+</script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>We1 | Info & Config Box</title>
@@ -124,11 +126,11 @@ const nowStr = () => new Date().toLocaleString();
 const esc = s => String(s||'').replace(/[&<>]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','':'','':'','	':'	'}[ch]));
 
 function load(){
-  try{ const raw = localStorage.getItem(KEY); store = raw?JSON.parse(raw):{folders:[{id:'all',name:'All'}],items:[]}; }
+  try{ const raw = localStorage.getItem(LS_PREFIX + KEY); store = raw?JSON.parse(raw):{folders:[{id:'all',name:'All'}],items:[]}; }
   catch(e){ console.error(e); store = {folders:[{id:'all',name:'All'}], items:[]}; }
   if(!store.folders || !store.folders.length) store.folders = [{id:'all',name:'All'}];
 }
-function save(){ localStorage.setItem(KEY, JSON.stringify(store)); }
+function save(){ localStorage.setItem(LS_PREFIX + KEY, JSON.stringify(store)); }
 
 function renderFolders(){
   const $f = $('#folders').empty();

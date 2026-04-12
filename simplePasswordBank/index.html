@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script>const LS_PREFIX = "simplePasswordBank_index_";
+</script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>We1 | Simple Pass Bank</title>
@@ -714,10 +716,10 @@
         }
       }
       function saveJSON(key, obj) {
-        localStorage.setItem(key, JSON.stringify(obj));
+        localStorage.setItem(LS_PREFIX + key, JSON.stringify(obj));
       }
       function loadJSON(key, fallback) {
-        return safeParse(localStorage.getItem(key), fallback);
+        return safeParse(localStorage.getItem(LS_PREFIX + key), fallback);
       }
       function escapeHtml(s) {
         if (!s && s !== 0) return "";
@@ -736,10 +738,10 @@
 
       // Crypto
       function ensureSalt() {
-        let s = localStorage.getItem(LS_VALUT_SALT_KEY);
+        let s = localStorage.getItem(LS_PREFIX + LS_VALUT_SALT_KEY);
         if (!s) {
           s = CryptoJS.lib.WordArray.random(16).toString();
-          localStorage.setItem(LS_VALUT_SALT_KEY, s);
+          localStorage.setItem(LS_PREFIX + LS_VALUT_SALT_KEY, s);
         }
         return s;
       }
@@ -796,7 +798,7 @@
       }
 
       document.getElementById("setBtn").onclick = function () {
-        if (localStorage.getItem(LS_VALUT_ENC_KEY))
+        if (localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY))
           return alert("Master already set. Use Unlock.");
         let pass = document.getElementById("masterInput").value;
         let hint = document.getElementById("masterInputHint").value;
@@ -806,7 +808,7 @@
 
         let s = ensureSalt();
         let keyHex = deriveKeyHex(pass, s);
-        localStorage.setItem(LS_VALUT_ENC_KEY, encryptVault([], keyHex));
+        localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, encryptVault([], keyHex));
         derivedKey = keyHex;
         document.getElementById("masterInput").value = "";
         showApp();
@@ -814,7 +816,7 @@
         loadEntries();
         resetAutoLock();
         alert("Master password created!");
-        localStorage.setItem(LS_MASTER_PWD_HINT, hint);
+        localStorage.setItem(LS_PREFIX + LS_MASTER_PWD_HINT, hint);
       };
 
       document.addEventListener("click", function (e) {
@@ -869,7 +871,7 @@
 
           const salt = ensureSalt();
           const keyHex = deriveKeyHex(pass, salt);
-          const enc = localStorage.getItem(LS_VALUT_ENC_KEY);
+          const enc = localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY);
           if (!enc) return;
 
           try {
@@ -898,7 +900,7 @@
 
         const salt = ensureSalt();
         const keyHex = deriveKeyHex(pass, salt);
-        const enc = localStorage.getItem(LS_VALUT_ENC_KEY);
+        const enc = localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY);
         if (!enc) return alert("No vault found. Create master first.");
 
         try {
@@ -925,7 +927,7 @@
           }, 1000);
 
           // If hint is exist then show it
-          const hint = localStorage.getItem(LS_MASTER_PWD_HINT);
+          const hint = localStorage.getItem(LS_PREFIX + LS_MASTER_PWD_HINT);
           if (hint){
             // add a p with class mastertaghint tag with the hint below the input field
             // If alredy exist then remove it
@@ -976,7 +978,7 @@
       function readVaultArray() {
         if (!derivedKey) return [];
         const enc =
-          localStorage.getItem(LS_VALUT_ENC_KEY) || encryptVault([], derivedKey);
+          localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY) || encryptVault([], derivedKey);
         try {
           return JSON.parse(decryptVault(enc, derivedKey));
         } catch (e) {
@@ -986,7 +988,7 @@
 
       function writeVaultArray(arr) {
         if (!derivedKey) return;
-        localStorage.setItem(LS_VALUT_ENC_KEY, encryptVault(arr, derivedKey));
+        localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, encryptVault(arr, derivedKey));
       }
 
       // Folders
@@ -1365,11 +1367,11 @@
           if (!oldMaster) return;
 
           try {
-            const existingSalt = localStorage.getItem(LS_VALUT_SALT_KEY);
+            const existingSalt = localStorage.getItem(LS_PREFIX + LS_VALUT_SALT_KEY);
             if (!existingSalt) return alert("No vault found.");
 
             const oldKeyHex = deriveKeyHex(oldMaster, existingSalt);
-            const vaultEnc = localStorage.getItem(LS_VALUT_ENC_KEY);
+            const vaultEnc = localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY);
 
             if (!vaultEnc) return alert("No vault found. Create master first.");
 
@@ -1401,11 +1403,11 @@
               const newEnc = encryptVault(vaultArray, newKeyHex);
 
               // Save new encrypted vault AND new salt
-              localStorage.setItem(LS_VALUT_ENC_KEY, newEnc);
-              localStorage.setItem(LS_VALUT_SALT_KEY, newSalt);
+              localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, newEnc);
+              localStorage.setItem(LS_PREFIX + LS_VALUT_SALT_KEY, newSalt);
 
               // Save new master hint
-              localStorage.setItem(LS_MASTER_PWD_HINT, addMasterHint);
+              localStorage.setItem(LS_PREFIX + LS_MASTER_PWD_HINT, addMasterHint);
 
               // Update current session key
               derivedKey = newKeyHex;
@@ -1655,9 +1657,9 @@
             prompt("Enter file name (leave blank for default):") ||
             new Date().toISOString().slice(0, 10);
 
-          const enc = localStorage.getItem(LS_VALUT_ENC_KEY) || "";
-          const salt = localStorage.getItem(LS_VALUT_SALT_KEY) || "";
-          const folders_backup = localStorage.getItem(LS_FOLDER_LIST_KEY) || "";
+          const enc = localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY) || "";
+          const salt = localStorage.getItem(LS_PREFIX + LS_VALUT_SALT_KEY) || "";
+          const folders_backup = localStorage.getItem(LS_PREFIX + LS_FOLDER_LIST_KEY) || "";
 
           const exportData = {
             exportType: "ENCRYPTED_BACKUP",
@@ -1695,9 +1697,9 @@
           "Enter Folder Name to export or leave blank to export with random name"
         );
 
-        const enc = localStorage.getItem(LS_VALUT_ENC_KEY) || "";
-        const salt = localStorage.getItem(LS_VALUT_SALT_KEY) || "";
-        const folders_backup = localStorage.getItem(LS_FOLDER_LIST_KEY) || "";
+        const enc = localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY) || "";
+        const salt = localStorage.getItem(LS_PREFIX + LS_VALUT_SALT_KEY) || "";
+        const folders_backup = localStorage.getItem(LS_PREFIX + LS_FOLDER_LIST_KEY) || "";
 
         // Export with salt and folders
         const exportData = {
@@ -1750,10 +1752,10 @@
                 JSON.parse(dec); // Validate
 
                 // Import successful - update everything
-                localStorage.setItem(LS_VALUT_ENC_KEY, importData.vault);
-                localStorage.setItem(LS_VALUT_SALT_KEY, importData.salt);
+                localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, importData.vault);
+                localStorage.setItem(LS_PREFIX + LS_VALUT_SALT_KEY, importData.salt);
                 if (importData.folders) {
-                  localStorage.setItem(LS_FOLDER_LIST_KEY, importData.folders);
+                  localStorage.setItem(LS_PREFIX + LS_FOLDER_LIST_KEY, importData.folders);
                 }
 
                 derivedKey = keyHex;
@@ -1779,7 +1781,7 @@
               try {
                 const dec = decryptVault(enc, derivedKey);
                 JSON.parse(dec);
-                localStorage.setItem(LS_VALUT_ENC_KEY, enc);
+                localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, enc);
                 alert("Vault imported with current master password!");
                 loadEntries(1);
               } catch (err) {
@@ -1801,7 +1803,7 @@
               const dec = decryptVault(enc, keyHex);
               JSON.parse(dec);
               derivedKey = keyHex;
-              localStorage.setItem(LS_VALUT_ENC_KEY, enc);
+              localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, enc);
               alert("Import successful!");
               loadEntries(1);
             } catch (e3) {
@@ -2008,10 +2010,10 @@
 
                   if (overwriteAll) {
                     // Replace everything
-                    localStorage.setItem(LS_VALUT_ENC_KEY, importData.vault);
-                    localStorage.setItem(LS_VALUT_SALT_KEY, importData.salt);
+                    localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, importData.vault);
+                    localStorage.setItem(LS_PREFIX + LS_VALUT_SALT_KEY, importData.salt);
                     if (importData.folders) {
-                      localStorage.setItem(LS_FOLDER_LIST_KEY, importData.folders);
+                      localStorage.setItem(LS_PREFIX + LS_FOLDER_LIST_KEY, importData.folders);
                     }
 
                     derivedKey = keyHex;
@@ -2262,10 +2264,10 @@
 
                   if (overwriteAll) {
                     // Replace everything
-                    localStorage.setItem(LS_VALUT_ENC_KEY, importData.vault);
-                    localStorage.setItem(LS_VALUT_SALT_KEY, importData.salt);
+                    localStorage.setItem(LS_PREFIX + LS_VALUT_ENC_KEY, importData.vault);
+                    localStorage.setItem(LS_PREFIX + LS_VALUT_SALT_KEY, importData.salt);
                     if (importData.folders) {
-                      localStorage.setItem(LS_FOLDER_LIST_KEY, importData.folders);
+                      localStorage.setItem(LS_PREFIX + LS_FOLDER_LIST_KEY, importData.folders);
                     }
 
                     derivedKey = keyHex;
@@ -2360,7 +2362,7 @@
               try {
                   const salt = ensureSalt();
                   const keyHex = deriveKeyHex(master.trim(), salt);
-                  const enc = localStorage.getItem(LS_VALUT_ENC_KEY);
+                  const enc = localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY);
 
                   const dec = decryptVault(enc, keyHex);
                   JSON.parse(dec);
@@ -2385,9 +2387,9 @@
       });
 
       function deleteVaultNow() {
-          localStorage.removeItem(LS_VALUT_ENC_KEY);
-          localStorage.removeItem(LS_VALUT_SALT_KEY);
-          localStorage.removeItem(LS_FOLDER_LIST_KEY);
+          localStorage.removeItem(LS_PREFIX + LS_VALUT_ENC_KEY);
+          localStorage.removeItem(LS_PREFIX + LS_VALUT_SALT_KEY);
+          localStorage.removeItem(LS_PREFIX + LS_FOLDER_LIST_KEY);
 
           alert("Vault cleared instantly!");
           window.location.replace(window.location.href);
@@ -2424,7 +2426,7 @@
       /* =============== INIT =============== */
       function initApp() {
         // Show only unlock if master password is already set
-        if (localStorage.getItem(LS_VALUT_ENC_KEY)) {
+        if (localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY)) {
           document.getElementById("setBtn").style.display = "none";
           document.getElementById("unlockBtn").style.display = "block";
           document.getElementById("masterInputHint").style.display = "none";
@@ -2449,7 +2451,7 @@
         .getElementById("masterInput")
         .addEventListener("keypress", function (e) {
           if (e.which === 13 || e.keyCode === 13) {
-            if (localStorage.getItem(LS_VALUT_ENC_KEY)) {
+            if (localStorage.getItem(LS_PREFIX + LS_VALUT_ENC_KEY)) {
               document.getElementById("unlockBtn").click();
             } else {
               document.getElementById("setBtn").click();

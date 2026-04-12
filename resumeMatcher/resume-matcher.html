@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "resumeMatcher_resume-matcher_";
+</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>We1 | Resume Checker</title>
@@ -538,7 +540,7 @@ let mode='full', lastResult=null;
 function onProv(){
   const p=document.getElementById('prov').value;
   document.getElementById('model-tag').textContent=PROV_CFG[p].badge;
-  const saved=localStorage.getItem('cl_key_'+p);
+  const saved=localStorage.getItem(LS_PREFIX + 'cl_key_'+p);
   document.getElementById('api-key').value=saved||'';
   document.getElementById('api-key').type='password';
 }
@@ -547,7 +549,7 @@ function saveKey(){
   const k=document.getElementById('api-key').value.trim();
   const p=document.getElementById('prov').value;
   if(!k){showErr('No key entered.');return;}
-  localStorage.setItem('cl_key_'+p,k);
+  localStorage.setItem(LS_PREFIX + 'cl_key_'+p,k);
   const b=document.querySelector('.save-btn');
   b.textContent='✓ Saved';setTimeout(()=>{b.textContent='Save';},1800);
 }
@@ -556,8 +558,8 @@ function saveKey(){
 function toggleTheme(){
   const h=document.documentElement;
   const isLight=h.getAttribute('data-theme')==='light';
-  if(isLight){h.removeAttribute('data-theme');localStorage.setItem('cl_theme','dark');document.getElementById('theme-btn').textContent='☀️';}
-  else{h.setAttribute('data-theme','light');localStorage.setItem('cl_theme','light');document.getElementById('theme-btn').textContent='🌙';}
+  if(isLight){h.removeAttribute('data-theme');localStorage.setItem(LS_PREFIX + 'cl_theme','dark');document.getElementById('theme-btn').textContent='☀️';}
+  else{h.setAttribute('data-theme','light');localStorage.setItem(LS_PREFIX + 'cl_theme','light');document.getElementById('theme-btn').textContent='🌙';}
 }
 
 // ─── MODES ───
@@ -1047,7 +1049,7 @@ function exportTxt(){
 window.addEventListener('DOMContentLoaded',()=>{
   onProv();
   renderInputs();
-  const theme=localStorage.getItem('cl_theme');
+  const theme=localStorage.getItem(LS_PREFIX + 'cl_theme');
   if(theme==='light'){document.documentElement.setAttribute('data-theme','light');document.getElementById('theme-btn').textContent='🌙';}
 });
 </script>

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "flowChartMaker_codeFlowForge_";
+</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>We1 | Diagram from Code</title>
@@ -2027,7 +2029,7 @@
       const AUTOSAVE_KEY = 'flowchart_autosave';
       
       // Load autosaved content
-      const savedContent = localStorage.getItem(AUTOSAVE_KEY);
+      const savedContent = localStorage.getItem(LS_PREFIX + AUTOSAVE_KEY);
       if (savedContent && !codeInput.value.trim()) {
         try {
           const data = JSON.parse(savedContent);
@@ -2054,7 +2056,7 @@
             mode: currentMode,
             timestamp: new Date().toISOString()
           };
-          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+          localStorage.setItem(LS_PREFIX + AUTOSAVE_KEY, JSON.stringify(data));
         }, 2000);
       });
     }

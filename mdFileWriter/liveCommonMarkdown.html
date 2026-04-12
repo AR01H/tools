@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "mdFileWriter_liveCommonMarkdown_";
+</script>
   <meta charset="UTF-8" />
   <title>We1 | Markdown Editor</title>
   <link rel="icon" href="../logo.png" type="image/x-icon">
@@ -588,7 +590,7 @@
 
 <script>
   const STORAGE = 'pmd_files_v2';
-  let files = JSON.parse(localStorage.getItem(STORAGE) || '{}');
+  let files = JSON.parse(localStorage.getItem(LS_PREFIX + STORAGE) || '{}');
   let current = '';
   let searchQuery = '';
   let currentMode = 'split';
@@ -605,7 +607,7 @@
   // Initialize app
   window.onload = function() {
     // Load theme
-    if (localStorage.getItem('theme') === 'light') {
+    if (localStorage.getItem(LS_PREFIX + 'theme') === 'light') {
       document.body.classList.add('light-mode');
     }
     
@@ -750,14 +752,14 @@
 
   function saveAll() {
     saveCurrent();
-    localStorage.setItem(STORAGE, JSON.stringify(files));
+    localStorage.setItem(LS_PREFIX + STORAGE, JSON.stringify(files));
     showToast('All files saved!', 'success');
   }
 
   function autoSave() {
     if (isModified) {
       saveCurrent();
-      localStorage.setItem(STORAGE, JSON.stringify(files));
+      localStorage.setItem(LS_PREFIX + STORAGE, JSON.stringify(files));
     }
   }
 
@@ -901,7 +903,7 @@
   function toggleTheme() {
     document.body.classList.toggle('light-mode');
     const isLight = document.body.classList.contains('light-mode');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    localStorage.setItem(LS_PREFIX + 'theme', isLight ? 'light' : 'dark');
     showToast('Switched to ' + (isLight ? 'light' : 'dark') + ' mode', 'info');
   }
 

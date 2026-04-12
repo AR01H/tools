@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>const LS_PREFIX = "exportasDrive_smallui_";
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DriveSync</title>
@@ -117,7 +119,7 @@
 <script>
 // ── State ─────────────────────────────────────────────
 const LS_URL_KEY = "__drivesync_url__";
-let scriptURL = localStorage.getItem(LS_URL_KEY) || "";
+let scriptURL = localStorage.getItem(LS_PREFIX + LS_URL_KEY) || "";
 let username  = "";
 let password  = "";
 let selectedFileId = null;
@@ -153,7 +155,7 @@ function doSetup() {
     return msg("setup-msg", "err", "URL must start with https://script.google.com/macros/s/");
   }
   scriptURL = url;
-  localStorage.setItem(LS_URL_KEY, url);
+  localStorage.setItem(LS_PREFIX + LS_URL_KEY, url);
   showPage("page-login");
 }
 
@@ -190,7 +192,7 @@ function doLogout() {
 }
 
 function changeURL() {
-  localStorage.removeItem(LS_URL_KEY);
+  localStorage.removeItem(LS_PREFIX + LS_URL_KEY);
   scriptURL = "";
   document.getElementById("setup-url").value = "";
   showPage("page-setup");
@@ -205,7 +207,7 @@ function renderExportKeys() {
     return;
   }
   list.innerHTML = keys.map(k => {
-    const val = localStorage.getItem(k) || "";
+    const val = localStorage.getItem(LS_PREFIX + k) || "";
     const preview = val.length > 50 ? val.slice(0, 50) + "…" : val;
     return `<label class="key-row">
       <input type="checkbox" class="exp-cb" value="${esc(k)}" checked>
@@ -221,7 +223,7 @@ async function doExport() {
   const appName = document.getElementById("exp-app").value.trim() || "MyApp";
   const label   = document.getElementById("exp-label").value.trim() || "backup";
   const data = {};
-  selected.forEach(k => data[k] = localStorage.getItem(k));
+  selected.forEach(k => data[k] = localStorage.getItem(LS_PREFIX + k));
   msg("export-msg", "info", "Exporting…");
   try {
     const res = await api({ action: "export", appName, label, data });
@@ -281,7 +283,7 @@ async function selectFile(fileId) {
       listEl.innerHTML = '<div style="padding:12px;color:#999;font-size:13px;">No keys in this backup.</div>';
     } else {
       listEl.innerHTML = keys.map(k => {
-        const exists = localStorage.getItem(k) !== null;
+        const exists = localStorage.getItem(LS_PREFIX + k) !== null;
         return `<label class="key-row">
           <input type="checkbox" class="imp-cb" value="${esc(k)}" checked>
           <span style="flex:1;font-family:monospace;">${esc(k)}</span>
@@ -306,7 +308,7 @@ async function doImport() {
     let count = 0;
     keys.forEach(k => {
       if (res.data && res.data[k] !== undefined) {
-        localStorage.setItem(k, res.data[k]);
+        localStorage.setItem(LS_PREFIX + k, res.data[k]);
         count++;
       }
     });
@@ -343,7 +345,7 @@ async function saveConfigToDrive() {
 function clearLS() {
   const keys = Object.keys(localStorage).filter(k => !k.startsWith("__drivesync_"));
   if (!confirm(`Clear ${keys.length} key(s)? DriveSync settings will be kept.`)) return;
-  keys.forEach(k => localStorage.removeItem(k));
+  keys.forEach(k => localStorage.removeItem(LS_PREFIX + k));
   renderExportKeys();
   alert("LocalStorage cleared.");
 }

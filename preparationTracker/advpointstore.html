@@ -2,6 +2,8 @@
 <html lang="en" data-theme="light">
 
 <head>
+    <script>const LS_PREFIX = "preparationTracker_advpointstore_";
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>We1 | Interview Prep (Advanced)</title>
@@ -2543,9 +2545,9 @@
     // ──────────────────────────────────────────────
     const LS = {
       K: { P: 'ps4_pts', S: 'ps4_secs', SET: 'ps4_set' },
-      get(k) { try { return JSON.parse(localStorage.getItem(k)) || null } catch { return null } },
-      set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true } catch { toast('Storage full!', 'error'); return false } },
-      del(k) { localStorage.removeItem(k) },
+      get(k) { try { return JSON.parse(localStorage.getItem(LS_PREFIX + k)) || null } catch { return null } },
+      set(k, v) { try { localStorage.setItem(LS_PREFIX + k, JSON.stringify(v)); return true } catch { toast('Storage full!', 'error'); return false } },
+      del(k) { localStorage.removeItem(LS_PREFIX + k) },
       size() { let b = 0; for (let k in localStorage) if (k.startsWith('ps4_')) b += (localStorage[k].length + k.length) * 2; return b }
     };
     const BUILTIN_STATUSES = [
