@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Design Pro</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #0e0f14;
+      --bg2: #15161d;
+      --bg3: #1c1e28;
+      --bg4: #242636;
+      --border: #2e3045;
+      --border2: #3d4060;
+      --text: #e8eaf2;
+      --text2: #9799b0;
+      --text3: #5c5f7a;
+      --accent: #6c63ff;
+      --accent2: #9b92ff;
+      --green: #39d98a;
+      --orange: #ffaa44;
+      --red: #ff6b6b;
+      --blue: #5aacff;
+      --teal: #3dd9c4;
+      --pink: #f472b6;
+      --radius: 10px;
+      --font: 'Sora', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    /* ---- TOP BAR ---- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: -0.3px;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .topbar-spacer {
+      flex: 1;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--bg4);
+      border-color: var(--accent);
+      color: var(--accent2);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn.primary:hover {
+      background: var(--accent2);
+      border-color: var(--accent2);
+      color: #fff;
+    }
+
+    .btn.danger {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .btn.danger:hover {
+      background: rgba(255, 107, 107, 0.1);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* ---- LAYOUT ---- */
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    /* ---- SECTION CARD ---- */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text3);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ---- ARCHITECTURE FLOW ---- */
+    .arch-flow {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+    }
+
+    .arch-node {
+      border-radius: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 0.18s;
+      flex-shrink: 0;
+      min-width: 110px;
+      text-align: center;
+      user-select: none;
+      position: relative;
+    }
+
+    .arch-node:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .arch-node.selected {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.25);
+    }
+
+    .nd-title {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .nd-sub {
+      font-size: 10px;
+      margin-top: 2px;
+      opacity: 0.65;
+      font-family: var(--mono);
+    }
+
+    .arch-arrow {
+      width: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Node color themes */
+    .n-req {
+      background: rgba(108, 99, 255, 0.15);
+      border-color: rgba(108, 99, 255, 0.4);
+      color: #c5c0ff;
+    }
+
+    .n-lb {
+      background: rgba(90, 172, 255, 0.12);
+      border-color: rgba(90, 172, 255, 0.4);
+      color: #a8d4ff;
+    }
+
+    .n-as {
+      background: rgba(255, 170, 68, 0.12);
+      border-color: rgba(255, 170, 68, 0.4);
+      color: #ffd59e;
+    }
+
+    .n-app {
+      background: rgba(57, 217, 138, 0.12);
+      border-color: rgba(57, 217, 138, 0.4);
+      color: #8febb9;
+    }
+
+    .n-db {
+      background: rgba(255, 107, 107, 0.12);
+      border-color: rgba(255, 107, 107, 0.4);
+      color: #ffb3b3;
+    }
+
+    .n-out {
+      background: rgba(61, 217, 196, 0.12);
+      border-color: rgba(61, 217, 196, 0.4);
+      color: #9df0e5;
+    }
+
+    .n-custom {
+      background: rgba(244, 114, 182, 0.12);
+      border-color: rgba(244, 114, 182, 0.4);
+      color: #f9c4dc;
+    }
+
+    /* ---- FORM TO ADD/EDIT NODE ---- */
+    .node-form {
+      padding: 16px;
+      background: var(--bg3);
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .node-form.open {
+      display: block;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .form-group label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text3);
+      text-transform: uppercase;
+    }
+
+    .form-group input,
+    .form-group select {
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      border-radius: 7px;
+      padding: 7px 10px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+    }
+
+    .form-group select option {
+      background: var(--bg4);
+    }
+
+    /* ---- DRILL PANEL ---- */
+
+    .drill-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .dtab {
+      padding: 5px 12px;
+      border-radius: 7px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 11px;
+      font-family: var(--font);
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .dtab.active {
+      background: rgba(108, 99, 255, 0.2);
+      color: var(--accent2);
+      border-color: var(--accent);
+    }
+
+    .dtab:hover:not(.active) {
+      background: var(--bg4);
+      color: var(--text);
+    }
+
+    /* ---- FEAT TABLE ---- */
+    .feat-section {
+      padding: 14px 16px;
+    }
+
+    .feat-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .feat-toolbar-title {
+      font-size: 11px;
+      color: var(--text3);
+      font-weight: 500;
+    }
+
+    .feat-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .feat-table th {
+      text-align: left;
+      padding: 7px 10px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feat-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .feat-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .feat-table tr:hover td {
+      background: var(--bg3);
+    }
+
+    .editable {
+      outline: none;
+      border-radius: 5px;
+      padding: 2px 5px;
+      display: inline-block;
+      cursor: text;
+      min-width: 40px;
+      transition: background 0.12s;
+    }
+
+    .editable:focus {
+      background: rgba(108, 99, 255, 0.15);
+      color: var(--accent2);
+    }
+
+    .editable:empty:before {
+      content: attr(placeholder);
+      color: var(--text3);
+      font-style: italic;
+    }
+
+    .status-pill {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font);
+      transition: all 0.12s;
+      letter-spacing: 0.3px;
+    }
+
+    .sp-todo {
+      background: rgba(92, 95, 122, 0.25);
+      color: var(--text2);
+    }
+
+    .sp-wip {
+      background: rgba(255, 170, 68, 0.2);
+      color: var(--orange);
+    }
+
+    .sp-done {
+      background: rgba(57, 217, 138, 0.2);
+      color: var(--green);
+    }
+
+    .sp-todo:hover {
+      background: rgba(92, 95, 122, 0.4);
+    }
+
+    .sp-wip:hover {
+      background: rgba(255, 170, 68, 0.35);
+    }
+
+    .sp-done:hover {
+      background: rgba(57, 217, 138, 0.35);
+    }
+
+    .feat-num {
+      color: var(--text3);
+      font-size: 10px;
+      font-weight: 600;
+      min-width: 20px;
+      font-family: var(--mono);
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 16px;
+      padding: 0 4px;
+      line-height: 1;
+      border-radius: 4px;
+      transition: all 0.12s;
+    }
+
+    .del-btn:hover {
+      color: var(--red);
+      background: rgba(255, 107, 107, 0.1);
+    }
+
+    /* ---- CODE AREA ---- */
+    .code-section {
+      padding: 14px 16px;
+    }
+
+    .code-area {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.8;
+      color: var(--text2);
+      white-space: pre;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    .kw {
+      color: #9b92ff;
+    }
+
+    .fn {
+      color: var(--teal);
+    }
+
+    .str {
+      color: var(--orange);
+    }
+
+    .cmt {
+      color: var(--text3);
+    }
+
+    .num {
+      color: var(--blue);
+    }
+
+    /* ---- NOTES ---- */
+    .note-section {
+      padding: 14px 16px;
+    }
+
+    .note-box {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--orange);
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text2);
+      outline: none;
+      width: 100%;
+      min-height: 80px;
+      font-family: var(--font);
+      transition: border-left-color 0.15s;
+      resize: vertical;
+    }
+
+    .note-box:focus {
+      border-left-color: var(--accent);
+    }
+
+    /* ---- MODAL ---- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 24px;
+      width: 480px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .modal p {
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .modal .form-group {
+      margin-bottom: 12px;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* ---- EXPORT DROPDOWN ---- */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      min-width: 160px;
+      z-index: 150;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .dropdown-menu.open {
+      display: block;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text);
+      transition: background 0.12s;
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg4);
+      color: var(--accent2);
+    }
+
+    .dropdown-item .di-icon {
+      font-size: 14px;
+      width: 18px;
+      text-align: center;
+    }
+
+    /* ---- TOAST ---- */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.success {
+      border-color: var(--green);
+    }
+
+    .toast.error {
+      border-color: var(--red);
+    }
+
+    /* Print area for PDF export */
+    #print-target {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-icon">⬡</div>
+      System Design Pro
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="btn-group">
+      <button class="btn" onclick="openAddNodeModal()">＋ Add Node</button>
+      <label class="btn" style="cursor:pointer;" title="Import CSV">
+        ⬆ Import CSV
+        <input type="file" accept=".csv" style="display:none" onchange="importCSV(event)">
+      </label>
+      <div class="dropdown" id="exportDropdown">
+        <button class="btn primary" onclick="toggleExportMenu()">⬇ Export ▾</button>
+        <div class="dropdown-menu" id="exportMenu">
+          <div class="dropdown-item" onclick="exportCSV()"><span class="di-icon">📄</span> Export CSV</div>
+          <div class="dropdown-item" onclick="exportPDF()"><span class="di-icon">📕</span> Export PDF</div>
+          <div class="dropdown-item" onclick="exportImage()"><span class="di-icon">🖼</span> Export Image (PNG)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="wrap" id="exportArea">
+
+    <!-- ARCH FLOW CARD -->
+    <div class="card" id="archCard">
+      <div class="card-header">
+        <div>
+          <div class="card-label">Architecture</div>
+          <div class="card-title">High-level flow — click a node to drill down</div>
+        </div>
+        <div class="btn-group" id="node-edit-btns" style="display:none">
+          <button class="btn danger" onclick="deleteCurrentNode()">Delete node</button>
+          <button class="btn" onclick="openEditNodeModal()">Edit node</button>
+        </div>
+      </div>
+      <div class="arch-flow" id="archFlow"></div>
+    </div>
+
+    <!-- DRILL PANEL -->
+    <div class="card drill-panel" id="drillPanel">
+      <div class="card-header">
+        <div>
+          <div class="card-label" id="drill-label">Component</div>
+          <div class="card-title" id="drill-title"></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:var(--mono)" id="drill-sub"></div>
+        </div>
+        <div class="drill-tabs">
+          <button class="dtab active" id="tab-feat" onclick="showTab('feat')">Features</button>
+          <button class="dtab" id="tab-code" onclick="showTab('code')">Code</button>
+          <button class="dtab" id="tab-note" onclick="showTab('note')">Notes</button>
+        </div>
+      </div>
+
+      <!-- FEATURES PANE -->
+      <div id="pane-feat" class="feat-section">
+        <div class="feat-toolbar">
+          <span class="feat-toolbar-title">Click any cell to edit inline</span>
+          <button class="btn" style="margin-left:auto" onclick="addFeature()">＋ Add row</button>
+        </div>
+        <table class="feat-table">
+          <thead>
+            <tr>
+              <th style="width:24px">#</th>
+              <th style="width:28%">Feature</th>
+              <th style="width:33%">Detail / description</th>
+              <th style="width:16%">Status</th>
+              <th style="width:10%">Priority</th>
+              <th style="width:28px"></th>
+            </tr>
+          </thead>
+          <tbody id="feat-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- CODE PANE -->
+      <div id="pane-code" class="code-section" style="display:none">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Code reference for this component</div>
+        <div class="code-area" id="code-display"></div>
+      </div>
+
+      <!-- NOTES PANE -->
+      <div id="pane-note" class="note-section" style="display:none">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Architecture notes — editable</div>
+        <textarea class="note-box" id="note-content" spellcheck="false"
+          placeholder="Add notes about this component…"></textarea>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <!-- ADD / EDIT NODE MODAL -->
+  <div class="modal-overlay" id="nodeModal">
+    <div class="modal">
+      <h2 id="modal-title">Add Architecture Node</h2>
+      <p id="modal-desc">Define a new component in your system design flow.</p>
+      <div class="form-group">
+        <label>Node name</label>
+        <input type="text" id="modal-name" placeholder="e.g. Cache layer">
+      </div>
+      <div class="form-group">
+        <label>Subtitle</label>
+        <input type="text" id="modal-sub" placeholder="e.g. Redis / Memcached">
+      </div>
+      <div class="form-group">
+        <label>Color theme</label>
+        <select id="modal-color">
+          <option value="n-req">Purple</option>
+          <option value="n-lb">Blue</option>
+          <option value="n-as">Orange</option>
+          <option value="n-app">Green</option>
+          <option value="n-db">Red</option>
+          <option value="n-out">Teal</option>
+          <option value="n-custom">Pink</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeNodeModal()">Cancel</button>
+        <button class="btn primary" id="modal-save-btn" onclick="saveNodeModal()">Add Node</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">Done</span>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    //  DATA
+    // ═══════════════════════════════════════════════════════
+    const NODES = {
+      req: {
+        title: 'Request', sub: 'Client / browser entry point', color: 'n-req',
+        features: [
+          { f: 'HTTPS enforcement', d: 'Redirect all HTTP → HTTPS (301)', s: 'done', p: 'P0' },
+          { f: 'Request headers', d: 'Accept, Content-Type, Auth token', s: 'done', p: 'P0' },
+          { f: 'CORS policy', d: 'Whitelist allowed origins', s: 'wip', p: 'P1' },
+          { f: 'Rate limiting', d: 'Max 100 req/min per IP', s: 'todo', p: 'P1' },
+          { f: 'Payload validation', d: 'Max 5MB body size', s: 'todo', p: 'P2' },
+          { f: 'Request ID header', d: 'Inject X-Request-ID for tracing', s: 'todo', p: 'P2' },
+          { f: 'Compression', d: 'Accept gzip, br encoding', s: 'wip', p: 'P2' },
+          { f: 'Auth header', d: 'Bearer token or API key', s: 'done', p: 'P0' },
+          { f: 'Timeout client', d: '30s max before 408 response', s: 'todo', p: 'P1' },
+          { f: 'Retry policy', d: '3 retries with exponential backoff', s: 'todo', p: 'P2' },
+        ],
+        code: `<span class="cmt">// Client request with auth + retry</span>
+<span class="kw">async function</span> <span class="fn">apiRequest</span>(url, options = {}) {
+  <span class="kw">const</span> headers = {
+    <span class="str">'Authorization'</span>: \`Bearer \${getToken()}\`,
+    <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+    <span class="str">'X-Request-ID'</span>: crypto.randomUUID()
+  };
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> res = <span class="kw">await</span> fetch(url, { ...options, headers });
+      <span class="kw">if</span> (res.ok) <span class="kw">return</span> res.json();
+    } <span class="kw">catch</span> (e) {
+      <span class="kw">await</span> sleep(<span class="num">200</span> * (<span class="num">2</span> ** i));
+    }
+  }
+  <span class="kw">throw new</span> Error(<span class="str">'Request failed after 3 retries'</span>);
+}`,
+        note: 'Entry point. All requests must go through HTTPS. Inject X-Request-ID at client so we can trace end-to-end across all logs. Auth token must be refreshed before expiry.'
+      },
+      lb: {
+        title: 'Load Balancer', sub: 'nginx / AWS ALB — distributes traffic', color: 'n-lb',
+        features: [
+          { f: 'Round-robin routing', d: 'Default distribution algorithm', s: 'done', p: 'P0' },
+          { f: 'Health checks', d: 'GET /health every 10s', s: 'done', p: 'P0' },
+          { f: 'SSL termination', d: 'TLS 1.3 at LB, plain HTTP upstream', s: 'done', p: 'P0' },
+          { f: 'Sticky sessions', d: 'Cookie-based for WebSocket routes', s: 'wip', p: 'P1' },
+          { f: 'Request logging', d: 'Log IP, path, status, latency', s: 'done', p: 'P0' },
+          { f: 'DDoS protection', d: 'AWS Shield Standard', s: 'done', p: 'P0' },
+          { f: 'Gzip compression', d: 'Compress responses > 1KB', s: 'wip', p: 'P1' },
+          { f: 'Connection draining', d: '60s drain before removing instance', s: 'todo', p: 'P1' },
+          { f: 'WAF rules', d: 'OWASP rule set enabled', s: 'todo', p: 'P1' },
+          { f: 'Access logs S3', d: 'Export ALB logs to S3 daily', s: 'todo', p: 'P2' },
+        ],
+        code: `<span class="cmt"># nginx upstream config</span>
+<span class="kw">upstream</span> app_servers {
+  least_conn;
+  server <span class="str">10.0.0.1:3000</span> weight=<span class="num">1</span>;
+  server <span class="str">10.0.0.2:3000</span> weight=<span class="num">1</span>;
+  keepalive <span class="num">32</span>;
+}
+server {
+  listen <span class="num">443</span> ssl http2;
+  ssl_certificate     /etc/ssl/cert.pem;
+  ssl_certificate_key /etc/ssl/key.pem;
+  location / {
+    proxy_pass         http://app_servers;
+    proxy_set_header   X-Forwarded-For $remote_addr;
+    proxy_read_timeout <span class="num">30</span>s;
+  }
+}`,
+        note: 'Use least_conn for uneven workloads. Health check must be lightweight — no DB call. SSL terminates here; upstream is plain HTTP on private subnet only.'
+      },
+      as: {
+        title: 'Autoscaling', sub: 'EC2 Auto Scaling / Kubernetes HPA', color: 'n-as',
+        features: [
+          { f: 'Scale-out trigger', d: 'CPU > 70% for 2 min → add instance', s: 'done', p: 'P0' },
+          { f: 'Scale-in trigger', d: 'CPU < 30% for 5 min → remove', s: 'done', p: 'P0' },
+          { f: 'Min instances', d: 'Always keep minimum 2 running', s: 'done', p: 'P0' },
+          { f: 'Max instances', d: 'Hard cap at 20 instances', s: 'done', p: 'P0' },
+          { f: 'Cooldown period', d: '300s between scale events', s: 'wip', p: 'P1' },
+          { f: 'Memory metric', d: 'Also scale on memory > 80%', s: 'todo', p: 'P1' },
+          { f: 'Scheduled scaling', d: 'Pre-warm 4 instances at 9am Mon-Fri', s: 'todo', p: 'P2' },
+          { f: 'Spot instance mix', d: '70% on-demand + 30% spot', s: 'todo', p: 'P2' },
+          { f: 'Launch template', d: 'Golden AMI with app pre-installed', s: 'wip', p: 'P1' },
+          { f: 'Lifecycle hooks', d: 'Drain connections before terminate', s: 'todo', p: 'P1' },
+        ],
+        code: `<span class="cmt"># Kubernetes HPA definition</span>
+<span class="kw">apiVersion</span>: autoscaling/v2
+<span class="kw">kind</span>: HorizontalPodAutoscaler
+<span class="kw">metadata</span>:
+  name: app-hpa
+<span class="kw">spec</span>:
+  minReplicas: <span class="num">2</span>
+  maxReplicas: <span class="num">20</span>
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        averageUtilization: <span class="num">70</span>`,
+        note: 'Autoscaling is the heart of resilience. Always test scale-in — runaway scale-in events kill active connections. Use lifecycle hooks + LB connection draining together.'
+      },
+      app: {
+        title: 'App Server', sub: 'Node.js / Python — business logic layer', color: 'n-app',
+        features: [
+          { f: 'JWT validation', d: 'Verify token signature + expiry', s: 'done', p: 'P0' },
+          { f: 'Request routing', d: 'Express / FastAPI route handlers', s: 'done', p: 'P0' },
+          { f: 'DB connection pool', d: 'Max 10 connections per instance', s: 'done', p: 'P0' },
+          { f: 'Redis cache', d: 'Cache hot queries for 60s TTL', s: 'wip', p: 'P1' },
+          { f: 'Input sanitisation', d: 'Strip SQL injections, XSS', s: 'done', p: 'P0' },
+          { f: 'Error handling', d: 'Catch all, return standard error JSON', s: 'wip', p: 'P0' },
+          { f: 'Logging (structured)', d: 'JSON logs to stdout → CloudWatch', s: 'done', p: 'P0' },
+          { f: 'Background jobs', d: 'Bull queue for async tasks', s: 'todo', p: 'P1' },
+          { f: 'Feature flags', d: 'LaunchDarkly SDK integration', s: 'todo', p: 'P2' },
+          { f: 'OpenAPI docs', d: 'Auto-generate Swagger from routes', s: 'todo', p: 'P2' },
+        ],
+        code: `<span class="cmt">// Express route with auth + pool</span>
+<span class="kw">const</span> { Pool } = require(<span class="str">'pg'</span>);
+<span class="kw">const</span> pool = <span class="kw">new</span> Pool({ max: <span class="num">10</span> });
+
+app.get(<span class="str">'/api/users/:id'</span>, authMiddleware, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> cached = <span class="kw">await</span> redis.get(\`user:\${req.params.id}\`);
+  <span class="kw">if</span> (cached) <span class="kw">return</span> res.json(JSON.parse(cached));
+  <span class="kw">const</span> { rows } = <span class="kw">await</span> pool.query(
+    <span class="str">'SELECT * FROM users WHERE id=$1'</span>, [req.params.id]
+  );
+  <span class="kw">await</span> redis.setex(\`user:\${req.params.id}\`, <span class="num">60</span>, JSON.stringify(rows[<span class="num">0</span>]));
+  res.json(rows[<span class="num">0</span>]);
+});`,
+        note: 'Connection pool is critical — never open raw connections in request handlers. Redis cache layer sits between app and MySQL; measure cache hit rate. Structured JSON logs are mandatory for CloudWatch Insights queries.'
+      },
+      db: {
+        title: 'MySQL', sub: 'Primary + replica — data persistence', color: 'n-db',
+        features: [
+          { f: 'Primary / replica', d: '1 primary write, 2 read replicas', s: 'done', p: 'P0' },
+          { f: 'Connection pooling', d: 'ProxySQL in front of MySQL', s: 'done', p: 'P0' },
+          { f: 'Index optimisation', d: 'EXPLAIN all slow queries > 100ms', s: 'wip', p: 'P0' },
+          { f: 'Automated backups', d: 'Daily snapshots, 30-day retention', s: 'done', p: 'P0' },
+          { f: 'Encryption at rest', d: 'AES-256 RDS encryption enabled', s: 'done', p: 'P0' },
+          { f: 'Slow query log', d: 'Log queries > 200ms', s: 'done', p: 'P1' },
+          { f: 'Schema migrations', d: 'Flyway / Liquibase versioned', s: 'wip', p: 'P1' },
+          { f: 'Read replica lag', d: 'Alert if replica lag > 5s', s: 'todo', p: 'P1' },
+          { f: 'Row-level locking', d: 'Use SELECT ... FOR UPDATE carefully', s: 'todo', p: 'P1' },
+          { f: 'Query cache', d: 'Disabled in MySQL 8 — use Redis', s: 'done', p: 'P0' },
+        ],
+        code: `<span class="cmt">-- Schema + index example</span>
+<span class="kw">CREATE TABLE</span> users (
+  id         BIGINT UNSIGNED <span class="kw">NOT NULL AUTO_INCREMENT</span>,
+  email      VARCHAR(<span class="num">255</span>) <span class="kw">NOT NULL UNIQUE</span>,
+  created_at TIMESTAMP <span class="kw">DEFAULT</span> CURRENT_TIMESTAMP,
+  status     ENUM(<span class="str">'active'</span>,<span class="str">'inactive'</span>) <span class="kw">DEFAULT</span> <span class="str">'active'</span>,
+  <span class="kw">PRIMARY KEY</span> (id),
+  <span class="kw">INDEX</span> idx_status_created (status, created_at)
+);`,
+        note: 'Never query primary for reads unless you need latest-write consistency. All schema changes go through migration scripts — no manual ALTER in production. Always EXPLAIN before adding new queries to prod.'
+      }
+    };
+
+    // Node order
+    let nodeOrder = ['req', 'lb', 'as', 'app', 'db', 'out'];
+
+    // ═══════════════════════════════════════════════════════
+    //  RENDER FLOW
+    // ═══════════════════════════════════════════════════════
+    let currentNode = null, currentTab = 'feat';
+
+    function renderFlow() {
+      const flow = document.getElementById('archFlow');
+      flow.innerHTML = '';
+      nodeOrder.forEach((id, i) => {
+        const nd = NODES[id];
+        if (!nd) return;
+        if (i > 0) {
+          const arr = document.createElement('div');
+          arr.className = 'arch-arrow';
+          arr.textContent = '→';
+          flow.appendChild(arr);
+        }
+        const node = document.createElement('div');
+        node.className = `arch-node ${nd.color}`;
+        node.id = 'node-' + id;
+        if (currentNode === id) node.classList.add('selected');
+        node.innerHTML = `<div class="nd-title">${nd.title}</div><div class="nd-sub">${nd.sub}</div>`;
+        node.onclick = () => selectNode(id);
+        flow.appendChild(node);
+      });
+    }
+
+    function selectNode(id) {
+      document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('selected'));
+      const el = document.getElementById('node-' + id);
+      if (el) el.classList.add('selected');
+      currentNode = id;
+      const nd = NODES[id];
+      document.getElementById('drill-label').textContent = nd.color.replace('n-', '').toUpperCase();
+      document.getElementById('drill-title').textContent = nd.title;
+      document.getElementById('drill-sub').textContent = nd.sub;
+      document.getElementById('note-content').value = nd.note || '';
+      document.getElementById('drillPanel').style.display = '';
+      document.getElementById('node-edit-btns').style.display = 'flex';
+      showTab(currentTab);
+      renderFeatures(id);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  TABS
+    // ═══════════════════════════════════════════════════════
+    function showTab(t) {
+      currentTab = t;
+      ['feat', 'code', 'note'].forEach(x => {
+        document.getElementById('pane-' + x).style.display = x === t ? '' : 'none';
+        document.getElementById('tab-' + x).classList.toggle('active', x === t);
+      });
+      if (t === 'code' && currentNode) {
+        document.getElementById('code-display').innerHTML = NODES[currentNode].code || '<span style="color:var(--text3)">No code sample for this component.</span>';
+      }
+      if (t === 'note' && currentNode) {
+        document.getElementById('note-content').value = NODES[currentNode].note || '';
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  FEATURES
+    // ═══════════════════════════════════════════════════════
+    function renderFeatures(id) {
+      const feats = NODES[id].features;
+      const tbody = document.getElementById('feat-tbody');
+      tbody.innerHTML = '';
+      feats.forEach((f, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td class="feat-num">${i + 1}</td>
+      <td><span class="editable" contenteditable="true" spellcheck="false" placeholder="Feature name"
+        oninput="updateFeat('${id}',${i},'f',this.textContent)">${f.f}</span></td>
+      <td><span class="editable" contenteditable="true" spellcheck="false" placeholder="Detail..."
+        oninput="updateFeat('${id}',${i},'d',this.textContent)">${f.d}</span></td>
+      <td><button class="status-pill sp-${f.s}" onclick="cycleStatus('${id}',${i},this)">${statusLabel(f.s)}</button></td>
+      <td><span class="editable" contenteditable="true" spellcheck="false" placeholder="P0"
+        oninput="updateFeat('${id}',${i},'p',this.textContent)">${f.p}</span></td>
+      <td><button class="del-btn" title="Delete row" onclick="deleteFeat('${id}',${i})">×</button></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function statusLabel(s) { return { done: 'Done', wip: 'In progress', todo: 'To do' }[s] || s; }
+    function cycleStatus(id, i, btn) {
+      const order = ['todo', 'wip', 'done'];
+      const nd = NODES[id].features[i];
+      nd.s = order[(order.indexOf(nd.s) + 1) % 3];
+      btn.className = 'status-pill sp-' + nd.s;
+      btn.textContent = statusLabel(nd.s);
+    }
+    function updateFeat(id, i, key, val) { NODES[id].features[i][key] = val; }
+    function deleteFeat(id, i) {
+      NODES[id].features.splice(i, 1);
+      renderFeatures(id);
+    }
+    function addFeature() {
+      if (!currentNode) return;
+      NODES[currentNode].features.push({ f: 'New feature', d: 'Describe it here', s: 'todo', p: 'P2' });
+      renderFeatures(currentNode);
+    }
+
+    // Save notes on change
+    document.getElementById('note-content').addEventListener('input', () => {
+      if (currentNode) NODES[currentNode].note = document.getElementById('note-content').value;
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  ADD / EDIT / DELETE NODE MODAL
+    // ═══════════════════════════════════════════════════════
+    let modalMode = 'add'; // 'add' or 'edit'
+
+    function openAddNodeModal() {
+      modalMode = 'add';
+      document.getElementById('modal-title').textContent = 'Add Architecture Node';
+      document.getElementById('modal-desc').textContent = 'Define a new component in your system design flow.';
+      document.getElementById('modal-save-btn').textContent = 'Add Node';
+      document.getElementById('modal-name').value = '';
+      document.getElementById('modal-sub').value = '';
+      document.getElementById('modal-color').value = 'n-custom';
+      document.getElementById('nodeModal').classList.add('open');
+      setTimeout(() => document.getElementById('modal-name').focus(), 80);
+    }
+
+    function openEditNodeModal() {
+      if (!currentNode) return;
+      const nd = NODES[currentNode];
+      modalMode = 'edit';
+      document.getElementById('modal-title').textContent = 'Edit Node';
+      document.getElementById('modal-desc').textContent = 'Update the name, subtitle or color of this node.';
+      document.getElementById('modal-save-btn').textContent = 'Save Changes';
+      document.getElementById('modal-name').value = nd.title;
+      document.getElementById('modal-sub').value = nd.sub;
+      document.getElementById('modal-color').value = nd.color;
+      document.getElementById('nodeModal').classList.add('open');
+    }
+
+    function closeNodeModal() {
+      document.getElementById('nodeModal').classList.remove('open');
+    }
+
+    function saveNodeModal() {
+      const name = document.getElementById('modal-name').value.trim();
+      const sub = document.getElementById('modal-sub').value.trim();
+      const color = document.getElementById('modal-color').value;
+      if (!name) { showToast('Node name is required', 'error'); return; }
+
+      if (modalMode === 'add') {
+        const id = 'node_' + Date.now();
+        NODES[id] = { title: name, sub: sub || '', color, features: [], code: '', note: '' };
+        nodeOrder.push(id);
+        showToast('Node added ✓', 'success');
+      } else {
+        NODES[currentNode].title = name;
+        NODES[currentNode].sub = sub;
+        NODES[currentNode].color = color;
+        // Refresh drill title
+        document.getElementById('drill-title').textContent = name;
+        document.getElementById('drill-sub').textContent = sub;
+        showToast('Node updated ✓', 'success');
+      }
+      closeNodeModal();
+      renderFlow();
+      if (modalMode === 'add') selectNode(nodeOrder[nodeOrder.length - 1]);
+    }
+
+    function deleteCurrentNode() {
+      if (!currentNode) return;
+      if (!confirm(`Delete "${NODES[currentNode].title}"? This cannot be undone.`)) return;
+      delete NODES[currentNode];
+      nodeOrder = nodeOrder.filter(id => id !== currentNode);
+      currentNode = null;
+      document.getElementById('drillPanel').style.display = 'none';
+      document.getElementById('node-edit-btns').style.display = 'none';
+      renderFlow();
+      showToast('Node deleted', 'success');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('nodeModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('nodeModal')) closeNodeModal();
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  EXPORT — CSV
+    // ═══════════════════════════════════════════════════════
+    function exportCSV() {
+      closeExportMenu();
+      const rows = [['Node', 'Node Subtitle', 'Feature', 'Detail', 'Status', 'Priority']];
+      nodeOrder.forEach(id => {
+        const nd = NODES[id];
+        if (!nd) return;
+        if (!nd.features || nd.features.length === 0) {
+          rows.push([nd.title, nd.sub, '', '', '', '']);
+        } else {
+          nd.features.forEach(f => {
+            rows.push([nd.title, nd.sub, f.f, f.d, statusLabel(f.s), f.p]);
+          });
+        }
+      });
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      downloadBlob(new Blob([csv], { type: 'text/csv' }), 'system_design.csv');
+      showToast('CSV exported ✓', 'success');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  IMPORT — CSV
+    // ═══════════════════════════════════════════════════════
+    function importCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) { showToast('CSV appears empty', 'error'); return; }
+        // Parse header
+        const header = parseCSVRow(lines[0]);
+        const iNode = header.findIndex(h => h.toLowerCase().includes('node') && !h.toLowerCase().includes('sub'));
+        const iSub = header.findIndex(h => h.toLowerCase().includes('sub'));
+        const iFeat = header.findIndex(h => h.toLowerCase().includes('feature'));
+        const iDetail = header.findIndex(h => h.toLowerCase().includes('detail') || h.toLowerCase().includes('desc'));
+        const iStatus = header.findIndex(h => h.toLowerCase().includes('status'));
+        const iPri = header.findIndex(h => h.toLowerCase().includes('priority') || h.toLowerCase().includes('pri'));
+
+        const importedNodes = {};
+        const importedOrder = [];
+
+        lines.slice(1).forEach(line => {
+          const cols = parseCSVRow(line);
+          const nodeName = (cols[iNode] || '').trim();
+          const nodeSub = (cols[iSub] || '').trim();
+          const featName = (cols[iFeat] || '').trim();
+          const featDetail = (cols[iDetail] || '').trim();
+          const statusRaw = (cols[iStatus] || '').toLowerCase().trim();
+          const priority = (cols[iPri] || 'P2').trim();
+
+          if (!nodeName) return;
+
+          // Map readable status back
+          let s = 'todo';
+          if (statusRaw.includes('done') || statusRaw.includes('complete')) s = 'done';
+          else if (statusRaw.includes('progress') || statusRaw.includes('wip')) s = 'wip';
+
+          const nodeId = 'import_' + nodeName.toLowerCase().replace(/\W+/g, '_');
+          if (!importedNodes[nodeId]) {
+            importedNodes[nodeId] = {
+              title: nodeName, sub: nodeSub, color: 'n-custom', features: [], code: '', note: ''
+            };
+            importedOrder.push(nodeId);
+          }
+          if (featName) {
+            importedNodes[nodeId].features.push({ f: featName, d: featDetail, s, p: priority });
+          }
+        });
+
+        if (importedOrder.length === 0) { showToast('No valid rows found', 'error'); return; }
+
+        // Merge into existing data
+        Object.assign(NODES, importedNodes);
+        importedOrder.forEach(id => { if (!nodeOrder.includes(id)) nodeOrder.push(id); });
+        renderFlow();
+        showToast(`Imported ${importedOrder.length} node(s) ✓`, 'success');
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function parseCSVRow(row) {
+      const cols = [];
+      let cur = '', inQ = false;
+      for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === '"') {
+          if (inQ && row[i + 1] === '"') { cur += '"'; i++; }
+          else inQ = !inQ;
+        } else if (ch === ',' && !inQ) {
+          cols.push(cur); cur = '';
+        } else cur += ch;
+      }
+      cols.push(cur);
+      return cols.map(c => c.trim());
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  EXPORT — PDF
+    // ═══════════════════════════════════════════════════════
+    async function exportPDF() {
+      closeExportMenu();
+      showToast('Generating PDF…');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const W = doc.internal.pageSize.getWidth();
+      let y = 15;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.setTextColor(40, 40, 80);
+      doc.text('System Design — Architecture Overview', 14, y);
+      y += 7;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(130, 130, 150);
+      doc.text(`Generated ${new Date().toLocaleString()}`, 14, y);
+      y += 8;
+
+      // Flow summary line
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(80, 80, 120);
+      const flowLine = nodeOrder.filter(id => NODES[id]).map(id => NODES[id].title).join(' → ');
+      doc.text(flowLine, 14, y);
+      y += 10;
+
+      // Per node tables
+      nodeOrder.forEach(id => {
+        const nd = NODES[id];
+        if (!nd || !nd.features.length) return;
+
+        if (y > 170) { doc.addPage(); y = 15; }
+
+        // Node header
+        doc.setFillColor(35, 36, 58);
+        doc.roundedRect(14, y, W - 28, 8, 2, 2, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(200, 200, 255);
+        doc.text(`${nd.title}  —  ${nd.sub}`, 18, y + 5.5);
+        y += 11;
+
+        // Table headers
+        const cols = [8, 80, 50, 30, 20];
+        const headers = ['#', 'Feature', 'Detail', 'Status', 'Priority'];
+        let x = 14;
+        doc.setFillColor(20, 22, 40);
+        doc.rect(14, y, W - 28, 6, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 160);
+        headers.forEach((h, i) => { doc.text(h, x + 2, y + 4.5); x += cols[i]; });
+        y += 7;
+
+        // Rows
+        nd.features.forEach((f, ri) => {
+          if (y > 185) { doc.addPage(); y = 15; }
+          const bg = ri % 2 === 0 ? [22, 24, 38] : [18, 20, 34];
+          doc.setFillColor(...bg);
+          doc.rect(14, y, W - 28, 6, 'F');
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(200, 200, 210);
+          x = 14;
+          const vals = [String(ri + 1), f.f, f.d, statusLabel(f.s), f.p];
+          vals.forEach((v, i) => {
+            const maxW = cols[i] - 3;
+            const txt = doc.splitTextToSize(String(v), maxW)[0] || '';
+            doc.text(txt, x + 2, y + 4.2);
+            x += cols[i];
+          });
+          y += 6;
+        });
+        y += 6;
+      });
+
+      doc.save('system_design.pdf');
+      showToast('PDF downloaded ✓', 'success');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  EXPORT — IMAGE (PNG)
+    // ═══════════════════════════════════════════════════════
+    async function exportImage() {
+      closeExportMenu();
+      showToast('Capturing image…');
+      const el = document.getElementById('exportArea');
+      const canvas = await html2canvas(el, {
+        backgroundColor: '#0e0f14',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+      canvas.toBlob(blob => {
+        downloadBlob(blob, 'system_design.png');
+        showToast('Image downloaded ✓', 'success');
+      }, 'image/png');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  UTILS
+    // ═══════════════════════════════════════════════════════
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    let toastTimer;
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      const msgEl = document.getElementById('toast-msg');
+      t.className = 'toast show' + (type ? ' ' + type : '');
+      icon.textContent = type === 'error' ? '✕' : '✓';
+      msgEl.textContent = msg;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function toggleExportMenu() {
+      document.getElementById('exportMenu').classList.toggle('open');
+    }
+    function closeExportMenu() {
+      document.getElementById('exportMenu').classList.remove('open');
+    }
+    document.addEventListener('click', e => {
+      if (!document.getElementById('exportDropdown').contains(e.target)) closeExportMenu();
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  INIT
+    // ═══════════════════════════════════════════════════════
+    renderFlow();
+    selectNode('as');
+  </script>
+</body>
+
+</html>

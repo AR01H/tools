@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Design Pro</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    [data-theme="dark"] {
+      --bg0: #080910;
+      --bg1: #0d0e18;
+      --bg2: #12131f;
+      --bg3: #191b2a;
+      --bg4: #20233a;
+      --bg5: #272b45;
+      --border: #1e2135;
+      --border2: #2a2f52;
+      --text: #eceef8;
+      --text2: #8b8fa8;
+      --text3: #484d6e;
+      --text4: #2e3254;
+      --accent: #6b5fff;
+      --accentL: #9b8fff;
+      --accentBg: rgba(107, 95, 255, .13);
+      --green: #22d3a5;
+      --greenBg: rgba(34, 211, 165, .12);
+      --orange: #f59e0b;
+      --orangeBg: rgba(245, 158, 11, .12);
+      --red: #f87171;
+      --redBg: rgba(248, 113, 113, .12);
+      --blue: #60a5fa;
+      --blueBg: rgba(96, 165, 250, .12);
+      --pink: #e879f9;
+      --pinkBg: rgba(232, 121, 249, .12);
+      --teal: #2dd4bf;
+      --tealBg: rgba(45, 212, 191, .12);
+      --purple: #a78bfa;
+      --purpleBg: rgba(167, 139, 250, .12);
+      --yellow: #fbbf24;
+      --yellowBg: rgba(251, 191, 36, .12);
+      --shadow: 0 4px 32px rgba(0, 0, 0, .6);
+    }
+
+    [data-theme="light"] {
+      --bg0: #f1f2f9;
+      --bg1: #f8f8fd;
+      --bg2: #ffffff;
+      --bg3: #f4f5fc;
+      --bg4: #ecedf8;
+      --bg5: #e2e4f5;
+      --border: #e0e2f2;
+      --border2: #cccff0;
+      --text: #12142a;
+      --text2: #5a5e80;
+      --text3: #9ea2c2;
+      --text4: #c5c8e0;
+      --accent: #5746f0;
+      --accentL: #7060f5;
+      --accentBg: rgba(87, 70, 240, .08);
+      --green: #059669;
+      --greenBg: rgba(5, 150, 105, .08);
+      --orange: #d97706;
+      --orangeBg: rgba(217, 119, 6, .08);
+      --red: #dc2626;
+      --redBg: rgba(220, 38, 38, .08);
+      --blue: #2563eb;
+      --blueBg: rgba(37, 99, 235, .08);
+      --pink: #a21caf;
+      --pinkBg: rgba(162, 28, 175, .08);
+      --teal: #0d9488;
+      --tealBg: rgba(13, 148, 136, .08);
+      --purple: #7c3aed;
+      --purpleBg: rgba(124, 58, 237, .08);
+      --yellow: #d97706;
+      --yellowBg: rgba(217, 119, 6, .08);
+      --shadow: 0 2px 20px rgba(0, 0, 0, .1);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg0);
+      color: var(--text);
+      font-size: 13px;
+      min-height: 100vh;
+      transition: background .2s, color .2s
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg5);
+      border-radius: 4px
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font-family: 'Inter', sans-serif
+    }
+
+    /* TOP BAR */
+    .topbar {
+      height: 50px;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 300
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--text)
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      box-shadow: 0 0 18px rgba(107, 95, 255, .4)
+    }
+
+    .tb-div {
+      width: 1px;
+      height: 22px;
+      background: var(--border2)
+    }
+
+    .tb-flex {
+      flex: 1
+    }
+
+    .proj-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      border: 1px solid transparent;
+      border-radius: 7px;
+      padding: 4px 8px;
+      outline: none;
+      background: transparent;
+      cursor: text;
+      min-width: 60px;
+      transition: all .15s
+    }
+
+    .proj-name:focus {
+      border-color: var(--accent);
+      background: var(--accentBg);
+      color: var(--text)
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 13px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text2);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap
+    }
+
+    .btn:hover {
+      background: var(--bg4);
+      border-color: var(--accent);
+      color: var(--text)
+    }
+
+    .btn.pri {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff
+    }
+
+    .btn.pri:hover {
+      opacity: .88
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border-color: transparent
+    }
+
+    .btn.ghost:hover {
+      background: var(--bg4);
+      border-color: var(--border2);
+      color: var(--text)
+    }
+
+    .btn.del {
+      color: var(--red);
+      border-color: var(--border2);
+      background: transparent
+    }
+
+    .btn.del:hover {
+      background: var(--redBg);
+      border-color: var(--red)
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    .drop-wrap {
+      position: relative
+    }
+
+    .drop-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      min-width: 200px;
+      z-index: 400;
+      overflow: hidden;
+      box-shadow: var(--shadow)
+    }
+
+    .drop-menu.open {
+      display: block
+    }
+
+    .drop-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      transition: all .12s
+    }
+
+    .drop-item:hover {
+      background: var(--bg4);
+      color: var(--text)
+    }
+
+    .drop-sep {
+      height: 1px;
+      background: var(--border)
+    }
+
+    .theme-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      background: var(--bg3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all .15s
+    }
+
+    .theme-btn:hover {
+      background: var(--bg4);
+      border-color: var(--accent)
+    }
+
+    /* LAYOUT */
+    .layout {
+      display: flex;
+      height: calc(100vh - 50px);
+      overflow: hidden
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 270px;
+      flex-shrink: 0;
+      background: var(--bg1);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: width .22s ease, min-width .22s ease;
+    }
+
+    .sidebar.minimized {
+      width: 44px;
+      min-width: 44px;
+    }
+
+    .sidebar.minimized .sb-list,
+    .sidebar.minimized .sb-label,
+    .sidebar.minimized #addNodeSbBtn,
+    .sidebar.minimized .sn-body,
+    .sidebar.minimized .sn-shape {
+      display: none;
+    }
+
+    .sidebar.minimized .sb-head {
+      padding: 8px 6px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .sb-toggle {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text3);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 8px;
+      transition: all .15s;
+      line-height: 1.5;
+    }
+
+    .sb-toggle:hover {
+      color: var(--text);
+      background: var(--bg3);
+    }
+
+    .sb-search {
+      width: 100%;
+      padding: 6px 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 7px;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+      margin-top: 7px;
+      transition: border-color .15s;
+    }
+
+    .sb-search:focus {
+      border-color: var(--accent);
+    }
+
+    .sb-search::placeholder {
+      color: var(--text4);
+    }
+
+    /* DASHBOARD STRIP */
+    .dash-strip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 18px;
+      background: var(--bg0);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .dash-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+    }
+
+    .dash-val {
+      font-size: 13px;
+      font-weight: 800;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .dash-prog {
+      flex: 1;
+      min-width: 100px;
+      height: 4px;
+      background: var(--bg4);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .dash-prog-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--teal));
+      border-radius: 10px;
+      transition: width .5s;
+    }
+
+    /* TAG CHIPS */
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 18px 0;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--accentBg);
+      color: var(--accentL);
+      border: 1px solid rgba(107,95,255,.25);
+      cursor: default;
+    }
+
+    .tag-chip .tag-x {
+      cursor: pointer;
+      opacity: .6;
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .tag-chip .tag-x:hover {
+      opacity: 1;
+    }
+
+    .tag-input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 11px;
+      color: var(--text2);
+      min-width: 80px;
+      padding: 2px 4px;
+    }
+
+    .tag-input::placeholder {
+      color: var(--text4);
+    }
+
+    .sb-head {
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .sb-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      color: var(--text3);
+      margin-bottom: 8px
+    }
+
+    .sb-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .snode {
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--bg2);
+      padding: 9px 11px;
+      cursor: pointer;
+      transition: all .16s;
+      display: flex;
+      align-items: center;
+      gap: 9px
+    }
+
+    .snode:hover {
+      border-color: var(--border2);
+      background: var(--bg3);
+      transform: translateX(2px)
+    }
+
+    .snode.active {
+      border-color: var(--accent) !important;
+      background: var(--accentBg) !important
+    }
+
+    .snode.active .sn-name {
+      color: var(--accentL)
+    }
+
+    .sn-shape {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .sn-body {
+      flex: 1;
+      min-width: 0
+    }
+
+    .sn-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .sn-sub {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'IBM Plex Mono', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    .sn-stats {
+      display: flex;
+      gap: 3px;
+      margin-top: 5px;
+      flex-wrap: wrap
+    }
+
+    .sn-stat {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-family: 'IBM Plex Mono', monospace
+    }
+
+    /* WORKSPACE */
+    .workspace {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column
+    }
+
+    /* HIGH-LEVEL FLOW */
+    .hl-area {
+      flex-shrink: 0;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px 16px
+    }
+
+    .hl-toprow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px
+    }
+
+    .hl-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      color: var(--text3)
+    }
+
+    /* FLOW — wraps to multiple rows */
+    .flow-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 0
+    }
+
+    .flow-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all .18s;
+      padding: 4px 8px;
+      border-radius: 8px;
+      position: relative
+    }
+
+    .flow-node:hover {
+      transform: translateY(-3px)
+    }
+
+    .flow-node.active .fn-svg {
+      filter: drop-shadow(0 0 8px var(--accent))
+    }
+
+    .fn-svg {
+      transition: filter .18s
+    }
+
+    .fn-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text2);
+      margin-top: 4px;
+      white-space: nowrap;
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center
+    }
+
+    .flow-arrow {
+      color: var(--text4);
+      font-size: 14px;
+      padding: 0 3px;
+      flex-shrink: 0;
+      align-self: center;
+      margin-bottom: 14px
+    }
+
+    .flow-row-continue {
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 600;
+      gap: 6px
+    }
+
+    .flow-row-continue::before,
+    .flow-row-continue::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border2)
+    }
+
+    /* LOW-LEVEL */
+    .ll-area {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column
+    }
+
+    .ll-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+      gap: 10px
+    }
+
+    .ll-empty-icon {
+      font-size: 44px;
+      opacity: .25
+    }
+
+    .ll-empty-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text2)
+    }
+
+    .ll-empty-sub {
+      font-size: 12px;
+      line-height: 1.7;
+      text-align: center;
+      max-width: 280px
+    }
+
+    .ll-ws {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+      flex-direction: column
+    }
+
+    .ll-ws.open {
+      display: flex
+    }
+
+    .ll-header {
+      padding: 11px 18px;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0
+    }
+
+    .ll-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0
+    }
+
+    .ll-badge {
+      flex-shrink: 0
+    }
+
+    .ll-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text)
+    }
+
+    .ll-sub {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: 'IBM Plex Mono', monospace
+    }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      background: var(--bg3);
+      border-radius: 9px
+    }
+
+    .tab {
+      padding: 5px 14px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .tab.active {
+      background: var(--bg2);
+      color: var(--text);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, .2)
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text2)
+    }
+
+    .pane {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      flex-direction: column
+    }
+
+    .pane.on {
+      display: flex
+    }
+
+    /* FEATURES */
+    .feat-pane {
+      padding: 18px;
+      flex-direction: column;
+      gap: 0
+    }
+
+    .sum-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap
+    }
+
+    .sum-card {
+      flex: 1;
+      min-width: 85px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px
+    }
+
+    .sum-num {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: 'IBM Plex Mono', monospace
+    }
+
+    .sum-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      color: var(--text3);
+      margin-top: 2px
+    }
+
+    .c-done {
+      color: var(--green)
+    }
+
+    .c-wip {
+      color: var(--orange)
+    }
+
+    .c-todo {
+      color: var(--text3)
+    }
+
+    .c-all {
+      color: var(--accent)
+    }
+
+    .prog {
+      height: 5px;
+      background: var(--bg4);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      gap: 1px;
+      margin-bottom: 14px
+    }
+
+    .prog-d {
+      background: var(--green)
+    }
+
+    .prog-w {
+      background: var(--orange)
+    }
+
+    .prog-t {
+      background: var(--bg5)
+    }
+
+    .prog-seg {
+      height: 100%;
+      border-radius: 10px;
+      transition: width .4s
+    }
+
+    .feat-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap
+    }
+
+    .ft-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text3)
+    }
+
+    .filters {
+      display: flex;
+      gap: 4px;
+      margin-left: auto
+    }
+
+    .fpill {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      transition: all .12s
+    }
+
+    .fpill.on {
+      border-color: var(--accent);
+      background: var(--accentBg);
+      color: var(--accentL)
+    }
+
+    .tbl-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .feat-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px
+    }
+
+    .feat-tbl th {
+      text-align: left;
+      padding: 9px 11px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text3);
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border)
+    }
+
+    .feat-tbl td {
+      padding: 8px 11px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle
+    }
+
+    .feat-tbl tbody tr:last-child td {
+      border-bottom: none
+    }
+
+    .feat-tbl tbody tr:hover td {
+      background: var(--bg3)
+    }
+
+    .feat-tbl tr.hid {
+      display: none
+    }
+
+    .row-num {
+      color: var(--text4);
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace
+    }
+
+    .editable {
+      outline: none;
+      border-radius: 5px;
+      padding: 2px 5px;
+      display: inline-block;
+      cursor: text;
+      min-width: 40px;
+      transition: background .12s, color .12s;
+      line-height: 1.5
+    }
+
+    .editable:focus {
+      background: var(--accentBg);
+      color: var(--accentL)
+    }
+
+    .editable:empty::before {
+      content: attr(placeholder);
+      color: var(--text4);
+      font-style: italic
+    }
+
+    .sp {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all .14s
+    }
+
+    .sp-done {
+      background: var(--greenBg);
+      color: var(--green)
+    }
+
+    .sp-wip {
+      background: var(--orangeBg);
+      color: var(--orange)
+    }
+
+    .sp-todo {
+      background: var(--bg4);
+      color: var(--text3)
+    }
+
+    .pri-sel {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 5px;
+      font-family: 'IBM Plex Mono', monospace;
+      border: 1px solid var(--border2);
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      transition: all .12s
+    }
+
+    .p0 {
+      background: var(--redBg);
+      color: var(--red);
+      border-color: rgba(248, 113, 113, .3)
+    }
+
+    .p1 {
+      background: var(--orangeBg);
+      color: var(--orange);
+      border-color: rgba(245, 158, 11, .3)
+    }
+
+    .p2 {
+      background: var(--blueBg);
+      color: var(--blue);
+      border-color: rgba(96, 165, 250, .3)
+    }
+
+    .p3 {
+      background: var(--bg4);
+      color: var(--text3);
+      border-color: var(--border2)
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text4);
+      font-size: 13px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all .12s;
+      line-height: 1
+    }
+
+    .action-btn:hover {
+      color: var(--accent);
+      background: var(--accentBg)
+    }
+    
+    #notePreview { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.6; padding:14px; background:var(--bg1); border:1px solid var(--border); border-radius:10px; width:100%; min-height:120px; overflow-y:auto; }
+    #notePreview h1, #notePreview h2, #notePreview h3 { color: var(--text); margin-top: 10px; margin-bottom: 6px; font-weight: 700; }
+    #notePreview p { margin-bottom: 10px; color: var(--text2); }
+    #notePreview ul, #notePreview ol { margin-left: 20px; margin-bottom: 10px; color: var(--text2); }
+    #notePreview code { background: var(--bg4); padding: 2px 5px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accentL); }
+    #notePreview pre { background: var(--bg0); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; overflow-x: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text2); }
+    #notePreview blockquote { border-left: 3px solid var(--orange); padding-left: 10px; color: var(--text3); }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text4);
+      font-size: 17px;
+      padding: 0 4px;
+      border-radius: 4px;
+      transition: all .12s;
+      line-height: 1
+    }
+
+    .del-btn:hover {
+      color: var(--red);
+      background: var(--redBg)
+    }
+
+    /* === PARALLEL BRANCH FLOW === */
+    .flow-branch {
+      display: flex;
+      align-items: center;
+    }
+
+    .branch-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .branch-col::before {
+      content: '';
+      position: absolute;
+      top: 5px; bottom: 5px;
+      left: 50%;
+      width: 2px;
+      background: color-mix(in srgb, var(--purple) 30%, transparent);
+      z-index: 0;
+      border-radius: 2px;
+    }
+
+    .branch-tag {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--purple);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--purpleBg);
+      border: 1px solid color-mix(in srgb, var(--purple) 30%, transparent);
+      border-radius: 4px;
+      padding: 1px 8px;
+      z-index: 1;
+    }
+
+    .add-row-btn {
+      width: 100%;
+      padding: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border-top: 1px solid var(--border)
+    }
+
+    .add-row-btn:hover {
+      background: var(--bg3);
+      color: var(--accent)
+    }
+
+    /* CODE */
+    .code-pane {
+      padding: 18px
+    }
+
+    .code-block {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      line-height: 1.9;
+      color: var(--text2);
+      white-space: pre;
+      overflow-x: auto
+    }
+
+    .kw {
+      color: var(--accentL)
+    }
+
+    .fn {
+      color: var(--teal)
+    }
+
+    .str {
+      color: var(--orange)
+    }
+
+    .cmt {
+      color: var(--text3)
+    }
+
+    .num {
+      color: var(--blue)
+    }
+
+    /* NOTES */
+    .note-pane {
+      padding: 18px;
+      gap: 10px
+    }
+
+    .note-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--orange);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text2);
+      outline: none;
+      width: 100%;
+      min-height: 120px;
+      resize: vertical;
+      transition: border-left-color .15s
+    }
+
+    .note-box:focus {
+      border-left-color: var(--accent)
+    }
+
+    /* MODAL */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .65);
+      z-index: 500;
+      align-items: center;
+      justify-content: center
+    }
+
+    .modal-bg.open {
+      display: flex
+    }
+
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 24px;
+      width: 540px;
+      max-width: 96vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow)
+    }
+
+    .modal h2 {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 4px
+    }
+
+    .modal-sub {
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 18px;
+      line-height: 1.6
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px
+    }
+
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .fg label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text3)
+    }
+
+    .fg input,
+    .fg select {
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 12px;
+      outline: none;
+      transition: border-color .15s;
+      width: 100%
+    }
+
+    .fg input:focus,
+    .fg select:focus {
+      border-color: var(--accent)
+    }
+
+    .fg select option {
+      background: var(--bg3)
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text3);
+      margin-bottom: 8px
+    }
+
+    /* SHAPE PICKER */
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px
+    }
+
+    .shape-opt {
+      border: 2px solid var(--border2);
+      border-radius: 9px;
+      padding: 10px 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: all .15s;
+      background: var(--bg3)
+    }
+
+    .shape-opt:hover {
+      border-color: var(--accent)
+    }
+
+    .shape-opt.sel {
+      border-color: var(--accent);
+      background: var(--accentBg)
+    }
+
+    .shape-opt span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text3)
+    }
+
+    /* COLOR PICKER */
+    .color-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px
+    }
+
+    .color-opt {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .color-opt:hover {
+      transform: scale(1.15)
+    }
+
+    .color-opt.sel {
+      box-shadow: 0 0 0 2px var(--bg2), 0 0 0 4px var(--text2)
+    }
+
+    .modal-foot {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 4px
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all .25s;
+      max-width: 300px
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    .toast.ok {
+      border-color: var(--green)
+    }
+
+    .toast.err {
+      border-color: var(--red)
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-mark">⬡</div>ArchFlow
+    </div>
+    <div class="tb-div"></div>
+    <input class="proj-name" id="projName" value="My System Design" spellcheck="false">
+    <div class="tb-flex"></div>
+    <div class="btn-row">
+      <button class="btn pri" onclick="saveData()">💾 Save</button>
+      <button class="btn ghost" onclick="openAddNode()">＋ Add Node</button>
+      <label class="btn ghost" style="cursor:pointer">⬆ Import CSV<input type="file" accept=".csv" style="display:none"
+          onchange="importCSV(event)"></label>
+      <div class="drop-wrap" id="exportDrop">
+        <button class="btn pri" onclick="toggleDrop()">⬇ Export / Import ▾</button>
+        <div class="drop-menu" id="exportMenu">
+          <div class="drop-item" onclick="exportCSV()">📄 Export CSV</div>
+          <div class="drop-item" onclick="exportPDF()">📕 Export PDF (full design)</div>
+          <div class="drop-sep"></div>
+          <div class="drop-item" onclick="exportImage('body')">🖼 PNG — full page</div>
+          <div class="drop-item" onclick="exportImage('hlArea')">🔷 PNG — flow only</div>
+          <div class="drop-sep"></div>
+          <div class="drop-item" onclick="saveJSON()">💾 Save Full Project (.json)</div>
+          <label class="drop-item" style="cursor:pointer;margin:0">📂 Load Full Project <input type="file" accept=".json" style="display:none" onchange="loadJSON(event)"></label>
+          <div class="drop-sep"></div>
+          <div class="drop-item" onclick="exportMermaid()">🧜‍♂️ Copy Mermaid.js Code</div>
+        </div>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sb-head">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="sb-label">Architecture Nodes</div>
+          <button class="sb-toggle" onclick="toggleSidebar()" title="Collapse sidebar" id="sbToggleBtn">‹</button>
+        </div>
+        <button class="btn" id="addNodeSbBtn" style="width:100%;margin-top:6px" onclick="openAddNode()">＋ Add Node</button>
+        <input class="sb-search" id="sbSearch" placeholder="🔍 Search features…" oninput="renderSidebar()">
+      </div>
+      <div class="sb-list" id="sbList"></div>
+    </div>
+
+    <!-- WORKSPACE -->
+    <div class="workspace">
+      <!-- GLOBAL DASHBOARD STRIP -->
+      <div class="dash-strip" id="dashStrip">
+        <div class="dash-stat"><span class="dash-val" id="dTotal" style="color:var(--accent)">0</span> Total</div>
+        <div class="dash-stat"><span class="dash-val" id="dDone" style="color:var(--green)">0</span> Done</div>
+        <div class="dash-stat"><span class="dash-val" id="dWip" style="color:var(--orange)">0</span> WIP</div>
+        <div class="dash-stat"><span class="dash-val" id="dP0" style="color:var(--red)">0</span> P0 open</div>
+        <div class="dash-stat"><span class="dash-val" id="dEst" style="color:var(--purple)">0h</span> Est.</div>
+        <div class="dash-prog"><div class="dash-prog-fill" id="dProg" style="width:0%"></div></div>
+        <div class="dash-stat" id="dPct" style="font-size:12px;font-weight:800;color:var(--text2)">0% done</div>
+      </div>
+
+      <!-- HIGH-LEVEL FLOW -->
+      <div class="hl-area" id="hlArea">
+        <div class="hl-toprow">
+          <div class="hl-label" id="hl-label">High-Level Architecture Flow</div>
+          <div class="btn-row" id="nodeEditBtns" style="display:none;flex-wrap:wrap;">
+            <button class="btn ghost" style="font-size:11px" onclick="moveNode(-1)">◀ Move Left</button>
+            <button class="btn ghost" style="font-size:11px" onclick="moveNode(1)">Move Right ▶</button>
+            <button class="btn ghost" style="font-size:11px" onclick="openEditNode()">✏ Edit Node</button>
+            <button class="btn del" style="font-size:11px" onclick="deleteNode()">✕ Delete</button>
+          </div>
+        </div>
+        <div class="flow-wrap" id="flowWrap"></div>
+      </div>
+
+      <!-- LOW-LEVEL -->
+      <div class="ll-area">
+        <div class="ll-empty" id="llEmpty">
+          <div class="ll-empty-icon">🔷</div>
+          <div class="ll-empty-title">Select a node to design</div>
+          <div class="ll-empty-sub">Click any node in the flow above or the sidebar to open its low-level design
+            workspace.</div>
+        </div>
+
+        <div class="ll-ws" id="llWs">
+          <div class="ll-header">
+            <div class="ll-info">
+              <div class="ll-badge" id="llBadge"></div>
+              <div>
+                <div class="ll-title" id="llTitle"></div>
+                <div class="ll-sub" id="llSub"></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0">
+              <div class="tabs">
+                <button class="tab active" onclick="showTab('feat')">📋 Features</button>
+                <button class="tab" onclick="showTab('code')">💻 Code</button>
+                <button class="tab" onclick="showTab('note')">📝 Notes</button>
+              </div>
+              <div class="tag-row" id="tagRow">
+                <span style="font-size:9px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:.7px">Tags:</span>
+                <div id="tagChips"></div>
+                <input class="tag-input" id="tagInput" placeholder="+ add tag, press Enter" onkeydown="handleTagKey(event)">
+              </div>
+            </div>
+          </div>
+
+          <!-- FEAT PANE -->
+          <div class="pane on feat-pane" id="pane-feat">
+            <div class="sum-row" id="sumRow"></div>
+            <div class="prog" id="progBar"></div>
+            <div class="feat-toolbar">
+              <span class="ft-lbl">Low-Level Features</span>
+              <div class="filters">
+                <button class="fpill on" data-f="all" onclick="setFilter(this)">All</button>
+                <button class="fpill" data-f="done" onclick="setFilter(this)">✓ Done</button>
+                <button class="fpill" data-f="wip" onclick="setFilter(this)">⟳ In Progress</button>
+                <button class="fpill" data-f="todo" onclick="setFilter(this)">○ To Do</button>
+              </div>
+              <button class="btn" onclick="addFeature()">＋ Row</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="feat-tbl">
+                <thead>
+                  <tr>
+                    <th style="width:26px">#</th>
+                    <th style="width:22%">Feature / Component</th>
+                    <th style="width:26%">Detail / Description</th>
+                    <th style="width:11%">Status</th>
+                    <th style="width:7%">Priority</th>
+                    <th style="width:9%">Owner</th>
+                    <th style="width:7%">Est.</th>
+                    <th style="width:80px"></th>
+                  </tr>
+                </thead>
+                <tbody id="featBody"></tbody>
+              </table>
+              <button class="add-row-btn" onclick="addFeature()">＋ Add feature row</button>
+            </div>
+          </div>
+
+          <!-- AUDIT PANE -->
+          <div class="pane audit-pane" id="pane-audit">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px">System-Wide Audit & Readiness</div>
+            <div id="auditList" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+
+          <!-- CODE PANE -->
+          <div class="pane code-pane" id="pane-code">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Code reference for this component (editable)</div>
+            <div class="code-block" id="codeBlock" contenteditable="true" spellcheck="false" title="Click to edit code"></div>
+          </div>
+
+          <!-- NOTE PANE -->
+          <div class="pane note-pane" id="pane-note">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+              <div style="font-size:11px;color:var(--text3)">Architecture notes (Markdown Supported)</div>
+              <div class="tabs" style="background:var(--bg2)">
+                <button class="tab active" id="noteEditBtn" onclick="toggleNoteMode('edit')" style="padding:2px 10px">Edit</button>
+                <button class="tab" id="notePrevBtn" onclick="toggleNoteMode('preview')" style="padding:2px 10px">Preview</button>
+              </div>
+            </div>
+            <textarea class="note-box" id="noteBox" placeholder="Add architecture decisions... \n# Heading\n- Item 1"></textarea>
+            <div id="notePreview" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-bg" id="nodeModal">
+    <div class="modal">
+      <h2 id="modalTitle">Add Node</h2>
+      <div class="modal-sub" id="modalSub">Define a new component in your architecture.</div>
+      <div class="form-grid">
+        <div class="fg"><label>Node Name</label><input id="mName" placeholder="e.g. Cache Layer"></div>
+        <div class="fg"><label>Subtitle / Tech</label><input id="mSub" placeholder="e.g. Redis / Memcached"></div>
+      </div>
+      <div class="section-label">Shape</div>
+      <div class="shape-grid" id="shapePicker"></div>
+      <div class="section-label">Color</div>
+      <div class="color-grid" id="colorPicker"></div>
+      <div class="modal-foot">
+        <button class="btn ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn pri" id="modalSaveBtn" onclick="saveModal()">Add Node</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span id="toastIcon">✓</span><span id="toastMsg"></span></div>
+
+  <script>
+    /* ═══════ CONSTANTS & SETUP ═══════ */
+    const LS_PREFIX = 'AR01H_SDE_DATA';
+
+    /* ═══════ SHAPES ═══════ */
+    const SHAPES = {
+      rect: { label: 'Rectangle', draw: (c, s) => `<svg width="${s}" height="${Math.round(s * .62)}" viewBox="0 0 60 38"><rect x="2" y="2" width="56" height="34" rx="5" fill="${c}20" stroke="${c}" stroke-width="2.2"/></svg>` },
+      rounded: { label: 'Rounded', draw: (c, s) => `<svg width="${s}" height="${Math.round(s * .62)}" viewBox="0 0 60 38"><rect x="2" y="2" width="56" height="34" rx="17" fill="${c}20" stroke="${c}" stroke-width="2.2"/></svg>` },
+      diamond: { label: 'Diamond', draw: (c, s) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><polygon points="30,3 57,30 30,57 3,30" fill="${c}20" stroke="${c}" stroke-width="2.2"/></svg>` },
+      circle: { label: 'Circle', draw: (c, s) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="${c}20" stroke="${c}" stroke-width="2.2"/></svg>` },
+      cylinder: { label: 'Cylinder', draw: (c, s) => `<svg width="${s}" height="${Math.round(s * 1.1)}" viewBox="0 0 60 66"><ellipse cx="30" cy="11" rx="27" ry="9" fill="${c}30" stroke="${c}" stroke-width="2"/><rect x="3" y="11" width="54" height="44" fill="${c}18"/><line x1="3" y1="11" x2="3" y2="55" stroke="${c}" stroke-width="2"/><line x1="57" y1="11" x2="57" y2="55" stroke="${c}" stroke-width="2"/><ellipse cx="30" cy="55" rx="27" ry="9" fill="${c}20" stroke="${c}" stroke-width="2"/></svg>` },
+      hexagon: { label: 'Hexagon', draw: (c, s) => `<svg width="${s}" height="${s}" viewBox="0 0 60 60"><polygon points="30,3 55,16 55,44 30,57 5,44 5,16" fill="${c}20" stroke="${c}" stroke-width="2.2"/></svg>` },
+      parallel: { label: 'Parallelogram', draw: (c, s) => `<svg width="${s}" height="${Math.round(s * .6)}" viewBox="0 0 70 42"><polygon points="14,2 68,2 56,40 2,40" fill="${c}20" stroke="${c}" stroke-width="2.2"/></svg>` },
+      cloud: { label: 'Cloud', draw: (c, s) => `<svg width="${s}" height="${Math.round(s * .72)}" viewBox="0 0 80 58"><path d="M20,50 Q4,50 4,37 Q4,25 16,24 Q15,10 29,9 Q37,3 47,9 Q59,4 65,16 Q77,16 77,29 Q77,44 62,47 Z" fill="${c}20" stroke="${c}" stroke-width="2.2"/></svg>` },
+    };
+
+    const COLORS = [
+      { key: 'violet', hex: '#7c6dfa' }, { key: 'blue', hex: '#60a5fa' },
+      { key: 'teal', hex: '#2dd4bf' }, { key: 'green', hex: '#22d3a5' },
+      { key: 'orange', hex: '#f59e0b' }, { key: 'red', hex: '#f87171' },
+      { key: 'pink', hex: '#e879f9' }, { key: 'gray', hex: '#94a3b8' },
+    ];
+
+    function hex(key) { return (COLORS.find(c => c.key === key) || COLORS[0]).hex; }
+    function svgShape(shape, color, size) { return (SHAPES[shape] || SHAPES.rect).draw(hex(color), size); }
+
+    /* ═══════ DATA ═══════ */
+    const NODES = {
+      req: {
+        title: 'Request', sub: 'Client / Browser', shape: 'rounded', color: 'violet',
+        features: [
+          { f: 'HTTPS enforcement', d: 'Redirect HTTP→HTTPS (301)', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'CORS policy', d: 'Whitelist allowed origins', s: 'wip', p: 'P1', o: 'Backend' },
+          { f: 'Rate limiting', d: 'Max 100 req/min per IP', s: 'todo', p: 'P1', o: 'Infra' },
+          { f: 'Auth header', d: 'Bearer token or API key', s: 'done', p: 'P0', o: 'Backend' },
+          { f: 'Request ID', d: 'Inject X-Request-ID for tracing', s: 'todo', p: 'P2', o: 'Backend' },
+          { f: 'Retry policy', d: '3 retries + exponential backoff', s: 'todo', p: 'P2', o: 'Frontend' },
+        ],
+        code: `<span class="cmt">// Client request with auth + retry</span>
+<span class="kw">async function</span> <span class="fn">apiRequest</span>(url, opts = {}) {
+  <span class="kw">const</span> headers = {
+    <span class="str">'Authorization'</span>: \`Bearer \${getToken()}\`,
+    <span class="str">'X-Request-ID'</span>: crypto.randomUUID()
+  };
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url, { ...opts, headers });
+      <span class="kw">if</span> (res.ok) <span class="kw">return</span> res.<span class="fn">json</span>();
+    } <span class="kw">catch</span> (e) {
+      <span class="kw">await</span> <span class="fn">sleep</span>(<span class="num">200</span> * (<span class="num">2</span> ** i));
+    }
+  }
+}`,
+        note: 'All requests must use HTTPS. Inject X-Request-ID for end-to-end tracing. Auth tokens must be refreshed before expiry using silent refresh.'
+      },
+
+      lb: {
+        title: 'Load Balancer', sub: 'nginx / AWS ALB', shape: 'hexagon', color: 'blue',
+        features: [
+          { f: 'Round-robin routing', d: 'Default distribution algorithm', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'Health checks', d: 'GET /health every 10s', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'SSL termination', d: 'TLS 1.3 at LB layer', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'Sticky sessions', d: 'Cookie-based for WebSocket routes', s: 'wip', p: 'P1', o: 'Infra' },
+          { f: 'DDoS protection', d: 'AWS Shield Standard', s: 'done', p: 'P0', o: 'Security' },
+          { f: 'WAF rules', d: 'OWASP rule set enabled', s: 'todo', p: 'P1', o: 'Security' },
+        ],
+        code: `<span class="cmt"># nginx upstream config</span>
+<span class="kw">upstream</span> app_servers {
+  least_conn;
+  server <span class="str">10.0.0.1:3000</span> weight=<span class="num">1</span>;
+  server <span class="str">10.0.0.2:3000</span> weight=<span class="num">1</span>;
+  keepalive <span class="num">32</span>;
+}
+server {
+  listen <span class="num">443</span> ssl http2;
+  location / {
+    proxy_pass http://app_servers;
+    proxy_read_timeout <span class="num">30</span>s;
+  }
+}`,
+        note: 'Use least_conn for uneven workloads. Health check must be lightweight — no DB calls. SSL terminates here; upstream is plain HTTP on private subnet.'
+      },
+
+      as: {
+        title: 'Autoscaling', sub: 'EC2 ASG / K8s HPA', shape: 'diamond', color: 'orange',
+        features: [
+          { f: 'Scale-out trigger', d: 'CPU >70% for 2 min → add instance', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'Scale-in trigger', d: 'CPU <30% for 5 min → remove', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'Min instances', d: 'Always keep 2 running', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'Max instances', d: 'Hard cap at 20', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'Cooldown period', d: '300s between scale events', s: 'wip', p: 'P1', o: 'Infra' },
+          { f: 'Lifecycle hooks', d: 'Drain connections before terminate', s: 'todo', p: 'P1', o: 'Backend' },
+        ],
+        code: `<span class="cmt"># Kubernetes HPA</span>
+<span class="kw">apiVersion</span>: autoscaling/v2
+<span class="kw">kind</span>: HorizontalPodAutoscaler
+<span class="kw">spec</span>:
+  minReplicas: <span class="num">2</span>
+  maxReplicas: <span class="num">20</span>
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        averageUtilization: <span class="num">70</span>`,
+        note: 'Autoscaling is the heart of resilience. Always test scale-in events. Use lifecycle hooks + LB connection draining together, never one without the other.'
+      },
+
+      app: {
+        title: 'App Server', sub: 'Node.js / Python', shape: 'rect', color: 'green',
+        features: [
+          { f: 'JWT validation', d: 'Verify token signature + expiry', s: 'done', p: 'P0', o: 'Backend' },
+          { f: 'DB connection pool', d: 'Max 10 connections per instance', s: 'done', p: 'P0', o: 'Backend' },
+          { f: 'Redis cache', d: 'Cache hot queries 60s TTL', s: 'wip', p: 'P1', o: 'Backend' },
+          { f: 'Input sanitisation', d: 'Strip SQL injections, XSS', s: 'done', p: 'P0', o: 'Security' },
+          { f: 'Structured logging', d: 'JSON logs → CloudWatch', s: 'done', p: 'P0', o: 'Backend' },
+          { f: 'Background jobs', d: 'Bull queue for async tasks', s: 'todo', p: 'P1', o: 'Backend' },
+        ],
+        code: `<span class="cmt">// Express route with auth + pool</span>
+<span class="kw">const</span> pool = <span class="kw">new</span> <span class="fn">Pool</span>({ max: <span class="num">10</span> });
+app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth, <span class="kw">async</span> (req, res) => {
+  <span class="kw">const</span> cached = <span class="kw">await</span> redis.<span class="fn">get</span>(\`user:\${req.params.id}\`);
+  <span class="kw">if</span> (cached) <span class="kw">return</span> res.<span class="fn">json</span>(JSON.<span class="fn">parse</span>(cached));
+  <span class="kw">const</span> { rows } = <span class="kw">await</span> pool.<span class="fn">query</span>(
+    <span class="str">'SELECT * FROM users WHERE id=$1'</span>, [req.params.id]
+  );
+  res.<span class="fn">json</span>(rows[<span class="num">0</span>]);
+});`,
+        note: 'Never open raw DB connections per request — always use pool. Redis cache layer reduces DB read load significantly. Structured logs are mandatory for CloudWatch Insights.'
+      },
+
+      db: {
+        title: 'MySQL DB', sub: 'Primary + Replica', shape: 'cylinder', color: 'red',
+        features: [
+          { f: 'Primary + replica', d: '1 write, 2 read replicas', s: 'done', p: 'P0', o: 'DBA' },
+          { f: 'Connection pooling', d: 'ProxySQL in front of MySQL', s: 'done', p: 'P0', o: 'DBA' },
+          { f: 'Index optimisation', d: 'EXPLAIN slow queries >100ms', s: 'wip', p: 'P0', o: 'DBA' },
+          { f: 'Automated backups', d: 'Daily snapshots, 30-day retention', s: 'done', p: 'P0', o: 'Infra' },
+          { f: 'Schema migrations', d: 'Flyway / Liquibase versioned', s: 'wip', p: 'P1', o: 'Backend' },
+          { f: 'Read replica lag', d: 'Alert if replica lag >5s', s: 'todo', p: 'P1', o: 'DBA' },
+        ],
+        code: `<span class="cmt">-- Schema + index example</span>
+<span class="kw">CREATE TABLE</span> users (
+  id         BIGINT UNSIGNED <span class="kw">NOT NULL AUTO_INCREMENT</span>,
+  email      VARCHAR(<span class="num">255</span>) <span class="kw">NOT NULL UNIQUE</span>,
+  created_at TIMESTAMP <span class="kw">DEFAULT</span> CURRENT_TIMESTAMP,
+  status     ENUM(<span class="str">'active'</span>,<span class="str">'inactive'</span>) <span class="kw">DEFAULT</span> <span class="str">'active'</span>,
+  <span class="kw">PRIMARY KEY</span> (id),
+  <span class="kw">INDEX</span> idx_status (status, created_at)
+);`,
+        note: 'Never query primary for reads unless you need latest-write consistency. All schema changes go through migration scripts — no manual ALTER in production.'
+      },
+
+      out: {
+        title: 'Output / API', sub: 'JSON Response', shape: 'parallel', color: 'pink',
+        features: [
+          { f: 'JSON envelope', d: '{ data, meta, errors }', s: 'done', p: 'P0', o: 'Backend' },
+          { f: 'HTTP status codes', d: '200/201/400/401/404/500', s: 'done', p: 'P0', o: 'Backend' },
+          { f: 'Pagination', d: 'Cursor-based page+limit params', s: 'wip', p: 'P1', o: 'Backend' },
+          { f: 'Response compression', d: 'gzip if client supports it', s: 'done', p: 'P1', o: 'Infra' },
+          { f: 'ETag caching', d: '304 Not Modified for unchanged data', s: 'todo', p: 'P2', o: 'Backend' },
+          { f: 'API versioning', d: '/api/v1/ prefix on all routes', s: 'done', p: 'P0', o: 'Backend' },
+        ],
+        code: `<span class="cmt">// Standard response envelope</span>
+<span class="kw">function</span> <span class="fn">respond</span>(res, data, meta = {}) {
+  res.<span class="fn">json</span>({ data, meta: { ...meta, ts: Date.<span class="fn">now</span>() }, errors: <span class="kw">null</span> });
+}
+<span class="kw">function</span> <span class="fn">respondError</span>(res, code, message) {
+  res.<span class="fn">status</span>(code).<span class="fn">json</span>({ data: <span class="kw">null</span>, meta:{}, errors:[{code,message}] });
+}`,
+        note: 'Consistent response envelope is non-negotiable. Never leak DB errors or stack traces to the client. ETag + 304 is easy wins for repeat-read API endpoints.'
+      },
+    };
+
+    // Simple flat nodeOrder — each entry is a string node ID
+    let nodeOrder = ['req', 'lb', 'as', 'app', 'db', 'out'];
+    let currentNode = null, currentTab = 'feat', currentFilter = 'all';
+    let modalMode = 'add', selShape = 'rect', selColor = 'violet';
+    const FLOW_COLS = 15;
+
+    /* ═══════ COST LISTENER ═══════ */
+    function attachCostListeners() {
+      const mapKey = { cInst: 'inst', cType: 'type', cCost: 'cost', cRPS: 'rps', cNotes: 'notes' };
+      ['cInst', 'cType', 'cCost', 'cRPS', 'cNotes'].forEach(id => {
+        document.getElementById(id).addEventListener('input', function() {
+          if(!currentNode) return;
+          const val = this.type === 'number' ? Number(this.value) : this.value;
+          if (!NODES[currentNode].cost) NODES[currentNode].cost = { inst: 0, type: '', cost: 0, rps: 0, notes: '' };
+          NODES[currentNode].cost[mapKey[id]] = val;
+          updateTotalCost();
+        });
+      });
+    }
+
+    function updateTotalCost() {
+      let total = 0;
+      nodeOrder.forEach(id => {
+        const nd = NODES[id];
+        if (nd && nd.cost && nd.cost.cost) {
+           total += (Number(nd.cost.cost) * (Number(nd.cost.inst) || 1));
+        }
+      });
+      document.getElementById('hl-label').innerHTML = `High-Level Architecture Flow &nbsp; <span style="color:var(--green)">$${total.toLocaleString()}/mo estimated</span>`;
+    }
+
+    /* ═══════ SIDEBAR ═══════ */
+    function renderSidebar() {
+      const q = (document.getElementById('sbSearch')?.value || '').toLowerCase().trim();
+      const list = document.getElementById('sbList');
+      list.innerHTML = '';
+      nodeOrder.forEach(id => {
+        const nd = NODES[id]; if (!nd) return;
+        // Filter by search query across features
+        if (q) {
+          const match = nd.title.toLowerCase().includes(q) ||
+            nd.sub.toLowerCase().includes(q) ||
+            (nd.tags || []).some(t => t.toLowerCase().includes(q)) ||
+            nd.features.some(f => f.f.toLowerCase().includes(q) || (f.d||'').toLowerCase().includes(q));
+          if (!match) return;
+        }
+        const total = nd.features.length;
+        const done = nd.features.filter(f => f.s === 'done').length;
+        const design = nd.features.filter(f => f.s === 'design').length;
+        const wip = nd.features.filter(f => f.s === 'wip').length;
+        const totalEst = nd.features.reduce((a, f) => a + (parseFloat(f.est) || 0), 0);
+        
+        const el = document.createElement('div');
+        el.className = 'snode' + (currentNode === id ? ' active' : '');
+        el.onclick = () => selectNode(id);
+        el.innerHTML = `<div class="sn-shape">${svgShape(nd.shape, nd.color, 36)}</div>
+      <div class="sn-body">
+        <div class="sn-name">${nd.title}</div>
+        <div class="sn-sub">${nd.sub}</div>
+        <div class="sn-stats">
+          ${done ? `<span class="sn-stat" style="background:var(--greenBg);color:var(--green)">${done} ok</span>` : ''}
+          ${design ? `<span class="sn-stat" style="background:var(--purpleBg);color:var(--purple)">${design} design</span>` : ''}
+          ${wip ? `<span class="sn-stat" style="background:var(--orangeBg);color:var(--orange)">${wip} wip</span>` : ''}
+          ${totalEst ? `<span class="sn-stat" style="background:var(--bg5);color:var(--text3)">${totalEst}h</span>` : ''}
+          ${!total ? `<span class="sn-stat" style="background:var(--bg5);color:var(--text3)">0 feats</span>` : ''}
+        </div>
+      </div>`;
+        list.appendChild(el);
+      });
+    }
+
+    /* ═══════ GLOBAL DASHBOARD ═══════ */
+    function renderDashboard() {
+      let total = 0, done = 0, wip = 0, p0open = 0, totalEst = 0;
+      nodeOrder.forEach(id => {
+        const nd = NODES[id]; if (!nd) return;
+        nd.features.forEach(f => {
+          total++;
+          if (f.s === 'done') done++;
+          else if (f.s === 'wip') wip++;
+          if (f.p === 'P0' && f.s !== 'done') p0open++;
+          totalEst += parseFloat(f.est) || 0;
+        });
+      });
+      const pct = total ? Math.round(done / total * 100) : 0;
+      document.getElementById('dTotal').textContent = total;
+      document.getElementById('dDone').textContent = done;
+      document.getElementById('dWip').textContent = wip;
+      document.getElementById('dP0').textContent = p0open;
+      document.getElementById('dEst').textContent = totalEst % 1 === 0 ? totalEst + 'h' : totalEst.toFixed(1) + 'h';
+      document.getElementById('dProg').style.width = pct + '%';
+      document.getElementById('dPct').textContent = pct + '% done';
+    }
+
+    /* ═══════ FLOW (wrapping rows) ═══════ */
+    function renderFlow() {
+      const wrap = document.getElementById('flowWrap');
+      wrap.innerHTML = '';
+      const ids = nodeOrder.filter(id => NODES[id]);
+      if (!ids.length) return;
+
+      for (let r = 0; r < Math.ceil(ids.length / FLOW_COLS); r++) {
+        if (r > 0) {
+          const cont = document.createElement('div');
+          cont.className = 'flow-row-continue';
+          cont.textContent = '↩ continues';
+          wrap.appendChild(cont);
+        }
+        const row = document.createElement('div');
+        row.className = 'flow-row';
+        const slice = ids.slice(r * FLOW_COLS, (r + 1) * FLOW_COLS);
+        slice.forEach((id, i) => {
+          if (i > 0) {
+            const arr = document.createElement('span');
+            arr.className = 'flow-arrow';
+            arr.textContent = '→';
+            row.appendChild(arr);
+          }
+          const nd = NODES[id];
+          const node = document.createElement('div');
+          node.className = 'flow-node' + (currentNode === id ? ' active' : '');
+          node.id = 'fn-' + id;
+          node.onclick = () => selectNode(id);
+          node.innerHTML = `<div class="fn-svg">${svgShape(nd.shape, nd.color, 58)}</div><div class="fn-label">${nd.title}</div>`;
+          row.appendChild(node);
+        });
+        wrap.appendChild(row);
+      }
+    }
+
+    /* ═══════ SELECT NODE ═══════ */
+    function selectNode(id) {
+      currentNode = id;
+      renderSidebar(); renderFlow();
+      document.getElementById('nodeEditBtns').style.display = 'flex';
+      document.getElementById('llEmpty').style.display = 'none';
+      document.getElementById('llWs').classList.add('open');
+      const nd = NODES[id];
+      if (!nd.tags) nd.tags = [];
+      
+      document.getElementById('llBadge').innerHTML = svgShape(nd.shape, nd.color, 44);
+      document.getElementById('llTitle').textContent = nd.title;
+      document.getElementById('llSub').textContent = nd.sub;
+      document.getElementById('noteBox').value = nd.note || '';
+      renderTags();
+      
+      // Auto-refresh Markdown preview if active
+      if (document.getElementById('notePrevBtn').classList.contains('active')) {
+        toggleNoteMode('preview');
+      }
+
+      showTab(currentTab);
+    }
+
+    /* ═══════ TAGS ═══════ */
+    function renderTags() {
+      if (!currentNode) return;
+      const tags = NODES[currentNode].tags || [];
+      const box = document.getElementById('tagChips');
+      box.innerHTML = tags.map((t, i) => 
+        `<span class="tag-chip">${esc(t)}<span class="tag-x" onclick="removeTag(${i})">×</span></span>`
+      ).join('');
+    }
+
+    function handleTagKey(e) {
+      if (e.key !== 'Enter' && e.key !== ',') return;
+      e.preventDefault();
+      const val = e.target.value.trim().replace(/^#/, '');
+      if (!val || !currentNode) return;
+      if (!NODES[currentNode].tags) NODES[currentNode].tags = [];
+      if (!NODES[currentNode].tags.includes(val)) {
+        NODES[currentNode].tags.push(val);
+        renderTags();
+        renderSidebar();
+      }
+      e.target.value = '';
+    }
+
+    function removeTag(i) {
+      if (!currentNode) return;
+      NODES[currentNode].tags.splice(i, 1);
+      renderTags();
+      renderSidebar();
+    }
+
+    /* ═══════ TABS ═══════ */
+    function showTab(t) {
+      currentTab = t;
+      document.querySelectorAll('.pane').forEach(p => { p.classList.remove('on'); });
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('pane-' + t).classList.add('on');
+      const map = { feat: 0, code: 1, note: 2 };
+      const tabBtns = document.getElementById('llWs').querySelectorAll('.tabs > .tab');
+      if (tabBtns[map[t]]) tabBtns[map[t]].classList.add('active');
+      if (t === 'feat') renderFeatures();
+      if (t === 'code' && currentNode) {
+        document.getElementById('codeBlock').innerHTML = (NODES[currentNode].code !== undefined && NODES[currentNode].code !== '')
+          ? NODES[currentNode].code
+          : '<span style="color:var(--text3)">// No code sample.</span>';
+      }
+    }
+
+    /* ═══════ MARKDOWN NOTES ═══════ */
+    function toggleNoteMode(mode) {
+      const box = document.getElementById('noteBox');
+      const prev = document.getElementById('notePreview');
+      const btnE = document.getElementById('noteEditBtn');
+      const btnP = document.getElementById('notePrevBtn');
+      if (mode === 'preview') {
+        prev.innerHTML = window.marked ? marked.parse(box.value) : 'Marked.js failed to load.';
+        box.style.display = 'none';
+        prev.style.display = 'block';
+        btnE.classList.remove('active');
+        btnP.classList.add('active');
+      } else {
+        prev.style.display = 'none';
+        box.style.display = 'block';
+        btnP.classList.remove('active');
+        btnE.classList.add('active');
+      }
+    }
+
+    /* ═══════ FEATURES ═══════ */
+    const SL = s => ({ done: 'Done', wip: 'In Progress', todo: 'To Do', design: 'Design', hold: 'Hold', reject: 'Reject' }[s] || s);
+    const PC = p => ({ P0: 'p0', P1: 'p1', P2: 'p2', P3: 'p3' }[p] || 'p3');
+
+    function renderFeatures() {
+      if (!currentNode) return;
+      const feats = NODES[currentNode].features;
+      const total = feats.length,
+        done = feats.filter(f => f.s === 'done').length,
+        wip = feats.filter(f => f.s === 'wip').length,
+        todo = feats.filter(f => f.s === 'todo').length,
+        design = feats.filter(f => f.s === 'design').length,
+        hold = feats.filter(f => f.s === 'hold').length,
+        reject = feats.filter(f => f.s === 'reject').length;
+      const totalEst = feats.reduce((a, f) => a + (parseFloat(f.est) || 0), 0);
+      
+      const pct = t => total ? Math.round(t / total * 100) : 0;
+
+      document.getElementById('sumRow').innerHTML = `
+    <div class="sum-card"><div class="sum-num c-all">${total}</div><div class="sum-lbl">Total</div></div>
+    <div class="sum-card"><div class="sum-num c-done">${done}</div><div class="sum-lbl">Done</div></div>
+    <div class="sum-card"><div class="sum-num c-wip">${wip}</div><div class="sum-lbl">WIP</div></div>
+    <div class="sum-card"><div class="sum-num c-todo" style="color:var(--purple)">${design}</div><div class="sum-lbl">Design</div></div>
+    <div class="sum-card"><div class="sum-num" style="color:var(--purple)">${totalEst % 1 === 0 ? totalEst : totalEst.toFixed(1)}h</div><div class="sum-lbl">Est.</div></div>`;
+
+      document.getElementById('progBar').innerHTML = `
+    <div class="prog-seg prog-d" style="width:${pct(done)}%"></div>
+    <div class="prog-seg prog-ds" style="width:${pct(design)}%"></div>
+    <div class="prog-seg prog-w" style="width:${pct(wip)}%"></div>
+    <div class="prog-seg prog-t" style="width:${pct(todo)}%"></div>
+    <div class="prog-seg prog-h" style="width:${pct(hold)}%"></div>
+    <div class="prog-seg prog-r" style="width:${pct(reject)}%"></div>`;
+
+      const tbody = document.getElementById('featBody');
+      tbody.innerHTML = '';
+      feats.forEach((f, i) => {
+        const hide = currentFilter !== 'all' && f.s !== currentFilter;
+        const tr = document.createElement('tr');
+        if (hide) tr.className = 'hid';
+        tr.innerHTML = `
+      <td class="row-num">${i + 1}</td>
+      <td><span class="editable" contenteditable spellcheck="false" placeholder="Feature…"
+        oninput="UF(${i},'f',this.textContent)">${esc(f.f)}</span></td>
+      <td><span class="editable" contenteditable spellcheck="false" placeholder="Detail…"
+        oninput="UF(${i},'d',this.textContent)">${esc(f.d)}</span></td>
+      <td><button class="sp sp-${f.s}" onclick="cycleS(${i},this)">${SL(f.s)}</button></td>
+      <td><select class="pri-sel ${PC(f.p)}" onchange="UF(${i},'p',this.value);this.className='pri-sel '+PC(this.value)">
+        ${['P0', 'P1', 'P2', 'P3'].map(p => `<option value="${p}"${f.p === p ? ' selected' : ''}>${p}</option>`).join('')}
+      </select></td>
+      <td><span class="editable" contenteditable spellcheck="false" placeholder="Owner"
+        oninput="UF(${i},'o',this.textContent)">${esc(f.o || '')}</span></td>
+      <td><span class="editable" contenteditable spellcheck="false" placeholder="0h"
+        oninput="UF(${i},'est',this.textContent);renderDashboard();renderSidebar()" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3)">${esc(f.est || '')}</span></td>
+      <td>
+        <div style="display:flex;gap:2px;">
+          <button class="action-btn" title="Move Up" onclick="moveFeat(${i}, -1)">▲</button>
+          <button class="action-btn" title="Move Down" onclick="moveFeat(${i}, 1)">▼</button>
+          <button class="action-btn" title="Insert Below" onclick="addFeatAt(${i+1})">＋</button>
+          <button class="del-btn" title="Delete feature" onclick="delFeat(${i})">×</button>
+        </div>
+      </td>`;
+        tbody.appendChild(tr);
+      });
+      renderSidebar();
+      renderDashboard();
+    }
+    function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
+    function UF(i, k, v) { if (currentNode) NODES[currentNode].features[i][k] = v }
+    function cycleS(i, btn) {
+      const o = ['todo', 'design', 'wip', 'done', 'hold', 'reject'], f = NODES[currentNode].features[i];
+      f.s = o[(o.indexOf(f.s) + 1) % o.length];
+      btn.className = 'sp sp-' + f.s; btn.textContent = SL(f.s); renderFeatures();
+    }
+    function delFeat(i) { NODES[currentNode].features.splice(i, 1); renderFeatures(); renderDashboard(); }
+    function addFeature() { if (!currentNode) return; NODES[currentNode].features.push({ f: 'New feature', d: 'Describe here', s: 'todo', p: 'P2', o: '', est: '' }); renderFeatures() }
+    function addFeatAt(i) { 
+      if (!currentNode) return; 
+      NODES[currentNode].features.splice(i, 0, { f: 'New feature', d: 'Describe here', s: 'todo', p: 'P2', o: '', est: '' }); 
+      renderFeatures(); 
+    }
+    function moveFeat(i, dir) {
+      if (!currentNode) return;
+      const feats = NODES[currentNode].features;
+      const newI = i + dir;
+      if (newI < 0 || newI >= feats.length) return;
+      const temp = feats[i];
+      feats[i] = feats[newI];
+      feats[newI] = temp;
+      renderFeatures();
+    }
+    function setFilter(btn) { document.querySelectorAll('.fpill').forEach(b => b.classList.remove('on')); btn.classList.add('on'); currentFilter = btn.dataset.f; renderFeatures() }
+
+    /* ═══════ SIDEBAR TOGGLE ═══════ */
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      const btn = document.getElementById('sbToggleBtn');
+      const minimized = sb.classList.toggle('minimized');
+      btn.textContent = minimized ? '›' : '‹';
+      btn.title = minimized ? 'Expand sidebar' : 'Collapse sidebar';
+    }
+
+    document.getElementById('noteBox').addEventListener('input', function () { if (currentNode) NODES[currentNode].note = this.value });
+    document.getElementById('codeBlock').addEventListener('input', function () { if (currentNode) NODES[currentNode].code = this.innerHTML });
+
+    /* ═══════ ADD / EDIT / DELETE NODE ═══════ */
+    function buildPickers() {
+      const sp = document.getElementById('shapePicker');
+      sp.innerHTML = '';
+      Object.entries(SHAPES).forEach(([key, def]) => {
+        const d = document.createElement('div');
+        d.className = 'shape-opt' + (key === selShape ? ' sel' : '');
+        d.innerHTML = `${def.draw(hex(selColor), 38)}<span>${def.label}</span>`;
+        d.onclick = () => { document.querySelectorAll('.shape-opt').forEach(o => o.classList.remove('sel')); d.classList.add('sel'); selShape = key };
+        sp.appendChild(d);
+      });
+      const cp = document.getElementById('colorPicker');
+      cp.innerHTML = '';
+      COLORS.forEach(c => {
+        const d = document.createElement('div');
+        d.className = 'color-opt' + (c.key === selColor ? ' sel' : '');
+        d.style.background = c.hex; d.title = c.key;
+        d.onclick = () => {
+          document.querySelectorAll('.color-opt').forEach(o => o.classList.remove('sel'));
+          d.classList.add('sel'); selColor = c.key;
+          document.querySelectorAll('.shape-opt').forEach((o, idx) => {
+            const k = Object.keys(SHAPES)[idx];
+            o.innerHTML = `${SHAPES[k].draw(c.hex, 38)}<span>${SHAPES[k].label}</span>`;
+          });
+        };
+        cp.appendChild(d);
+      });
+    }
+
+    function openAddNode() {
+      modalMode = 'add'; selShape = 'rect'; selColor = 'violet';
+      document.getElementById('mName').value = '';
+      document.getElementById('mSub').value = '';
+      document.getElementById('modalTitle').textContent = 'Add Node';
+      document.getElementById('modalSub').textContent = 'Define a new component in your architecture.';
+      document.getElementById('modalSaveBtn').textContent = 'Add Node';
+      buildPickers();
+      document.getElementById('nodeModal').classList.add('open');
+      setTimeout(() => document.getElementById('mName').focus(), 80);
+    }
+    function openEditNode() {
+      if (!currentNode) return;
+      const nd = NODES[currentNode];
+      modalMode = 'edit'; selShape = nd.shape; selColor = nd.color;
+      document.getElementById('mName').value = nd.title;
+      document.getElementById('mSub').value = nd.sub;
+      document.getElementById('modalTitle').textContent = 'Edit Node';
+      document.getElementById('modalSub').textContent = 'Update shape, color, name or subtitle.';
+      document.getElementById('modalSaveBtn').textContent = 'Save Changes';
+      buildPickers();
+      document.getElementById('nodeModal').classList.add('open');
+    }
+    function saveModal() {
+      const name = document.getElementById('mName').value.trim();
+      const sub = document.getElementById('mSub').value.trim();
+      if (!name) { toast('Node name required', 'err'); return }
+      const shapeEls = document.querySelectorAll('.shape-opt');
+      const shapeKeys = Object.keys(SHAPES);
+      let shapeKey = 'rect', colorKey = 'violet';
+      shapeEls.forEach((el, idx) => { if (el.classList.contains('sel')) shapeKey = shapeKeys[idx] });
+      document.querySelectorAll('.color-opt').forEach(el => { if (el.classList.contains('sel')) colorKey = el.title });
+      if (modalMode === 'add') {
+        const id = 'n' + Date.now();
+        NODES[id] = { title: name, sub: sub || '', shape: shapeKey, color: colorKey, features: [], code: '', note: '', tags: [] };
+        if (currentNode) {
+          const idx = nodeOrder.indexOf(currentNode);
+          if (idx !== -1) nodeOrder.splice(idx + 1, 0, id);
+          else nodeOrder.push(id);
+        } else {
+          nodeOrder.push(id);
+        }
+        closeModal(); renderSidebar(); renderFlow(); selectNode(id);
+        toast('Node added ✓', 'ok');
+      } else {
+        NODES[currentNode].title = name; NODES[currentNode].sub = sub;
+        NODES[currentNode].shape = shapeKey; NODES[currentNode].color = colorKey;
+        closeModal(); selectNode(currentNode);
+        toast('Node updated ✓', 'ok');
+      }
+    }
+
+    function moveNode(dir) {
+      if (!currentNode) return;
+      const idx = nodeOrder.indexOf(currentNode);
+      if (idx === -1) return;
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= nodeOrder.length) return;
+      const temp = nodeOrder[idx];
+      nodeOrder[idx] = nodeOrder[newIdx];
+      nodeOrder[newIdx] = temp;
+      renderSidebar(); renderFlow();
+    }
+
+    function deleteNode() {
+      if (!currentNode) return;
+      if (!confirm(`Delete "${NODES[currentNode].title}"?`)) return;
+      delete NODES[currentNode];
+      nodeOrder = nodeOrder.filter(id => id !== currentNode);
+      currentNode = null;
+      document.getElementById('nodeEditBtns').style.display = 'none';
+      document.getElementById('llWs').classList.remove('open');
+      document.getElementById('llEmpty').style.display = 'flex';
+      renderSidebar(); renderFlow();
+      toast('Node deleted', 'ok');
+      renderDashboard();
+    }
+    function closeModal() { document.getElementById('nodeModal').classList.remove('open') }
+    document.getElementById('nodeModal').addEventListener('click', e => { if (e.target === document.getElementById('nodeModal')) closeModal() });
+
+    /* ═══════ THEME ═══════ */
+    function toggleTheme() {
+      const h = document.documentElement;
+      const isDark = h.getAttribute('data-theme') === 'dark';
+      const newTheme = isDark ? 'light' : 'dark';
+      h.setAttribute('data-theme', newTheme);
+      document.getElementById('themeBtn').textContent = newTheme === 'dark' ? '🌙' : '☀️';
+      localStorage.setItem(LS_PREFIX + '_THEME', newTheme);
+    }
+
+    /* ═══════ EXPORT DROPDOWN ═══════ */
+    function toggleDrop() { document.getElementById('exportMenu').classList.toggle('open') }
+    function closeDrop() { document.getElementById('exportMenu').classList.remove('open') }
+    document.addEventListener('click', e => { if (!document.getElementById('exportDrop').contains(e.target)) closeDrop() });
+
+    /* ═══════ SAVE / LOAD (LocalStorage & JSON) ═══════ */
+    function saveData() {
+      const data = { proj: document.getElementById('projName').value, order: nodeOrder, nodes: NODES };
+      localStorage.setItem(LS_PREFIX, JSON.stringify(data));
+      toast('Saved to LocalStorage ✓', 'ok');
+    }
+
+    function loadData() {
+      const str = localStorage.getItem(LS_PREFIX);
+      if (!str) return;
+      try {
+         const data = JSON.parse(str);
+         if (data.nodes && data.order) {
+            document.getElementById('projName').value = data.proj || 'My System Design';
+            nodeOrder = data.order; // supports both flat strings and nested arrays
+            Object.keys(data.nodes).forEach(k => {
+               if (data.nodes[k].code === undefined) data.nodes[k].code = '';
+               if (data.nodes[k].note === undefined) data.nodes[k].note = '';
+            });
+            for (let key in NODES) delete NODES[key];
+            Object.assign(NODES, data.nodes);
+         }
+      } catch(e) { console.error('Error loading data:', e); }
+    }
+
+    function saveJSON() {
+      closeDrop();
+      const data = { proj: document.getElementById('projName').value, order: nodeOrder, nodes: NODES };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      dlBlob(blob, 'system_design_project.json');
+      toast('Project JSON downloaded ✓', 'ok');
+    }
+
+    function loadJSON(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+         try {
+           const data = JSON.parse(ev.target.result);
+           if(data.nodes && data.order) {
+              document.getElementById('projName').value = data.proj || 'My System Design';
+              nodeOrder = data.order;
+              Object.keys(data.nodes).forEach(k => {
+                 if (!data.nodes[k].cost) data.nodes[k].cost = { inst: 0, type: '', cost: 0, rps: 0, notes: '' };
+                 if (data.nodes[k].code === undefined) data.nodes[k].code = '';
+              });
+              for (let key in NODES) delete NODES[key];
+              Object.assign(NODES, data.nodes);
+              renderSidebar(); renderFlow();
+              if (nodeOrder.length) selectNode(nodeOrder[0]);
+              updateTotalCost();
+              toast('Project Loaded ✓', 'ok');
+           }
+         } catch(err) { toast('Invalid JSON', 'err'); }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    /* ═══════ MERMAID EXPORT ═══════ */
+    function exportMermaid() {
+      closeDrop();
+      let ms = 'flowchart LR\n';
+      const sanitize = s => String(s).replace(/[^a-zA-Z0-9 ]/g, '').trim();
+      nodeOrder.forEach((id, i) => {
+        let shStart = '[', shEnd = ']';
+        const s = NODES[id].shape;
+        if (s === 'rounded') { shStart = '('; shEnd = ')'; }
+        else if (s === 'circle') { shStart = '(('; shEnd = '))'; }
+        else if (s === 'diamond') { shStart = '{'; shEnd = '}'; }
+        else if (s === 'cylinder') { shStart = '[('; shEnd = ')]'; }
+        else if (s === 'hexagon') { shStart = '{{'; shEnd = '}}'; }
+        else if (s === 'parallel') { shStart = '[/'; shEnd = '/]'; }
+
+        ms += `  ${id}${shStart}"${sanitize(NODES[id].title)}"${shEnd}\n`;
+        if (i > 0) ms += `  ${nodeOrder[i - 1]} --> ${id}\n`;
+      });
+
+      const temp = document.createElement('textarea');
+      temp.value = ms;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      toast('Mermaid code copied to clipboard! ✓', 'ok');
+    }
+
+    /* ═══════ EXPORT CSV ═══════ */
+    function exportCSV() {
+      closeDrop();
+      const rows = [['Node', 'Subtitle', 'Shape', 'Color', 'Feature', 'Detail', 'Status', 'Priority', 'Owner']];
+      nodeOrder.forEach(id => {
+        const nd = NODES[id]; if (!nd) return;
+        if (!nd.features.length) { rows.push([nd.title, nd.sub, nd.shape, nd.color, '', '', '', '', '']); return }
+        nd.features.forEach(f => rows.push([nd.title, nd.sub, nd.shape, nd.color, f.f, f.d, SL(f.s), f.p, f.o || '']));
+      });
+      const csv = rows.map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      dlBlob(new Blob([csv], { type: 'text/csv' }), 'system_design.csv');
+      toast('CSV exported ✓', 'ok');
+    }
+
+    /* ═══════ IMPORT CSV ═══════ */
+    function importCSV(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const lines = ev.target.result.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) { toast('CSV empty', 'err'); return }
+        const hdr = parseCSV(lines[0]);
+        const ci = k => hdr.findIndex(h => h.toLowerCase().includes(k));
+        const iN = ci('node'), iSub = ci('sub'), iSh = ci('shape'), iCo = ci('color'),
+          iF = ci('feat'), iD = ci('det') || ci('desc'), iS = ci('stat'), iP = ci('pri'), iO = ci('own');
+        const imp = {}, ord = [];
+        lines.slice(1).forEach(line => {
+          const c = parseCSV(line); const name = (c[iN] || '').trim(); if (!name) return;
+          const nodeId = 'imp_' + name.toLowerCase().replace(/\W+/g, '_');
+          if (!imp[nodeId]) {
+            imp[nodeId] = {
+              title: name, sub: (c[iSub] || '').trim(),
+              shape: (iSh >= 0 && SHAPES[c[iSh]]) ? c[iSh] : 'rect',
+              color: (iCo >= 0 && COLORS.find(x => x.key === c[iCo])) ? c[iCo] : 'violet',
+              features: [], code: '', note: ''
+            };
+            ord.push(nodeId);
+          }
+          const feat = (c[iF] || '').trim(); if (!feat) return;
+          const sv = (c[iS] || '').toLowerCase();
+          const s = sv.includes('done') || sv.includes('comp') ? 'done' : sv.includes('wip') || sv.includes('prog') ? 'wip' : 'todo';
+          imp[nodeId].features.push({ f: feat, d: (c[iD] || '').trim(), s, p: (c[iP] || 'P2').trim(), o: (c[iO] || '').trim() });
+        });
+        if (!ord.length) { toast('No rows found', 'err'); return }
+        Object.assign(NODES, imp);
+        ord.forEach(id => { if (!nodeOrder.includes(id)) nodeOrder.push(id) });
+        renderSidebar(); renderFlow();
+        toast(`Imported ${ord.length} node(s) ✓`, 'ok');
+      };
+      reader.readAsText(file); e.target.value = '';
+    }
+    function parseCSV(row) {
+      const cols = []; let cur = '', inQ = false;
+      for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === '"') { if (inQ && row[i + 1] === '"') { cur += '"'; i++ } else inQ = !inQ }
+        else if (ch === ',' && !inQ) { cols.push(cur); cur = '' }
+        else cur += ch;
+      }
+      cols.push(cur);
+      return cols.map(c => c.trim());
+    }
+
+    /* ═══════ EXPORT PDF ═══════ */
+    async function exportPDF() {
+      closeDrop(); toast('Building PDF…');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+      const M = 14; let y = M;
+      const proj = document.getElementById('projName').value || 'System Design';
+
+      function pageHeader() {
+        doc.setFillColor(13, 14, 24); doc.rect(0, 0, W, 13, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(155, 143, 255);
+        doc.text('ArchFlow — System Design', M, 8.5);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80, 85, 120);
+        doc.text(proj + ' | ' + new Date().toLocaleString(), W - M, 8.5, { align: 'right' });
+        doc.setDrawColor(30, 33, 58); doc.line(0, 13, W, 13);
+        y = 20;
+      }
+
+      // ── Page 1: High-Level Flow ──
+      pageHeader();
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(220, 222, 240);
+      doc.text('High-Level Architecture', M, y); y += 7;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(90, 95, 130);
+      const fl = nodeOrder.filter(id => NODES[id]).map(id => NODES[id].title).join(' → ');
+      const flines = doc.splitTextToSize(fl, W - M * 2);
+      doc.text(flines, M, y); y += flines.length * 5 + 8;
+
+      // Draw architecture boxes
+      const ids = nodeOrder.filter(id => NODES[id]);
+      const bW = 42, bH = 20, bG = 10, rowMax = 5;
+      let bx = M, by = y;
+      ids.forEach((id, i) => {
+        const nd = NODES[id];
+        const h = hex(nd.color);
+        const r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b = parseInt(h.slice(5, 7), 16);
+        if (i > 0 && i % rowMax === 0) { bx = M; by += bH + 18; }
+        else if (i > 0) { bx += bW + bG; }
+        // arrow
+        if (i > 0 && i % rowMax !== 0) {
+          doc.setDrawColor(60, 65, 100); doc.setLineWidth(.5);
+          doc.line(bx - bG + 1, by + bH / 2, bx - 1, by + bH / 2);
+        }
+        // row wrap arrow
+        if (i > 0 && i % rowMax === 0) {
+          const prevEnd = M + rowMax * (bW + bG) - bG;
+          const prevBy = by - bH - 18;
+          doc.setDrawColor(60, 65, 100); doc.setLineWidth(.4);
+          doc.line(prevEnd, prevBy + bH / 2, prevEnd + 5, prevBy + bH / 2);
+          doc.line(prevEnd + 5, prevBy + bH / 2, prevEnd + 5, by + bH / 2);
+          doc.line(prevEnd + 5, by + bH / 2, M, by + bH / 2);
+        }
+        // box
+        doc.setFillColor(r, g, b); doc.roundedRect(bx, by, bW, bH, 3, 3, 'F');
+        doc.setFillColor(6, 7, 14); doc.setGState(new doc.GState({ opacity: .72 }));
+        doc.roundedRect(bx, by, bW, bH, 3, 3, 'F');
+        doc.setGState(new doc.GState({ opacity: 1 }));
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+        doc.setTextColor(Math.min(r + 90, 255), Math.min(g + 90, 255), Math.min(b + 90, 255));
+        doc.text(doc.splitTextToSize(nd.title, bW - 5)[0] || nd.title, bx + 3, by + 8);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(Math.min(r + 50, 255), Math.min(g + 50, 255), Math.min(b + 50, 255));
+        doc.text(nd.sub, bx + 3, by + 14);
+        // badge
+        const tot = nd.features.length, dn = nd.features.filter(f => f.s === 'done').length;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(6); doc.setTextColor(180, 185, 210);
+        doc.text(`${dn}/${tot}`, bx + bW - 3, by + 18, { align: 'right' });
+      });
+      y = by + bH + 14;
+
+      // ── Per-node detail pages ──
+      ids.forEach(id => {
+        const nd = NODES[id]; if (!nd.features.length) return;
+        const rowH = 7;
+        const needed = 30 + nd.features.length * rowH + 12;
+        if (y + needed > H - 10) { doc.addPage(); pageHeader(); }
+
+        const h = hex(nd.color);
+        const r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b = parseInt(h.slice(5, 7), 16);
+
+        // Node header
+        doc.setFillColor(r, g, b); doc.rect(M, y, 4, 20, 'F');
+        doc.setFillColor(18, 20, 36); doc.roundedRect(M + 4, y, W - M * 2 - 4, 20, 3, 3, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(220, 222, 240);
+        doc.text(nd.title, M + 10, y + 9);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100, 105, 150);
+        doc.text(nd.sub, M + 10, y + 16);
+        // stats
+        const tot = nd.features.length, dn = nd.features.filter(f => f.s === 'done').length,
+          wp = nd.features.filter(f => f.s === 'wip').length;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+        doc.setTextColor(34, 211, 165); doc.text(`${dn} done`, W - M - 65, y + 9);
+        doc.setTextColor(245, 158, 11); doc.text(`${wp} wip`, W - M - 42, y + 9);
+        doc.setTextColor(90, 95, 130); doc.text(`${tot - dn - wp} todo`, W - M - 22, y + 9);
+        y += 24;
+
+        // Table header
+        const C = { n: 8, f: 68, d: 98, s: 30, p: 18, o: 32 };
+        const tW = W - M * 2;
+        doc.setFillColor(22, 24, 42); doc.rect(M, y, tW, 7, 'F');
+        let hx = M;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(80, 85, 135);
+        [['#', 'n'], ['Feature', 'f'], ['Detail', 'd'], ['Status', 's'], ['Pri', 'p'], ['Owner', 'o']].forEach(([lbl, k]) => {
+          doc.text(lbl, hx + 2, y + 5); hx += C[k];
+        });
+        y += 8;
+
+        // Rows
+        nd.features.forEach((f, ri) => {
+          if (y + rowH > H - 10) { doc.addPage(); pageHeader(); }
+          doc.setFillColor(...(ri % 2 === 0 ? [16, 18, 32] : [13, 15, 26]));
+          doc.rect(M, y, tW, rowH, 'F');
+          doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(190, 192, 215);
+          let cx = M;
+          const tr = str => doc.splitTextToSize(String(str || ''), C.f - 3)[0] || '';
+          doc.text(String(ri + 1), cx + 2, y + 5); cx += C.n;
+          doc.text(tr(f.f), cx + 2, y + 5); cx += C.f;
+          doc.text(doc.splitTextToSize(String(f.d || ''), C.d - 3)[0] || '', cx + 2, y + 5); cx += C.d;
+          const sc = f.s === 'done' ? [34, 211, 165] : f.s === 'wip' ? [245, 158, 11] : [100, 105, 145];
+          doc.setTextColor(...sc); doc.text(SL(f.s), cx + 2, y + 5); cx += C.s;
+          const pc = f.p === 'P0' ? [248, 113, 113] : f.p === 'P1' ? [245, 158, 11] : f.p === 'P2' ? [96, 165, 250] : [90, 95, 130];
+          doc.setTextColor(...pc); doc.text(f.p || '', cx + 2, y + 5); cx += C.p;
+          doc.setTextColor(190, 192, 215); doc.text(tr(f.o || ''), cx + 2, y + 5);
+          y += rowH;
+        });
+
+        // Progress bar
+        const pct = tot ? dn / tot : 0;
+        doc.setFillColor(25, 28, 46); doc.rect(M, y, tW, 4, 'F');
+        doc.setFillColor(34, 211, 165); doc.rect(M, y, tW * pct, 4, 'F');
+        y += 10;
+      });
+
+      // Page numbers
+      const nPg = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= nPg; i++) {
+        doc.setPage(i);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(60, 65, 90);
+        doc.text(`Page ${i} of ${nPg}`, W - M, H - 5, { align: 'right' });
+      }
+      doc.save('system_design.pdf');
+      toast('PDF downloaded ✓', 'ok');
+    }
+
+    /* ═══════ EXPORT PNG ═══════ */
+    async function exportImage(target) {
+      closeDrop(); toast('Capturing…');
+      const el = document.getElementById(target) || document.body;
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const bg = dark ? '#080910' : '#f1f2f9';
+      const canvas = await html2canvas(el, { backgroundColor: bg, scale: 2, useCORS: true, logging: false });
+      canvas.toBlob(blob => {
+        dlBlob(blob, `system_design_${target === 'hlArea' ? 'flow' : 'full'}.png`);
+        toast('PNG downloaded ✓', 'ok');
+      }, 'image/png');
+    }
+
+    /* ═══════ UTILS ═══════ */
+    function dlBlob(blob, name) {
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+      a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    }
+    let toastTmr;
+    function toast(msg, type = '') {
+      const el = document.getElementById('toast');
+      el.className = 'toast show' + (type ? ' ' + type : '');
+      document.getElementById('toastIcon').textContent = type === 'err' ? '✕' : '✓';
+      document.getElementById('toastMsg').textContent = msg;
+      clearTimeout(toastTmr); toastTmr = setTimeout(() => el.classList.remove('show'), 3200);
+    }
+
+    /* ═══════ INIT ═══════ */
+    const savedTheme = localStorage.getItem(LS_PREFIX + '_THEME');
+    if (savedTheme) {
+      document.body.parentElement.setAttribute('data-theme', savedTheme);
+      document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+    }
+    
+    const loadedStr = localStorage.getItem(LS_PREFIX);
+    if(loadedStr) {
+      loadData();
+      renderSidebar();
+      renderFlow();
+      if (nodeOrder.length) selectNode(nodeOrder[0]);
+    } else {
+      renderSidebar();
+      renderFlow();
+      selectNode('req');
+    }
+    renderDashboard();
+  </script>
+</body>
+
+</html>

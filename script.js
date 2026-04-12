@@ -5,7 +5,7 @@ const tools = [
     title: "Diagram from Code",
     description:
       "Type simple code to generate flowcharts automatically. Fast for developers.",
-    tags: ["Coding", "Automation", "Charts"],
+    tags: ["Coding", "Automation", "Charts", "Mermaid"],
     status: "live",
     instructions: [
       "Write your flowchart steps in the code editor",
@@ -14,6 +14,24 @@ const tools = [
       "Download the result as a file",
     ],
     link: "./flowChartMaker/codeFlowForge.html",
+    groupname: ["Coder Tools"],
+  },
+  {
+    icon: "fas fa-terminal",
+    title: "Plan & Design",
+    description: "Plan and design your system.",
+    tags: ["Design", "Plan"],
+    status: "live",
+    link: "./SystemDesign/SystemDesign.html",
+    groupname: ["Coder Tools"],
+  },
+  {
+    icon: "fas fa-terminal",
+    title: "Plan & Design Extended",
+    description: "Plan and design your system.",
+    tags: ["Design", "Plan"],
+    status: "live",
+    link: "./SystemDesign/SystemDesignExtended.html",
     groupname: ["Coder Tools"],
   },
   {
@@ -105,13 +123,13 @@ const tools = [
   },
   {
     icon: "fas fa-star",
-    title: "Interview Prep",
+    title: "Points Noter",
     description:
       "Advanced preparation tool with points, challenges, and progress charts.",
-    tags: ["Advanced", "Goals", "Success"],
+    tags: ["Advanced", "Goals", "Pointers", "Tracker"],
     status: "live",
     link: "./preparationTracker/advpointstore.html",
-    groupname: ["Career Tools"],
+    groupname: ["Writing Tools"],
   },
   {
     icon: "fas fa-file-invoice",
@@ -130,7 +148,7 @@ const tools = [
     tags: ["Remainder", "Task"],
     status: "live",
     link: "./remainderTasks/taskRemainder.html",
-    groupname: ["Remainder"],
+    groupname: ["Remainder Tools"],
   },
   {
     icon: "fas fa-file-download",
@@ -180,12 +198,12 @@ const tools = [
   },
   {
     icon: "fas fa-file-image",
-    title: "System Design",
-    description: "System Design Tool",
-    tags: ["System", "Design"],
+    title: "Thumbnail Designer",
+    description: "Thumbnail Designer Tool",
+    tags: ["Thumbnail", "Designer"],
     status: "live",
-    link: "./devTools/system-design.html",
-    groupname: ["Dev Tools"],
+    link: "./ImageEdits/thumbnail-designer.html",
+    groupname: ["Image Tools"],
   },
 ];
 
@@ -506,6 +524,10 @@ function renderGroupFilters() {
         "Learning Tools": "fa-graduation-cap",
         "Fun & Games": "fa-gamepad",
         "Office Utilities": "fa-folder-tree",
+        "Image Tools": "fa-image",
+        "Storage Tools": "fa-database",
+        "Dev Tools": "fa-terminal",
+        "Remainder Tools": "fa-clock",
       };
       const iconClass = iconMap[groupName] || "fa-folder";
 
