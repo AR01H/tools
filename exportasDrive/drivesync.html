@@ -2,8 +2,6 @@
 <html lang="en">
 
 <head>
-    <script>const LS_PREFIX = "exportasDrive_drivesync_";
-</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>We1 | Cloud Drive Sync</title>
@@ -1732,7 +1730,7 @@
 
   <script>
     const LS_URL_KEY = "__drivesync_url__";
-    let scriptURL = localStorage.getItem(LS_PREFIX + LS_URL_KEY) || "", username = "", password = "", selectedFileId = null;
+    let scriptURL = localStorage.getItem(LS_URL_KEY) || "", username = "", password = "", selectedFileId = null;
 
     (function () { showPage("page-setup"); })();
 
@@ -1744,7 +1742,7 @@
 
     function toast(type, text) { const rack = document.getElementById("toast-rack"), t = document.createElement("div"); t.className = "toast"; t.innerHTML = `<div class="toast-dot ${type}"></div><span>${text}</span>`; rack.appendChild(t); setTimeout(() => t.remove(), 3500); }
 
-    function doSetup() { const url = document.getElementById("setup-url").value.trim(); if (!url.startsWith("https://script.google.com/macros/s/")) return msg("setup-msg", "err", "URL must start with https://script.google.com/macros/s/"); scriptURL = url; localStorage.setItem(LS_PREFIX + LS_URL_KEY, url); showPage("page-login"); }
+    function doSetup() { const url = document.getElementById("setup-url").value.trim(); if (!url.startsWith("https://script.google.com/macros/s/")) return msg("setup-msg", "err", "URL must start with https://script.google.com/macros/s/"); scriptURL = url; localStorage.setItem(LS_URL_KEY, url); showPage("page-login"); }
 
     async function doLogin() {
       const user = document.getElementById("login-user").value.trim();
@@ -1767,7 +1765,7 @@
     }
 
     function doLogout() { username = ""; password = ""; document.getElementById("login-pass").value = ""; showPage("page-login"); }
-    function changeURL() { localStorage.removeItem(LS_PREFIX + LS_URL_KEY); scriptURL = ""; document.getElementById("setup-url").value = ""; showPage("page-setup"); }
+    function changeURL() { localStorage.removeItem(LS_URL_KEY); scriptURL = ""; document.getElementById("setup-url").value = ""; showPage("page-setup"); }
 
     function switchTab(tab) {
       document.querySelectorAll(".nav-pill").forEach(p => p.classList.toggle("active", p.dataset.tab === tab));
@@ -1781,7 +1779,7 @@
       const list = document.getElementById("exp-key-list");
       if (!keys.length) { list.innerHTML = '<div class="empty-state">No localStorage keys found.</div>'; document.getElementById("exp-count").textContent = "0 keys"; return; }
       list.innerHTML = keys.map(k => {
-        const val = localStorage.getItem(LS_PREFIX + k) || "", preview = val.length > 48 ? val.slice(0, 48) + "…" : val;
+        const val = localStorage.getItem(k) || "", preview = val.length > 48 ? val.slice(0, 48) + "…" : val;
         return `<label class="key-row"><input type="checkbox" class="exp-cb" value="${esc(k)}" checked onchange="updateExpCount()"><span class="key-name">${esc(k)}</span><span class="key-preview" title="${esc(val)}">${esc(preview)}</span></label>`;
       }).join(""); updateExpCount();
     }
@@ -1794,7 +1792,7 @@
       if (!sel.length) return msg("export-msg", "err", "Select at least one key.");
       const appName = document.getElementById("exp-app").value.trim() || "MyApp";
       const label = document.getElementById("exp-label").value.trim() || "backup";
-      const data = {}; sel.forEach(k => data[k] = localStorage.getItem(LS_PREFIX + k));
+      const data = {}; sel.forEach(k => data[k] = localStorage.getItem(k));
       setLoading(true, `Exporting ${sel.length} key(s) to Drive…`);
       try {
         const res = await api({ action: "export", appName, label, data }); setLoading(false);
@@ -1837,7 +1835,7 @@
         const keys = res.keys || [];
         const listEl = document.getElementById("imp-key-list");
         listEl.innerHTML = keys.length ? keys.map(k => {
-          const exists = localStorage.getItem(LS_PREFIX + k) !== null;
+          const exists = localStorage.getItem(k) !== null;
           return `<label class="key-row"><input type="checkbox" class="imp-cb" value="${esc(k)}" checked onchange="updateImpCount()"><span class="key-name">${esc(k)}</span><span class="key-badge ${exists ? "overwrite" : "new"}">${exists ? "overwrite" : "new"}</span></label>`;
         }).join("") : '<div class="empty-state">No keys in this backup.</div>';
         document.getElementById("imp-count").textContent = `${keys.length} / ${keys.length} selected`;
@@ -1856,7 +1854,7 @@
       try {
         const res = await api({ action: "import", fileId: selectedFileId }); setLoading(false);
         if (!res.success) throw new Error(res.error);
-        let count = 0; keys.forEach(k => { if (res.data && res.data[k] !== undefined) { localStorage.setItem(LS_PREFIX + k, res.data[k]); count++; } });
+        let count = 0; keys.forEach(k => { if (res.data && res.data[k] !== undefined) { localStorage.setItem(k, res.data[k]); count++; } });
         msg("import-msg", "ok", `✓ Imported ${count} key(s) into localStorage.`); toast("ok", `Imported ${count} key(s)`); renderExportKeys();
       } catch (e) { setLoading(false); msg("import-msg", "err", "Import failed: " + e.message); }
     }
@@ -1882,7 +1880,7 @@
     function clearLS() {
       const keys = Object.keys(localStorage).filter(k => !k.startsWith("__drivesync_"));
       if (!confirm(`Clear ${keys.length} key(s)? DriveSync settings will be kept.`)) return;
-      keys.forEach(k => localStorage.removeItem(LS_PREFIX + k)); renderExportKeys(); toast("info", "LocalStorage cleared");
+      keys.forEach(k => localStorage.removeItem(k)); renderExportKeys(); toast("info", "LocalStorage cleared");
     }
 
     async function api(payload) {
