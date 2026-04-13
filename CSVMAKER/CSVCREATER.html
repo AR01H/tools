@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSVCREATER — Test Case Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+[data-theme="dark"]{
+  --bg:#0d0f14;--bg2:#13161e;--bg3:#1a1e2a;--bg4:#222736;
+  --border:#2a2f3d;--border2:#363d52;
+  --text:#e8eaf0;--text2:#9aa0b8;--text3:#5a6070;
+  --accent:#4f8ef7;--accent2:#6fa3ff;--accent-dim:#1e3a6e;
+  --green:#3dd68c;--green-dim:#163326;
+  --red:#f76b6b;--red-dim:#3d1e1e;
+  --amber:#f5a623;--amber-dim:#3d2800;
+  --purple:#a78bfa;--shadow:rgba(0,0,0,.5);--sel-bg:#1a1e2a;
+}
+[data-theme="light"]{
+  --bg:#eef0f6;--bg2:#ffffff;--bg3:#f5f6fa;--bg4:#e8eaf2;
+  --border:#d0d4e8;--border2:#b8bdd4;
+  --text:#1a1e2e;--text2:#4a5068;--text3:#8890a8;
+  --accent:#3a7ef5;--accent2:#2563d4;--accent-dim:#dce9ff;
+  --green:#16a060;--green-dim:#d4f5e6;
+  --red:#e03c3c;--red-dim:#fde8e8;
+  --amber:#d97706;--amber-dim:#fff3d4;
+  --purple:#7c3aed;--shadow:rgba(0,0,0,.12);--sel-bg:#ffffff;
+}
+html,body{height:100%;}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);display:flex;overflow:hidden;font-size:13px;transition:background .2s,color .2s;}
+
+/* ── SIDEBAR ── */
+#sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:width .22s,min-width .22s;overflow:hidden;position:relative;z-index:10;flex-shrink:0;}
+#sidebar.collapsed{width:46px;min-width:46px;}
+#sidebar.collapsed .sb-label,
+#sidebar.collapsed .sb-sheet-name,
+#sidebar.collapsed .sb-section-title,
+#sidebar.collapsed .sb-btn>span,
+#sidebar.collapsed .sb-divider{display:none!important;}
+#sidebar.collapsed .sb-btn{justify-content:center;padding:8px;}
+#sb-toggle{position:absolute;right:-12px;top:20px;width:24px;height:24px;background:var(--bg3);border:1px solid var(--border2);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;color:var(--text3);font-size:10px;transition:.2s;}
+#sb-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.sb-logo{padding:13px 14px 11px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sb-logo-icon{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;flex-shrink:0;}
+.sb-logo-text{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;}
+.sb-logo-text span{color:var(--accent);}
+.sb-section-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);padding:11px 14px 4px;white-space:nowrap;flex-shrink:0;}
+.sb-sheets{flex:1;overflow-y:auto;padding:4px 8px 8px;}
+.sb-sheet{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:.13s;border:1px solid transparent;}
+.sb-sheet:hover{background:var(--bg3);}
+.sb-sheet.active{background:var(--accent-dim);border-color:var(--accent);}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sb-sheet-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;color:var(--text);}
+.sb-sheet.active .sb-sheet-name{color:var(--accent);}
+.sb-sheet-del{opacity:0;font-size:9px;color:var(--text3);cursor:pointer;padding:2px 5px;border-radius:3px;flex-shrink:0;}
+.sb-sheet:hover .sb-sheet-del{opacity:1;}
+.sb-sheet-del:hover{color:var(--red);background:var(--red-dim);}
+.sb-bottom{padding:8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+.sb-divider{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:6px 8px 2px;white-space:nowrap;}
+.sb-btn{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'Sora',sans-serif;border:none;background:transparent;color:var(--text2);width:100%;text-align:left;transition:.13s;white-space:nowrap;}
+.sb-btn:hover{background:var(--bg3);color:var(--text);}
+.sb-btn.pri{background:var(--accent-dim);color:var(--accent);}
+.sb-btn.pri:hover{background:var(--accent);color:#fff;}
+.sb-btn svg{flex-shrink:0;width:14px;height:14px;}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* ── TOPBAR ── */
+#topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0;}
+#sheet-title-input{background:transparent;border:none;font-family:'Sora',sans-serif;font-size:16px;font-weight:600;color:var(--text);outline:none;min-width:80px;flex:1;}
+#sheet-title-input::placeholder{color:var(--text3);}
+.tb-sep{width:1px;height:22px;background:var(--border);flex-shrink:0;}
+.tb-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:11px;font-family:'Sora',sans-serif;transition:.13s;white-space:nowrap;flex-shrink:0;}
+.tb-btn:hover{background:var(--bg4);color:var(--text);}
+.tb-btn.acc{background:var(--accent);border-color:var(--accent);color:#fff;}
+.tb-btn.acc:hover{opacity:.88;}
+.tb-btn.grn{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.tb-btn.grn:hover{background:var(--green);color:#fff;}
+.tb-btn.amb{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.tb-btn.amb:hover{background:var(--amber);color:#fff;}
+#srch-wrap{position:relative;flex-shrink:0;}
+#search-input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px 5px 28px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;width:150px;}
+#search-input:focus{border-color:var(--accent);}
+#search-input::placeholder{color:var(--text3);}
+#srch-wrap::before{content:'⌕';position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none;}
+.stats-pill{font-size:11px;color:var(--text3);background:var(--bg3);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap;flex-shrink:0;}
+#theme-toggle{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:.13s;}
+#theme-toggle:hover{background:var(--bg4);}
+
+/* ── TABLE ── */
+#table-wrap{flex:1;overflow:auto;}
+table{border-collapse:collapse;font-size:12px;min-width:100%;}
+thead th{background:var(--bg3);color:var(--text2);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em;padding:0;position:sticky;top:0;z-index:5;white-space:nowrap;user-select:none;}
+.th-inner{display:flex;align-items:center;gap:4px;padding:7px 10px;min-height:36px;border-right:1px solid var(--border);border-bottom:2px solid var(--accent);}
+th.th-num .th-inner{justify-content:center;padding:7px 6px;min-width:44px;border-bottom:2px solid var(--accent);}
+th.th-add .th-inner{cursor:pointer;color:var(--accent);border-right:none;font-size:11px;font-weight:600;gap:3px;}
+th.th-add:hover .th-inner{background:var(--accent-dim);}
+.th-name{flex:1;overflow:hidden;text-overflow:ellipsis;}
+.th-btns{display:none;gap:1px;align-items:center;}
+th:hover .th-btns{display:flex;}
+.th-b{font-size:11px;cursor:pointer;color:var(--text3);padding:1px 5px;border-radius:3px;border:none;background:transparent;line-height:1;}
+.th-b:hover{background:var(--bg4);color:var(--text);}
+.th-b.danger:hover{background:var(--red-dim);color:var(--red);}
+
+td{padding:0;border-right:1px solid var(--border);border-bottom:1px solid var(--border);vertical-align:top;}
+td:last-child{border-right:none;}
+tbody tr:not(.sec-row):hover td{background:rgba(79,142,247,.05);}
+
+.cell-input{width:100%;background:transparent;border:none;outline:none;font-family:'Sora',sans-serif;font-size:12px;color:var(--text);padding:8px 10px;resize:none;min-height:36px;overflow:hidden;display:block;}
+.cell-input::placeholder{color:var(--text3);}
+.cell-input:focus{background:rgba(79,142,247,.07);}
+select.cell-input{
+  cursor:pointer;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238890a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:26px;background-color:transparent;
+}
+select.cell-input option{background:var(--sel-bg);color:var(--text);}
+td.td-num,th.th-num{background:var(--bg3);color:var(--text3);font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:center;min-width:44px;width:44px;border-right:1px solid var(--border);position:sticky;left:0;z-index:3;}
+th.th-num{z-index:6;}
+.rn-inner{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 4px;min-height:36px;justify-content:center;}
+.rn-num{font-size:10px;color:var(--text3);}
+.rn-del{display:none;font-size:9px;cursor:pointer;color:var(--text3);padding:1px 4px;border-radius:3px;border:none;background:transparent;}
+tr:hover .rn-del{display:block;}
+.rn-del:hover{color:var(--red);background:var(--red-dim);}
+
+/* SECTION ROW */
+.sec-row td{background:var(--accent-dim)!important;border-bottom:1px solid var(--accent)!important;}
+.sec-input{width:100%;background:transparent;border:none;outline:none;font-family:'Sora',sans-serif;font-size:11px;font-weight:600;color:var(--accent);padding:8px 12px;letter-spacing:.04em;text-transform:uppercase;}
+.sec-input::placeholder{color:var(--accent2);opacity:.5;}
+
+/* PRIORITY */
+.p-high{color:var(--red)!important;font-weight:600;}
+.p-medium{color:var(--amber)!important;font-weight:500;}
+.p-low{color:var(--green)!important;font-weight:500;}
+
+/* ── MODALS ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:200;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;width:460px;max-width:96vw;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text);}
+.modal-sub{font-size:11px;color:var(--text3);margin-bottom:16px;}
+.fl{font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500;margin-top:2px;}
+.modal input[type=text],.modal select,.modal textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;outline:none;margin-bottom:12px;}
+.modal input[type=text]:focus,.modal select:focus{border-color:var(--accent);}
+.modal select option{background:var(--sel-bg);color:var(--text);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;}
+.m-btn{padding:7px 18px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:12px;font-family:'Sora',sans-serif;transition:.13s;}
+.m-btn:hover{background:var(--bg4);color:var(--text);}
+.m-btn.ok{background:var(--accent);border-color:var(--accent);color:#fff;}
+.m-btn.ok:hover{opacity:.88;}
+
+/* GLOBAL SETTINGS col builder */
+#gs-list{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.gs-row{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 8px;}
+.gs-row input,.gs-row select{flex:1;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;padding:5px 8px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;margin:0;}
+.gs-row select{max-width:110px;color:var(--text);}
+.gs-row select option{background:var(--sel-bg);color:var(--text);}
+.gs-drag{cursor:grab;color:var(--text3);font-size:13px;padding:0 2px;user-select:none;}
+.gs-del-btn{cursor:pointer;color:var(--text3);padding:3px 6px;border-radius:4px;border:none;background:transparent;font-size:13px;flex-shrink:0;}
+.gs-del-btn:hover{color:var(--red);background:var(--red-dim);}
+.gs-opts{display:flex;align-items:center;gap:6px;margin:-6px 0 6px 22px;}
+.gs-opts span{font-size:10px;color:var(--text3);white-space:nowrap;}
+.gs-opts input{flex:1;background:var(--bg4);border:1px solid var(--border2);border-radius:5px;padding:5px 8px;color:var(--text);font-family:'Sora',sans-serif;font-size:11px;outline:none;margin:0;}
+.gs-add-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:6px;border:1px dashed var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-size:12px;font-family:'Sora',sans-serif;width:100%;justify-content:center;transition:.13s;margin-bottom:14px;}
+.gs-add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+
+/* ── CONTEXT MENUS ── */
+.ctx-wrap{position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:4px;z-index:500;display:none;min-width:170px;box-shadow:0 8px 24px var(--shadow);}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0;}
+.ctx-item{padding:7px 12px;font-size:12px;cursor:pointer;border-radius:5px;color:var(--text2);display:flex;align-items:center;gap:8px;}
+.ctx-item:hover{background:var(--bg4);color:var(--text);}
+.ctx-item.danger{color:var(--red);}
+.ctx-item.danger:hover{background:var(--red-dim);}
+.ctx-icon{width:14px;text-align:center;font-size:11px;flex-shrink:0;}
+
+/* ── NOTIF ── */
+#notif{position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:7px;font-size:12px;z-index:600;opacity:0;transition:opacity .3s;pointer-events:none;font-weight:500;}
+#notif.show{opacity:1;}
+
+@media(max-width:640px){
+  #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:50;height:100%;}
+  #sidebar:not(.collapsed){box-shadow:6px 0 30px var(--shadow);}
+  #main{margin-left:46px;}
+  #topbar{padding:7px 10px;}
+  .tb-btn span{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sb-toggle" title="Toggle sidebar">◀</div>
+  <div class="sb-logo">
+    <div class="sb-logo-icon">CC</div>
+    <div class="sb-logo-text">CSV<span>CREATER</span></div>
+  </div>
+  <div class="sb-section-title">Sheets</div>
+  <div class="sb-sheets" id="sb-sheets"></div>
+  <div class="sb-bottom">
+    <button class="sb-btn pri" id="btn-new-sheet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span>New Sheet</span>
+    </button>
+    <div class="sb-divider">Rows &amp; Cols</div>
+    <button class="sb-btn" id="btn-add-row-sb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="12" x2="12" y2="21"/></svg>
+      <span>Add Row</span>
+    </button>
+    <button class="sb-btn" id="btn-add-col-sb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="12" y1="12" x2="21" y2="12"/></svg>
+      <span>Add Column</span>
+    </button>
+    <button class="sb-btn" id="btn-add-sec-sb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="8" x2="21" y2="8"/><line x1="8" y1="3" x2="8" y2="8"/><line x1="3" y1="16" x2="21" y2="16"/></svg>
+      <span>Add Section</span>
+    </button>
+    <div class="sb-divider">Import / Export</div>
+    <button class="sb-btn" id="btn-import-sb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+      <span>Import CSV</span>
+    </button>
+    <button class="sb-btn" id="btn-export-csv-sb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 7 12 3 8 7"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+      <span>Export CSV</span>
+    </button>
+    <button class="sb-btn" id="btn-export-json-sb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 7 12 3 8 7"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+      <span>Export JSON</span>
+    </button>
+    <div class="sb-divider">Config</div>
+    <button class="sb-btn" id="btn-settings-sb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Global Settings</span>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <input id="sheet-title-input" type="text" placeholder="Sheet name…" spellcheck="false">
+    <div class="tb-sep"></div>
+    <div id="srch-wrap"><input id="search-input" type="text" placeholder="Search…"></div>
+    <div class="tb-sep"></div>
+    <button class="tb-btn acc" id="btn-add-row-tb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> <span>Add Row</span></button>
+    <button class="tb-btn" id="btn-add-col-tb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> <span>Add Column</span></button>
+    <button class="tb-btn amb" id="btn-add-sec-tb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="8" x2="21" y2="8"/><line x1="8" y1="3" x2="8" y2="8"/></svg> <span>Section</span></button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn grn" id="btn-export-csv-tb">↓ CSV</button>
+    <button class="tb-btn grn" id="btn-export-json-tb">↓ JSON</button>
+    <button class="tb-btn" id="btn-import-tb">↑ Import</button>
+    <div class="tb-sep"></div>
+    <button id="theme-toggle" title="Toggle light / dark">🌙</button>
+    <button class="tb-btn amb" id="btn-settings-tb">⚙ <span>Settings</span></button>
+    <span class="stats-pill" id="stats-pill">—</span>
+  </div>
+  <div id="table-wrap">
+    <table id="main-table"><thead></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<!-- CTX MENU: row -->
+<div class="ctx-wrap" id="row-ctx">
+  <div class="ctx-item" id="ctx-ins-above"><span class="ctx-icon">↑</span>Insert row above</div>
+  <div class="ctx-item" id="ctx-ins-below"><span class="ctx-icon">↓</span>Insert row below</div>
+  <div class="ctx-item" id="ctx-ins-sec"><span class="ctx-icon">▬</span>Insert section here</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-del-row"><span class="ctx-icon">✕</span>Delete row</div>
+</div>
+
+<!-- CTX MENU: column -->
+<div class="ctx-wrap" id="col-ctx">
+  <div class="ctx-item" id="cctx-left"><span class="ctx-icon">←</span>Move left</div>
+  <div class="ctx-item" id="cctx-right"><span class="ctx-icon">→</span>Move right</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="cctx-rename"><span class="ctx-icon">T</span>Rename</div>
+  <div class="ctx-item" id="cctx-chtype"><span class="ctx-icon">✎</span>Change type / options</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="cctx-del"><span class="ctx-icon">✕</span>Delete column</div>
+</div>
+
+<!-- MODAL: Add Column -->
+<div class="modal-bg" id="modal-col">
+  <div class="modal">
+    <h3 id="col-modal-h">Add Column</h3>
+    <p class="modal-sub">Set the column name, type and where to insert it.</p>
+    <div class="fl">Column Name</div>
+    <input type="text" id="col-name" placeholder="e.g. Status">
+    <div class="fl">Type</div>
+    <select id="col-type">
+      <option value="text">Text (single line)</option>
+      <option value="textarea">Multiline Text</option>
+      <option value="select">Dropdown</option>
+    </select>
+    <div id="col-opts-wrap" style="display:none">
+      <div class="fl">Dropdown options <small style="color:var(--text3)">(comma separated)</small></div>
+      <input type="text" id="col-opts" placeholder="e.g. Pass, Fail, Skip, Blocked">
+    </div>
+    <div class="fl">Insert Position</div>
+    <select id="col-pos"></select>
+    <div class="modal-btns">
+      <button class="m-btn" id="col-cancel">Cancel</button>
+      <button class="m-btn ok" id="col-ok">Add Column</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: New Sheet -->
+<div class="modal-bg" id="modal-sheet">
+  <div class="modal" style="width:380px">
+    <h3>New Sheet</h3>
+    <p class="modal-sub">A fresh sheet using your global default columns.</p>
+    <div class="fl">Sheet Name</div>
+    <input type="text" id="sheet-name-inp" placeholder="e.g. Module B — Login">
+    <div class="modal-btns">
+      <button class="m-btn" id="sheet-cancel">Cancel</button>
+      <button class="m-btn ok" id="sheet-ok">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Rename Column -->
+<div class="modal-bg" id="modal-rename">
+  <div class="modal" style="width:360px">
+    <h3>Rename Column</h3>
+    <input type="text" id="rename-inp" placeholder="New column name…">
+    <div class="modal-btns">
+      <button class="m-btn" id="rename-cancel">Cancel</button>
+      <button class="m-btn ok" id="rename-ok">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Change Column Type -->
+<div class="modal-bg" id="modal-chtype">
+  <div class="modal" style="width:400px">
+    <h3>Change Column Type</h3>
+    <div class="fl">Type</div>
+    <select id="chtype-sel">
+      <option value="text">Text (single line)</option>
+      <option value="textarea">Multiline Text</option>
+      <option value="select">Dropdown</option>
+    </select>
+    <div id="chtype-opts-wrap" style="display:none">
+      <div class="fl">Dropdown options <small style="color:var(--text3)">(comma separated)</small></div>
+      <input type="text" id="chtype-opts" placeholder="e.g. Pass,Fail,Skip">
+    </div>
+    <div class="modal-btns">
+      <button class="m-btn" id="chtype-cancel">Cancel</button>
+      <button class="m-btn ok" id="chtype-ok">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Global Settings -->
+<div class="modal-bg" id="modal-gs">
+  <div class="modal" style="width:560px">
+    <h3>⚙ Global Settings</h3>
+    <p class="modal-sub">Define default columns for new sheets. Drag ⠿ to reorder. Existing sheets are not changed.</p>
+    <div class="fl">Project Name</div>
+    <input type="text" id="gs-proj" placeholder="e.g. DASH Help Portal">
+    <div class="fl" style="margin-bottom:8px">Default Columns</div>
+    <div id="gs-list"></div>
+    <button class="gs-add-btn" id="gs-add-col">+ Add column</button>
+    <div class="fl">Dropdown Presets <small style="color:var(--text3)">(pipe | separates groups, comma separates options)</small></div>
+    <input type="text" id="gs-presets" placeholder="Pass,Fail,Skip | High,Medium,Low | Student,Admin">
+    <div class="modal-btns" style="margin-top:10px">
+      <button class="m-btn" id="gs-cancel">Cancel</button>
+      <button class="m-btn ok" id="gs-ok">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-input" accept=".csv" style="display:none">
+<div id="notif"></div>
+
+<script>
+/* ═════════════════════════════════════════════
+   STATE
+═════════════════════════════════════════════ */
+const LS={SHEETS:'csv_creater_sheets',ACTIVE:'csv_creater_active',THEME:'csv_creater_theme',GLOBAL:'csv_creater_global'};
+const COLORS=['#4f8ef7','#3dd68c','#a78bfa','#f5a623','#f76b6b','#22d3ee','#fb7185'];
+
+const DEF_GLOBAL={
+  projectName:'CSVCREATER',
+  presets:'Pass,Fail,Skip,Blocked|High,Medium,Low|Student,Admin,Instructor,Guest',
+  cols:[
+    {name:'ID',type:'text'},{name:'Module',type:'text'},
+    {name:'Test Case',type:'textarea'},{name:'Pre-Conditions',type:'textarea'},
+    {name:'Steps',type:'textarea'},{name:'Expected',type:'textarea'},
+    {name:'Role',type:'select',options:['Student','Admin','Instructor','Guest']},
+    {name:'Priority',type:'select',options:['High','Medium','Low']},
+  ]
+};
+const SAMPLE=[
+  ['TC-001','Product Listing','Child products hidden from listing','Tiered products exist with parent + children','1. Open Product Listing page\n2. Observe the product grid','Only the parent product is visible. All child tier products are hidden from the listing.','Student','High'],
+  ['TC-002','Product Listing','Buy Now button for non-purchased tiered product','User has NOT purchased any tier of a tiered product','1. Open Product Listing\n2. Find a tiered parent product\n3. Observe the action button','"Buy Now" button is shown on the product card.','Student','High'],
+];
+
+let sheets=[],active=0,global_=JSON.parse(JSON.stringify(DEF_GLOBAL)),searchQ='',ctxRI=-1,ctxCI=-1,colMode='add';
+
+/* ═════════════════════════════════════════════
+   PERSIST
+═════════════════════════════════════════════ */
+function save(){
+  try{
+    localStorage.setItem(LS.SHEETS,JSON.stringify(sheets));
+    localStorage.setItem(LS.ACTIVE,active);
+    localStorage.setItem(LS.GLOBAL,JSON.stringify(global_));
+  }catch(e){}
+}
+function loadAll(){
+  try{
+    const th=localStorage.getItem(LS.THEME);
+    if(th)document.documentElement.setAttribute('data-theme',th);
+    updateThemeBtn();
+    const g=localStorage.getItem(LS.GLOBAL);
+    if(g)global_=JSON.parse(g);
+    const s=localStorage.getItem(LS.SHEETS);
+    const a=localStorage.getItem(LS.ACTIVE);
+    if(s){sheets=JSON.parse(s);active=parseInt(a)||0;}
+  }catch(e){}
+  if(!sheets.length){sheets.push(mkSheet('DASH Help',true));active=0;}
+}
+
+/* ═════════════════════════════════════════════
+   FACTORY
+═════════════════════════════════════════════ */
+function mkSheet(name,withSample){
+  return {name,cols:JSON.parse(JSON.stringify(global_.cols)),rows:withSample?JSON.parse(JSON.stringify(SAMPLE)):[]};
+}
+function sh(){return sheets[active];}
+
+/* ═════════════════════════════════════════════
+   THEME
+═════════════════════════════════════════════ */
+function updateThemeBtn(){
+  $('#theme-toggle').text(document.documentElement.getAttribute('data-theme')==='dark'?'🌙':'☀️');
+}
+$('#theme-toggle').on('click',function(){
+  const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem(LS.THEME,next);
+  updateThemeBtn();
+});
+
+/* ═════════════════════════════════════════════
+   HELPERS
+═════════════════════════════════════════════ */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function notify(msg,type='green'){
+  const $n=$('#notif'),map={green:['var(--green-dim)','var(--green)'],red:['var(--red-dim)','var(--red)'],amber:['var(--amber-dim)','var(--amber)']};
+  const[bg,c]=map[type]||map.green;
+  $n.text(msg).css({background:bg,border:`1px solid ${c}`,color:c}).addClass('show');
+  clearTimeout($n._t);$n._t=setTimeout(()=>$n.removeClass('show'),2200);
+}
+function hideCtx(){$('#row-ctx,#col-ctx').hide();}
+
+/* ═════════════════════════════════════════════
+   SIDEBAR RENDER
+═════════════════════════════════════════════ */
+function renderSidebar(){
+  const $l=$('#sb-sheets').empty();
+  sheets.forEach((s,i)=>{
+    const c=COLORS[i%COLORS.length];
+    $l.append(`<div class="sb-sheet${i===active?' active':''}" data-i="${i}">
+      <div class="sb-dot" style="background:${c}"></div>
+      <div class="sb-sheet-name">${esc(s.name)}</div>
+      ${sheets.length>1?`<div class="sb-sheet-del" data-i="${i}">✕</div>`:''}
+    </div>`);
+  });
+}
+
+/* ═════════════════════════════════════════════
+   TABLE RENDER
+═════════════════════════════════════════════ */
+function renderTable(){
+  const s=sh();if(!s)return;
+  $('#sheet-title-input').val(s.name);
+  const vis=filterRows(s);
+  const rCount=s.rows.filter(r=>!r.__section).length;
+  $('#stats-pill').text(`${rCount} row${rCount!==1?'s':''} / ${s.cols.length} col${s.cols.length!==1?'s':''}`);
+
+  /* HEAD */
+  let h=`<tr><th class="th-num"><div class="th-inner">#</div></th>`;
+  s.cols.forEach((c,ci)=>{
+    h+=`<th data-ci="${ci}"><div class="th-inner">
+      <span class="th-name">${esc(c.name)}</span>
+      <span class="th-btns">
+        <button class="th-b" data-ci="${ci}" data-d="-1" title="Move left">←</button>
+        <button class="th-b" data-ci="${ci}" data-d="1"  title="Move right">→</button>
+        <button class="th-b" data-ci="${ci}" data-act="menu" title="Column menu">⋮</button>
+      </span>
+    </div></th>`;
+  });
+  h+=`<th class="th-add"><div class="th-inner" id="th-add-btn">＋ col</div></th></tr>`;
+  $('thead').html(h);
+
+  /* BODY */
+  let b='',dispN=0;
+  vis.forEach(row=>{
+    const ri=s.rows.indexOf(row);
+    if(row.__section){
+      b+=`<tr class="sec-row" data-ri="${ri}">
+        <td class="td-num" style="background:var(--accent-dim);border-bottom:1px solid var(--accent)">
+          <div class="rn-inner"><button class="rn-del" data-ri="${ri}">✕</button></div>
+        </td>
+        <td colspan="${s.cols.length+1}" style="border-bottom:1px solid var(--accent);background:var(--accent-dim)">
+          <input class="sec-input" data-ri="${ri}" value="${esc(row.__section)}" placeholder="Section heading…">
+        </td>
+      </tr>`;
+      return;
+    }
+    dispN++;
+    b+=`<tr data-ri="${ri}">
+      <td class="td-num"><div class="rn-inner">
+        <span class="rn-num">${dispN}</span>
+        <button class="rn-del" data-ri="${ri}">✕</button>
+      </div></td>`;
+    s.cols.forEach((c,ci)=>{
+      const val=row[ci]||'';
+      if(c.type==='select'&&c.options&&c.options.length){
+        const opts=c.options.map(o=>`<option${o===val?' selected':''}>${esc(o)}</option>`).join('');
+        let cls='';
+        if(c.name==='Priority'){cls=val==='High'?' p-high':val==='Medium'?' p-medium':val==='Low'?' p-low':'';}
+        b+=`<td><select class="cell-input${cls}" data-ri="${ri}" data-ci="${ci}">${opts}</select></td>`;
+      }else if(c.type==='textarea'){
+        b+=`<td><textarea class="cell-input" data-ri="${ri}" data-ci="${ci}" rows="1">${esc(val)}</textarea></td>`;
+      }else{
+        b+=`<td><input type="text" class="cell-input" data-ri="${ri}" data-ci="${ci}" value="${esc(val)}" placeholder="—"></td>`;
+      }
+    });
+    b+=`<td></td></tr>`;
+  });
+  $('tbody').html(b);
+  autoResizeAll();
+}
+
+function filterRows(s){
+  if(!searchQ)return s.rows;
+  const q=searchQ.toLowerCase();
+  return s.rows.filter(r=>r.__section||r.some(v=>(v||'').toLowerCase().includes(q)));
+}
+function autoResizeAll(){$('textarea.cell-input').each(function(){autoResize(this);});}
+function autoResize(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+
+/* ═════════════════════════════════════════════
+   ROW OPS
+═════════════════════════════════════════════ */
+function addRow(at){
+  const s=sh(),row=new Array(s.cols.length).fill('');
+  at!=null?s.rows.splice(at,0,row):s.rows.push(row);
+  save();renderTable();
+  const ti=at!=null?at:s.rows.length-1;
+  $('tbody tr').eq(ti).find('.cell-input').first().focus();
+}
+function addSection(at){
+  const s=sh();
+  const row=Object.assign(new Array(s.cols.length).fill(''),{__section:'New Section'});
+  at!=null?s.rows.splice(at,0,row):s.rows.push(row);
+  save();renderTable();
+}
+function delRow(ri){sh().rows.splice(ri,1);save();renderTable();notify('Deleted','red');}
+
+/* ═════════════════════════════════════════════
+   COLUMN OPS
+═════════════════════════════════════════════ */
+function addCol(name,type,opts,pos){
+  const s=sh(),col={name,type};
+  if(type==='select'&&opts)col.options=opts.split(',').map(o=>o.trim()).filter(Boolean);
+  const p=(pos>=0&&pos<=s.cols.length)?pos:s.cols.length;
+  s.cols.splice(p,0,col);
+  s.rows.forEach(r=>{if(!r.__section)r.splice(p,0,'');});
+  save();renderTable();notify('Column added!');
+}
+function delCol(ci){
+  const s=sh();s.cols.splice(ci,1);
+  s.rows.forEach(r=>{if(!r.__section)r.splice(ci,1);});
+  save();renderTable();notify('Column deleted','red');
+}
+function moveCol(ci,dir){
+  const s=sh(),ni=ci+dir;
+  if(ni<0||ni>=s.cols.length)return;
+  [s.cols[ci],s.cols[ni]]=[s.cols[ni],s.cols[ci]];
+  s.rows.forEach(r=>{if(!r.__section)[r[ci],r[ni]]=[r[ni],r[ci]];});
+  save();renderTable();notify(dir<0?'Moved left':'Moved right');
+}
+function renameCol(ci,name){sh().cols[ci].name=name;save();renderTable();}
+function changeColType(ci,type,opts){
+  const col=sh().cols[ci];col.type=type;
+  if(type==='select'&&opts)col.options=opts.split(',').map(o=>o.trim()).filter(Boolean);
+  else if(type!=='select')delete col.options;
+  save();renderTable();notify('Type updated!');
+}
+
+/* ═════════════════════════════════════════════
+   EXPORT / IMPORT
+═════════════════════════════════════════════ */
+function exportCSV(){
+  const s=sh();
+  const lines=[s.cols.map(c=>c.name),...s.rows.filter(r=>!r.__section)];
+  const csv=lines.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  dl(s.name+'.csv',csv,'text/csv');notify('CSV exported!');
+}
+function exportJSON(){
+  const s=sh();
+  const data=s.rows.filter(r=>!r.__section).map(r=>{
+    const o={};s.cols.forEach((c,i)=>o[c.name]=r[i]||'');return o;
+  });
+  dl(s.name+'.json',JSON.stringify(data,null,2),'application/json');notify('JSON exported!');
+}
+function dl(name,content,mime){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:mime}));
+  a.download=name;a.click();
+}
+function parseCSV(txt){
+  const lines=[];let cur=[],f='',inQ=false;
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i];
+    if(inQ){if(c==='"'&&txt[i+1]==='"'){f+='"';i++;}else if(c==='"'){inQ=false;}else f+=c;}
+    else{if(c==='"')inQ=true;else if(c===','){cur.push(f);f='';}
+    else if(c==='\n'||c==='\r'){cur.push(f);f='';if(cur.some(x=>x))lines.push(cur);cur=[];if(c==='\r'&&txt[i+1]==='\n')i++;}
+    else f+=c;}
+  }
+  cur.push(f);if(cur.some(x=>x))lines.push(cur);return lines;
+}
+function importCSV(txt){
+  const lines=parseCSV(txt);if(!lines.length)return;
+  const s=sh();
+  s.cols=lines[0].map(h=>({name:h,type:'textarea'}));
+  s.rows=lines.slice(1).map(r=>{const row=[];for(let i=0;i<s.cols.length;i++)row.push(r[i]||'');return row;});
+  save();renderTable();notify('CSV imported!');
+}
+
+/* ═════════════════════════════════════════════
+   ADD COL MODAL
+═════════════════════════════════════════════ */
+function openColModal(mode,ci){
+  colMode=mode||'add';
+  $('#col-modal-h').text(mode==='add'?'Add Column':'Edit Column');
+  $('#col-ok').text(mode==='add'?'Add Column':'Save');
+  const s=sh();
+  const $pos=$('#col-pos').empty();
+  $pos.append(`<option value="${s.cols.length}">— At the end —</option>`);
+  s.cols.forEach((c,i)=>$pos.append(`<option value="${i}">Before: ${esc(c.name)}</option>`));
+  if(mode==='add'){
+    $('#col-name').val('');$('#col-type').val('text');$('#col-opts-wrap').hide();$('#col-opts').val('');
+  }else{
+    const col=s.cols[ci];
+    $('#col-name').val(col.name);$('#col-type').val(col.type);
+    $('#col-opts-wrap').toggle(col.type==='select');
+    $('#col-opts').val((col.options||[]).join(', '));
+    $('#modal-col').data('eci',ci);
+  }
+  $('#modal-col').addClass('open');setTimeout(()=>$('#col-name').focus(),80);
+}
+$('#col-type').on('change',function(){$('#col-opts-wrap').toggle(this.value==='select');});
+$('#col-cancel').on('click',()=>$('#modal-col').removeClass('open'));
+$('#col-ok').on('click',function(){
+  const name=$('#col-name').val().trim();if(!name)return;
+  const type=$('#col-type').val(),opts=$('#col-opts').val(),pos=parseInt($('#col-pos').val());
+  if(colMode==='add') addCol(name,type,opts,pos);
+  else{const ci=$('#modal-col').data('eci');renameCol(ci,name);changeColType(ci,type,opts);}
+  $('#modal-col').removeClass('open');
+});
+$('#col-name').on('keydown',e=>{if(e.key==='Enter')$('#col-ok').click();});
+
+/* ═════════════════════════════════════════════
+   GLOBAL SETTINGS MODAL
+═════════════════════════════════════════════ */
+function openGS(){
+  $('#gs-proj').val(global_.projectName||'');
+  $('#gs-presets').val(global_.presets||'');
+  renderGSList();$('#modal-gs').addClass('open');
+}
+function renderGSList(){
+  const $l=$('#gs-list').empty();
+  (global_.cols||[]).forEach((col,i)=>{
+    $l.append(`<div class="gs-row" data-i="${i}">
+      <span class="gs-drag">⠿</span>
+      <input type="text" class="gn" placeholder="Column name" value="${esc(col.name)}">
+      <select class="gt">
+        <option value="text"${col.type==='text'?' selected':''}>Text</option>
+        <option value="textarea"${col.type==='textarea'?' selected':''}>Multiline</option>
+        <option value="select"${col.type==='select'?' selected':''}>Dropdown</option>
+      </select>
+      <button class="gs-del-btn" data-i="${i}">✕</button>
+    </div>`);
+    if(col.type==='select'){
+      $l.append(`<div class="gs-opts" data-i="${i}">
+        <span>Options:</span>
+        <input type="text" class="go" placeholder="e.g. Pass,Fail,Skip" value="${esc((col.options||[]).join(', '))}">
+      </div>`);
+    }
+  });
+}
+$(document).on('change','.gt',function(){
+  const i=$(this).closest('.gs-row').data('i');
+  global_.cols[i].type=this.value;renderGSList();
+});
+$(document).on('click','.gs-del-btn',function(e){
+  e.stopPropagation();global_.cols.splice($(this).data('i'),1);renderGSList();
+});
+$('#gs-add-col').on('click',function(){
+  global_.cols.push({name:'',type:'text'});renderGSList();
+  $('#gs-list .gn').last().focus();
+});
+$('#gs-ok').on('click',function(){
+  global_.projectName=$('#gs-proj').val().trim()||'CSVCREATER';
+  global_.presets=$('#gs-presets').val().trim();
+  const cols=[];
+  $('#gs-list .gs-row').each(function(){
+    const i=$(this).data('i');
+    const name=$(this).find('.gn').val().trim();
+    const type=$(this).find('.gt').val();
+    if(!name)return;
+    const col={name,type};
+    if(type==='select'){
+      const v=$(`#gs-list .gs-opts[data-i="${i}"] .go`).val()||'';
+      col.options=v.split(',').map(o=>o.trim()).filter(Boolean);
+    }
+    cols.push(col);
+  });
+  global_.cols=cols;save();$('#modal-gs').removeClass('open');notify('Settings saved!');
+});
+$('#gs-cancel').on('click',()=>$('#modal-gs').removeClass('open'));
+
+/* ═════════════════════════════════════════════
+   CELL EVENTS
+═════════════════════════════════════════════ */
+$(document).on('input','textarea.cell-input,input.cell-input',function(){
+  const ri=$(this).data('ri'),ci=$(this).data('ci');
+  if(ri==null||ci==null)return;
+  sh().rows[ri][ci]=this.value;
+  if(this.tagName==='TEXTAREA')autoResize(this);
+  save();
+});
+$(document).on('change','select.cell-input',function(){
+  const ri=$(this).data('ri'),ci=$(this).data('ci');
+  if(ri==null||ci==null)return;
+  sh().rows[ri][ci]=this.value;
+  const col=sh().cols[ci];
+  if(col&&col.name==='Priority'){
+    $(this).removeClass('p-high p-medium p-low');
+    const m={High:'p-high',Medium:'p-medium',Low:'p-low'};
+    if(m[this.value])$(this).addClass(m[this.value]);
+  }
+  save();
+});
+$(document).on('input','.sec-input',function(){
+  sh().rows[$(this).data('ri')].__section=this.value;save();
+});
+
+/* ═════════════════════════════════════════════
+   SIDEBAR EVENTS
+═════════════════════════════════════════════ */
+$('#sb-toggle').on('click',function(){
+  $('#sidebar').toggleClass('collapsed');
+  $(this).text($('#sidebar').hasClass('collapsed')?'▶':'◀');
+});
+$(document).on('click','.sb-sheet:not(.sb-sheet-del)',function(){
+  if($(event.target).hasClass('sb-sheet-del'))return;
+  active=parseInt($(this).data('i'));save();renderSidebar();renderTable();
+});
+$(document).on('click','.sb-sheet-del',function(e){
+  e.stopPropagation();
+  const i=parseInt($(this).data('i'));
+  if(!confirm(`Delete sheet "${sheets[i].name}"?`))return;
+  sheets.splice(i,1);if(active>=sheets.length)active=sheets.length-1;
+  save();renderSidebar();renderTable();
+});
+
+/* ═════════════════════════════════════════════
+   TOPBAR + SIDEBAR BUTTONS
+═════════════════════════════════════════════ */
+$('#sheet-title-input').on('input',function(){sh().name=$(this).val();save();renderSidebar();});
+$('#btn-new-sheet').on('click',()=>{ $('#sheet-name-inp').val('');$('#modal-sheet').addClass('open');setTimeout(()=>$('#sheet-name-inp').focus(),80); });
+$('#sheet-cancel').on('click',()=>$('#modal-sheet').removeClass('open'));
+$('#sheet-ok').on('click',function(){
+  const name=$('#sheet-name-inp').val().trim()||'New Sheet';
+  sheets.push(mkSheet(name,false));active=sheets.length-1;
+  save();renderSidebar();renderTable();$('#modal-sheet').removeClass('open');
+});
+$('#sheet-name-inp').on('keydown',e=>{if(e.key==='Enter')$('#sheet-ok').click();});
+
+$('#btn-add-row-sb,#btn-add-row-tb').on('click',()=>addRow());
+$('#btn-add-sec-sb,#btn-add-sec-tb').on('click',()=>addSection());
+$('#btn-add-col-sb,#btn-add-col-tb').on('click',()=>openColModal('add'));
+$('#btn-settings-sb,#btn-settings-tb').on('click',openGS);
+$('#btn-export-csv-sb,#btn-export-csv-tb').on('click',exportCSV);
+$('#btn-export-json-sb,#btn-export-json-tb').on('click',exportJSON);
+$('#btn-import-sb,#btn-import-tb').on('click',()=>$('#file-input').click());
+$('#file-input').on('change',function(){
+  const f=this.files[0];if(!f)return;
+  const r=new FileReader();r.onload=e=>importCSV(e.target.result);r.readAsText(f);this.value='';
+});
+$('#search-input').on('input',function(){searchQ=$(this).val().trim();renderTable();});
+
+/* ═════════════════════════════════════════════
+   TABLE HEADER BUTTONS
+═════════════════════════════════════════════ */
+$(document).on('click','#th-add-btn',()=>openColModal('add'));
+$(document).on('click','.th-b',function(e){
+  e.stopPropagation();
+  const ci=parseInt($(this).data('ci')),d=parseInt($(this).data('d')),act=$(this).data('act');
+  if(act==='menu'){
+    ctxCI=ci;
+    $('#col-ctx').css({display:'block',left:e.pageX,top:e.pageY});
+  } else {
+    moveCol(ci,d);
+  }
+});
+
+/* ═════════════════════════════════════════════
+   COLUMN CTX MENU
+═════════════════════════════════════════════ */
+$('#cctx-left').on('click',()=>{moveCol(ctxCI,-1);hideCtx();});
+$('#cctx-right').on('click',()=>{moveCol(ctxCI,1);hideCtx();});
+$('#cctx-del').on('click',()=>{hideCtx();if(confirm('Delete this column?'))delCol(ctxCI);});
+$('#cctx-rename').on('click',()=>{
+  hideCtx();$('#rename-inp').val(sh().cols[ctxCI].name);
+  $('#modal-rename').data('ci',ctxCI).addClass('open');setTimeout(()=>$('#rename-inp').focus(),80);
+});
+$('#cctx-chtype').on('click',()=>{
+  hideCtx();const col=sh().cols[ctxCI];
+  $('#chtype-sel').val(col.type);$('#chtype-opts-wrap').toggle(col.type==='select');
+  $('#chtype-opts').val((col.options||[]).join(', '));
+  $('#modal-chtype').data('ci',ctxCI).addClass('open');
+});
+$('#rename-cancel').on('click',()=>$('#modal-rename').removeClass('open'));
+$('#rename-ok').on('click',function(){
+  const ci=$('#modal-rename').data('ci'),name=$('#rename-inp').val().trim();
+  if(name)renameCol(ci,name);$('#modal-rename').removeClass('open');
+});
+$('#rename-inp').on('keydown',e=>{if(e.key==='Enter')$('#rename-ok').click();});
+$('#chtype-sel').on('change',function(){$('#chtype-opts-wrap').toggle(this.value==='select');});
+$('#chtype-cancel').on('click',()=>$('#modal-chtype').removeClass('open'));
+$('#chtype-ok').on('click',function(){
+  const ci=$('#modal-chtype').data('ci');
+  changeColType(ci,$('#chtype-sel').val(),$('#chtype-opts').val());
+  $('#modal-chtype').removeClass('open');
+});
+
+/* ═════════════════════════════════════════════
+   ROW CTX MENU (right-click)
+═════════════════════════════════════════════ */
+$(document).on('contextmenu','tbody tr',function(e){
+  e.preventDefault();ctxRI=parseInt($(this).data('ri'));
+  $('#row-ctx').css({display:'block',left:e.pageX,top:Math.min(e.pageY,window.innerHeight-160)});
+});
+$('#ctx-ins-above').on('click',()=>{addRow(ctxRI);hideCtx();});
+$('#ctx-ins-below').on('click',()=>{addRow(ctxRI+1);hideCtx();});
+$('#ctx-ins-sec').on('click',()=>{addSection(ctxRI);hideCtx();});
+$('#ctx-del-row').on('click',()=>{delRow(ctxRI);hideCtx();});
+
+/* row delete button */
+$(document).on('click','.rn-del',function(e){
+  e.stopPropagation();delRow(parseInt($(this).data('ri')));
+});
+
+/* ═════════════════════════════════════════════
+   MISC
+═════════════════════════════════════════════ */
+$(document).on('click',function(){hideCtx();});
+$('.modal-bg').on('click',function(e){if($(e.target).is('.modal-bg'))$(this).removeClass('open');});
+$(document).on('keydown','.cell-input',function(e){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    const all=$('tbody .cell-input').toArray(),i=all.indexOf(this),next=e.shiftKey?all[i-1]:all[i+1];
+    if(next)$(next).focus();
+  }
+});
+
+/* ═════════════════════════════════════════════
+   INIT
+═════════════════════════════════════════════ */
+loadAll();renderSidebar();renderTable();
+</script>
+</body>
+</html>

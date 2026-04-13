@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-quiz-theme="default">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizMaster Pro</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- App CSS -->
+  <link href="css/main.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── App Loading ─────────────────────────────────────────── -->
+<div id="app-loading" class="app-loading" style="display:none">
+  <div class="logo-spin"></div>
+  <div class="loading-msg text-muted text-sm">Loading…</div>
+</div>
+
+<!-- ── App Shell ───────────────────────────────────────────── -->
+<div id="app">
+
+  <!-- ── Navbar ──────────────────────────────────────────── -->
+  <nav class="qm-navbar">
+    <div class="navbar-brand">
+      <div class="brand-icon"><i class="fas fa-brain"></i></div>
+      QuizMaster <span style="color:var(--accent)">Pro</span>
+    </div>
+    <div class="d-flex align-center gap-2">
+      <div id="nav-quiz-progress" style="display:none"></div>
+      <button class="nav-icon-btn" id="theme-toggle" title="Toggle Theme">
+        <i class="fas fa-moon"></i>
+      </button>
+      <button class="nav-icon-btn" onclick="UI.showPage('history')" title="History">
+        <i class="fas fa-history"></i>
+      </button>
+      <button class="nav-icon-btn" id="btn-settings" title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- PAGE: HOME                                          -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div id="page-home" class="page active" style="padding:32px 24px;max-width:900px;margin:0 auto">
+
+    <div id="home-greeting" class="fw-700" style="font-size:1.6rem;margin-bottom:4px">Good day! 👋</div>
+    <p class="text-muted mb-4">Ready to challenge yourself? Pick a topic and start your quiz.</p>
+
+    <!-- Quick start card -->
+    <div class="qm-card mb-4" style="background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);border:none;color:#fff">
+      <div class="row align-items-center g-3">
+        <div class="col-md-8">
+          <h4 class="fw-700 mb-1" style="color:#fff">Start a New Quiz</h4>
+          <p style="opacity:.85;font-size:.9rem;margin:0">Select topics, configure your session, and begin.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <button class="btn-qm btn-qm-lg" style="background:#fff;color:var(--accent)" onclick="Dashboard.startSetup()">
+            <i class="fas fa-play"></i> Start Quiz
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard stats row (example) -->
+    <div class="dashboard-grid mb-4">
+      <div class="qm-card text-center" style="padding:20px">
+        <i class="fas fa-fire" style="font-size:1.8rem;color:var(--warning);margin-bottom:8px"></i>
+        <div class="fw-700" style="font-size:1.4rem" id="stat-streak">–</div>
+        <div class="text-muted text-sm">Day Streak</div>
+      </div>
+      <div class="qm-card text-center" style="padding:20px">
+        <i class="fas fa-check-double" style="font-size:1.8rem;color:var(--success);margin-bottom:8px"></i>
+        <div class="fw-700" style="font-size:1.4rem" id="stat-total">–</div>
+        <div class="text-muted text-sm">Total Quizzes</div>
+      </div>
+      <div class="qm-card text-center" style="padding:20px">
+        <i class="fas fa-bullseye" style="font-size:1.8rem;color:var(--accent);margin-bottom:8px"></i>
+        <div class="fw-700" style="font-size:1.4rem" id="stat-accuracy">–</div>
+        <div class="text-muted text-sm">Avg Accuracy</div>
+      </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="qm-card">
+      <div class="qm-card-header">
+        <span class="qm-card-title"><i class="fas fa-clock-rotate-left me-2"></i>Recent Activity</span>
+      </div>
+      <div id="home-recent">
+        <div class="text-center text-muted" style="padding:32px">
+          <i class="fas fa-history" style="font-size:2rem;margin-bottom:12px;display:block;opacity:.4"></i>
+          <div class="text-sm">No recent activity. Take a quiz to see your history here!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- PAGE: SETUP WIZARD                                  -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div id="page-setup" class="page" style="padding:32px 24px;max-width:700px;margin:0 auto">
+    <div class="mb-4">
+      <h3 class="fw-700 mb-1">Quiz Setup</h3>
+      <p class="text-muted text-sm">Complete each step to customize your quiz experience</p>
+    </div>
+
+    <!-- Steps Bar -->
+    <div class="steps-bar mb-4">
+      <div class="step-item active" data-step="1">
+        <div class="step-bubble">1</div>
+        <div class="step-label">You</div>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-bubble">2</div>
+        <div class="step-label">Topics</div>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-bubble">3</div>
+        <div class="step-label">Filters</div>
+      </div>
+      <div class="step-item" data-step="4">
+        <div class="step-bubble">4</div>
+        <div class="step-label">Config</div>
+      </div>
+      <div class="step-item" data-step="5">
+        <div class="step-bubble">5</div>
+        <div class="step-label">Theme</div>
+      </div>
+    </div>
+
+    <!-- Step Panels -->
+    <div class="qm-card">
+      <div id="setup-step-1" class="setup-step active"></div>
+      <div id="setup-step-2" class="setup-step"></div>
+      <div id="setup-step-3" class="setup-step"></div>
+      <div id="setup-step-4" class="setup-step"></div>
+      <div id="setup-step-5" class="setup-step"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- PAGE: QUIZ                                          -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div id="page-quiz" class="page">
+    <div class="quiz-shell">
+      <!-- Sidebar -->
+      <aside class="quiz-sidebar" id="quiz-sidebar">
+        <div id="quiz-sidebar-content"></div>
+      </aside>
+
+      <!-- Main -->
+      <main class="quiz-main">
+        <!-- Mobile sidebar toggle -->
+        <div class="d-md-none mb-3">
+          <button class="btn-qm btn-qm-secondary btn-qm-sm" id="btn-sidebar-toggle">
+            <i class="fas fa-bars me-1"></i> Question Navigator
+          </button>
+        </div>
+
+        <!-- Question container -->
+        <div id="question-container"></div>
+
+        <!-- Quiz Controls -->
+        <div id="quiz-controls"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- PAGE: RESULT                                        -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div id="page-result" class="page" style="padding:28px 24px;max-width:1000px;margin:0 auto">
+
+    <!-- Action buttons row -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+      <button class="btn-qm btn-qm-secondary" onclick="Result.retakeQuiz()">
+        <i class="fas fa-redo me-1"></i> Retake
+      </button>
+      <button class="btn-qm btn-qm-secondary" onclick="Result.downloadPDF()">
+        <i class="fas fa-file-pdf me-1"></i> Download PDF
+      </button>
+      <button class="btn-qm btn-qm-secondary" onclick="Result.shareResult()">
+        <i class="fas fa-share-alt me-1"></i> Share
+      </button>
+      <button class="btn-qm btn-qm-secondary ms-auto" onclick="UI.showPage('home')">
+        <i class="fas fa-home me-1"></i> Home
+      </button>
+    </div>
+
+    <!-- Hero score ring -->
+    <div id="result-hero" class="result-hero"></div>
+
+    <!-- Stats cards -->
+    <div id="result-stats" class="result-stats"></div>
+
+    <!-- Result tabs -->
+    <div class="qm-card mb-4">
+      <div class="d-flex gap-0" style="border-bottom:1px solid var(--border);margin-bottom:24px;margin:-24px -24px 24px">
+        <button class="result-tab active" data-tab="overview" onclick="selectResultTab(this,'overview')"
+                style="padding:14px 22px;border:none;background:transparent;cursor:pointer;font-family:var(--font-head);font-weight:600;font-size:.88rem;border-bottom:2px solid transparent;color:var(--text-muted);transition:all .2s">
+          <i class="fas fa-chart-bar me-1"></i> Overview
+        </button>
+        <button class="result-tab" data-tab="review" onclick="selectResultTab(this,'review')"
+                style="padding:14px 22px;border:none;background:transparent;cursor:pointer;font-family:var(--font-head);font-weight:600;font-size:.88rem;border-bottom:2px solid transparent;color:var(--text-muted);transition:all .2s">
+          <i class="fas fa-list-check me-1"></i> Review
+        </button>
+        <button class="result-tab" data-tab="analytics" onclick="selectResultTab(this,'analytics')"
+                style="padding:14px 22px;border:none;background:transparent;cursor:pointer;font-family:var(--font-head);font-weight:600;font-size:.88rem;border-bottom:2px solid transparent;color:var(--text-muted);transition:all .2s">
+          <i class="fas fa-magnifying-glass-chart me-1"></i> Analytics
+        </button>
+      </div>
+      <div id="result-tab-content"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- PAGE: HISTORY                                       -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div id="page-history" class="page" style="padding:32px 24px;max-width:900px;margin:0 auto">
+    <div class="d-flex justify-between align-center mb-4">
+      <div>
+        <h3 class="fw-700 mb-1">Attempt History</h3>
+        <p class="text-muted text-sm mb-0">All your past quiz attempts</p>
+      </div>
+      <button class="btn-qm btn-qm-secondary" onclick="UI.showPage('home')">
+        <i class="fas fa-arrow-left me-1"></i> Back
+      </button>
+    </div>
+    <div class="qm-card">
+      <div id="history-list">
+        <div class="text-center text-muted py-4">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SETTINGS OVERLAY                                        -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="settings-overlay" class="settings-overlay">
+  <div class="settings-panel">
+    <div class="d-flex justify-between align-center mb-4">
+      <h5 class="fw-700 mb-0"><i class="fas fa-cog me-2 text-accent"></i>Settings</h5>
+      <button id="settings-close" class="nav-icon-btn"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="form-group">
+      <label class="qm-label">Google Apps Script Web App URL</label>
+      <input type="url" id="settings-script-url" class="qm-input"
+             placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="text-muted text-xs mt-1">Paste your deployed Web App URL here</div>
+    </div>
+
+    <div class="form-group">
+      <label class="qm-label">Root Drive Folder ID</label>
+      <input type="text" id="settings-folder-id" class="qm-input"
+             placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs">
+      <div class="text-muted text-xs mt-1">The ID from your Google Drive folder URL</div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <button class="btn-qm btn-qm-primary w-100" id="btn-save-settings">
+        <i class="fas fa-save me-1"></i> Save Settings
+      </button>
+    </div>
+    <div class="d-flex gap-2 mt-2">
+      <button class="btn-qm btn-qm-secondary w-100" id="btn-clear-settings">
+        <i class="fas fa-trash me-1"></i> Remove / Reset
+      </button>
+    </div>
+
+    <hr style="border-color:var(--border);margin:24px 0">
+
+    <div class="qm-label mb-2">App Theme</div>
+    <div class="d-flex gap-2">
+      <button class="btn-qm btn-qm-secondary flex-1" onclick="State.setTheme('light');UI.updateThemeIcon()">
+        <i class="fas fa-sun me-1"></i> Light
+      </button>
+      <button class="btn-qm btn-qm-secondary flex-1" onclick="State.setTheme('dark');UI.updateThemeIcon()">
+        <i class="fas fa-moon me-1"></i> Dark
+      </button>
+    </div>
+
+    <hr style="border-color:var(--border);margin:24px 0">
+    <div class="text-muted text-xs">
+      <strong>How to deploy:</strong><br>
+      1. Open Google Apps Script<br>
+      2. Paste Code.gs contents<br>
+      3. Deploy → New Deployment → Web App<br>
+      4. Execute as: <em>Me</em>, Access: <em>Anyone</em><br>
+      5. Copy the URL and paste above
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- SHARE MODAL                                             -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="share-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fas fa-share-alt me-2 text-accent"></i>Share Result</span>
+      <button class="modal-close" onclick="UI.closeModal('share-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="share-modal-content">
+      <div class="text-muted text-sm mb-3">Share your result with friends and family!</div>
+      <div style="background:var(--bg-primary);border-radius:10px;padding:16px;font-family:var(--font-mono);font-size:.85rem;margin-bottom:16px" id="share-text-preview"></div>
+      <div class="d-flex gap-2">
+        <button class="btn-qm btn-qm-primary flex-1" onclick="copyShareText()">
+          <i class="fas fa-copy me-1"></i> Copy Text
+        </button>
+        <button class="btn-qm btn-qm-secondary" onclick="UI.closeModal('share-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ── CDN Scripts ──────────────────────────────────────── -->
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<!-- jQuery (for convenience) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- ── App Scripts (order matters) ─────────────────────── -->
+<script src="js/state.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="components/mcq.js"></script>
+<script src="components/question-types.js"></script>
+<script src="js/filters.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/result.js"></script>
+<script src="js/dashboard.js"></script>
+
+<!-- ── Inline Bootstrap ─────────────────────────────────── -->
+<script>
+// ── Result tab selection ─────────────────────────────────
+function selectResultTab(btn, tab) {
+  document.querySelectorAll(".result-tab").forEach(t => {
+    t.style.borderBottomColor = "transparent";
+    t.style.color = "var(--text-muted)";
+  });
+  btn.style.borderBottomColor = "var(--accent)";
+  btn.style.color = "var(--accent)";
+  const r = State.getResult().data;
+  if (r) {
+    switch (tab) {
+      case "overview":  Result.renderOverviewTab  && Result.renderOverviewTab(document.getElementById("result-tab-content"), r); break;
+      case "review":    Result.renderReviewTab    && Result.renderReviewTab(document.getElementById("result-tab-content"), r); break;
+      case "analytics": Result.renderAnalyticsTab && Result.renderAnalyticsTab(document.getElementById("result-tab-content"), r); break;
+    }
+  }
+}
+
+// ── Share text ────────────────────────────────────────────
+function copyShareText() {
+  const r = State.getResult().data;
+  if (!r) return;
+  const text = `🎯 QuizMaster Pro Result\nName: ${r.studentName}\nQuiz: ${r.quizName}\nScore: ${r.score}/${r.totalScore} (${r.percentage}%)\nCorrect: ${r.correct} | Wrong: ${r.wrong}\nTime: ${r.timeTaken}s`;
+  UI.copyToClipboard(text);
+  document.getElementById("share-text-preview").textContent = text;
+}
+
+// ── Page-specific load actions ────────────────────────────
+State.on(s => {
+  if (s.ui.page === "history") Dashboard.renderHistory();
+  if (s.ui.page === "home")    Dashboard.renderHome();
+});
+
+// ── Setup step styles ─────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  // Hide step panels
+  document.querySelectorAll(".setup-step").forEach(el => {
+    el.style.display = "none";
+  });
+  document.getElementById("setup-step-1").style.display = "block";
+
+  // Override to show/hide panels
+  const origRender = Filters.renderSteps.bind(Filters);
+
+  // Init app
+  UI.init();
+  Dashboard.renderHome();
+
+  // Result.renderOverviewTab etc. exposed
+  Object.assign(Result, {
+    renderOverviewTab(container, r) {
+      container.innerHTML = `
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="qm-card">
+              <div class="qm-card-header"><span class="qm-card-title">Category Scores</span></div>
+              <div class="chart-wrap"><canvas id="chart-category"></canvas></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="qm-card">
+              <div class="qm-card-header"><span class="qm-card-title">Difficulty Breakdown</span></div>
+              <div class="chart-wrap"><canvas id="chart-difficulty"></canvas></div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="qm-card">
+              <div class="qm-card-header"><span class="qm-card-title">Time Per Question</span></div>
+              <div class="chart-wrap"><canvas id="chart-timeline"></canvas></div>
+            </div>
+          </div>
+        </div>`;
+      setTimeout(() => {
+        Result._renderCharts && Result._renderCharts(r);
+      }, 50);
+    },
+
+    renderReviewTab(container, r) {
+      const qs  = r.questions || [];
+      const ans = r.answers   || {};
+      container.innerHTML = `
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <button class="btn-qm btn-qm-sm btn-qm-secondary" onclick="Result.filterReview('all')">All (${qs.length})</button>
+          <button class="btn-qm btn-qm-sm btn-qm-success"   onclick="Result.filterReview('correct')">✓ Correct (${r.correct})</button>
+          <button class="btn-qm btn-qm-sm btn-qm-danger"    onclick="Result.filterReview('wrong')">✗ Wrong (${r.wrong})</button>
+          <button class="btn-qm btn-qm-sm" style="background:var(--warning-light);color:var(--warning)" onclick="Result.filterReview('skipped')">⊘ Skipped (${r.skipped})</button>
+        </div>
+        <div id="review-list">
+          ${qs.map((q, i) => buildReviewItem(q, i, ans[i])).join("")}
+        </div>`;
+    },
+
+    renderAnalyticsTab(container, r) {
+      const cat  = r.categoryScores  || {};
+      const rows = Object.entries(cat).map(([c, d]) => `
+        <tr>
+          <td>${c}</td>
+          <td>${d.correct || 0}</td>
+          <td>${d.wrong || 0}</td>
+          <td>${d.max > 0 ? Math.round((Math.max(0,d.score)/d.max)*100) : 0}%</td>
+          <td>${Math.max(0,d.score).toFixed(1)}/${d.max}</td>
+        </tr>`).join("");
+      container.innerHTML = `
+        <div class="qm-card mb-4">
+          <div class="qm-card-header"><span class="qm-card-title">Category Analysis</span></div>
+          <div class="table-responsive">
+            <table class="table table-hover" style="font-size:.88rem">
+              <thead><tr><th>Category</th><th>Correct</th><th>Wrong</th><th>Accuracy</th><th>Score</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>`;
+    },
+
+    _renderCharts(r) {
+      const mkChart = (id, type, labels, datasets, opts = {}) => {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        new Chart(canvas, { type, data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, ...opts } });
+      };
+      const cats = Object.keys(r.categoryScores || {});
+      const pcts = cats.map(c => {
+        const d = r.categoryScores[c];
+        return d.max > 0 ? Math.round((Math.max(0,d.score)/d.max)*100) : 0;
+      });
+      mkChart("chart-category", "bar", cats, [{
+        label: "Score %", data: pcts,
+        backgroundColor: cats.map((_, i) => `hsl(${220+i*40},65%,55%)`), borderRadius: 6
+      }], { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } });
+
+      const diffs   = Object.keys(r.difficultyScores || {});
+      mkChart("chart-difficulty", "bar", diffs.map(d => d[0].toUpperCase()+d.slice(1)), [
+        { label: "Correct", data: diffs.map(d => r.difficultyScores[d].correct||0), backgroundColor: "rgba(16,185,129,.7)", borderRadius: 4 },
+        { label: "Wrong",   data: diffs.map(d => r.difficultyScores[d].wrong||0),   backgroundColor: "rgba(239,68,68,.7)",  borderRadius: 4 },
+      ], { scales: { x: { stacked: true }, y: { stacked: true } } });
+
+      const times = r.questions.map((_, i) => r.answers[i]?.timeSpent || 0);
+      mkChart("chart-timeline", "line", r.questions.map((_, i) => "Q"+(i+1)), [{
+        label: "Seconds", data: times,
+        borderColor: "rgba(99,102,241,.8)", backgroundColor: "rgba(99,102,241,.1)",
+        fill: true, tension: 0.4, pointRadius: 4,
+      }], { plugins: { legend: { display: false } } });
+    }
+  });
+
+  // Patch quiz page to also render controls after question
+  const origRenderQuestion = Quiz.renderQuestion.bind(Quiz);
+  Quiz.renderQuestion = function() {
+    origRenderQuestion();
+    Quiz.renderQuizControls();
+    // Also show/hide mark-review state
+    const q = State.getQuiz();
+    const btn = document.getElementById("btn-mark-review");
+    if (btn) {
+      const marked = q.markedReview.has(q.current);
+      btn.innerHTML = `<i class="fas fa-bookmark me-1"></i>${marked ? "Unmark" : "Mark Review"}`;
+    }
+  };
+
+  // Show step panels via Filters.goStep
+  const origGoStep = Filters.goStep.bind(Filters);
+  Filters.goStep = async function(n) {
+    document.querySelectorAll(".setup-step").forEach(el => el.style.display = "none");
+    const el = document.getElementById(`setup-step-${n}`);
+    if (el) el.style.display = "block";
+    await origGoStep(n);
+  };
+
+  console.log("✅ QuizMaster Pro initialized");
+});
+
+// ── buildReviewItem (global helper for tab content) ────────
+function buildReviewItem(q, i, ans) {
+  const correctArr = (q["Correct Answer"] || "").split("|").map(s => s.trim());
+  const selected   = ans?.selected;
+  const selArr     = selected ? (Array.isArray(selected) ? selected : [selected]) : [];
+  const isCorrect  = selected && JSON.stringify([...correctArr].sort()) === JSON.stringify([...selArr.map(String)].sort());
+  const isSkipped  = !selected;
+  const status     = isSkipped ? "skipped" : (isCorrect ? "correct" : "wrong");
+  const icon       = { correct: "fa-check", wrong: "fa-times", skipped: "fa-minus" }[status];
+  const choices    = [q.Choice1, q.Choice2, q.Choice3, q.Choice4].filter(Boolean);
+  return `
+    <div class="review-item ${status}" data-status="${status}">
+      <div class="d-flex justify-between align-center mb-2 flex-wrap gap-2">
+        <div class="fw-600">Q${i+1}. ${q.Question}</div>
+        <span class="review-status-badge ${status}"><i class="fas ${icon} me-1"></i>${status[0].toUpperCase()+status.slice(1)}</span>
+      </div>
+      ${choices.length ? `<div style="display:grid;gap:6px;margin-bottom:10px">
+        ${choices.map(c => {
+          const isC = correctArr.includes(c), isS = selArr.includes(c);
+          let s = "padding:8px 14px;border-radius:8px;font-size:.88rem;border:1.5px solid var(--border);";
+          if (isC) s += "background:var(--success-light);border-color:var(--success);";
+          else if (isS) s += "background:var(--danger-light);border-color:var(--danger);";
+          return `<div style="${s}">${isC?"✓ ":isS&&!isC?"✗ ":""}${c}</div>`;
+        }).join("")}
+      </div>` : ""}
+      ${q.Solution ? `<div style="background:var(--info-light);border-left:3px solid var(--info);padding:10px 14px;border-radius:0 8px 8px 0;font-size:.85rem"><strong>Explanation:</strong> ${q.Solution}</div>` : ""}
+    </div>`;
+}
+</script>
+</body>
+</html>

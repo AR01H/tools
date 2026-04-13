@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>QuizMaster Pro</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3}
+input,select,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
+input[type=range]{accent-color:#58a6ff;width:100%}
+@media print{.no-print{display:none!important}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.fade-in{animation:fadeIn .25s ease}
+.pulse{animation:pulse 1.5s infinite}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+const QUESTIONS_RAW = [
+  {id:1,Question:"What is 2 + 2?",Category:"Quant","Sub Category":"Arithmetic",Tags:"addition",Difficulty:"easy","Question Type":"Multichoice","Time Limit":"30",Choice1:"1",Choice2:"2",Choice3:"3",Choice4:"4","Correct Answer":"4",Solution:"2+2=4",Hint:"Basic math",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:2,Question:"Which are prime numbers?",Category:"Quant","Sub Category":"Arithmetic",Tags:"prime",Difficulty:"medium","Question Type":"Multi Multichoice","Time Limit":"45",Choice1:"2",Choice2:"3",Choice3:"4",Choice4:"5","Correct Answer":"2|3|5",Solution:"Prime numbers are divisible by 1 and itself",Hint:"Check divisibility",Score:"2","Negative Score":"0.5","Partial Score":"1",Status:"Active",Passage:""},
+  {id:3,Question:"Which is a vowel?",Category:"English","Sub Category":"Grammar",Tags:"vowels",Difficulty:"easy","Question Type":"Multichoice Anycorrect","Time Limit":"20",Choice1:"A",Choice2:"B",Choice3:"E",Choice4:"G","Correct Answer":"A|E",Solution:"A and E are vowels",Hint:"Think alphabets",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:4,Question:"Arrange in ascending order",Category:"Quant","Sub Category":"Numbers",Tags:"ordering",Difficulty:"easy","Question Type":"Sequence","Time Limit":"40",Choice1:"3",Choice2:"1",Choice3:"4",Choice4:"2","Correct Answer":"1|2|3|4",Solution:"Sorted smallest to largest",Hint:"Smallest number first",Score:"2","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:5,Question:"Earth is round",Category:"GK","Sub Category":"Science",Tags:"fact",Difficulty:"easy","Question Type":"True/False","Time Limit":"15",Choice1:"TRUE",Choice2:"FALSE",Choice3:"",Choice4:"","Correct Answer":"TRUE",Solution:"Earth is an oblate spheroid",Hint:"General knowledge",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:6,Question:"Define polymorphism",Category:"Programming","Sub Category":"OOP",Tags:"concept",Difficulty:"medium","Question Type":"Short Answer","Time Limit":"60",Choice1:"",Choice2:"",Choice3:"",Choice4:"","Correct Answer":"Ability of object to take many forms",Solution:"OOP concept allowing objects of different types to be treated as one",Hint:"Think OOP",Score:"2","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:7,Question:"Match countries to their capitals",Category:"GK","Sub Category":"Geography",Tags:"match",Difficulty:"medium","Question Type":"Matching","Time Limit":"60",Choice1:"India-Delhi",Choice2:"USA-Washington",Choice3:"UK-London",Choice4:"Japan-Tokyo","Correct Answer":"India-Delhi|USA-Washington|UK-London|Japan-Tokyo",Solution:"Correct capital pairs",Hint:"Capital cities",Score:"3","Negative Score":"0","Partial Score":"1",Status:"Active",Passage:""},
+  {id:8,Question:"2 + __ = 5",Category:"Quant","Sub Category":"Arithmetic",Tags:"fill",Difficulty:"easy","Question Type":"Fill in the Blanks","Time Limit":"20",Choice1:"",Choice2:"",Choice3:"",Choice4:"","Correct Answer":"3",Solution:"2+3=5",Hint:"What number completes the equation?",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:9,Question:"HTML stands for [blank]",Category:"Programming","Sub Category":"Web",Tags:"html",Difficulty:"easy","Question Type":"Inline Blank","Time Limit":"25",Choice1:"",Choice2:"",Choice3:"",Choice4:"","Correct Answer":"HyperText Markup Language",Solution:"HTML = HyperText Markup Language",Hint:"Web technology full form",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:10,Question:"Which planet is known as the Red Planet?",Category:"Science","Sub Category":"Astronomy",Tags:"planet",Difficulty:"easy","Question Type":"Multichoice","Time Limit":"20",Choice1:"Venus",Choice2:"Mars",Choice3:"Jupiter",Choice4:"Saturn","Correct Answer":"Mars",Solution:"Mars appears red due to iron oxide on its surface",Hint:"Color of the planet",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:11,Question:"What is the output of print(type(1))?",Category:"Programming","Sub Category":"Python",Tags:"python,types",Difficulty:"medium","Question Type":"Multichoice","Time Limit":"30",Choice1:"<class 'int'>",Choice2:"<class 'str'>",Choice3:"integer",Choice4:"int","Correct Answer":"<class 'int'>",Solution:"Python's type() function returns the class type of the object",Hint:"Python built-in function",Score:"2","Negative Score":"0.5","Partial Score":"0",Status:"Active",Passage:""},
+  {id:12,Question:"Photosynthesis converts sunlight into energy",Category:"Science","Sub Category":"Biology",Tags:"photosynthesis",Difficulty:"easy","Question Type":"True/False","Time Limit":"15",Choice1:"TRUE",Choice2:"FALSE",Choice3:"",Choice4:"","Correct Answer":"TRUE",Solution:"Plants convert CO2+H2O+light into glucose+oxygen",Hint:"How plants make food",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:13,Question:"Select the correct synonym for 'Happy'",Category:"English","Sub Category":"Vocabulary",Tags:"synonyms",Difficulty:"easy","Question Type":"Multichoice","Time Limit":"20",Choice1:"Sad",Choice2:"Angry",Choice3:"Joyful",Choice4:"Tired","Correct Answer":"Joyful",Solution:"Joyful means very happy or showing joy",Hint:"Positive emotion word",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+  {id:14,Question:"Solve: 3x = 12",Category:"Quant","Sub Category":"Algebra",Tags:"equations",Difficulty:"easy","Question Type":"Multichoice","Time Limit":"25",Choice1:"2",Choice2:"3",Choice3:"4",Choice4:"6","Correct Answer":"4",Solution:"Divide both sides by 3: x = 12/3 = 4",Hint:"Divide both sides",Score:"1","Negative Score":"0","Partial Score":"0",Status:"Active",Passage:""},
+];
+
+const CONFIGS_RAW = [
+  {"Quiz Settings Title":"Practice Mode","Quiz Time":"0","Section Order":"Fixed","Question Time":"0","Adaptive Mode":"Off","Random Options":"On","Allow Option Change":"On","Don't Change Until Correct":"Off","Mandatory Answer":"Off","Negative Marking":"Off","Partial Scoring":"On","Question Navigation":"Free","Allow Back":"On","Mark for Review":"On","Auto Next Question":"Off","Auto Submit":"Off","Pause / Resume Allowed":"On","Tracking":"On","Instant Answer":"On","Instant Answer Feedback":"On","Show Hint":"On","Final Result":"On","Question Wise Result":"On","Adaptive Retake":"Off"},
+  {"Quiz Settings Title":"Exam Mode","Quiz Time":"7200","Section Order":"Fixed","Question Time":"60","Adaptive Mode":"Off","Random Options":"On","Allow Option Change":"Off","Don't Change Until Correct":"Off","Mandatory Answer":"On","Negative Marking":"On","Partial Scoring":"Off","Question Navigation":"Sequential","Allow Back":"Off","Mark for Review":"On","Auto Next Question":"On","Auto Submit":"On","Pause / Resume Allowed":"Off","Tracking":"On","Instant Answer":"Off","Instant Answer Feedback":"Off","Show Hint":"Off","Final Result":"On","Question Wise Result":"On","Adaptive Retake":"Off"},
+  {"Quiz Settings Title":"Strict Mode","Quiz Time":"3600","Section Order":"Fixed","Question Time":"60","Adaptive Mode":"Off","Random Options":"On","Allow Option Change":"Off","Don't Change Until Correct":"Off","Mandatory Answer":"On","Negative Marking":"On","Partial Scoring":"Off","Question Navigation":"Sequential","Allow Back":"Off","Mark for Review":"Off","Auto Next Question":"On","Auto Submit":"On","Pause / Resume Allowed":"Off","Tracking":"On","Instant Answer":"Off","Instant Answer Feedback":"Off","Show Hint":"Off","Final Result":"On","Question Wise Result":"On","Adaptive Retake":"On"},
+  {"Quiz Settings Title":"Timed Practice","Quiz Time":"1800","Section Order":"Random","Question Time":"45","Adaptive Mode":"Off","Random Options":"On","Allow Option Change":"On","Don't Change Until Correct":"Off","Mandatory Answer":"Off","Negative Marking":"Off","Partial Scoring":"On","Question Navigation":"Free","Allow Back":"On","Mark for Review":"On","Auto Next Question":"On","Auto Submit":"On","Pause / Resume Allowed":"On","Tracking":"On","Instant Answer":"On","Instant Answer Feedback":"On","Show Hint":"On","Final Result":"On","Question Wise Result":"On","Adaptive Retake":"Off"},
+  {"Quiz Settings Title":"Adaptive Mode","Quiz Time":"3600","Section Order":"Random","Question Time":"60","Adaptive Mode":"On","Random Options":"On","Allow Option Change":"Off","Don't Change Until Correct":"Off","Mandatory Answer":"On","Negative Marking":"On","Partial Scoring":"Off","Question Navigation":"Sequential","Allow Back":"Off","Mark for Review":"On","Auto Next Question":"On","Auto Submit":"On","Pause / Resume Allowed":"Off","Tracking":"On","Instant Answer":"Off","Instant Answer Feedback":"Off","Show Hint":"Off","Final Result":"On","Question Wise Result":"On","Adaptive Retake":"On"},
+  {"Quiz Settings Title":"Review Mode","Quiz Time":"0","Section Order":"Fixed","Question Time":"0","Adaptive Mode":"Off","Random Options":"Off","Allow Option Change":"On","Don't Change Until Correct":"Off","Mandatory Answer":"Off","Negative Marking":"Off","Partial Scoring":"Off","Question Navigation":"Free","Allow Back":"On","Mark for Review":"On","Auto Next Question":"Off","Auto Submit":"Off","Pause / Resume Allowed":"On","Tracking":"On","Instant Answer":"On","Instant Answer Feedback":"On","Show Hint":"On","Final Result":"On","Question Wise Result":"On","Adaptive Retake":"On"},
+];
+
+// ─────────────────────────────────────────────
+// STORAGE
+// ─────────────────────────────────────────────
+const LS = {
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+};
+const store = {
+  getQ:()=>LS.get('qm_questions',QUESTIONS_RAW),
+  setQ:(v)=>LS.set('qm_questions',v),
+  getCfg:()=>LS.get('qm_configs',CONFIGS_RAW),
+  setCfg:(v)=>LS.set('qm_configs',v),
+  getResults:()=>LS.get('qm_results',[]),
+  setResults:(v)=>LS.set('qm_results',v),
+  addResult:(r)=>{const rs=store.getResults();const nr={...r,id:Date.now()};store.setResults([...rs,nr]);return nr},
+  getSettings:()=>LS.get('qm_settings',{scriptId:'',folderId:'',theme:'dark'}),
+  setSettings:(v)=>LS.set('qm_settings',v),
+};
+
+// ─────────────────────────────────────────────
+// THEMES
+// ─────────────────────────────────────────────
+const THEMES = {
+  dark:{name:'Dark',bg:'#0d1117',bg2:'#161b22',bg3:'#21262d',bg4:'#30363d',accent:'#58a6ff',accent2:'#3fb950',accentW:'#d29922',text:'#e6edf3',text2:'#8b949e',text3:'#6e7681',border:'#30363d',success:'#3fb950',warn:'#d29922',danger:'#f85149',info:'#58a6ff'},
+  light:{name:'Light',bg:'#ffffff',bg2:'#f6f8fa',bg3:'#eaeef2',bg4:'#d0d7de',accent:'#0969da',accent2:'#1a7f37',accentW:'#9a6700',text:'#1f2328',text2:'#656d76',text3:'#9198a1',border:'#d0d7de',success:'#1a7f37',warn:'#9a6700',danger:'#cf222e',info:'#0969da'},
+  midnight:{name:'Midnight',bg:'#070b14',bg2:'#0f1728',bg3:'#162033',bg4:'#1e2d45',accent:'#60a5fa',accent2:'#34d399',accentW:'#fbbf24',text:'#e2e8f0',text2:'#94a3b8',text3:'#64748b',border:'#1e2d45',success:'#34d399',warn:'#fbbf24',danger:'#f87171',info:'#60a5fa'},
+  ocean:{name:'Ocean',bg:'#0a1929',bg2:'#0d2137',bg3:'#103354',bg4:'#1565c0',accent:'#42a5f5',accent2:'#26c6da',accentW:'#ffca28',text:'#e3f2fd',text2:'#90caf9',text3:'#64b5f6',border:'#1565c0',success:'#26c6da',warn:'#ffca28',danger:'#ef5350',info:'#42a5f5'},
+  forest:{name:'Forest',bg:'#0a1a0f',bg2:'#0f261a',bg3:'#163324',bg4:'#1e4030',accent:'#4caf50',accent2:'#81c784',accentW:'#ffb74d',text:'#e8f5e9',text2:'#a5d6a7',text3:'#81c784',border:'#1e4030',success:'#66bb6a',warn:'#ffb74d',danger:'#ef5350',info:'#4caf50'},
+};
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+const fmtTime=(s)=>{if(!s||s<=0)return'00:00';const m=Math.floor(s/60),sc=s%60;return`${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`};
+const fmtDur=(a,b)=>{const d=Math.floor((new Date(b)-new Date(a))/1000);if(d<60)return`${d}s`;if(d<3600)return`${Math.floor(d/60)}m ${d%60}s`;return`${Math.floor(d/3600)}h ${Math.floor((d%3600)/60)}m`};
+const shuffle=(arr)=>{const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a};
+const nowStr=()=>new Date().toISOString().replace('T',' ').slice(0,19);
+const getGrade=(p)=>p>=90?{l:'A+',c:'#00d68f'}:p>=80?{l:'A',c:'#3fb950'}:p>=70?{l:'B',c:'#4ecdc4'}:p>=60?{l:'C',c:'#ffd93d'}:p>=50?{l:'D',c:'#ff9a3c'}:{l:'F',c:'#f85149'};
+const toCSV=(rows)=>{if(!rows.length)return'';const h=Object.keys(rows[0]);return[h.join(','),...rows.map(r=>h.map(k=>`"${(r[k]??'').toString().replace(/"/g,'""')}"`).join(','))].join('\n')};
+const dlCSV=(data,fname)=>{const b=new Blob([data],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=fname;a.click();URL.revokeObjectURL(u)};
+
+const calcScore=(questions,answers,config)=>{
+  let score=0,maxScore=0,correct=0,wrong=0,skipped=0;
+  const neg=config?.['Negative Marking']==='On';
+  const partial=config?.['Partial Scoring']==='On';
+  questions.forEach(q=>{
+    const qs=parseFloat(q.Score)||1;
+    const ns=parseFloat(q['Negative Score'])||0;
+    const ps=parseFloat(q['Partial Score'])||0;
+    maxScore+=qs;
+    const ans=answers[q.id];
+    if(!ans||(Array.isArray(ans)&&!ans.length)){skipped++;return}
+    const corrArr=(q['Correct Answer']||'').split('|').map(a=>a.trim().toLowerCase()).filter(Boolean);
+    const type=q['Question Type']||'';
+    if(type==='Multi Multichoice'||type==='Multichoice Anycorrect'){
+      const userArr=Array.isArray(ans)?ans.map(a=>a.toLowerCase()):[ans.toLowerCase()];
+      const allOk=corrArr.every(c=>userArr.includes(c))&&userArr.every(u=>corrArr.includes(u));
+      if(allOk){score+=qs;correct++}
+      else if(partial){const m=userArr.filter(u=>corrArr.includes(u)).length;score+=(m/corrArr.length)*ps;wrong++}
+      else{if(neg)score-=ns;wrong++}
+    } else if(type==='Sequence'){
+      const uArr=Array.isArray(ans)?ans:[ans];
+      const cArr=q['Correct Answer'].split('|');
+      if(JSON.stringify(uArr)===JSON.stringify(cArr)){score+=qs;correct++}
+      else{if(neg)score-=ns;wrong++}
+    } else if(type==='Matching'||type==='Multi Matching'){
+      const uAns=typeof ans==='object'&&!Array.isArray(ans)?ans:{};
+      const pairs=(q['Correct Answer']||'').split('|');
+      let allMatch=true;
+      pairs.forEach(pair=>{const[k,v]=pair.split('-');if((uAns[k]||'').toLowerCase()!==(v||'').toLowerCase())allMatch=false});
+      if(allMatch){score+=qs;correct++}else{if(partial){const m=pairs.filter(p=>{const[k,v]=p.split('-');return(uAns[k]||'').toLowerCase()===(v||'').toLowerCase()}).length;score+=(m/pairs.length)*ps;}if(neg)score-=ns;wrong++}
+    } else {
+      const us=(Array.isArray(ans)?ans[0]:ans).toLowerCase().trim();
+      if(corrArr.some(c=>us.includes(c)||c.includes(us))){score+=qs;correct++}
+      else{if(neg)score-=ns;wrong++}
+    }
+  });
+  return{score:Math.max(0,Math.round(score*10)/10),maxScore,correct,wrong,skipped,pct:Math.round((Math.max(0,score)/maxScore)*100)||0};
+};
+
+// ─────────────────────────────────────────────
+// THEME CONTEXT
+// ─────────────────────────────────────────────
+const ThemeCtx = React.createContext();
+const useTheme=()=>React.useContext(ThemeCtx);
+function ThemeProvider({children}){
+  const [tn,setTn]=React.useState(()=>LS.get('qm_theme','dark'));
+  const t=THEMES[tn]||THEMES.dark;
+  React.useEffect(()=>{LS.set('qm_theme',tn);const r=document.documentElement;Object.entries(t).forEach(([k,v])=>r.style.setProperty('--'+k,v));r.style.background=t.bg},[tn,t]);
+  return <ThemeCtx.Provider value={{t,tn,setTn}}>{children}</ThemeCtx.Provider>;
+}
+
+// ─────────────────────────────────────────────
+// SHARED UI PRIMITIVES
+// ─────────────────────────────────────────────
+const Btn=({onClick,children,variant='primary',disabled,style:sx={}})=>{
+  const{t}=useTheme();
+  const map={primary:{bg:t.accent,c:'#fff'},success:{bg:t.success,c:'#fff'},danger:{bg:t.danger,c:'#fff'},ghost:{bg:'transparent',c:t.text2,border:`1px solid ${t.border}`},warn:{bg:t.warn,c:'#000'}};
+  const s=map[variant]||map.primary;
+  return<button onClick={onClick} disabled={disabled} style={{background:s.bg,color:s.c,border:s.border||'none',padding:'9px 18px',borderRadius:9,fontSize:13,fontWeight:600,cursor:disabled?'not-allowed':'pointer',opacity:disabled?.5:1,transition:'all .15s',whiteSpace:'nowrap',...sx}}>{children}</button>;
+};
+
+const Card=({children,style:sx={}})=>{
+  const{t}=useTheme();
+  return<div style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:12,padding:'16px 20px',...sx}}>{children}</div>;
+};
+
+const Input=({label,value,onChange,placeholder,type='text',required,rows,style:sx={}})=>{
+  const{t}=useTheme();
+  const base={width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'9px 12px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box',...sx};
+  return(
+    <div style={{marginBottom:12}}>
+      {label&&<label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>{label}{required&&<span style={{color:t.danger}}> *</span>}</label>}
+      {rows?<textarea value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{...base,resize:'vertical'}}/>:<input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={base}/>}
+    </div>
+  );
+};
+
+const Sel=({label,value,onChange,options,required,style:sx={}})=>{
+  const{t}=useTheme();
+  return(
+    <div style={{marginBottom:12}}>
+      {label&&<label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>{label}{required&&<span style={{color:t.danger}}> *</span>}</label>}
+      <select value={value} onChange={e=>onChange(e.target.value)} style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'9px 12px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box',...sx}}>
+        {options.map(o=><option key={o.v??o} value={o.v??o}>{o.l??o}</option>)}
+      </select>
+    </div>
+  );
+};
+
+const Toggle=({label,value,onChange})=>{
+  const{t}=useTheme();
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 0',borderBottom:`1px solid ${t.border}`}}>
+      <span style={{fontSize:13,color:t.text2}}>{label}</span>
+      <div onClick={()=>onChange(!value)} style={{width:42,height:23,borderRadius:12,background:value?t.accent:t.bg4,cursor:'pointer',position:'relative',transition:'background .2s',flexShrink:0}}>
+        <div style={{width:19,height:19,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:value?21:2,transition:'left .2s'}}/>
+      </div>
+    </div>
+  );
+};
+
+const Badge=({children,color,bg})=>{
+  const{t}=useTheme();
+  const map={active:{bg:`rgba(63,185,80,.15)`,c:t.success},draft:{bg:`rgba(210,153,34,.15)`,c:t.warn},inactive:{bg:`rgba(248,81,73,.15)`,c:t.danger},easy:{bg:`rgba(63,185,80,.15)`,c:t.success},medium:{bg:`rgba(210,153,34,.15)`,c:t.warn},hard:{bg:`rgba(248,81,73,.15)`,c:t.danger}};
+  const k=(children||'').toString().toLowerCase();
+  const s=map[k]||{bg:bg||t.bg4,c:color||t.text2};
+  return<span style={{background:s.bg,color:s.c,padding:'2px 9px',borderRadius:4,fontSize:11,fontWeight:600,textTransform:'uppercase',whiteSpace:'nowrap'}}>{children}</span>;
+};
+
+const StatCard=({label,value,sub,color})=>{
+  const{t}=useTheme();
+  return(
+    <div style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:12,padding:'16px',borderTop:`3px solid ${color||t.accent}`}}>
+      <div style={{fontSize:11,color:t.text2,marginBottom:4,textTransform:'uppercase',letterSpacing:'.5px'}}>{label}</div>
+      <div style={{fontSize:26,fontWeight:700,color:t.text}}>{value}</div>
+      {sub&&<div style={{fontSize:11,color:t.text3,marginTop:2}}>{sub}</div>}
+    </div>
+  );
+};
+
+const Modal=({open,onClose,title,children,width=580})=>{
+  const{t}=useTheme();
+  if(!open)return null;
+  return(
+    <div onClick={e=>e.target===e.currentTarget&&onClose()} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.75)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:16}}>
+      <div style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:14,width:'100%',maxWidth:width,maxHeight:'92vh',overflowY:'auto',boxShadow:'0 24px 64px rgba(0,0,0,.6)'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 20px',borderBottom:`1px solid ${t.border}`,position:'sticky',top:0,background:t.bg2,zIndex:1}}>
+          <h3 style={{margin:0,color:t.text,fontSize:16,fontWeight:700}}>{title}</h3>
+          <button onClick={onClose} style={{background:'none',border:'none',color:t.text2,fontSize:22,cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
+        </div>
+        <div style={{padding:'20px'}}>{children}</div>
+      </div>
+    </div>
+  );
+};
+
+const Toast=({msg,type,onClose})=>{
+  const{t}=useTheme();
+  React.useEffect(()=>{const id=setTimeout(onClose,3200);return()=>clearTimeout(id)},[]);
+  const c={success:t.success,error:t.danger,warn:t.warn,info:t.info}[type]||t.success;
+  return(
+    <div className="fade-in" style={{position:'fixed',top:20,right:20,background:t.bg2,border:`1.5px solid ${c}`,borderRadius:10,padding:'11px 16px',color:t.text,fontSize:13,zIndex:20000,boxShadow:'0 4px 24px rgba(0,0,0,.4)',display:'flex',alignItems:'center',gap:10,maxWidth:360}}>
+      <span style={{color:c,fontWeight:700}}>{type==='success'?'✓':type==='error'?'✗':'!'}</span>{msg}
+      <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:t.text3,cursor:'pointer',fontSize:16}}>×</button>
+    </div>
+  );
+};
+
+const ProgressBar=({value,max,color,h=6})=>{
+  const{t}=useTheme();
+  const pct=max?Math.min(100,Math.round(value/max*100)):0;
+  return<div style={{height:h,background:t.bg4,borderRadius:h/2,overflow:'hidden'}}><div style={{width:`${pct}%`,height:'100%',background:color||t.accent,borderRadius:h/2,transition:'width .4s ease'}}/></div>;
+};
+
+const ThemePicker=()=>{
+  const{tn,setTn}=useTheme();
+  return(
+    <div style={{display:'flex',gap:6,alignItems:'center'}}>
+      {Object.entries(THEMES).map(([k,v])=>(
+        <button key={k} title={v.name} onClick={()=>setTn(k)} style={{width:20,height:20,borderRadius:'50%',border:`2.5px solid ${tn===k?v.accent:'transparent'}`,background:v.bg2,cursor:'pointer',padding:0,transition:'all .15s'}}/>
+      ))}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// QUESTION TYPE RENDERERS
+// ─────────────────────────────────────────────
+const MCQ=({q,value,onChange,showAns})=>{
+  const{t}=useTheme();
+  const choices=[q.Choice1,q.Choice2,q.Choice3,q.Choice4].filter(Boolean);
+  const correct=(q['Correct Answer']||'').split('|').map(a=>a.trim().toLowerCase());
+  const isMulti=q['Question Type']==='Multi Multichoice'||q['Question Type']==='Multichoice Anycorrect';
+  const sel=Array.isArray(value)?value:value?[value]:[];
+  const labels=['A','B','C','D'];
+
+  const toggle=choice=>{
+    if(showAns)return;
+    if(isMulti){
+      const next=sel.includes(choice)?sel.filter(s=>s!==choice):[...sel,choice];
+      onChange(next);
+    } else onChange([choice]);
+  };
+
+  const getState=choice=>{
+    if(!showAns)return sel.includes(choice)?'sel':'def';
+    const isC=correct.includes(choice.toLowerCase());
+    const isS=sel.map(s=>s.toLowerCase()).includes(choice.toLowerCase());
+    if(isC&&isS)return'ok';if(isC)return'miss';if(isS)return'bad';return'def';
+  };
+
+  const ss={def:{bg:t.bg3,b:t.border,c:t.text},sel:{bg:`${t.accent}22`,b:t.accent,c:t.accent},ok:{bg:`${t.success}22`,b:t.success,c:t.success},miss:{bg:`${t.warn}18`,b:t.warn,c:t.warn},bad:{bg:`${t.danger}18`,b:t.danger,c:t.danger}};
+
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      {isMulti&&!showAns&&<div style={{fontSize:12,color:t.text3,marginBottom:2}}>Select all that apply</div>}
+      {choices.map((choice,i)=>{
+        const s=ss[getState(choice)];
+        const st=getState(choice);
+        return(
+          <div key={i} onClick={()=>toggle(choice)} style={{display:'flex',alignItems:'center',gap:12,padding:'13px 16px',background:s.bg,border:`2px solid ${s.b}`,borderRadius:11,cursor:showAns?'default':'pointer',transition:'all .15s',userSelect:'none'}}>
+            <div style={{width:30,height:30,borderRadius:isMulti?7:'50%',background:st==='sel'||st==='ok'?s.b:'transparent',border:`2px solid ${s.b}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:st==='sel'||st==='ok'?'#fff':s.b,flexShrink:0}}>
+              {st==='ok'?'✓':st==='bad'?'✗':labels[i]}
+            </div>
+            <span style={{color:s.c,fontSize:14,flex:1}}>{choice}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const TrueFalse=({q,value,onChange,showAns})=>{
+  const{t}=useTheme();
+  const correct=(q['Correct Answer']||'').toLowerCase();
+  return(
+    <div style={{display:'flex',gap:14}}>
+      {['TRUE','FALSE'].map(opt=>{
+        const isSel=value===opt;
+        const isC=opt.toLowerCase()===correct;
+        let bg=t.bg3,b=t.border,c=t.text;
+        if(showAns){if(isC){bg=`${t.success}22`;b=t.success;c=t.success}else if(isSel){bg=`${t.danger}18`;b=t.danger;c=t.danger}}
+        else if(isSel){bg=`${t.accent}22`;b=t.accent;c=t.accent}
+        return(
+          <div key={opt} onClick={()=>!showAns&&onChange(opt)} style={{flex:1,padding:'22px 16px',textAlign:'center',background:bg,border:`2px solid ${b}`,borderRadius:12,cursor:showAns?'default':'pointer',color:c,fontWeight:700,fontSize:17,transition:'all .15s',userSelect:'none'}}>
+            {opt==='TRUE'?'✓ TRUE':'✗ FALSE'}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const SequenceQ=({q,value,onChange,showAns})=>{
+  const{t}=useTheme();
+  const items=[q.Choice1,q.Choice2,q.Choice3,q.Choice4].filter(Boolean);
+  const [order,setOrder]=React.useState(()=>value||items);
+  const correct=q['Correct Answer'].split('|');
+  const move=(i,dir)=>{
+    if(showAns)return;
+    const n=[...order];
+    const ni=i+dir;
+    if(ni<0||ni>=n.length)return;
+    [n[i],n[ni]]=[n[ni],n[i]];
+    setOrder(n);onChange(n);
+  };
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+      {!showAns&&<div style={{fontSize:12,color:t.text3,marginBottom:2}}>Use ▲▼ arrows to arrange in correct order</div>}
+      {order.map((item,i)=>{
+        const isC=showAns&&correct[i]===item;
+        const isW=showAns&&correct[i]!==item;
+        return(
+          <div key={item} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 14px',background:showAns?(isC?`${t.success}20`:isW?`${t.danger}15`:t.bg3):t.bg3,border:`2px solid ${showAns?(isC?t.success:isW?t.danger:t.border):t.border}`,borderRadius:9}}>
+            <div style={{width:28,height:28,background:t.accent,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:13,fontWeight:700,flexShrink:0}}>{i+1}</div>
+            <span style={{flex:1,color:t.text,fontSize:14}}>{item}</span>
+            {!showAns&&(
+              <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                <button onClick={()=>move(i,-1)} style={{background:t.bg4,border:'none',borderRadius:4,padding:'2px 7px',cursor:'pointer',color:t.text2,fontSize:11}}>▲</button>
+                <button onClick={()=>move(i,1)} style={{background:t.bg4,border:'none',borderRadius:4,padding:'2px 7px',cursor:'pointer',color:t.text2,fontSize:11}}>▼</button>
+              </div>
+            )}
+            {showAns&&<span style={{fontSize:16,color:isC?t.success:t.danger}}>{isC?'✓':'✗'}</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const ShortAnswer=({q,value,onChange,showAns})=>{
+  const{t}=useTheme();
+  return(
+    <div>
+      <textarea value={value||''} onChange={e=>onChange(e.target.value)} disabled={showAns} placeholder="Type your answer here..." rows={3}
+        style={{width:'100%',background:t.bg3,border:`2px solid ${t.border}`,borderRadius:10,padding:'12px',color:t.text,fontSize:14,resize:'vertical',outline:'none',boxSizing:'border-box'}}/>
+      {showAns&&(
+        <div style={{marginTop:10,padding:'11px 14px',background:`${t.success}18`,border:`1px solid ${t.success}`,borderRadius:8}}>
+          <div style={{fontSize:11,color:t.success,fontWeight:700,marginBottom:3}}>CORRECT ANSWER</div>
+          <div style={{fontSize:14,color:t.text}}>{q['Correct Answer']}</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const FillBlanks=({q,value,onChange,showAns})=>{
+  const{t}=useTheme();
+  const correct=q['Correct Answer'];
+  const isOk=!showAns?false:(value||'').toLowerCase().trim()===correct.toLowerCase().trim();
+  return(
+    <div>
+      <div style={{fontSize:16,color:t.text,marginBottom:14,fontWeight:500}}>{q.Question.replace('[blank]','____')}</div>
+      <input type="text" value={value||''} onChange={e=>onChange(e.target.value)} disabled={showAns}
+        placeholder="Type your answer..."
+        style={{width:'100%',background:t.bg3,border:`2px solid ${showAns?(isOk?t.success:t.danger):t.border}`,borderRadius:9,padding:'11px 14px',color:t.text,fontSize:15,outline:'none',boxSizing:'border-box'}}/>
+      {showAns&&<div style={{marginTop:8,fontSize:13,color:isOk?t.success:t.danger}}>{isOk?'✓ Correct!':'✗ Correct answer: '+correct}</div>}
+    </div>
+  );
+};
+
+const MatchingQ=({q,value,onChange,showAns})=>{
+  const{t}=useTheme();
+  const pairs=(q['Correct Answer']||q.Choice1+' '+q.Choice2+' '+q.Choice3+' '+q.Choice4||'').split('|').filter(Boolean).map(p=>{const[k,v]=p.split('-');return{k:k?.trim(),v:v?.trim()}});
+  const leftItems=pairs.map(p=>p.k).filter(Boolean);
+  const rightItems=shuffle([...pairs.map(p=>p.v).filter(Boolean)]);
+  const [sel,setSel]=React.useState(value||{});
+
+  const pick=(left,right)=>{
+    if(showAns)return;
+    const n={...sel,[left]:right};
+    setSel(n);onChange(n);
+  };
+
+  return(
+    <div>
+      {!showAns&&<div style={{fontSize:12,color:t.text3,marginBottom:10}}>Click left item then right item to match pairs</div>}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 40px 1fr',gap:8,alignItems:'start'}}>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {leftItems.map(left=>{
+            const matched=sel[left];
+            const correctVal=pairs.find(p=>p.k===left)?.v;
+            const isOk=showAns&&matched?.toLowerCase()===correctVal?.toLowerCase();
+            const isBad=showAns&&matched&&!isOk;
+            return(
+              <div key={left} style={{padding:'10px 14px',background:showAns?(isOk?`${t.success}20`:isBad?`${t.danger}15`:t.bg3):t.bg3,border:`2px solid ${showAns?(isOk?t.success:isBad?t.danger:t.border):t.border}`,borderRadius:9,fontSize:14,color:t.text,textAlign:'center'}}>
+                {left}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:8,alignItems:'center',justifyContent:'center',paddingTop:4}}>
+          {leftItems.map(left=>(
+            <div key={left} style={{fontSize:18,color:sel[left]?t.accent:t.border,height:42,display:'flex',alignItems:'center'}}>→</div>
+          ))}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {rightItems.map(right=>{
+            const matchedLeft=Object.keys(sel).find(k=>sel[k]===right);
+            const correctLeft=pairs.find(p=>p.v===right)?.k;
+            const isOk=showAns&&matchedLeft&&matchedLeft===correctLeft;
+            return(
+              <div key={right} onClick={()=>{if(!showAns){const unmatched=leftItems.find(l=>!sel[l]);if(unmatched)pick(unmatched,right)}}}
+                style={{padding:'10px 14px',background:showAns?(isOk?`${t.success}20`:matchedLeft?`${t.danger}15`:t.bg3):(matchedLeft?`${t.accent}15`:t.bg3),border:`2px solid ${showAns?(isOk?t.success:matchedLeft?t.danger:t.border):(matchedLeft?t.accent:t.border)}`,borderRadius:9,fontSize:14,color:t.text,textAlign:'center',cursor:showAns?'default':'pointer',transition:'all .15s'}}>
+                {right}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {!showAns&&Object.keys(sel).length>0&&(
+        <button onClick={()=>{setSel({});onChange({})}} style={{marginTop:10,background:t.bg4,border:`1px solid ${t.border}`,borderRadius:7,padding:'6px 14px',color:t.text2,cursor:'pointer',fontSize:12}}>Reset Matches</button>
+      )}
+    </div>
+  );
+};
+
+const QuestionRender=({q,value,onChange,showAns})=>{
+  const type=q['Question Type']||'';
+  if(type==='True/False')return<TrueFalse q={q} value={value} onChange={onChange} showAns={showAns}/>;
+  if(type==='Sequence')return<SequenceQ q={q} value={value} onChange={onChange} showAns={showAns}/>;
+  if(type==='Short Answer')return<ShortAnswer q={q} value={value} onChange={onChange} showAns={showAns}/>;
+  if(type==='Fill in the Blanks'||type==='Multi Blanks'||type==='Inline Blank')return<FillBlanks q={q} value={value} onChange={onChange} showAns={showAns}/>;
+  if(type==='Matching'||type==='Multi Matching')return<MatchingQ q={q} value={value} onChange={onChange} showAns={showAns}/>;
+  if(type==='Drag & Drop')return<MCQ q={q} value={value} onChange={onChange} showAns={showAns}/>;
+  return<MCQ q={q} value={value} onChange={onChange} showAns={showAns}/>;
+};
+
+// ─────────────────────────────────────────────
+// PAGE: LANDING
+// ─────────────────────────────────────────────
+const LandingPage=({onStart})=>{
+  const{t,tn,setTn}=useTheme();
+  const[form,setForm]=React.useState({name:'',dob:'',contact:''});
+  const[errs,setErrs]=React.useState({});
+
+  const validate=()=>{
+    const e={};
+    if(!form.name.trim())e.name='Name is required';
+    if(!form.dob)e.dob='Date of birth is required';
+    if(!form.contact.trim())e.contact='Phone or email required';
+    setErrs(e);return!Object.keys(e).length;
+  };
+
+  return(
+    <div style={{minHeight:'100vh',background:t.bg,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24,position:'relative'}}>
+      <div style={{position:'fixed',top:16,right:20,display:'flex',gap:8,alignItems:'center'}}>
+        <span style={{fontSize:12,color:t.text3}}>Theme</span>
+        <ThemePicker/>
+      </div>
+
+      <div className="fade-in" style={{textAlign:'center',marginBottom:40}}>
+        <div style={{fontSize:52,marginBottom:10}}>🎯</div>
+        <h1 style={{fontSize:36,fontWeight:800,color:t.text,margin:0,letterSpacing:'-1px'}}>QuizMaster Pro</h1>
+        <p style={{color:t.text2,fontSize:15,marginTop:8,marginBottom:16}}>Competitive Exam Preparation Platform</p>
+        <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
+          {['SAT/DSAT','Competitive Exams','Adaptive Learning','Multi-Format Questions'].map(tag=>(
+            <span key={tag} style={{background:`${t.accent}20`,color:t.accent,padding:'4px 13px',borderRadius:20,fontSize:12,fontWeight:500}}>{tag}</span>
+          ))}
+        </div>
+      </div>
+
+      <Card style={{width:'100%',maxWidth:460,boxShadow:'0 12px 48px rgba(0,0,0,.4)'}}>
+        <h2 style={{color:t.text,fontSize:18,fontWeight:700,marginBottom:4}}>Get Started</h2>
+        <p style={{color:t.text2,fontSize:13,marginBottom:22}}>Enter your details to begin your quiz session</p>
+
+        {[
+          {label:'Full Name',key:'name',placeholder:'e.g. Arjun Mehta',type:'text'},
+          {label:'Date of Birth',key:'dob',placeholder:'',type:'date'},
+          {label:'Phone / Email',key:'contact',placeholder:'phone or email address',type:'text'},
+        ].map(({label,key,placeholder,type})=>(
+          <div key={key} style={{marginBottom:14}}>
+            <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>{label} <span style={{color:t.danger}}>*</span></label>
+            <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} placeholder={placeholder}
+              style={{width:'100%',background:t.bg3,border:`1.5px solid ${errs[key]?t.danger:t.border}`,borderRadius:9,padding:'10px 13px',color:t.text,fontSize:14,outline:'none',boxSizing:'border-box'}}/>
+            {errs[key]&&<div style={{fontSize:11,color:t.danger,marginTop:3}}>{errs[key]}</div>}
+          </div>
+        ))}
+
+        <button onClick={()=>{if(validate())onStart(form)}}
+          style={{width:'100%',background:t.accent,color:'#fff',border:'none',borderRadius:10,padding:'13px',fontSize:15,fontWeight:700,cursor:'pointer',marginTop:8,transition:'opacity .2s'}}>
+          Continue to Quiz Setup →
+        </button>
+      </Card>
+
+      <div style={{display:'flex',gap:36,marginTop:40,textAlign:'center'}}>
+        {[['14+','Questions'],['6','Quiz Modes'],['5','Themes'],['All','Question Types']].map(([v,l])=>(
+          <div key={l}><div style={{fontSize:20,fontWeight:700,color:t.accent}}>{v}</div><div style={{fontSize:12,color:t.text3}}>{l}</div></div>
+        ))}
+      </div>
+
+      <div style={{position:'fixed',bottom:16,right:20}}>
+        <button onClick={()=>{window.history.pushState({},'','?admin');window.location.reload()}}
+          style={{background:t.bg3,border:`1px solid ${t.border}`,borderRadius:7,padding:'6px 14px',color:t.text3,cursor:'pointer',fontSize:11}}>Admin ⚙</button>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// PAGE: QUIZ SETUP
+// ─────────────────────────────────────────────
+const SetupPage=({user,onBack,onStart})=>{
+  const{t}=useTheme();
+  const allQ=store.getQ();
+  const allCfg=store.getCfg();
+  const[step,setStep]=React.useState(0);
+  const[selTopics,setSelTopics]=React.useState([]);
+  const[selCats,setSelCats]=React.useState([]);
+  const[selSubs,setSelSubs]=React.useState([]);
+  const[selDiffs,setSelDiffs]=React.useState([]);
+  const[selTypes,setSelTypes]=React.useState([]);
+  const[qCount,setQCount]=React.useState(10);
+  const[cfgKey,setCfgKey]=React.useState(allCfg[0]?.['Quiz Settings Title']||'');
+  const[isCustom,setIsCustom]=React.useState(false);
+  const[customCfg,setCustomCfg]=React.useState({});
+
+  const topics=React.useMemo(()=>[...new Set(allQ.map(q=>q.Category))],[allQ]);
+  const byTopic=React.useMemo(()=>selTopics.length?allQ.filter(q=>selTopics.includes(q.Category)):allQ,[allQ,selTopics]);
+  const cats=React.useMemo(()=>[...new Set(byTopic.map(q=>q.Category))],[byTopic]);
+  const subs=React.useMemo(()=>{const f=selCats.length?byTopic.filter(q=>selCats.includes(q.Category)):byTopic;return[...new Set(f.map(q=>q['Sub Category']))];},[byTopic,selCats]);
+  const types=React.useMemo(()=>[...new Set(allQ.map(q=>q['Question Type']))],[allQ]);
+  const diffs=['easy','medium','hard'];
+
+  const filtered=React.useMemo(()=>allQ.filter(q=>{
+    if(q.Status!=='Active')return false;
+    if(selTopics.length&&!selTopics.includes(q.Category))return false;
+    if(selCats.length&&!selCats.includes(q.Category))return false;
+    if(selSubs.length&&!selSubs.includes(q['Sub Category']))return false;
+    if(selDiffs.length&&!selDiffs.includes(q.Difficulty))return false;
+    if(selTypes.length&&!selTypes.includes(q['Question Type']))return false;
+    return true;
+  }),[allQ,selTopics,selCats,selSubs,selDiffs,selTypes]);
+
+  const tog=(item,arr,set)=>set(arr.includes(item)?arr.filter(x=>x!==item):[...arr,item]);
+  const togAll=(arr,set,all)=>set(arr.length===all.length?[]:[...all]);
+
+  const ICONS={Quant:'📐',English:'📖',Science:'🔬',Math:'➕',GK:'🌍',Programming:'💻',default:'📚'};
+
+  const ChipGroup=({label,options,selected,onToggle,onToggleAll})=>(
+    <div style={{marginBottom:20}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+        <span style={{fontSize:13,fontWeight:600,color:t.text}}>{label}</span>
+        <button onClick={onToggleAll} style={{fontSize:11,color:t.accent,background:'none',border:'none',cursor:'pointer',fontWeight:500}}>
+          {selected.length===options.length?'Deselect All':'Select All'}
+        </button>
+      </div>
+      <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+        {options.map(o=>(
+          <span key={o} onClick={()=>onToggle(o)} style={{padding:'5px 13px',borderRadius:20,fontSize:12,cursor:'pointer',background:selected.includes(o)?t.accent:`${t.accent}18`,color:selected.includes(o)?'#fff':t.accent,border:`1px solid ${selected.includes(o)?t.accent:`${t.accent}40`}`,transition:'all .15s',userSelect:'none'}}>
+            {o}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+
+  const cfgObj=isCustom?{...CONFIGS_RAW[0],...customCfg,'Quiz Settings Title':'Custom'}:allCfg.find(c=>c['Quiz Settings Title']===cfgKey);
+  const maxQ=Math.min(filtered.length,50)||50;
+
+  const handleStart=()=>{
+    const qs=filtered.length?filtered.slice(0,qCount):allQ.filter(q=>q.Status==='Active').slice(0,qCount);
+    if(!qs.length)return alert('No active questions found.');
+    onStart({user,questions:qs,config:cfgObj});
+  };
+
+  return(
+    <div style={{minHeight:'100vh',background:t.bg,padding:24}}>
+      <div style={{maxWidth:800,margin:'0 auto'}}>
+        <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:32}}>
+          <button onClick={onBack} style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:8,padding:'8px 14px',color:t.text2,cursor:'pointer',fontSize:13}}>← Back</button>
+          <div>
+            <h1 style={{color:t.text,fontSize:22,fontWeight:700,margin:0}}>Quiz Setup</h1>
+            <p style={{color:t.text2,fontSize:13,margin:0}}>Hello {user.name}! Configure your session</p>
+          </div>
+          <div style={{marginLeft:'auto'}}><ThemePicker/></div>
+        </div>
+
+        {/* Steps */}
+        <div style={{display:'flex',background:t.bg2,borderRadius:12,padding:4,border:`1px solid ${t.border}`,marginBottom:28}}>
+          {['Topic','Filters','Config'].map((s,i)=>(
+            <div key={s} onClick={()=>i<step&&setStep(i)} style={{flex:1,textAlign:'center',padding:'10px',borderRadius:9,cursor:i<step?'pointer':'default',background:step===i?t.accent:'transparent',color:step===i?'#fff':i<step?t.accent:t.text3,fontSize:13,fontWeight:step===i?700:400,transition:'all .2s'}}>
+              {i<step?'✓ ':i+1+'. '}{s}
+            </div>
+          ))}
+        </div>
+
+        {/* STEP 0: Topics */}
+        {step===0&&(
+          <div className="fade-in">
+            <h2 style={{color:t.text,fontSize:16,fontWeight:600,marginBottom:6}}>Select Quiz Topic(s)</h2>
+            <p style={{color:t.text2,fontSize:13,marginBottom:20}}>Choose one or more topics. Leave all unselected to include everything.</p>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(155px,1fr))',gap:12,marginBottom:28}}>
+              {topics.map(tp=>{
+                const active=selTopics.includes(tp);
+                const cnt=allQ.filter(q=>q.Category===tp&&q.Status==='Active').length;
+                return(
+                  <div key={tp} onClick={()=>tog(tp,selTopics,setSelTopics)} style={{padding:'18px 14px',borderRadius:12,border:`2px solid ${active?t.accent:t.border}`,background:active?`${t.accent}18`:t.bg2,cursor:'pointer',textAlign:'center',transition:'all .15s',userSelect:'none'}}>
+                    <div style={{fontSize:30,marginBottom:6}}>{ICONS[tp]||ICONS.default}</div>
+                    <div style={{fontSize:14,fontWeight:600,color:active?t.accent:t.text}}>{tp}</div>
+                    <div style={{fontSize:11,color:t.text3,marginTop:3}}>{cnt} questions</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontSize:13,color:t.text2}}>{selTopics.length?`${selTopics.length} topic(s) selected`:'All topics included'}</span>
+              <Btn onClick={()=>setStep(1)}>Continue →</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 1: Filters */}
+        {step===1&&(
+          <div className="fade-in">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+              <h2 style={{color:t.text,fontSize:16,fontWeight:600,margin:0}}>Refine Your Questions</h2>
+              <span style={{fontSize:13,fontWeight:600,color:t.accent}}>{filtered.length} questions match</span>
+            </div>
+            <p style={{color:t.text2,fontSize:13,marginBottom:20}}>Apply filters. Leave all empty to include all questions.</p>
+            <Card style={{marginBottom:16}}>
+              <ChipGroup label="Category" options={cats} selected={selCats} onToggle={o=>tog(o,selCats,setSelCats)} onToggleAll={()=>togAll(selCats,setSelCats,cats)}/>
+              <ChipGroup label="Sub Category" options={subs} selected={selSubs} onToggle={o=>tog(o,selSubs,setSelSubs)} onToggleAll={()=>togAll(selSubs,setSelSubs,subs)}/>
+              <ChipGroup label="Difficulty" options={diffs} selected={selDiffs} onToggle={o=>tog(o,selDiffs,setSelDiffs)} onToggleAll={()=>togAll(selDiffs,setSelDiffs,diffs)}/>
+              <ChipGroup label="Question Type" options={types} selected={selTypes} onToggle={o=>tog(o,selTypes,setSelTypes)} onToggleAll={()=>togAll(selTypes,setSelTypes,types)}/>
+              <div style={{borderTop:`1px solid ${t.border}`,paddingTop:16,marginTop:4}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                  <span style={{fontSize:13,fontWeight:600,color:t.text}}>Number of Questions</span>
+                  <span style={{fontSize:18,fontWeight:700,color:t.accent}}>{qCount}</span>
+                </div>
+                <input type="range" min={1} max={maxQ} value={qCount} onChange={e=>setQCount(Number(e.target.value))}/>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:t.text3}}><span>1</span><span>{maxQ} max</span></div>
+              </div>
+            </Card>
+            <div style={{display:'flex',justifyContent:'space-between'}}>
+              <Btn variant="ghost" onClick={()=>setStep(0)}>← Back</Btn>
+              <Btn onClick={()=>setStep(2)}>Continue →</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: Config */}
+        {step===2&&(
+          <div className="fade-in">
+            <h2 style={{color:t.text,fontSize:16,fontWeight:600,marginBottom:6}}>Quiz Configuration</h2>
+            <p style={{color:t.text2,fontSize:13,marginBottom:20}}>Choose a preset mode or customise your settings</p>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(185px,1fr))',gap:10,marginBottom:20}}>
+              {allCfg.map(c=>{
+                const active=!isCustom&&cfgKey===c['Quiz Settings Title'];
+                return(
+                  <div key={c['Quiz Settings Title']} onClick={()=>{setCfgKey(c['Quiz Settings Title']);setIsCustom(false)}}
+                    style={{padding:'14px',borderRadius:11,border:`2px solid ${active?t.accent:t.border}`,background:active?`${t.accent}18`:t.bg2,cursor:'pointer',transition:'all .15s',userSelect:'none'}}>
+                    <div style={{fontSize:13,fontWeight:600,color:active?t.accent:t.text,marginBottom:8}}>{c['Quiz Settings Title']}</div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                      {c['Quiz Time']!=='0'&&<span style={{fontSize:10,background:t.bg4,color:t.text2,padding:'1px 6px',borderRadius:3}}>{Math.round(Number(c['Quiz Time'])/60)}min</span>}
+                      {c['Negative Marking']==='On'&&<span style={{fontSize:10,background:`${t.danger}20`,color:t.danger,padding:'1px 6px',borderRadius:3}}>-ve</span>}
+                      {c['Partial Scoring']==='On'&&<span style={{fontSize:10,background:`${t.success}18`,color:t.success,padding:'1px 6px',borderRadius:3}}>Partial</span>}
+                      {c['Show Hint']==='On'&&<span style={{fontSize:10,background:`${t.info}15`,color:t.info,padding:'1px 6px',borderRadius:3}}>Hints</span>}
+                      {c['Instant Answer']==='On'&&<span style={{fontSize:10,background:`${t.warn}18`,color:t.warn,padding:'1px 6px',borderRadius:3}}>Instant</span>}
+                    </div>
+                  </div>
+                );
+              })}
+              <div onClick={()=>setIsCustom(true)} style={{padding:'14px',borderRadius:11,border:`2px solid ${isCustom?t.accentW:t.border}`,background:isCustom?`${t.accentW}18`:t.bg2,cursor:'pointer',transition:'all .15s',userSelect:'none'}}>
+                <div style={{fontSize:13,fontWeight:600,color:isCustom?t.accentW:t.text2,marginBottom:4}}>⚙️ Custom</div>
+                <div style={{fontSize:11,color:t.text3}}>Build your own config</div>
+              </div>
+            </div>
+
+            {isCustom&&(
+              <Card style={{marginBottom:16}}>
+                <h3 style={{color:t.text,fontSize:14,fontWeight:600,marginBottom:14}}>Custom Configuration</h3>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:0}}>
+                  {[['Negative Marking','Negative Marking'],['Partial Scoring','Partial Scoring'],['Allow Back','Allow Back'],['Mark for Review','Mark for Review'],['Instant Answer','Instant Answer'],['Show Hint','Show Hint'],['Auto Submit','Auto Submit'],['Pause/Resume','Pause / Resume Allowed']].map(([label,key])=>(
+                    <Toggle key={key} label={label} value={(customCfg[key]||CONFIGS_RAW[0][key])==='On'} onChange={v=>setCustomCfg(p=>({...p,[key]:v?'On':'Off'}))}/>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            <Card style={{marginBottom:20}}>
+              <div style={{fontSize:11,color:t.text3,marginBottom:10,fontWeight:600,textTransform:'uppercase',letterSpacing:'.5px'}}>Quiz Summary</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+                {[['Questions',qCount],['Mode',isCustom?'Custom':cfgKey],['Available',filtered.length||allQ.filter(q=>q.Status==='Active').length]].map(([k,v])=>(
+                  <div key={k}><div style={{fontSize:11,color:t.text3,marginBottom:2}}>{k}</div><div style={{fontSize:15,fontWeight:700,color:t.accent}}>{v}</div></div>
+                ))}
+              </div>
+            </Card>
+
+            <div style={{display:'flex',justifyContent:'space-between'}}>
+              <Btn variant="ghost" onClick={()=>setStep(1)}>← Back</Btn>
+              <button onClick={handleStart} style={{background:t.accent,color:'#fff',border:'none',borderRadius:10,padding:'13px 32px',fontSize:15,fontWeight:700,cursor:'pointer'}}>🚀 Start Quiz</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// PAGE: QUIZ ENGINE
+// ─────────────────────────────────────────────
+const QuizPage=({session,onFinish})=>{
+  const{t}=useTheme();
+  const{user,questions:rawQ,config}=session;
+  const cfg=config||{};
+
+  const questions=React.useMemo(()=>cfg['Random Options']==='On'?shuffle(rawQ):[...rawQ],[]);
+  const totalTime=parseInt(cfg['Quiz Time']||0);
+  const perQTime=parseInt(cfg['Question Time']||0);
+  const allowBack=cfg['Allow Back']!=='Off';
+  const canReview=cfg['Mark for Review']!=='Off';
+  const instantAns=cfg['Instant Answer']==='On';
+  const showHint=cfg['Show Hint']==='On';
+  const mandatory=cfg['Mandatory Answer']==='On';
+  const canPause=cfg['Pause / Resume Allowed']!=='Off';
+  const sequential=cfg['Question Navigation']==='Sequential';
+
+  const[idx,setIdx]=React.useState(0);
+  const[answers,setAnswers]=React.useState({});
+  const[flagged,setFlagged]=React.useState(new Set());
+  const[visited,setVisited]=React.useState(new Set([0]));
+  const[tLeft,setTLeft]=React.useState(totalTime||null);
+  const[qtLeft,setQtLeft]=React.useState(perQTime||null);
+  const[paused,setPaused]=React.useState(false);
+  const[showInst,setShowInst]=React.useState(false);
+  const[showHintBox,setShowHintBox]=React.useState(false);
+  const[startTime]=React.useState(nowStr());
+  const[navOpen,setNavOpen]=React.useState(false);
+  const[confirmSub,setConfirmSub]=React.useState(false);
+  const timerRef=React.useRef(null);
+  const qTimerRef=React.useRef(null);
+
+  const q=questions[idx];
+
+  // Total timer
+  React.useEffect(()=>{
+    if(!totalTime||paused)return;
+    clearInterval(timerRef.current);
+    timerRef.current=setInterval(()=>{
+      setTLeft(p=>{if(p<=1){clearInterval(timerRef.current);handleSubmit(true);return 0}return p-1});
+    },1000);
+    return()=>clearInterval(timerRef.current);
+  },[totalTime,paused]);
+
+  // Per-Q timer
+  React.useEffect(()=>{
+    if(!perQTime||paused)return;
+    setQtLeft(perQTime);
+    clearInterval(qTimerRef.current);
+    qTimerRef.current=setInterval(()=>{
+      setQtLeft(p=>{if(p<=1){clearInterval(qTimerRef.current);autoNext();return 0}return p-1});
+    },1000);
+    return()=>clearInterval(qTimerRef.current);
+  },[idx,perQTime,paused]);
+
+  const autoNext=()=>{if(idx<questions.length-1)goTo(idx+1);else handleSubmit(true)};
+
+  const goTo=(i)=>{setIdx(i);setVisited(v=>new Set([...v,i]));setShowInst(false);setShowHintBox(false)};
+
+  const setAns=(val)=>{setAnswers(a=>({...a,[q.id]:val}));if(instantAns)setShowInst(true)};
+
+  const toggleFlag=()=>setFlagged(f=>{const n=new Set(f);n.has(idx)?n.delete(idx):n.add(idx);return n});
+
+  const handleSubmit=React.useCallback((auto=false)=>{
+    clearInterval(timerRef.current);clearInterval(qTimerRef.current);
+    const end=nowStr();
+    const res=calcScore(questions,answers,cfg);
+    const entry={
+      'Student Name':user.name,'Quiz Name':cfg['Quiz Settings Title']||'Custom',
+      'Quiz Topic':[...new Set(questions.map(q=>q.Category))].join(', '),
+      'Start Time':startTime,'End Time':end,'Result Score':res.pct.toString(),
+      'Filepath':`result_${user.name.replace(/\s/g,'_')}_${Date.now()}.csv`,
+      stats:res,questions,userAnswers:answers,config:cfg,user,
+    };
+    store.addResult(entry);onFinish(entry);
+  },[answers,questions,cfg,user,startTime,onFinish]);
+
+  const answered=Object.keys(answers).length;
+  const pct=Math.round((idx+1)/questions.length*100);
+  const tColor=tLeft!==null?(tLeft<60?t.danger:tLeft<300?t.warn:t.success):t.success;
+  const qtColor=qtLeft!==null?(qtLeft<10?t.danger:qtLeft<20?t.warn:t.accent):t.accent;
+
+  const qState=(i)=>{const qi=questions[i];if(flagged.has(i))return'flag';if(answers[qi.id]!==undefined)return'ans';if(visited.has(i))return'vis';return'def'};
+  const qStateColor={ans:t.success,flag:t.warn,vis:t.info,def:t.bg4};
+  const qStateTextColor={ans:'#fff',flag:'#000',vis:'#fff',def:t.text2};
+
+  if(paused)return(
+    <div style={{minHeight:'100vh',background:t.bg,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:56,marginBottom:16}}>⏸</div>
+        <h2 style={{color:t.text,marginBottom:8,fontSize:24}}>Quiz Paused</h2>
+        <p style={{color:t.text2,marginBottom:24}}>Your progress is saved. Take a break!</p>
+        <Btn onClick={()=>setPaused(false)} style={{fontSize:15,padding:'13px 32px'}}>▶ Resume Quiz</Btn>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{minHeight:'100vh',background:t.bg,display:'flex',flexDirection:'column'}}>
+      {/* TOP BAR */}
+      <div style={{background:t.bg2,borderBottom:`1px solid ${t.border}`,padding:'0 20px',display:'flex',alignItems:'center',gap:12,height:58,flexShrink:0,position:'sticky',top:0,zIndex:100}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+            <span style={{fontSize:12,color:t.text2,fontWeight:500}}>Q {idx+1} / {questions.length}</span>
+            <span style={{fontSize:11,color:t.text3}}>{answered} answered · {questions.length-answered} left</span>
+          </div>
+          <ProgressBar value={idx+1} max={questions.length}/>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexShrink:0}}>
+          {perQTime>0&&(
+            <div style={{textAlign:'center',background:`${qtColor}18`,border:`1px solid ${qtColor}`,borderRadius:8,padding:'4px 10px'}}>
+              <div style={{fontSize:9,color:qtColor,fontWeight:700}}>Q-TIME</div>
+              <div style={{fontSize:14,color:qtColor,fontWeight:700}}>{fmtTime(qtLeft)}</div>
+            </div>
+          )}
+          {totalTime>0&&(
+            <div style={{textAlign:'center',background:`${tColor}18`,border:`1px solid ${tColor}`,borderRadius:8,padding:'4px 10px'}}>
+              <div style={{fontSize:9,color:tColor,fontWeight:700}}>TOTAL</div>
+              <div style={{fontSize:14,color:tColor,fontWeight:700,minWidth:40}}>{fmtTime(tLeft)}</div>
+            </div>
+          )}
+        </div>
+        <div style={{display:'flex',gap:6,flexShrink:0}}>
+          {canPause&&<button onClick={()=>setPaused(true)} style={{background:t.bg3,border:`1px solid ${t.border}`,borderRadius:7,padding:'7px 10px',color:t.text2,cursor:'pointer',fontSize:13}}>⏸</button>}
+          <button onClick={()=>setNavOpen(!navOpen)} style={{background:navOpen?`${t.accent}20`:t.bg3,border:`1px solid ${navOpen?t.accent:t.border}`,borderRadius:7,padding:'7px 11px',color:navOpen?t.accent:t.text2,cursor:'pointer',fontSize:12,fontWeight:500}}>☰ Nav</button>
+          <button onClick={()=>setConfirmSub(true)} style={{background:t.danger,color:'#fff',border:'none',borderRadius:7,padding:'7px 14px',cursor:'pointer',fontSize:12,fontWeight:700}}>Submit</button>
+        </div>
+      </div>
+
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        {/* NAV PANEL */}
+        {navOpen&&(
+          <div style={{width:228,background:t.bg2,borderRight:`1px solid ${t.border}`,overflow:'auto',padding:14,flexShrink:0}}>
+            <div style={{fontSize:11,color:t.text3,marginBottom:10,textTransform:'uppercase',letterSpacing:'.5px',fontWeight:600}}>Question Navigator</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:14}}>
+              {questions.map((_,i)=>{
+                const st=qState(i);
+                return(
+                  <button key={i} onClick={()=>(!sequential||i<=idx+1)&&goTo(i)}
+                    style={{width:'100%',aspectRatio:'1',borderRadius:7,border:'none',cursor:'pointer',background:qStateColor[st],color:qStateTextColor[st],fontSize:11,fontWeight:700,outline:idx===i?`2.5px solid ${t.accent}`:'none',transition:'all .15s'}}>
+                    {i+1}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:5}}>
+              {[['ans',t.success,'Answered'],['flag',t.warn,'Flagged'],['vis',t.info,'Visited'],['def',t.bg4,'Not Visited']].map(([k,c,l])=>(
+                <div key={k} style={{display:'flex',alignItems:'center',gap:7,fontSize:11,color:t.text2}}>
+                  <div style={{width:11,height:11,borderRadius:3,background:c}}/>{l}
+                </div>
+              ))}
+            </div>
+            <div style={{borderTop:`1px solid ${t.border}`,marginTop:14,paddingTop:12}}>
+              <div style={{fontSize:11,color:t.text3,marginBottom:6}}>PROGRESS</div>
+              {[['Answered',answered,t.success],[' Flagged',flagged.size,t.warn],['Skipped',questions.length-answered,t.text3]].map(([l,v,c])=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',fontSize:12,color:t.text2,marginBottom:4}}>
+                  <span>{l}</span><span style={{fontWeight:700,color:c}}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MAIN QUESTION */}
+        <div style={{flex:1,overflow:'auto',padding:'24px 20px'}}>
+          <div style={{maxWidth:780,margin:'0 auto'}} className="fade-in">
+            {/* Tags row */}
+            <div style={{display:'flex',gap:7,marginBottom:14,flexWrap:'wrap'}}>
+              <span style={{fontSize:11,background:`${t.accent}20`,color:t.accent,padding:'3px 9px',borderRadius:5}}>{q.Category}</span>
+              <span style={{fontSize:11,background:t.bg3,color:t.text2,padding:'3px 9px',borderRadius:5}}>{q['Sub Category']}</span>
+              <Badge>{q.Difficulty}</Badge>
+              <span style={{fontSize:11,background:t.bg3,color:t.text2,padding:'3px 9px',borderRadius:5}}>{q['Question Type']}</span>
+              <span style={{fontSize:11,background:`${t.accentW}20`,color:t.accentW,padding:'3px 9px',borderRadius:5}}>+{q.Score} pts</span>
+              {parseFloat(q['Negative Score'])>0&&<span style={{fontSize:11,background:`${t.danger}18`,color:t.danger,padding:'3px 9px',borderRadius:5}}>-{q['Negative Score']} pts</span>}
+            </div>
+
+            {/* Action row */}
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginBottom:14}}>
+              {showHint&&q.Hint&&(
+                <button onClick={()=>setShowHintBox(!showHintBox)} style={{background:showHintBox?`${t.info}20`:t.bg3,border:`1px solid ${showHintBox?t.info:t.border}`,borderRadius:7,padding:'7px 12px',color:showHintBox?t.info:t.text2,cursor:'pointer',fontSize:12}}>💡 Hint</button>
+              )}
+              {canReview&&(
+                <button onClick={toggleFlag} style={{background:flagged.has(idx)?`${t.warn}20`:t.bg3,border:`1px solid ${flagged.has(idx)?t.warn:t.border}`,borderRadius:7,padding:'7px 12px',color:flagged.has(idx)?t.warn:t.text2,cursor:'pointer',fontSize:12}}>
+                  {flagged.has(idx)?'🚩 Flagged':'📌 Review'}
+                </button>
+              )}
+            </div>
+
+            {/* Passage */}
+            {q.Passage&&(
+              <div style={{background:t.bg3,border:`1px solid ${t.border}`,borderRadius:10,padding:'14px 16px',marginBottom:16,fontSize:13,color:t.text2,lineHeight:'1.75'}}>
+                <div style={{fontSize:10,color:t.text3,fontWeight:700,marginBottom:6,textTransform:'uppercase',letterSpacing:'.5px'}}>Passage</div>
+                {q.Passage}
+              </div>
+            )}
+
+            {/* Hint box */}
+            {showHintBox&&q.Hint&&(
+              <div style={{background:`${t.info}15`,border:`1px solid ${t.info}`,borderRadius:10,padding:'12px 16px',marginBottom:16,fontSize:13,color:t.info}}>
+                💡 <strong>Hint:</strong> {q.Hint}
+              </div>
+            )}
+
+            {/* Question text */}
+            <div style={{fontSize:17,color:t.text,fontWeight:600,lineHeight:'1.65',marginBottom:22,background:t.bg2,border:`1px solid ${t.border}`,borderRadius:12,padding:'20px 24px'}}>
+              <span style={{color:t.text3,fontSize:14,fontWeight:400,marginRight:10}}>Q{idx+1}.</span>
+              {q.Question}
+            </div>
+
+            {/* Answer area */}
+            <div style={{marginBottom:20}}>
+              <QuestionRender q={q} value={answers[q.id]} onChange={setAns} showAns={showInst}/>
+            </div>
+
+            {/* Instant feedback */}
+            {showInst&&(
+              <div style={{marginBottom:16,padding:'14px 16px',background:`${t.success}15`,border:`1px solid ${t.success}`,borderRadius:10}}>
+                <div style={{fontSize:11,color:t.success,fontWeight:700,marginBottom:4,textTransform:'uppercase'}}>Solution</div>
+                <div style={{fontSize:13,color:t.text}}>{q.Solution}</div>
+              </div>
+            )}
+
+            {/* Nav buttons */}
+            <div style={{display:'flex',justifyContent:'space-between',marginTop:24,gap:10}}>
+              <button onClick={()=>goTo(idx-1)} disabled={idx===0||!allowBack}
+                style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:10,padding:'12px 22px',color:(idx===0||!allowBack)?t.text3:t.text,cursor:(idx===0||!allowBack)?'not-allowed':'pointer',fontSize:14,opacity:(idx===0||!allowBack)?.4:1}}>
+                ← Previous
+              </button>
+              {mandatory&&!answers[q.id]&&<span style={{fontSize:12,color:t.warn,alignSelf:'center'}}>⚠ Answer required</span>}
+              {idx<questions.length-1?(
+                <button onClick={()=>{if(mandatory&&!answers[q.id]){alert('Please answer before continuing.');return;}goTo(idx+1)}}
+                  style={{background:t.accent,color:'#fff',border:'none',borderRadius:10,padding:'12px 26px',cursor:'pointer',fontSize:14,fontWeight:700}}>
+                  Next →
+                </button>
+              ):(
+                <button onClick={()=>setConfirmSub(true)}
+                  style={{background:t.success,color:'#fff',border:'none',borderRadius:10,padding:'12px 26px',cursor:'pointer',fontSize:14,fontWeight:700}}>
+                  Finish Quiz ✓
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Submit confirm */}
+      {confirmSub&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.72)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2000}}>
+          <div style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:16,padding:32,maxWidth:400,width:'100%',margin:16}}>
+            <h3 style={{color:t.text,marginBottom:14,fontSize:18,fontWeight:700}}>Submit Quiz?</h3>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:22}}>
+              {[['Answered',answered,t.success],['Flagged',flagged.size,t.warn],['Skipped',questions.length-answered,t.text3]].map(([l,v,c])=>(
+                <div key={l} style={{textAlign:'center',background:t.bg3,borderRadius:9,padding:12}}>
+                  <div style={{fontSize:22,fontWeight:700,color:c}}>{v}</div>
+                  <div style={{fontSize:11,color:t.text3}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={()=>setConfirmSub(false)} style={{flex:1,background:t.bg3,border:`1px solid ${t.border}`,borderRadius:9,padding:'11px',color:t.text,cursor:'pointer',fontSize:14}}>Cancel</button>
+              <button onClick={()=>handleSubmit(false)} style={{flex:1,background:t.success,border:'none',borderRadius:9,padding:'11px',color:'#fff',cursor:'pointer',fontSize:14,fontWeight:700}}>Submit Now</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// PAGE: RESULTS
+// ─────────────────────────────────────────────
+const ResultPage=({result,onRetake,onNew})=>{
+  const{t}=useTheme();
+  const[mode,setMode]=React.useState('result');
+  const[filter,setFilter]=React.useState('all');
+  const{questions,userAnswers,config,user,stats}=result;
+
+  const showFinalResult=config?.['Final Result']!=='Off';
+  const showQWise=config?.['Question Wise Result']!=='Off';
+
+  const grade=getGrade(stats.pct);
+  const timeTaken=fmtDur(result['Start Time'],result['End Time']);
+
+  const getQRes=(q)=>{
+    const ans=userAnswers[q.id];
+    if(!ans||(Array.isArray(ans)&&!ans.length))return'skipped';
+    const corrArr=(q['Correct Answer']||'').split('|').map(a=>a.trim().toLowerCase()).filter(Boolean);
+    const type=q['Question Type']||'';
+    if(type==='Multi Multichoice'||type==='Multichoice Anycorrect'){
+      const uArr=Array.isArray(ans)?ans.map(a=>a.toLowerCase()):[ans.toLowerCase()];
+      return corrArr.every(c=>uArr.includes(c))&&uArr.every(u=>corrArr.includes(u))?'correct':'wrong';
+    }
+    if(type==='Matching'||type==='Multi Matching'){
+      const uObj=typeof ans==='object'&&!Array.isArray(ans)?ans:{};
+      const pairs=(q['Correct Answer']||'').split('|').filter(Boolean);
+      const allOk=pairs.every(p=>{const[k,v]=p.split('-');return(uObj[k]||'').toLowerCase()===(v||'').toLowerCase()});
+      return allOk?'correct':'wrong';
+    }
+    const us=(Array.isArray(ans)?ans[0]:ans).toLowerCase().trim();
+    return corrArr.some(c=>us.includes(c)||c.includes(us))?'correct':'wrong';
+  };
+
+  const catStats={};
+  const diffStats={};
+  questions.forEach(q=>{
+    const r=getQRes(q);
+    if(!catStats[q.Category])catStats[q.Category]={correct:0,wrong:0,skipped:0,total:0};
+    catStats[q.Category][r]++;catStats[q.Category].total++;
+    if(!diffStats[q.Difficulty])diffStats[q.Difficulty]={correct:0,wrong:0,skipped:0,total:0};
+    diffStats[q.Difficulty][r]++;diffStats[q.Difficulty].total++;
+  });
+
+  const filteredQ=filter==='all'?questions:questions.filter(q=>getQRes(q)===filter);
+
+  const handleShare=()=>{
+    const text=`I scored ${stats.pct}% (${grade.l} grade) on ${result['Quiz Name']}! ✓${stats.correct} ✗${stats.wrong}`;
+    if(navigator.share){navigator.share({title:'My Quiz Result',text})}
+    else{navigator.clipboard?.writeText(text);alert('Result copied to clipboard!')}
+  };
+
+  const handleDownload=()=>{
+    const rows=questions.map(q=>({
+      Question:q.Question,Category:q.Category,'Sub Category':q['Sub Category'],Difficulty:q.Difficulty,'Question Type':q['Question Type'],
+      'Your Answer':JSON.stringify(userAnswers[q.id]||''),'Correct Answer':q['Correct Answer'],Result:getQRes(q),Score:q.Score,
+    }));
+    dlCSV(toCSV(rows),`result_${user.name}_${Date.now()}.csv`);
+  };
+
+  // Donut chart SVG
+  const DonutChart=()=>{
+    const total=stats.correct+stats.wrong+stats.skipped;
+    if(!total)return null;
+    const r=44,cx=60,cy=60,sw=13,circ=2*Math.PI*r;
+    const segs=[{v:stats.correct,c:t.success},{v:stats.wrong,c:t.danger},{v:stats.skipped,c:t.text3}];
+    let cum=0;
+    return(
+      <svg width={120} height={120} viewBox="0 0 120 120">
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={t.bg4} strokeWidth={sw}/>
+        {segs.map((s,i)=>{
+          if(!s.v)return null;
+          const frac=s.v/total;
+          const da=`${frac*circ} ${circ}`;
+          const off=-cum*circ;
+          cum+=frac;
+          return<circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.c} strokeWidth={sw} strokeDasharray={da} strokeDashoffset={off} transform={`rotate(-90 ${cx} ${cy})`}/>;
+        })}
+        <text x={cx} y={cy-6} textAnchor="middle" fontSize={17} fontWeight="bold" fill={grade.c}>{stats.pct}%</text>
+        <text x={cx} y={cy+10} textAnchor="middle" fontSize={10} fill={t.text3}>SCORE</text>
+      </svg>
+    );
+  };
+
+  const BarChart=({data,title})=>{
+    const maxV=Math.max(...Object.values(data).map(d=>d.total),1);
+    return(
+      <div>
+        <div style={{fontSize:12,color:t.text2,fontWeight:700,marginBottom:12,textTransform:'uppercase',letterSpacing:'.5px'}}>{title}</div>
+        {Object.entries(data).map(([label,d])=>(
+          <div key={label} style={{marginBottom:12}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+              <span style={{fontSize:12,color:t.text,textTransform:'capitalize',fontWeight:500}}>{label}</span>
+              <span style={{fontSize:11,color:t.text3}}>{d.correct}/{d.total} correct</span>
+            </div>
+            <div style={{height:8,background:t.bg4,borderRadius:4,overflow:'hidden',display:'flex'}}>
+              <div style={{width:`${(d.correct/maxV)*100}%`,height:'100%',background:t.success}}/>
+              <div style={{width:`${(d.wrong/maxV)*100}%`,height:'100%',background:t.danger}}/>
+              <div style={{width:`${(d.skipped/maxV)*100}%`,height:'100%',background:t.text3}}/>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  if(!showFinalResult)return(
+    <div style={{minHeight:'100vh',background:t.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16}}>
+      <div style={{fontSize:48}}>🔒</div>
+      <h2 style={{color:t.text}}>Results restricted for this mode</h2>
+      <p style={{color:t.text2}}>Your score has been recorded.</p>
+      <Btn onClick={onNew}>Take New Quiz</Btn>
+    </div>
+  );
+
+  return(
+    <div style={{minHeight:'100vh',background:t.bg}}>
+      {/* Header */}
+      <div style={{background:t.bg2,borderBottom:`1px solid ${t.border}`,padding:'14px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap',position:'sticky',top:0,zIndex:10}}>
+        <div>
+          <h1 style={{color:t.text,fontSize:18,fontWeight:800,margin:0}}>Quiz Completed! 🎉</h1>
+          <p style={{color:t.text2,fontSize:12,margin:'2px 0 0'}}>{user.name} · {result['Quiz Name']} · {result['Quiz Topic']}</p>
+        </div>
+        <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+          {['result','review','answers'].map(m=>(
+            <button key={m} onClick={()=>setMode(m)} style={{padding:'7px 13px',borderRadius:7,border:`1px solid ${mode===m?t.accent:t.border}`,background:mode===m?`${t.accent}20`:'transparent',color:mode===m?t.accent:t.text2,cursor:'pointer',fontSize:12,fontWeight:mode===m?700:400,textTransform:'capitalize'}}>
+              {m==='result'?'📊 Result':m==='review'?'📋 Review':'🔑 Answers'}
+            </button>
+          ))}
+          <button onClick={handleShare} style={{padding:'7px 13px',borderRadius:7,background:`${t.success}18`,border:`1px solid ${t.success}`,color:t.success,cursor:'pointer',fontSize:12}}>📤 Share</button>
+          <button onClick={handleDownload} style={{padding:'7px 13px',borderRadius:7,background:`${t.info}15`,border:`1px solid ${t.info}`,color:t.info,cursor:'pointer',fontSize:12}}>⬇ CSV</button>
+        </div>
+      </div>
+
+      <div style={{maxWidth:1020,margin:'0 auto',padding:'24px 20px'}}>
+
+        {/* RESULT */}
+        {mode==='result'&&(
+          <div className="fade-in">
+            <div style={{display:'flex',gap:18,marginBottom:22,flexWrap:'wrap'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',background:t.bg2,border:`1px solid ${t.border}`,borderRadius:16,padding:'22px 30px',flexDirection:'column',gap:10,flexShrink:0}}>
+                <DonutChart/>
+                <div style={{textAlign:'center'}}>
+                  <div style={{fontSize:36,fontWeight:900,color:grade.c}}>{grade.l}</div>
+                  <div style={{fontSize:12,color:t.text2}}>Grade</div>
+                </div>
+              </div>
+              <div style={{flex:1,display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(125px,1fr))',gap:10}}>
+                {[{l:'Score',v:`${stats.score}/${stats.maxScore}`,c:grade.c},{l:'Percentage',v:`${stats.pct}%`,c:grade.c},{l:'Correct',v:stats.correct,c:t.success},{l:'Wrong',v:stats.wrong,c:t.danger},{l:'Skipped',v:stats.skipped,c:t.text3},{l:'Time Taken',v:timeTaken,c:t.info}].map(s=>(
+                  <div key={s.l} style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:12,padding:'14px',borderTop:`3px solid ${s.c}`}}>
+                    <div style={{fontSize:11,color:t.text2,marginBottom:4}}>{s.l}</div>
+                    <div style={{fontSize:22,fontWeight:700,color:s.c}}>{s.v}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:22}}>
+              <Card><BarChart data={catStats} title="Category Performance"/></Card>
+              <Card>
+                <BarChart data={diffStats} title="Difficulty Performance"/>
+                <div style={{display:'flex',gap:14,flexWrap:'wrap',marginTop:14}}>
+                  {[[t.success,'Correct'],[t.danger,'Wrong'],[t.text3,'Skipped']].map(([c,l])=>(
+                    <div key={l} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,color:t.text2}}>
+                      <div style={{width:10,height:10,borderRadius:2,background:c}}/>{l}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
+            <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
+              <Btn variant="ghost" onClick={onRetake} style={{padding:'12px 22px'}}>🔄 Retake Quiz</Btn>
+              <Btn variant="ghost" onClick={()=>setMode('review')} style={{padding:'12px 22px'}}>📋 Review Answers</Btn>
+              <Btn onClick={onNew} style={{padding:'12px 28px',fontSize:14}}>🏠 New Quiz</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* REVIEW */}
+        {(mode==='review'||mode==='answers')&&showQWise&&(
+          <div className="fade-in">
+            <div style={{display:'flex',gap:7,marginBottom:18,flexWrap:'wrap'}}>
+              {['all','correct','wrong','skipped'].map(f=>{
+                const cnt=f==='all'?questions.length:questions.filter(q=>getQRes(q)===f).length;
+                return(
+                  <button key={f} onClick={()=>setFilter(f)} style={{padding:'6px 14px',borderRadius:8,border:`1px solid ${filter===f?t.accent:t.border}`,background:filter===f?`${t.accent}20`:'transparent',color:filter===f?t.accent:t.text2,cursor:'pointer',fontSize:12,fontWeight:filter===f?700:400,textTransform:'capitalize'}}>
+                    {f} <span style={{fontSize:10,opacity:.7}}>({cnt})</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              {filteredQ.map((q)=>{
+                const res=getQRes(q);
+                const ans=userAnswers[q.id];
+                const rc=res==='correct'?t.success:res==='wrong'?t.danger:t.text3;
+                const ri=res==='correct'?'✓':res==='wrong'?'✗':'—';
+                return(
+                  <div key={q.id} style={{background:t.bg2,border:`1px solid ${res==='correct'?t.success+'60':res==='wrong'?t.danger+'50':t.border}`,borderRadius:12,padding:'16px 20px',borderLeft:`4px solid ${rc}`}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,marginBottom:12}}>
+                      <div style={{flex:1}}>
+                        <div style={{display:'flex',gap:7,marginBottom:6,flexWrap:'wrap'}}>
+                          <span style={{fontSize:12,fontWeight:700,color:t.text3}}>Q{questions.indexOf(q)+1}</span>
+                          <span style={{fontSize:11,background:t.bg3,color:t.text2,padding:'1px 7px',borderRadius:3}}>{q.Category}</span>
+                          <Badge>{q.Difficulty}</Badge>
+                          <span style={{fontSize:11,background:t.bg3,color:t.text2,padding:'1px 7px',borderRadius:3}}>{q['Question Type']}</span>
+                        </div>
+                        <div style={{fontSize:14,color:t.text,fontWeight:600,lineHeight:'1.5'}}>{q.Question}</div>
+                      </div>
+                      <div style={{width:34,height:34,borderRadius:'50%',background:`${rc}20`,border:`2px solid ${rc}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,color:rc,fontWeight:700,flexShrink:0}}>{ri}</div>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                      <div style={{background:`${t.danger}10`,border:`1px solid ${t.danger}30`,borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{fontSize:10,color:t.text3,fontWeight:700,marginBottom:4,textTransform:'uppercase'}}>Your Answer</div>
+                        <div style={{fontSize:13,color:res==='skipped'?t.text3:res==='wrong'?t.danger:t.success}}>
+                          {res==='skipped'?'Not answered':typeof ans==='object'&&!Array.isArray(ans)?JSON.stringify(ans):Array.isArray(ans)?ans.join(', '):ans||'—'}
+                        </div>
+                      </div>
+                      <div style={{background:`${t.success}10`,border:`1px solid ${t.success}30`,borderRadius:8,padding:'10px 12px'}}>
+                        <div style={{fontSize:10,color:t.text3,fontWeight:700,marginBottom:4,textTransform:'uppercase'}}>Correct Answer</div>
+                        <div style={{fontSize:13,color:t.success}}>{q['Correct Answer'].replace(/\|/g,', ')}</div>
+                      </div>
+                    </div>
+                    {mode==='review'&&q.Solution&&(
+                      <div style={{marginTop:10,padding:'10px 13px',background:`${t.info}10`,border:`1px solid ${t.info}30`,borderRadius:8}}>
+                        <div style={{fontSize:10,color:t.info,fontWeight:700,marginBottom:3,textTransform:'uppercase'}}>Solution</div>
+                        <div style={{fontSize:13,color:t.text2}}>{q.Solution}</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// PAGE: ADMIN PANEL
+// ─────────────────────────────────────────────
+const AdminPage=({onExit})=>{
+  const{t,tn,setTn}=useTheme();
+  const[tab,setTab]=React.useState('dashboard');
+  const[qs,setQs]=React.useState(store.getQ());
+  const[cfgs,setCfgs]=React.useState(store.getCfg());
+  const[results,setResults]=React.useState(store.getResults());
+  const[qSearch,setQSearch]=React.useState('');
+  const[qFilter,setQFilter]=React.useState({cat:'',diff:'',status:''});
+  const[rSearch,setRSearch]=React.useState('');
+  const[qModal,setQModal]=React.useState(false);
+  const[cfgModal,setCfgModal]=React.useState(false);
+  const[editQ,setEditQ]=React.useState(null);
+  const[editCfg,setEditCfg]=React.useState(null);
+  const[qForm,setQForm]=React.useState({});
+  const[cfgForm,setCfgForm]=React.useState({});
+  const[toast,setToast]=React.useState(null);
+  const[delConfirm,setDelConfirm]=React.useState(null);
+  const[settings,setSettingsState]=React.useState(store.getSettings());
+
+  const refresh=()=>{setQs(store.getQ());setCfgs(store.getCfg());setResults(store.getResults())};
+  const showToast=(msg,type='success')=>{setToast({msg,type});setTimeout(()=>setToast(null),3200)};
+
+  const blankQ={id:null,Question:'',Category:'',['Sub Category']:'',Tags:'',Difficulty:'easy',['Question Type']:'Multichoice',['Time Limit']:'30',Choice1:'',Choice2:'',Choice3:'',Choice4:'',['Correct Answer']:'',Solution:'',Hint:'',Score:'1',['Negative Score']:'0',['Partial Score']:'0',Status:'Active',Passage:''};
+  const blankCfg={"Quiz Settings Title":'',"Quiz Time":'0',"Section Order":'Fixed',"Question Time":'0',"Adaptive Mode":'Off',"Random Options":'On',"Allow Option Change":'On',"Don't Change Until Correct":'Off',"Mandatory Answer":'Off',"Negative Marking":'Off',"Partial Scoring":'Off',"Question Navigation":'Free',"Allow Back":'On',"Mark for Review":'On',"Auto Next Question":'Off',"Auto Submit":'Off',"Pause / Resume Allowed":'On',"Tracking":'On',"Instant Answer":'Off',"Instant Answer Feedback":'Off',"Show Hint":'Off',"Final Result":'On',"Question Wise Result":'On',"Adaptive Retake":'Off'};
+
+  const openQ=(q)=>{setEditQ(q);setQForm(q?{...q}:{...blankQ});setQModal(true)};
+  const openCfg=(c)=>{setEditCfg(c);setCfgForm(c?{...c}:{...blankCfg});setCfgModal(true)};
+
+  const saveQ=()=>{
+    if(!qForm.Question?.trim()||!qForm.Category?.trim())return alert('Question and Category are required');
+    const cur=store.getQ();
+    if(editQ){store.setQ(cur.map(x=>x.id===editQ.id?{...qForm,id:editQ.id}:x))}
+    else{store.setQ([...cur,{...qForm,id:Date.now()}])}
+    setQModal(false);refresh();showToast(editQ?'Question updated!':'Question added!');
+  };
+
+  const saveCfg=()=>{
+    if(!cfgForm['Quiz Settings Title']?.trim())return alert('Config title is required');
+    const cur=store.getCfg();
+    const exists=cur.find(c=>c['Quiz Settings Title']===cfgForm['Quiz Settings Title']);
+    if(editCfg||exists){store.setCfg(cur.map(c=>c['Quiz Settings Title']===cfgForm['Quiz Settings Title']?cfgForm:c))}
+    else{store.setCfg([...cur,cfgForm])}
+    setCfgModal(false);refresh();showToast('Config saved!');
+  };
+
+  const doDelete=()=>{
+    const{type,id}=delConfirm;
+    if(type==='q'){store.setQ(store.getQ().filter(q=>q.id!==id))}
+    else if(type==='cfg'){store.setCfg(store.getCfg().filter(c=>c['Quiz Settings Title']!==id))}
+    else if(type==='r'){store.setResults(store.getResults().filter(r=>r.id!==id))}
+    setDelConfirm(null);refresh();showToast('Deleted','error');
+  };
+
+  const importCSV=(e)=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const lines=ev.target.result.trim().split('\n');
+      if(lines.length<2)return;
+      const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+      const rows=lines.slice(1).map(line=>{
+        const vals=[];let cur='',inQ=false;
+        for(const ch of line){if(ch==='"'){inQ=!inQ}else if(ch===','&&!inQ){vals.push(cur.trim());cur=''}else{cur+=ch}}
+        vals.push(cur.trim());
+        return headers.reduce((obj,h,i)=>({...obj,[h]:vals[i]||''}),{});
+      });
+      const withIds=rows.map((r,i)=>({...r,id:Date.now()+i}));
+      store.setQ([...store.getQ(),...withIds]);
+      refresh();showToast(`Imported ${rows.length} questions!`);
+    };
+    reader.readAsText(file);
+  };
+
+  const cats=[...new Set(qs.map(q=>q.Category))];
+  const filteredQs=qs.filter(q=>{
+    const s=qSearch.toLowerCase();
+    return(!s||q.Question.toLowerCase().includes(s)||(q.Tags||'').toLowerCase().includes(s)||q.Category.toLowerCase().includes(s))&&
+      (!qFilter.cat||q.Category===qFilter.cat)&&(!qFilter.diff||q.Difficulty===qFilter.diff)&&(!qFilter.status||q.Status===qFilter.status);
+  });
+  const filteredR=results.filter(r=>{
+    const s=rSearch.toLowerCase();
+    return!s||(r['Student Name']||'').toLowerCase().includes(s)||(r['Quiz Topic']||'').toLowerCase().includes(s);
+  });
+
+  const TABS=[{id:'dashboard',icon:'📊',l:'Dashboard'},{id:'questions',icon:'❓',l:'Questions'},{id:'configs',icon:'⚙️',l:'Quiz Configs'},{id:'results',icon:'📈',l:'Results'},{id:'settings',icon:'🔧',l:'Settings'}];
+
+  const CfgTog=({label,k})=>(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 0',borderBottom:`1px solid ${t.border}`}}>
+      <span style={{fontSize:12,color:t.text2}}>{label}</span>
+      <div onClick={()=>setCfgForm(f=>({...f,[k]:f[k]==='On'?'Off':'On'}))}
+        style={{width:38,height:21,borderRadius:11,background:cfgForm[k]==='On'?t.accent:t.bg4,cursor:'pointer',position:'relative',transition:'background .2s',flexShrink:0}}>
+        <div style={{width:17,height:17,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:cfgForm[k]==='On'?19:2,transition:'left .2s'}}/>
+      </div>
+    </div>
+  );
+
+  const fi=(label,key,type='text',opts)=>type==='select'?(
+    <div style={{marginBottom:11}}>
+      <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:3,fontWeight:500}}>{label}</label>
+      <select value={qForm[key]||''} onChange={e=>setQForm(f=>({...f,[key]:e.target.value}))} style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:7,padding:'8px 11px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box'}}>
+        {opts.map(o=><option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  ):(
+    <div style={{marginBottom:11}}>
+      <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:3,fontWeight:500}}>{label}</label>
+      {type==='textarea'?<textarea value={qForm[key]||''} onChange={e=>setQForm(f=>({...f,[key]:e.target.value}))} rows={2} style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:7,padding:'8px 11px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box',resize:'vertical'}}/>:<input type={type} value={qForm[key]||''} onChange={e=>setQForm(f=>({...f,[key]:e.target.value}))} style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:7,padding:'8px 11px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box'}}/>}
+    </div>
+  );
+
+  return(
+    <div style={{minHeight:'100vh',background:t.bg,display:'flex',flexDirection:'column'}}>
+      {toast&&<Toast msg={toast.msg} type={toast.type} onClose={()=>setToast(null)}/>}
+
+      {/* Top bar */}
+      <div style={{background:t.bg2,borderBottom:`1px solid ${t.border}`,padding:'0 20px',display:'flex',alignItems:'center',justifyContent:'space-between',height:52,flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div style={{fontSize:17,fontWeight:800,color:t.accent}}>⚡ QuizMaster</div>
+          <span style={{background:`${t.danger}20`,color:t.danger,fontSize:10,padding:'2px 8px',borderRadius:4,fontWeight:700}}>ADMIN</span>
+        </div>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <ThemePicker/>
+          <Btn variant="danger" onClick={onExit} style={{padding:'6px 14px',fontSize:12}}>← Exit Admin</Btn>
+        </div>
+      </div>
+
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+        {/* Sidebar */}
+        <div style={{width:185,background:t.bg2,borderRight:`1px solid ${t.border}`,padding:'10px 0',flexShrink:0,overflow:'auto'}}>
+          {TABS.map(tb=>(
+            <div key={tb.id} onClick={()=>setTab(tb.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'11px 16px',cursor:'pointer',background:tab===tb.id?`${t.accent}18`:'transparent',borderLeft:`3px solid ${tab===tb.id?t.accent:'transparent'}`,color:tab===tb.id?t.accent:t.text2,fontSize:13,fontWeight:tab===tb.id?700:400,transition:'all .15s'}}>
+              <span>{tb.icon}</span>{tb.l}
+            </div>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div style={{flex:1,overflow:'auto',padding:'20px'}}>
+
+          {/* ── DASHBOARD ── */}
+          {tab==='dashboard'&&(
+            <div className="fade-in">
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(155px,1fr))',gap:12,marginBottom:20}}>
+                <StatCard label="Total Questions" value={qs.length} sub={`${qs.filter(q=>q.Status==='Active').length} active`} color={t.accent}/>
+                <StatCard label="Quiz Configs" value={cfgs.length} sub="available presets" color={t.success}/>
+                <StatCard label="Total Attempts" value={results.length} sub="recorded results" color={t.info}/>
+                <StatCard label="Avg Score" value={results.length?Math.round(results.reduce((a,r)=>a+Number(r['Result Score']||0),0)/results.length)+'%':'N/A'} color={t.warn}/>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
+                <Card>
+                  <div style={{fontSize:12,color:t.text2,fontWeight:700,marginBottom:12,textTransform:'uppercase',letterSpacing:'.5px'}}>Status Breakdown</div>
+                  {['Active','Draft','Inactive'].map(s=>{
+                    const cnt=qs.filter(q=>q.Status===s).length;
+                    const c=s==='Active'?t.success:s==='Draft'?t.warn:t.danger;
+                    return(
+                      <div key={s} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                        <span style={{fontSize:12,color:t.text2,width:62}}>{s}</span>
+                        <div style={{flex:1,height:7,background:t.bg4,borderRadius:4,overflow:'hidden'}}>
+                          <div style={{width:`${qs.length?cnt/qs.length*100:0}%`,height:'100%',background:c,borderRadius:4}}/>
+                        </div>
+                        <span style={{fontSize:12,color:c,fontWeight:700,width:24,textAlign:'right'}}>{cnt}</span>
+                      </div>
+                    );
+                  })}
+                </Card>
+                <Card>
+                  <div style={{fontSize:12,color:t.text2,fontWeight:700,marginBottom:12,textTransform:'uppercase',letterSpacing:'.5px'}}>Recent Attempts</div>
+                  {results.length===0&&<div style={{fontSize:12,color:t.text3,textAlign:'center',padding:'20px 0'}}>No attempts yet</div>}
+                  {results.slice(-5).reverse().map((r,i)=>{
+                    const sc=Number(r['Result Score']||0);
+                    const c=sc>=80?t.success:sc>=60?t.warn:t.danger;
+                    return(
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:9,marginBottom:7,padding:'7px 9px',background:t.bg3,borderRadius:7}}>
+                        <div style={{width:34,height:34,borderRadius:'50%',background:`${c}20`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:c,flexShrink:0}}>{sc}%</div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:12,color:t.text,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r['Student Name']}</div>
+                          <div style={{fontSize:10,color:t.text3}}>{r['Quiz Name']}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </Card>
+              </div>
+              <Card>
+                <div style={{fontSize:12,color:t.text2,fontWeight:700,marginBottom:12,textTransform:'uppercase',letterSpacing:'.5px'}}>Category Distribution</div>
+                <div style={{display:'flex',gap:9,flexWrap:'wrap'}}>
+                  {cats.map(c=>{
+                    const cnt=qs.filter(q=>q.Category===c).length;
+                    return(
+                      <div key={c} style={{background:t.bg3,border:`1px solid ${t.border}`,borderRadius:9,padding:'9px 13px',textAlign:'center'}}>
+                        <div style={{fontSize:18,fontWeight:700,color:t.accent}}>{cnt}</div>
+                        <div style={{fontSize:11,color:t.text2}}>{c}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* ── QUESTIONS ── */}
+          {tab==='questions'&&(
+            <div className="fade-in">
+              <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap',alignItems:'center'}}>
+                <input value={qSearch} onChange={e=>setQSearch(e.target.value)} placeholder="🔍 Search questions, tags..."
+                  style={{flex:1,minWidth:180,background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'8px 12px',color:t.text,fontSize:13,outline:'none'}}/>
+                {[{key:'cat',opts:['',...cats],label:'All Categories'},{key:'diff',opts:['','easy','medium','hard'],label:'All Difficulties'},{key:'status',opts:['','Active','Draft','Inactive'],label:'All Status'}].map(({key,opts})=>(
+                  <select key={key} value={qFilter[key]} onChange={e=>setQFilter({...qFilter,[key]:e.target.value})}
+                    style={{background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'8px 10px',color:t.text2,fontSize:12,outline:'none'}}>
+                    {opts.map(o=><option key={o} value={o}>{o||['All Categories','All Difficulties','All Status'][['cat','diff','status'].indexOf(key)]}</option>)}
+                  </select>
+                ))}
+                <label style={{background:`${t.info}18`,border:`1px solid ${t.info}`,borderRadius:8,padding:'8px 13px',color:t.info,cursor:'pointer',fontSize:12,fontWeight:600,whiteSpace:'nowrap'}}>
+                  📂 Import CSV<input type="file" accept=".csv" onChange={importCSV} style={{display:'none'}}/>
+                </label>
+                <button onClick={()=>dlCSV(toCSV(qs.map(q=>{const{id,...rest}=q;return rest})),'questions_export.csv')} style={{background:`${t.warn}18`,border:`1px solid ${t.warn}`,borderRadius:8,padding:'8px 13px',color:t.warn,cursor:'pointer',fontSize:12,fontWeight:600}}>⬇ Export</button>
+                <button onClick={()=>openQ(null)} style={{background:t.accent,border:'none',borderRadius:8,padding:'8px 16px',color:'#fff',cursor:'pointer',fontSize:13,fontWeight:700,whiteSpace:'nowrap'}}>+ Add Question</button>
+              </div>
+              <Card style={{padding:0}}>
+                <div style={{overflowX:'auto'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                    <thead>
+                      <tr style={{background:t.bg3}}>
+                        {['#','Question','Category','Sub Cat','Diff','Type','Score','Status','Actions'].map(h=>(
+                          <th key={h} style={{padding:'10px 12px',textAlign:'left',color:t.text2,fontSize:10,textTransform:'uppercase',letterSpacing:'.5px',whiteSpace:'nowrap',fontWeight:600}}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredQs.map((q,i)=>(
+                        <tr key={q.id} style={{borderBottom:`1px solid ${t.border}`}} onMouseEnter={e=>e.currentTarget.style.background=t.bg3} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                          <td style={{padding:'9px 12px',color:t.text3}}>{i+1}</td>
+                          <td style={{padding:'9px 12px',color:t.text,maxWidth:220}}>
+                            <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:13}}>{q.Question}</div>
+                            {q.Tags&&<div style={{fontSize:10,color:t.text3,marginTop:1}}>🏷 {q.Tags}</div>}
+                          </td>
+                          <td style={{padding:'9px 12px',color:t.text2}}>{q.Category}</td>
+                          <td style={{padding:'9px 12px',color:t.text2}}>{q['Sub Category']}</td>
+                          <td style={{padding:'9px 12px'}}><Badge>{q.Difficulty}</Badge></td>
+                          <td style={{padding:'9px 12px',color:t.text3,fontSize:11,maxWidth:120}}><span style={{overflow:'hidden',textOverflow:'ellipsis',display:'block',whiteSpace:'nowrap'}}>{q['Question Type']}</span></td>
+                          <td style={{padding:'9px 12px',color:t.accent,fontWeight:700}}>+{q.Score}</td>
+                          <td style={{padding:'9px 12px'}}><Badge>{q.Status}</Badge></td>
+                          <td style={{padding:'9px 12px'}}>
+                            <div style={{display:'flex',gap:5}}>
+                              <button onClick={()=>openQ(q)} style={{background:`${t.info}18`,border:`1px solid ${t.info}40`,borderRadius:5,padding:'4px 9px',color:t.info,cursor:'pointer',fontSize:11}}>Edit</button>
+                              <button onClick={()=>setDelConfirm({type:'q',id:q.id,label:q.Question.slice(0,40)})} style={{background:`${t.danger}15`,border:`1px solid ${t.danger}40`,borderRadius:5,padding:'4px 9px',color:t.danger,cursor:'pointer',fontSize:11}}>Del</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {!filteredQs.length&&<tr><td colSpan={9} style={{padding:'32px',textAlign:'center',color:t.text3}}>No questions found</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* ── CONFIGS ── */}
+          {tab==='configs'&&(
+            <div className="fade-in">
+              <div style={{display:'flex',justifyContent:'flex-end',marginBottom:14}}>
+                <button onClick={()=>openCfg(null)} style={{background:t.accent,border:'none',borderRadius:8,padding:'8px 16px',color:'#fff',cursor:'pointer',fontSize:13,fontWeight:700}}>+ Add Config</button>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))',gap:14}}>
+                {cfgs.map(c=>(
+                  <Card key={c['Quiz Settings Title']}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                      <h3 style={{color:t.text,fontSize:14,fontWeight:700,margin:0}}>{c['Quiz Settings Title']}</h3>
+                      <div style={{display:'flex',gap:5}}>
+                        <button onClick={()=>openCfg(c)} style={{background:`${t.info}18`,border:`1px solid ${t.info}40`,borderRadius:5,padding:'3px 8px',color:t.info,cursor:'pointer',fontSize:11}}>Edit</button>
+                        <button onClick={()=>setDelConfirm({type:'cfg',id:c['Quiz Settings Title'],label:c['Quiz Settings Title']})} style={{background:`${t.danger}15`,border:`1px solid ${t.danger}40`,borderRadius:5,padding:'3px 8px',color:t.danger,cursor:'pointer',fontSize:11}}>Del</button>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                      {c['Quiz Time']!=='0'&&<span style={{fontSize:10,background:t.bg4,color:t.text2,padding:'2px 7px',borderRadius:3}}>{Math.round(Number(c['Quiz Time'])/60)}min total</span>}
+                      {c['Question Time']!=='0'&&<span style={{fontSize:10,background:t.bg4,color:t.text2,padding:'2px 7px',borderRadius:3}}>{c['Question Time']}s/q</span>}
+                      {c['Negative Marking']==='On'&&<span style={{fontSize:10,background:`${t.danger}18`,color:t.danger,padding:'2px 7px',borderRadius:3}}>-ve</span>}
+                      {c['Partial Scoring']==='On'&&<span style={{fontSize:10,background:`${t.success}15`,color:t.success,padding:'2px 7px',borderRadius:3}}>Partial</span>}
+                      {c['Allow Back']==='On'&&<span style={{fontSize:10,background:t.bg4,color:t.text2,padding:'2px 7px',borderRadius:3}}>Back</span>}
+                      {c['Show Hint']==='On'&&<span style={{fontSize:10,background:`${t.info}15`,color:t.info,padding:'2px 7px',borderRadius:3}}>Hints</span>}
+                      {c['Instant Answer']==='On'&&<span style={{fontSize:10,background:`${t.warn}18`,color:t.warn,padding:'2px 7px',borderRadius:3}}>Instant</span>}
+                      {c['Pause / Resume Allowed']==='On'&&<span style={{fontSize:10,background:t.bg4,color:t.text2,padding:'2px 7px',borderRadius:3}}>Pause</span>}
+                      <span style={{fontSize:10,background:`${t.accent}18`,color:t.accent,padding:'2px 7px',borderRadius:3}}>{c['Question Navigation']} Nav</span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── RESULTS ── */}
+          {tab==='results'&&(
+            <div className="fade-in">
+              <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap',alignItems:'center'}}>
+                <input value={rSearch} onChange={e=>setRSearch(e.target.value)} placeholder="🔍 Search by name or topic..."
+                  style={{flex:1,minWidth:200,background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'8px 12px',color:t.text,fontSize:13,outline:'none'}}/>
+                <button onClick={()=>dlCSV(toCSV(results.map(r=>({'Student Name':r['Student Name'],'Quiz Name':r['Quiz Name'],'Quiz Topic':r['Quiz Topic'],'Start Time':r['Start Time'],'End Time':r['End Time'],'Result Score':r['Result Score'],'Filepath':r['Filepath']||''}))),`results_export_${Date.now()}.csv`)}
+                  style={{background:`${t.warn}18`,border:`1px solid ${t.warn}`,borderRadius:8,padding:'8px 14px',color:t.warn,cursor:'pointer',fontSize:12,fontWeight:600}}>⬇ Export All</button>
+              </div>
+              <Card style={{padding:0}}>
+                <div style={{overflowX:'auto'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                    <thead>
+                      <tr style={{background:t.bg3}}>
+                        {['Student','Quiz Config','Topic','Start','End','Score','Actions'].map(h=>(
+                          <th key={h} style={{padding:'10px 12px',textAlign:'left',color:t.text2,fontSize:10,textTransform:'uppercase',letterSpacing:'.5px',whiteSpace:'nowrap',fontWeight:600}}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredR.map(r=>{
+                        const sc=Number(r['Result Score']||0);
+                        const c=sc>=80?t.success:sc>=60?t.warn:t.danger;
+                        return(
+                          <tr key={r.id} style={{borderBottom:`1px solid ${t.border}`}} onMouseEnter={e=>e.currentTarget.style.background=t.bg3} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                            <td style={{padding:'9px 12px',color:t.text,fontWeight:600}}>{r['Student Name']}</td>
+                            <td style={{padding:'9px 12px',color:t.text2}}>{r['Quiz Name']}</td>
+                            <td style={{padding:'9px 12px',color:t.text2}}>{r['Quiz Topic']}</td>
+                            <td style={{padding:'9px 12px',color:t.text3,fontSize:11}}>{(r['Start Time']||'').slice(0,16)}</td>
+                            <td style={{padding:'9px 12px',color:t.text3,fontSize:11}}>{(r['End Time']||'').slice(0,16)}</td>
+                            <td style={{padding:'9px 12px'}}>
+                              <div style={{display:'flex',alignItems:'center',gap:7}}>
+                                <div style={{width:52,height:5,background:t.bg4,borderRadius:3,overflow:'hidden'}}>
+                                  <div style={{width:`${sc}%`,height:'100%',background:c,borderRadius:3}}/>
+                                </div>
+                                <span style={{color:c,fontWeight:700,fontSize:13}}>{sc}%</span>
+                              </div>
+                            </td>
+                            <td style={{padding:'9px 12px'}}>
+                              <button onClick={()=>setDelConfirm({type:'r',id:r.id,label:r['Student Name']})} style={{background:`${t.danger}15`,border:`1px solid ${t.danger}40`,borderRadius:5,padding:'4px 9px',color:t.danger,cursor:'pointer',fontSize:11}}>Del</button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {!filteredR.length&&<tr><td colSpan={7} style={{padding:'32px',textAlign:'center',color:t.text3}}>No results yet</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* ── SETTINGS ── */}
+          {tab==='settings'&&(
+            <div className="fade-in" style={{maxWidth:620}}>
+              <Card style={{marginBottom:14}}>
+                <h3 style={{color:t.text,fontSize:15,fontWeight:700,marginBottom:16}}>Google Apps Script Connection</h3>
+                {[{label:'Script Web App URL / Deployment ID',key:'scriptId',ph:'Enter your Apps Script deployment URL'},{label:'Root Drive Folder ID',key:'folderId',ph:'Enter your Google Drive root folder ID'}].map(({label,key,ph})=>(
+                  <div key={key} style={{marginBottom:12}}>
+                    <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>{label}</label>
+                    <input value={settings[key]||''} onChange={e=>setSettingsState({...settings,[key]:e.target.value})} placeholder={ph}
+                      style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'9px 12px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+                  </div>
+                ))}
+                <div style={{display:'flex',gap:9,marginTop:14}}>
+                  <button onClick={()=>{store.setSettings(settings);showToast('Settings saved & connected!')}} style={{background:t.success,border:'none',borderRadius:8,padding:'9px 20px',color:'#fff',cursor:'pointer',fontSize:13,fontWeight:700}}>Save & Connect</button>
+                  <button onClick={()=>{const s={scriptId:'',folderId:''};setSettingsState(s);store.setSettings(s);showToast('Settings cleared','warn')}} style={{background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'9px 20px',color:t.text2,cursor:'pointer',fontSize:13}}>Clear</button>
+                </div>
+              </Card>
+              <Card style={{marginBottom:14}}>
+                <h3 style={{color:t.text,fontSize:15,fontWeight:700,marginBottom:10}}>Admin URL Access</h3>
+                <p style={{color:t.text2,fontSize:13,marginBottom:8}}>Access admin panel by adding <code style={{background:t.bg3,padding:'2px 7px',borderRadius:4,color:t.accent}}>?admin</code> to the URL</p>
+                <p style={{color:t.text3,fontSize:12}}>Students see only the quiz UI. Admin panel is completely hidden without the param.</p>
+              </Card>
+              <Card style={{marginBottom:14}}>
+                <h3 style={{color:t.text,fontSize:15,fontWeight:700,marginBottom:10}}>Reset Data</h3>
+                <p style={{color:t.text2,fontSize:13,marginBottom:14}}>Reset questions or configs back to sample data</p>
+                <div style={{display:'flex',gap:9}}>
+                  <button onClick={()=>{if(confirm('Reset questions to sample data?')){store.setQ(QUESTIONS_RAW);refresh();showToast('Questions reset!')}}} style={{background:`${t.warn}18`,border:`1px solid ${t.warn}`,borderRadius:8,padding:'8px 16px',color:t.warn,cursor:'pointer',fontSize:12}}>Reset Questions</button>
+                  <button onClick={()=>{if(confirm('Reset configs to sample data?')){store.setCfg(CONFIGS_RAW);refresh();showToast('Configs reset!')}}} style={{background:`${t.warn}18`,border:`1px solid ${t.warn}`,borderRadius:8,padding:'8px 16px',color:t.warn,cursor:'pointer',fontSize:12}}>Reset Configs</button>
+                  <button onClick={()=>{if(confirm('Delete ALL results? Cannot be undone.')){store.setResults([]);refresh();showToast('Results cleared','error')}}} style={{background:`${t.danger}15`,border:`1px solid ${t.danger}`,borderRadius:8,padding:'8px 16px',color:t.danger,cursor:'pointer',fontSize:12}}>Clear Results</button>
+                </div>
+              </Card>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Question modal */}
+      <Modal open={qModal} onClose={()=>setQModal(false)} title={editQ?'Edit Question':'Add New Question'} width={700}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+          <div style={{gridColumn:'1/-1'}}>
+            <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>Question Text *</label>
+            <textarea value={qForm.Question||''} onChange={e=>setQForm(f=>({...f,Question:e.target.value}))} placeholder="Enter the question..." rows={2}
+              style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'8px 11px',color:t.text,fontSize:13,resize:'vertical',outline:'none',boxSizing:'border-box'}}/>
+          </div>
+          {fi('Category','Category')}
+          {fi('Sub Category','Sub Category')}
+          {fi('Tags','Tags')}
+          {fi('Difficulty','Difficulty','select',['easy','medium','hard'])}
+          {fi('Question Type','Question Type','select',['Multichoice','Multi Multichoice','Multichoice Anycorrect','True/False','Sequence','Short Answer','Fill in the Blanks','Multi Blanks','Inline Blank','Matching','Multi Matching','Drag & Drop'])}
+          {fi('Choice 1','Choice1')}
+          {fi('Choice 2','Choice2')}
+          {fi('Choice 3','Choice3')}
+          {fi('Choice 4','Choice4')}
+          {fi('Correct Answer (use | for multiple)','Correct Answer')}
+          {fi('Status','Status','select',['Active','Draft','Inactive'])}
+          {fi('Score','Score','number')}
+          {fi('Negative Score','Negative Score','number')}
+          {fi('Time Limit (seconds)','Time Limit','number')}
+          <div style={{gridColumn:'1/-1'}}>{fi('Solution / Explanation','Solution','textarea')}</div>
+          {fi('Hint','Hint')}
+          <div style={{gridColumn:'1/-1'}}>{fi('Passage (optional)','Passage','textarea')}</div>
+        </div>
+        <div style={{display:'flex',justifyContent:'flex-end',gap:9,marginTop:18}}>
+          <Btn variant="ghost" onClick={()=>setQModal(false)}>Cancel</Btn>
+          <Btn onClick={saveQ}>{editQ?'Update Question':'Add Question'}</Btn>
+        </div>
+      </Modal>
+
+      {/* Config modal */}
+      <Modal open={cfgModal} onClose={()=>setCfgModal(false)} title={editCfg?'Edit Config':'Add Quiz Config'} width={520}>
+        <div style={{marginBottom:12}}>
+          <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>Config Title *</label>
+          <input value={cfgForm['Quiz Settings Title']||''} onChange={e=>setCfgForm(f=>({...f,'Quiz Settings Title':e.target.value}))} placeholder="e.g. Mock Test Mode"
+            style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'9px 12px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
+          {[['Total Time (sec, 0=unlimited)','Quiz Time'],['Per-Question Time (sec, 0=none)','Question Time']].map(([l,k])=>(
+            <div key={k}>
+              <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>{l}</label>
+              <input type="number" value={cfgForm[k]||'0'} onChange={e=>setCfgForm(f=>({...f,[k]:e.target.value}))}
+                style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'9px 12px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+            </div>
+          ))}
+          {[['Navigation','Question Navigation',['Free','Sequential']],['Section Order','Section Order',['Fixed','Random']]].map(([l,k,opts])=>(
+            <div key={k}>
+              <label style={{display:'block',fontSize:12,color:t.text2,marginBottom:4,fontWeight:500}}>{l}</label>
+              <select value={cfgForm[k]||'Free'} onChange={e=>setCfgForm(f=>({...f,[k]:e.target.value}))}
+                style={{width:'100%',background:t.bg3,border:`1px solid ${t.border}`,borderRadius:8,padding:'9px 12px',color:t.text,fontSize:13,outline:'none',boxSizing:'border-box'}}>
+                {opts.map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+          ))}
+        </div>
+        <div style={{borderTop:`1px solid ${t.border}`,paddingTop:14}}>
+          <div style={{fontSize:12,color:t.text2,marginBottom:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px'}}>Features</div>
+          {[['Negative Marking','Negative Marking'],['Partial Scoring','Partial Scoring'],['Allow Back','Allow Back'],['Mark for Review','Mark for Review'],['Instant Answer','Instant Answer'],['Instant Answer Feedback','Instant Answer Feedback'],['Show Hint','Show Hint'],['Auto Next Question','Auto Next Question'],['Auto Submit','Auto Submit'],['Pause / Resume','Pause / Resume Allowed'],['Random Options','Random Options'],['Mandatory Answer','Mandatory Answer'],['Final Result','Final Result'],['Question Wise Result','Question Wise Result'],['Adaptive Retake','Adaptive Retake']].map(([l,k])=><CfgTog key={k} label={l} k={k}/>)}
+        </div>
+        <div style={{display:'flex',justifyContent:'flex-end',gap:9,marginTop:18}}>
+          <Btn variant="ghost" onClick={()=>setCfgModal(false)}>Cancel</Btn>
+          <Btn onClick={saveCfg}>{editCfg?'Update Config':'Add Config'}</Btn>
+        </div>
+      </Modal>
+
+      {/* Delete confirm */}
+      {delConfirm&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.72)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:20000}}>
+          <div style={{background:t.bg2,border:`1px solid ${t.border}`,borderRadius:14,padding:28,maxWidth:370,width:'100%',margin:16}}>
+            <h3 style={{color:t.text,marginBottom:10,fontSize:17,fontWeight:700}}>Confirm Delete</h3>
+            <p style={{color:t.text2,fontSize:13,marginBottom:22}}>Delete <strong style={{color:t.danger}}>"{delConfirm.label}"</strong>? This cannot be undone.</p>
+            <div style={{display:'flex',gap:9}}>
+              <Btn variant="ghost" onClick={()=>setDelConfirm(null)} style={{flex:1}}>Cancel</Btn>
+              <Btn variant="danger" onClick={doDelete} style={{flex:1}}>Delete</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ROOT APP
+// ─────────────────────────────────────────────
+function AppInner(){
+  const{t}=useTheme();
+  const isAdmin=new URLSearchParams(window.location.search).has('admin');
+  const[page,setPage]=React.useState(isAdmin?'admin':'landing');
+  const[user,setUser]=React.useState(null);
+  const[session,setSession]=React.useState(null);
+  const[result,setResult]=React.useState(null);
+
+  if(page==='admin')return<AdminPage onExit={()=>{window.history.pushState({},'',window.location.pathname);setPage('landing')}}/>;
+
+  if(page==='landing')return<LandingPage onStart={u=>{setUser(u);setPage('setup')}}/>;
+
+  if(page==='setup')return<SetupPage user={user} onBack={()=>setPage('landing')} onStart={sess=>{setSession(sess);setPage('quiz')}}/>;
+
+  if(page==='quiz')return<QuizPage session={session} onFinish={res=>{setResult(res);setPage('result')}}/>;
+
+  if(page==='result')return<ResultPage result={result} onRetake={()=>{setSession({...session});setPage('quiz')}} onNew={()=>setPage('setup')}/>;
+
+  return null;
+}
+
+function App(){
+  return(
+    <ThemeProvider>
+      <AppInner/>
+    </ThemeProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
