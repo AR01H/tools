@@ -1,0 +1,274 @@
+Below is a complete, production-grade execution plan for your Quiz App using Google Apps Script + Google Drive (CSV) as backend and HTML/CSS/JS (jQuery + Chart.js) as frontend.
+
+This is structured so you can copy → paste → build without guessing.
+
+1. System Architecture
+Backend: Google Apps Script
+Acts as API layer
+Reads/writes CSV from Google Drive
+Handles quiz logic, filtering, results storage
+Storage: Google Drive
+
+Folder structure (you MUST follow this):
+
+ROOT_FOLDER_ID/
+│
+├── Quiz Config Data/
+│     └── quiz_config.csv
+│
+├── Questions Data/
+│     ├── Math/
+│     │     ├── algebra.csv
+│     │     ├── geometry.csv
+│     │
+│     ├── Science/
+│     │     ├── physics.csv
+│     │
+│
+├── Result Data/
+      ├── Result_Data.csv
+      ├── user_attempt_*.csv
+2. Apps Script (Backend) – Design
+code.gs (Core API)
+🔑 Config
+const ROOT_FOLDER_ID = "PASTE_YOUR_ROOT_ID";
+2.1 Folder Access Layer
+function getFolder(name) {
+  const root = DriveApp.getFolderById(ROOT_FOLDER_ID);
+  const folders = root.getFoldersByName(name);
+  return folders.hasNext() ? folders.next() : null;
+}
+2.2 Read CSV Utility
+function readCSV(file) {
+  const content = file.getBlob().getDataAsString();
+  return Utilities.parseCsv(content);
+}
+2.3 Get Quiz Topics (Folders inside Questions Data)
+function getTopics() {
+  const folder = getFolder("Questions Data");
+  const subFolders = folder.getFolders();
+
+  let topics = [];
+  while (subFolders.hasNext()) {
+    topics.push(subFolders.next().getName());
+  }
+
+  return topics;
+}
+2.4 Load Questions (Filtered)
+function getQuestions(filters) {
+  const folder = getFolder("Questions Data");
+
+  let allQuestions = [];
+
+  const topicFolders = folder.getFolders();
+
+  while (topicFolders.hasNext()) {
+    let topicFolder = topicFolders.next();
+
+    if (!filters.topics.includes(topicFolder.getName())) continue;
+
+    let files = topicFolder.getFiles();
+
+    while (files.hasNext()) {
+      let file = files.next();
+      let data = readCSV(file);
+
+      data.slice(1).forEach(row => {
+        let q = {
+          question: row[0],
+          category: row[1],
+          subcategory: row[2],
+          tags: row[3],
+          difficulty: row[4],
+          type: row[5],
+          options: row.slice(6, 10),
+          answer: row[10]
+        };
+
+        // Apply filters
+        if (filters.category && filters.category.length && !filters.category.includes(q.category)) return;
+        if (filters.difficulty && !filters.difficulty.includes(q.difficulty)) return;
+
+        allQuestions.push(q);
+      });
+    }
+  }
+
+  return allQuestions;
+}
+2.5 Load Quiz Config
+function getQuizConfig() {
+  const folder = getFolder("Quiz Config Data");
+  const file = folder.getFilesByName("quiz_config.csv").next();
+
+  return readCSV(file);
+}
+2.6 Save Result (Main + Detailed File)
+function saveResult(payload) {
+  const folder = getFolder("Result Data");
+
+  // Append summary
+  const file = folder.getFilesByName("Result_Data.csv").next();
+  const sheet = SpreadsheetApp.openById(file.getId()).getSheets()[0];
+
+  sheet.appendRow([
+    payload.name,
+    payload.score,
+    payload.time,
+    payload.fileId
+  ]);
+
+  // Save detailed attempt
+  const newFile = folder.createFile(
+    `attempt_${Date.now()}.csv`,
+    payload.detailCSV
+  );
+
+  return newFile.getId();
+}
+2.7 API Entry
+function doPost(e) {
+  const action = e.parameter.action;
+  const data = JSON.parse(e.postData.contents);
+
+  switch (action) {
+    case "getTopics":
+      return json(getTopics());
+
+    case "getQuestions":
+      return json(getQuestions(data));
+
+    case "getConfig":
+      return json(getQuizConfig());
+
+    case "saveResult":
+      return json(saveResult(data));
+  }
+}
+
+function json(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+3. Frontend Architecture
+Stack
+HTML + CSS + JS
+jQuery
+Chart.js
+4. Project Structure
+/quiz-app
+│
+├── index.html
+├── dashboard.html
+│
+├── /css
+│     ├── main.css
+│     ├── dark.css
+│
+├── /js
+│     ├── api.js
+│     ├── state.js
+│     ├── quiz.js
+│     ├── filters.js
+│     ├── result.js
+│     ├── ui.js
+│
+├── /components
+│     ├── mcq.js
+│     ├── matching.js
+│     ├── dragdrop.js
+5. UI Flow (Critical)
+Step 1: User Info Page
+Name
+DOB
+Phone/Email
+Step 2: Topic Selection
+Multi-select (folder names)
+Step 3: Filters (Dynamic)
+Category → controls Subcategory
+Tags
+Difficulty
+Question Type
+Count
+Step 4: Config Mode
+Dropdown (from CSV)
+OR Custom Mode
+Step 5: Quiz UI
+ACT/DSAT style layout:
+Left: Question
+Right: Options
+Top: Timer
+Bottom: Navigation
+Step 6: Result Screen
+Accuracy
+Time taken
+Category-wise score
+Difficulty-wise score
+Step 7: Charts
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Easy', 'Medium', 'Hard'],
+    datasets: [{ data: [10, 5, 2] }]
+  }
+});
+6. Key Features You Requested (Mapped)
+Feature	Implementation
+Multi-topic selection	Folder-based
+Dynamic filters	JS filtering engine
+Config CSV	Loaded via GAS
+Real-time result save	saveResult()
+Detailed attempt file	New CSV per attempt
+Dashboard	Chart.js
+Share link	Pre-fill URL params
+PDF download	html2pdf.js
+Dark/Light	CSS toggle
+7. Critical Logic You MUST NOT BREAK
+1. Folder naming
+
+Must match EXACT:
+
+Questions Data
+Quiz Config Data
+Result Data
+2. CSV format consistency
+
+If columns mismatch → app breaks.
+
+3. Filtering order
+Topic → Category → Subcategory → Difficulty → Type
+8. Advanced Features (Added)
+Resume test (localStorage)
+Question flagging
+Review mode
+Time per question tracking
+Adaptive difficulty (optional extension)
+9. Deployment
+Step 1
+
+Apps Script → Deploy as Web App
+
+Access: Anyone
+Step 2
+
+Frontend → Host:
+
+GitHub Pages OR
+Firebase Hosting
+10. What You Should Do Next
+
+Provide confirmation OR ask for next step:
+
+I can now generate:
+Full working code (frontend + backend ready)
+CSV structure validation (fix your sample files)
+UI professional template (ACT style)
+Matching / drag-drop implementations
+PDF export module
+
+If you want fastest progress:
+👉 Say: "Generate full code"
+
+I will give you complete working project.

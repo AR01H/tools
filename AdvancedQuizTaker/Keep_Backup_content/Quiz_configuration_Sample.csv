@@ -1,0 +1,7 @@
+Quiz Settings Title,Quiz Time,Section Order,Question Time,Adaptive Mode,Random Options,Allow Option Change,Don't Change Until Correct,Mandatory Answer,Negative Marking,Partial Scoring,Question Navigation,Allow Back,Mark for Review,Auto Next Question,Auto Submit,Pause / Resume Allowed,Tracking,Instant Answer,Instant Answer Feedback,Show Hint,Final Result,Question Wise Result,Adaptive Retake
+Practice Mode,0,Fixed,0,Off,On,On,Off,Off,Off,On,Free,On,On,Off,Off,On,On,On,On,On,On,On,Off
+Exam Mode,7200,Fixed,60,Off,On,Off,Off,On,On,Off,Sequential,Off,On,On,On,Off,On,Off,Off,Off,On,On,Off
+Strict Mode,3600,Fixed,60,Off,On,Off,Off,On,On,Off,Sequential,Off,Off,On,On,Off,On,Off,Off,Off,On,On,On
+Timed Practice Mode,1800,Random,45,Off,On,On,Off,Off,Off,On,Free,On,On,On,On,On,On,On,On,On,On,On,Off
+Adaptive Mode,3600,Random,60,On,On,Off,Off,On,On,Off,Sequential,Off,On,On,On,Off,On,Off,Off,Off,On,On,On
+Review Mode,0,Fixed,0,Off,Off,On,Off,Off,Off,Off,Free,On,On,Off,Off,On,On,On,On,On,On,On,On

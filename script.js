@@ -141,6 +141,16 @@ const tools = [
     link: "./preparationTracker/advpointstore.html",
     groupname: ["Writing Tools"],
   },
+    {
+    icon: "fas fa-star",
+    title: "Theory Notes Writer",
+    description:
+      "Writing Notes for Theory. Advanced preparation tool ",
+    tags: ["Advanced", "Theory Notes"],
+    status: "live",
+    link: "./TheoryNotesWriter/index.html",
+    groupname: ["Writing Tools"],
+  },
   {
     icon: "fas fa-file-invoice",
     title: "Resume Checker",
