@@ -33,7 +33,7 @@ const PageSetupConfig = (() => {
     const filtered = Filters.applyFilters(questions, setup);
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:720px;margin:0 auto">
+      <div class="animate-up" style="margin:0 auto">
         ${UI.stepsHtml(['Select Topics','Filter Questions','Quiz Config'], 2)}
         ${UI.backBtn('Filters')}
         <h1 class="section-title">Quiz Configuration</h1>

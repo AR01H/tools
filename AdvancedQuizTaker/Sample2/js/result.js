@@ -129,7 +129,7 @@ const PageResult = (() => {
     const showQWise = (cfg['Question Wise Result'] || 'On') === 'On';
 
     main.innerHTML = `
-      <div style="max-width:960px;margin:0 auto" class="animate-up">
+      <div style="margin:0 auto" class="animate-up">
         <!-- Header -->
         <div style="text-align:center;margin-bottom:var(--sp-xl)">
           <div class="score-ring-wrap" style="margin-bottom:var(--sp-lg)">
@@ -200,13 +200,17 @@ const PageResult = (() => {
       }
     }, 300);
 
-    renderTab(_activeTab, result);
+    switchTab(_activeTab, result);
   }
 
-  function switchTab(tab) {
+  function switchTab(tab, explicitResult = null) {
     _activeTab = tab;
-    document.querySelectorAll('#result-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(tab.replace('-',' '))));
-    renderTab(tab, State.get('result'));
+    const result = explicitResult || State.get('result');
+    document.querySelectorAll('#result-tabs .tab-btn').forEach((b,i) => {
+      const tabs = ['overview','category','difficulty','type','questions','answer-key'];
+      b.classList.toggle('active', tabs[i] === tab);
+    });
+    renderTab(tab, result);
   }
 
   function renderTab(tab, result) {
@@ -214,9 +218,9 @@ const PageResult = (() => {
     if (!body) return;
     switch(tab) {
       case 'overview':   body.innerHTML = renderOverview(result);    break;
-      case 'category':   body.innerHTML = renderCategory(result);    initCategoryChart(result); break;
-      case 'difficulty': body.innerHTML = renderDifficulty(result);  initDiffChart(result);     break;
-      case 'type':       body.innerHTML = renderTypeTab(result);     initTypeChart(result);     break;
+      case 'category':   body.innerHTML = renderCategory(result);    break;
+      case 'difficulty': body.innerHTML = renderDifficulty(result);  break;
+      case 'type':       body.innerHTML = renderTypeTab(result);     break;
       case 'questions':  body.innerHTML = renderQuestions(result);   break;
       case 'answer-key': body.innerHTML = renderAnswerKey(result);   break;
     }
@@ -225,10 +229,27 @@ const PageResult = (() => {
   // ── OVERVIEW TAB ──────────────────────────────────────────
   function renderOverview(result) {
     const { quiz, score } = result;
+    const tot = quiz.questions.length;
+    const cPct = tot ? (score.correct / tot * 100) : 0;
+    const wPct = tot ? (score.wrong / tot * 100) : 0;
+    const sPct = tot ? (score.skipped / tot * 100) : 0;
+    const conic = `conic-gradient(var(--color-success) 0% ${cPct}%, var(--color-error) ${cPct}% ${cPct+wPct}%, var(--color-warn) ${cPct+wPct}% 100%)`;
+
     return `
       <div style="display:flex;gap:var(--sp-lg);flex-wrap:wrap">
-        <div style="flex:1;min-width:280px">
-          <canvas id="chart-overview" height="260"></canvas>
+        <div style="flex:1;min-width:280px;display:flex;flex-direction:column;align-items:center;padding:var(--sp-md) 0">
+          <div style="width:220px;height:220px;border-radius:50%;background:${conic};position:relative;display:flex;align-items:center;justify-content:center">
+            <div style="width:65%;height:65%;border-radius:50%;background:var(--bg-main);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 10px rgba(0,0,0,0.3)">
+              <span style="font-size:1.8rem;font-weight:800">${score.accuracy}%</span>
+              <span style="font-size:0.7rem;color:var(--text-muted);font-weight:600">SCORE</span>
+            </div>
+          </div>
+          <!-- Legend -->
+          <div style="display:flex;gap:16px;margin-top:24px;font-size:0.85rem">
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-success)"></div>Correct</div>
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-error)"></div>Wrong</div>
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-warn)"></div>Skipped</div>
+          </div>
         </div>
         <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:var(--sp-sm)">
           ${[
@@ -249,7 +270,6 @@ const PageResult = (() => {
             </div>`).join('')}
         </div>
       </div>`;
-    // Chart is initialized after render
   }
 
   // ── CATEGORY TAB ─────────────────────────────────────────
@@ -257,7 +277,22 @@ const PageResult = (() => {
     const cats = result.score.categoryMap;
     return `
       <div>
-        <canvas id="chart-category" height="280" style="margin-bottom:var(--sp-lg)"></canvas>
+        <div style="margin-bottom:var(--sp-xl);padding:var(--sp-lg);background:var(--bg-elevated);border-radius:var(--radius-lg)">
+          <h4 style="margin-bottom:20px;color:var(--text-secondary);font-size:0.95rem">Category Accuracy</h4>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            ${Object.entries(cats).map(([cat, d]) => {
+              const pct = d.max ? Math.round(d.score/d.max*100) : 0;
+              return `
+              <div style="display:flex;align-items:center;gap:var(--sp-md)">
+                <div style="width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.85rem;font-weight:600" title="${cat}">${cat}</div>
+                <div style="flex:1;height:24px;background:var(--border-color);border-radius:4px;position:relative;overflow:hidden">
+                  <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:var(--accent-primary);border-radius:4px"></div>
+                </div>
+                <div style="width:40px;text-align:right;font-size:0.85rem;font-weight:bold">${pct}%</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
         <table class="data-table">
           <thead><tr><th>Category</th><th>Correct</th><th>Total</th><th>Score</th><th>Max</th><th>%</th></tr></thead>
           <tbody>
@@ -285,10 +320,26 @@ const PageResult = (() => {
   // ── DIFFICULTY TAB ────────────────────────────────────────
   function renderDifficulty(result) {
     const diffs = result.score.difficultyMap;
-    const colors = { easy:'#4ade80', medium:'#fbbf24', hard:'#f87171', unknown:'#94a3b8' };
+    const colors = { easy:'var(--color-success)', medium:'var(--color-warn)', hard:'var(--color-error)', unknown:'var(--text-muted)' };
     return `
       <div>
-        <canvas id="chart-diff" height="260" style="margin-bottom:var(--sp-lg)"></canvas>
+        <div style="margin-bottom:var(--sp-xl);padding:var(--sp-lg);background:var(--bg-elevated);border-radius:var(--radius-lg)">
+          <h4 style="margin-bottom:20px;color:var(--text-secondary);font-size:0.95rem">Difficulty Accuracy</h4>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            ${Object.entries(diffs).map(([d, v]) => {
+              const col = colors[d.toLowerCase()] || colors.unknown;
+              const pct = v.total ? Math.round(v.correct/v.total*100) : 0;
+              return `
+              <div style="display:flex;align-items:center;gap:var(--sp-md)">
+                <div style="width:100px;text-transform:capitalize;font-size:0.85rem;color:${col};font-weight:600">${d}</div>
+                <div style="flex:1;height:20px;background:var(--border-color);border-radius:10px;position:relative;overflow:hidden">
+                  <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${col};border-radius:10px"></div>
+                </div>
+                <div style="width:40px;text-align:right;font-size:0.85rem;font-weight:bold">${pct}%</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
         <div class="grid-3">
           ${Object.entries(diffs).map(([d,v])=>`
             <div class="report-stat-card">
@@ -307,7 +358,32 @@ const PageResult = (() => {
     const types = result.score.typeMap;
     return `
       <div>
-        <canvas id="chart-type" height="260" style="margin-bottom:var(--sp-lg)"></canvas>
+        <div style="margin-bottom:var(--sp-xl);padding:var(--sp-lg);background:var(--bg-elevated);border-radius:var(--radius-lg)">
+          <h4 style="margin-bottom:20px;color:var(--text-secondary);font-size:0.95rem">Question Type Accuracy</h4>
+          <div style="display:flex;flex-direction:column;gap:20px">
+            ${Object.entries(types).map(([t, v]) => {
+              const wrong = v.total - v.correct;
+              const cPct = v.total ? (v.correct/v.total*100) : 0;
+              const wPct = v.total ? (wrong/v.total*100) : 0;
+              return `
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:8px;font-weight:600">
+                  <span>${t}</span>
+                  <span class="text-muted">${v.total} Qs</span>
+                </div>
+                <div style="height:24px;background:var(--border-color);border-radius:6px;display:flex;overflow:hidden">
+                  <div style="width:${cPct}%;background:var(--color-success);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#000;font-weight:bold" title="Correct: ${v.correct}">${cPct >= 10 ? v.correct : ''}</div>
+                  <div style="width:${wPct}%;background:var(--color-error);display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#fff;font-weight:bold" title="Wrong: ${wrong}">${wPct >= 10 ? wrong : ''}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+          <!-- Legend -->
+          <div style="display:flex;gap:16px;margin-top:24px;font-size:0.8rem;justify-content:center;font-weight:600">
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:4px;background:var(--color-success)"></div>Correct</div>
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:4px;background:var(--color-error)"></div>Wrong</div>
+          </div>
+        </div>
         <table class="data-table">
           <thead><tr><th>Question Type</th><th>Correct</th><th>Total</th><th>Accuracy</th></tr></thead>
           <tbody>
@@ -388,94 +464,6 @@ const PageResult = (() => {
       </div>`;
   }
 
-  // ── Chart inits ───────────────────────────────────────────
-  function initOverviewChart(result) {
-    const { score } = result;
-    const ctx = document.getElementById('chart-overview');
-    if (!ctx || !window.Chart) return;
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Correct','Wrong','Skipped'],
-        datasets: [{ data: [score.correct, score.wrong, score.skipped],
-          backgroundColor:['rgba(74,222,128,.8)','rgba(248,113,113,.8)','rgba(251,191,36,.8)'],
-          borderWidth:0, hoverOffset:8 }]
-      },
-      options: { plugins: { legend: { position:'bottom', labels:{color:'var(--text-secondary)',padding:16} } }, cutout:'65%' }
-    });
-  }
-
-  function initCategoryChart(result) {
-    const cats = result.score.categoryMap;
-    const ctx  = document.getElementById('chart-category');
-    if (!ctx || !window.Chart) return;
-    const labels = Object.keys(cats);
-    const acc    = labels.map(k => cats[k].max ? Math.round(cats[k].score/cats[k].max*100) : 0);
-    new Chart(ctx, {
-      type: 'bar',
-      data: { labels, datasets: [{ label:'Accuracy %', data:acc,
-        backgroundColor:'rgba(99,102,241,.7)', borderRadius:8 }] },
-      options: {
-        responsive:true, plugins:{ legend:{display:false} },
-        scales: { y:{ max:100, ticks:{color:'var(--text-secondary)'}, grid:{color:'var(--border-color)'} },
-                  x:{ ticks:{color:'var(--text-secondary)'}, grid:{display:false} } }
-      }
-    });
-  }
-
-  function initDiffChart(result) {
-    const diffs  = result.score.difficultyMap;
-    const ctx    = document.getElementById('chart-diff');
-    if (!ctx || !window.Chart) return;
-    const labels = Object.keys(diffs);
-    const colors = { easy:'rgba(74,222,128,.7)', medium:'rgba(251,191,36,.7)', hard:'rgba(248,113,113,.7)', unknown:'rgba(148,163,184,.7)' };
-    new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Accuracy %',
-          data: labels.map(d => diffs[d].total ? Math.round(diffs[d].correct/diffs[d].total*100) : 0),
-          backgroundColor: 'rgba(99,102,241,.2)',
-          borderColor: 'var(--accent-primary)', pointBackgroundColor:'var(--accent-primary)',
-        }]
-      },
-      options: {
-        plugins:{ legend:{display:false} },
-        scales:{ r:{ min:0, max:100, ticks:{stepSize:20,color:'var(--text-secondary)'},
-          grid:{color:'var(--border-color)'}, pointLabels:{color:'var(--text-secondary)'} } }
-      }
-    });
-  }
-
-  function initTypeChart(result) {
-    const types = result.score.typeMap;
-    const ctx   = document.getElementById('chart-type');
-    if (!ctx || !window.Chart) return;
-    const labels = Object.keys(types);
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label:'Correct', data: labels.map(t=>types[t].correct), backgroundColor:'rgba(74,222,128,.7)', borderRadius:6 },
-          { label:'Wrong',   data: labels.map(t=>types[t].total-types[t].correct), backgroundColor:'rgba(248,113,113,.7)', borderRadius:6 },
-        ]
-      },
-      options: {
-        responsive:true, indexAxis:'y',
-        plugins:{ legend:{position:'bottom',labels:{color:'var(--text-secondary)'}} },
-        scales: {
-          x:{ stacked:true, ticks:{color:'var(--text-secondary)'}, grid:{color:'var(--border-color)'} },
-          y:{ stacked:true, ticks:{color:'var(--text-secondary)'}, grid:{display:false} }
-        }
-      }
-    });
-  }
-
-  // Intercept renderTab to also init charts
-  const _origRenderTab = switchTab;
-
   function downloadPDF() {
     UI.toast('Preparing PDF…', 'info');
     setTimeout(() => {
@@ -508,22 +496,6 @@ const PageResult = (() => {
     });
   }
 
-  // Re-render tab + init chart
-  function switchTab(tab) {
-    _activeTab = tab;
-    document.querySelectorAll('#result-tabs .tab-btn').forEach((b,i) => {
-      const tabs = ['overview','category','difficulty','type','questions','answer-key'];
-      b.classList.toggle('active', tabs[i] === tab);
-    });
-    renderTab(tab, State.get('result'));
-    setTimeout(() => {
-      if (tab === 'overview')   initOverviewChart(State.get('result'));
-      if (tab === 'category')   initCategoryChart(State.get('result'));
-      if (tab === 'difficulty') initDiffChart(State.get('result'));
-      if (tab === 'type')       initTypeChart(State.get('result'));
-    }, 50);
-  }
-
   return { render, switchTab, downloadPDF, shareResult, retakeQuiz };
 })();
 
@@ -531,7 +503,7 @@ const PageResult = (() => {
 const PageHistory = (() => {
   function render(main) {
     main.innerHTML = `
-      <div style="max-width:860px;margin:0 auto" class="animate-up">
+      <div style="margin:0 auto" class="animate-up">
         <h1 class="section-title" style="margin-bottom:var(--sp-lg)">📜 Attempt History</h1>
         <div class="card">
           <p class="text-muted text-sm" style="text-align:center;padding:var(--sp-xl)">

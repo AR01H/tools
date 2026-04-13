@@ -13,7 +13,7 @@ const PageWelcome = (() => {
     if (!user) { renderRegister(main); return; }
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:800px;margin:0 auto">
+      <div class="animate-up" style="margin:0 auto">
         <!-- Greeting -->
         <div style="margin-bottom:var(--sp-xl)">
           <p class="text-muted text-sm">Welcome back,</p>
@@ -108,7 +108,7 @@ const PageWelcome = (() => {
     };
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:480px;margin:60px auto 0">
+      <div class="animate-up" style="margin:60px auto 0">
         <div style="text-align:center;margin-bottom:var(--sp-xl)">
           <div style="font-size:3rem;margin-bottom:var(--sp-sm)">📝</div>
           <h1 style="font-size:1.8rem;font-weight:800;letter-spacing:-.03em">Welcome to QuizPro</h1>

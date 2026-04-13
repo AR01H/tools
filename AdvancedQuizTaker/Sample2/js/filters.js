@@ -68,7 +68,7 @@ const PageSetupTopics = (() => {
   function render(main) {
     const topics = State.get('topics');
     main.innerHTML = `
-      <div class="animate-up" style="max-width:680px;margin:0 auto">
+      <div class="animate-up" style="margin:0 auto">
         ${UI.stepsHtml(['Select Topics','Filter Questions','Quiz Config'], 0)}
         <h1 class="section-title">Select Quiz Topics</h1>
         <p class="section-sub">Choose one or more topic areas to draw questions from</p>
@@ -124,7 +124,7 @@ const PageSetupFilters = (() => {
     const types     = Filters.extract(questions, 'Question Type');
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:680px;margin:0 auto">
+      <div class="animate-up" style="margin:0 auto">
         ${UI.stepsHtml(['Select Topics','Filter Questions','Quiz Config'], 1)}
         ${UI.backBtn('Topics')}
         <h1 class="section-title">Filter Questions</h1>
