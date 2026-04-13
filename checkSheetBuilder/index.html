@@ -1,51 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <script>const LS_PREFIX = "checkSheetBuilder_index_";
-</script>
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C WW | Cheat Sheet Builder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; overflow: hidden; }
-        
-        .top-bar { 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .top-bar {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white; 
-            padding: 8px 12px; 
-            display: flex; 
-            justify-content: space-between; 
+            color: white;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             height: 45px;
             z-index: 100;
             position: relative;
         }
-        .top-bar h4 { margin: 0; font-size: 1.1em; }
-        .btn-top { 
-            padding: 5px 10px; 
-            border: none; 
-            border-radius: 3px; 
-            margin-left: 5px; 
-            cursor: pointer; 
+
+        .top-bar h4 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+
+        .btn-top {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            margin-left: 5px;
+            cursor: pointer;
             font-size: 11px;
             transition: 0.2s;
         }
-        .btn-top:hover { transform: scale(1.05); }
-        .btn-new { background: #27ae60; color: white; }
-        .btn-save { background: #3498db; color: white; }
-        .btn-download { background: #e74c3c; color: white; }
-        .btn-info { background: #9b59b6; color: white; }
-        .btn-warning { background: #f39c12; color: white; }
-        
+
+        .btn-top:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-new {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-save {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-download {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-info {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
         /* Auto-save indicator */
         .autosave-indicator {
             position: fixed;
@@ -60,8 +98,11 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-        .autosave-indicator.show { opacity: 1; }
-        
+
+        .autosave-indicator.show {
+            opacity: 1;
+        }
+
         .files-sidebar {
             position: fixed;
             top: 45px;
@@ -74,8 +115,11 @@
             padding: 8px;
             transition: transform 0.3s;
         }
-        .files-sidebar.hidden { transform: translateX(-180px); }
-        
+
+        .files-sidebar.hidden {
+            transform: translateX(-180px);
+        }
+
         .file-item {
             padding: 6px 8px;
             margin-bottom: 4px;
@@ -87,18 +131,29 @@
             justify-content: space-between;
             align-items: center;
         }
-        .file-item:hover { background: #3d566e; }
-        .file-item.active { background: #3498db; }
-        .file-item.favorite { border-left: 3px solid #f39c12; }
-        .file-delete { 
-            background: #e74c3c; 
-            border: none; 
-            color: white; 
-            padding: 2px 5px; 
-            border-radius: 2px; 
+
+        .file-item:hover {
+            background: #3d566e;
+        }
+
+        .file-item.active {
+            background: #3498db;
+        }
+
+        .file-item.favorite {
+            border-left: 3px solid #f39c12;
+        }
+
+        .file-delete {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 2px;
             font-size: 9px;
             cursor: pointer;
         }
+
         .file-favorite {
             background: none;
             border: none;
@@ -107,56 +162,74 @@
             font-size: 12px;
             margin-right: 5px;
         }
-        
-        .main-container { 
-            margin-left: 180px; 
-            display: flex; 
+
+        .main-container {
+            margin-left: 180px;
+            display: flex;
             height: calc(100vh - 45px);
             transition: margin-left 0.3s;
         }
-        .main-container.sidebar-hidden { margin-left: 0; }
-        
-        .editor-side { 
-            width: 32%; 
-            background: #34495e; 
-            color: white; 
-            overflow-y: auto; 
+
+        .main-container.sidebar-hidden {
+            margin-left: 0;
+        }
+
+        .editor-side {
+            width: 32%;
+            background: #34495e;
+            color: white;
+            overflow-y: auto;
             padding: 10px;
             transition: width 0.3s;
         }
-        .editor-side.hidden { width: 0; padding: 0; overflow: hidden; }
-        
-        .form-group { margin-bottom: 8px; }
-        .form-group label { 
-            display: block; 
-            margin-bottom: 2px; 
-            font-size: 10px; 
-            font-weight: 600; 
+
+        .editor-side.hidden {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 10px;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #bdc3c7;
         }
-        .form-group input, .form-group textarea, .form-group select { 
-            width: 100%; 
-            padding: 4px 6px; 
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 4px 6px;
             border: 1px solid #2c3e50;
-            border-radius: 3px; 
-            background: #2c3e50; 
-            color: white; 
+            border-radius: 3px;
+            background: #2c3e50;
+            color: white;
             font-size: 10px;
             transition: all 0.2s ease;
         }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #3498db;
             background: #1a252f;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-        .form-group textarea { 
-            font-family: 'Courier New', monospace; 
+
+        .form-group textarea {
+            font-family: 'Courier New', monospace;
             resize: vertical;
         }
-        
+
         /* Section collapse in editor */
         .section-box {
             background: #2c3e50;
@@ -166,9 +239,15 @@
             border-left: 2px solid #3498db;
             cursor: move;
         }
-        .section-box.dragging { opacity: 0.5; }
-        .section-box.collapsed .section-items { display: none; }
-        
+
+        .section-box.dragging {
+            opacity: 0.5;
+        }
+
+        .section-box.collapsed .section-items {
+            display: none;
+        }
+
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -177,15 +256,20 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .section-header:hover { background: rgba(255,255,255,0.05); border-radius: 3px; }
-        
+
+        .section-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
         .section-collapse-icon {
             transition: transform 0.3s;
         }
+
         .section-box.collapsed .section-collapse-icon {
             transform: rotate(-90deg);
         }
-        
+
         .item-mini {
             background: #34495e;
             padding: 5px;
@@ -194,24 +278,34 @@
             border-left: 2px solid #27ae60;
             cursor: move;
         }
-        .item-mini.dragging { opacity: 0.5; }
-        .item-mini.selected { border-left-color: #f39c12; border-left-width: 4px; background: #3d566e; }
-        
-        .item-mini input, .item-mini textarea, .item-mini select {
+
+        .item-mini.dragging {
+            opacity: 0.5;
+        }
+
+        .item-mini.selected {
+            border-left-color: #f39c12;
+            border-left-width: 4px;
+            background: #3d566e;
+        }
+
+        .item-mini input,
+        .item-mini textarea,
+        .item-mini select {
             margin-bottom: 3px;
             padding: 3px 5px;
             font-size: 9px;
         }
-        
+
         .item-mini textarea {
             min-height: 35px;
         }
-        
+
         .item-checkbox {
             margin-right: 5px;
             cursor: pointer;
         }
-        
+
         .btn-small {
             padding: 3px 7px;
             font-size: 9px;
@@ -220,10 +314,22 @@
             cursor: pointer;
             margin: 2px;
         }
-        .btn-add { background: #27ae60; color: white; }
-        .btn-remove { background: #e74c3c; color: white; }
-        .btn-duplicate { background: #3498db; color: white; }
-        
+
+        .btn-add {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-remove {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-duplicate {
+            background: #3498db;
+            color: white;
+        }
+
         /* Bulk actions bar */
         .bulk-actions {
             position: fixed;
@@ -234,22 +340,30 @@
             padding: 10px;
             display: none;
             z-index: 90;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
         }
-        .bulk-actions.show { display: flex; gap: 10px; align-items: center; }
-        
-        .preview-side { 
-            width: 68%; 
-            background: #ecf0f1; 
-            overflow-y: auto; 
+
+        .bulk-actions.show {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .preview-side {
+            width: 68%;
+            background: #ecf0f1;
+            overflow-y: auto;
             padding: 12px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             transition: width 0.3s;
         }
-        .preview-side.full { width: 100%; }
-        
+
+        .preview-side.full {
+            width: 100%;
+        }
+
         /* Zoom Controls */
         .zoom-controls {
             position: fixed;
@@ -257,12 +371,13 @@
             right: 20px;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             padding: 10px;
             display: flex;
             gap: 5px;
             z-index: 50;
         }
+
         .zoom-btn {
             width: 35px;
             height: 35px;
@@ -273,8 +388,11 @@
             cursor: pointer;
             font-size: 14px;
         }
-        .zoom-btn:hover { background: #2980b9; }
-        
+
+        .zoom-btn:hover {
+            background: #2980b9;
+        }
+
         /* Keyboard shortcuts help */
         .shortcuts-help {
             position: fixed;
@@ -282,75 +400,93 @@
             right: 20px;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             padding: 10px;
             display: none;
             max-width: 300px;
             z-index: 60;
         }
-        .shortcuts-help.show { display: block; }
+
+        .shortcuts-help.show {
+            display: block;
+        }
+
         .shortcut-item {
             display: flex;
             justify-content: space-between;
             padding: 5px;
             font-size: 11px;
         }
+
         .shortcut-key {
             background: #f0f0f0;
             padding: 2px 6px;
             border-radius: 3px;
             font-family: monospace;
         }
-        
+
         /* CHEAT SHEET */
         #cheatSheet {
             width: 100%;
             max-width: 950px;
             background: white;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
             border-radius: 6px;
             overflow: hidden;
             transform-origin: top center;
             transition: transform 0.3s;
         }
-        
+
         .sheet-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 10px 12px;
             text-align: center;
         }
-        .sheet-header h1 { 
-            font-size: 1.3em; 
-            margin: 0 0 2px 0; 
-            font-weight: bold; 
+
+        .sheet-header h1 {
+            font-size: 1.3em;
+            margin: 0 0 2px 0;
+            font-weight: bold;
             letter-spacing: 0.5px;
         }
-        .sheet-header p { 
-            font-size: 0.7em; 
-            margin: 0; 
-            opacity: 0.9; 
+
+        .sheet-header p {
+            font-size: 0.7em;
+            margin: 0;
+            opacity: 0.9;
         }
-        
+
         .sheet-body {
             padding: 10px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
         }
-        
+
         /* Layout Templates - MORE COMPACT */
-        .sheet-body.layout-compact { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .sheet-body.layout-detailed { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .sheet-body.layout-single { grid-template-columns: 1fr; gap: 10px; }
-        
+        .sheet-body.layout-compact {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .sheet-body.layout-detailed {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .sheet-body.layout-single {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
         .section-card {
             background: #f8f9fa;
             border-radius: 4px;
             padding: 6px;
             border: 1px solid #dee2e6;
         }
-        
+
         .section-card-title {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
@@ -367,10 +503,17 @@
             justify-content: space-between;
             align-items: center;
         }
-        
-        .section-content { transition: max-height 0.3s, opacity 0.3s; overflow: hidden; }
-        .section-content.collapsed { max-height: 0; opacity: 0; }
-        
+
+        .section-content {
+            transition: max-height 0.3s, opacity 0.3s;
+            overflow: hidden;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
         /* ULTRA COMPACT ITEMS - MORE SPACE SAVING */
         .sheet-item-micro {
             background: white;
@@ -382,7 +525,7 @@
             line-height: 1.15;
             position: relative;
         }
-        
+
         .sheet-item-micro strong {
             color: #2c3e50;
             display: block;
@@ -390,14 +533,14 @@
             margin-bottom: 1px;
             font-weight: 700;
         }
-        
+
         .sheet-item-micro p {
             margin: 0;
             color: #666;
             font-size: 0.95em;
             line-height: 1.1;
         }
-        
+
         .sheet-item-micro pre {
             display: block;
             background: #2d3748;
@@ -411,7 +554,7 @@
             line-height: 1.15;
             position: relative;
         }
-        
+
         .sheet-item-micro .example {
             display: block;
             background: #fff3cd;
@@ -423,7 +566,7 @@
             margin-top: 2px;
             border-left: 2px solid #ffc107;
         }
-        
+
         /* Notes/Tips Styles */
         .note-box {
             padding: 3px 5px;
@@ -434,11 +577,31 @@
             align-items: flex-start;
             gap: 3px;
         }
-        .note-box.info { background: #d1ecf1; color: #0c5460; border-left: 2px solid #17a2b8; }
-        .note-box.warning { background: #fff3cd; color: #856404; border-left: 2px solid #ffc107; }
-        .note-box.tip { background: #d4edda; color: #155724; border-left: 2px solid #28a745; }
-        .note-box.danger { background: #f8d7da; color: #721c24; border-left: 2px solid #dc3545; }
-        
+
+        .note-box.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 2px solid #17a2b8;
+        }
+
+        .note-box.warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 2px solid #ffc107;
+        }
+
+        .note-box.tip {
+            background: #d4edda;
+            color: #155724;
+            border-left: 2px solid #28a745;
+        }
+
+        .note-box.danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 2px solid #dc3545;
+        }
+
         /* Copy Button */
         .copy-btn-mini {
             position: absolute;
@@ -454,9 +617,15 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
-        .sheet-item-micro:hover .copy-btn-mini { opacity: 1; }
-        .copy-btn-mini:hover { background: #2980b9; }
-        
+
+        .sheet-item-micro:hover .copy-btn-mini {
+            opacity: 1;
+        }
+
+        .copy-btn-mini:hover {
+            background: #2980b9;
+        }
+
         /* Related Items */
         .related-items {
             font-size: 0.85em;
@@ -464,7 +633,7 @@
             margin-top: 2px;
             font-style: italic;
         }
-        
+
         /* Quick Add Mode */
         .quick-add-panel {
             position: fixed;
@@ -474,25 +643,34 @@
             background: #2c3e50;
             color: white;
             padding: 10px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
             display: none;
             z-index: 90;
         }
-        .quick-add-panel.active { display: block; }
+
+        .quick-add-panel.active {
+            display: block;
+        }
+
         .quick-add-form {
             display: flex;
             gap: 8px;
             align-items: flex-end;
         }
-        .quick-add-form input, .quick-add-form textarea, .quick-add-form select {
+
+        .quick-add-form input,
+        .quick-add-form textarea,
+        .quick-add-form select {
             padding: 6px;
             border: none;
             border-radius: 3px;
             font-size: 11px;
         }
-        
-        input[type="file"] { display: none; }
-        
+
+        input[type="file"] {
+            display: none;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -502,11 +680,15 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.7);
             align-items: center;
             justify-content: center;
         }
-        .modal.show { display: flex; }
+
+        .modal.show {
+            display: flex;
+        }
+
         .modal-content {
             background: white;
             padding: 20px;
@@ -516,6 +698,7 @@
             max-height: 80vh;
             overflow-y: auto;
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -524,6 +707,7 @@
             padding-bottom: 10px;
             border-bottom: 2px solid #ddd;
         }
+
         .modal-close {
             background: #e74c3c;
             color: white;
@@ -532,7 +716,7 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        
+
         .template-card {
             background: #f8f9fa;
             padding: 12px;
@@ -542,11 +726,12 @@
             cursor: pointer;
             transition: 0.2s;
         }
+
         .template-card:hover {
             background: #e9ecef;
             transform: translateX(5px);
         }
-        
+
         .search-box {
             width: 100%;
             padding: 8px;
@@ -555,31 +740,71 @@
             border-radius: 5px;
             font-size: 12px;
         }
-        
+
         /* Themes */
         :root {
             --primary-color: #667eea;
             --secondary-color: #764ba2;
         }
-        
-        .theme-blue { --primary-color: #667eea; --secondary-color: #764ba2; }
-        .theme-green { --primary-color: #11998e; --secondary-color: #38ef7d; }
-        .theme-orange { --primary-color: #f46b45; --secondary-color: #eea849; }
-        .theme-pink { --primary-color: #ff6b9d; --secondary-color: #c06c84; }
-        .theme-purple { --primary-color: #8e2de2; --secondary-color: #4a00e0; }
-        
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #2c3e50; }
-        ::-webkit-scrollbar-thumb { background: #34495e; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4a6278; }
-        
-        .hljs { background: #2d3748 !important; padding: 3px 5px !important; border-radius: 2px; font-size: 0.9em !important; }
-        
+
+        .theme-blue {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+        }
+
+        .theme-green {
+            --primary-color: #11998e;
+            --secondary-color: #38ef7d;
+        }
+
+        .theme-orange {
+            --primary-color: #f46b45;
+            --secondary-color: #eea849;
+        }
+
+        .theme-pink {
+            --primary-color: #ff6b9d;
+            --secondary-color: #c06c84;
+        }
+
+        .theme-purple {
+            --primary-color: #8e2de2;
+            --secondary-color: #4a00e0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2c3e50;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #34495e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a6278;
+        }
+
+        .hljs {
+            background: #2d3748 !important;
+            padding: 3px 5px !important;
+            border-radius: 2px;
+            font-size: 0.9em !important;
+        }
+
         @media (max-width: 1200px) {
-            .sheet-body { grid-template-columns: repeat(2, 1fr); }
+            .sheet-body {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
+
 <body class="theme-blue">
     <!-- Auto-save indicator -->
     <div class="autosave-indicator" id="autosaveIndicator">
@@ -589,21 +814,29 @@
     <!-- Top Bar -->
     <div class="top-bar">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="btn-top" onclick="toggleSidebar()" title="Toggle Sidebar"><i class="fas fa-bars"></i></button>
+            <button class="btn-top" onclick="toggleSidebar()" title="Toggle Sidebar"><i
+                    class="fas fa-bars"></i></button>
             <h4><i class="fas fa-file-code"></i> Cheat Sheet Builder</h4>
         </div>
         <div>
-            <input type="text" id="currentFileName" placeholder="File name" style="padding: 4px 8px; border-radius: 3px; border: none; margin-right: 8px; width: 130px; font-size: 11px;">
+            <input type="text" id="currentFileName" placeholder="File name"
+                style="padding: 4px 8px; border-radius: 3px; border: none; margin-right: 8px; width: 130px; font-size: 11px;">
             <button class="btn-top btn-new" onclick="createNewFile()"><i class="fas fa-plus"></i> New</button>
             <button class="btn-top btn-save" onclick="saveFile()"><i class="fas fa-save"></i> Save</button>
-            <button class="btn-top btn-warning" onclick="undo()" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-            <button class="btn-top btn-warning" onclick="redo()" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+            <button class="btn-top btn-warning" onclick="undo()" title="Undo (Ctrl+Z)"><i
+                    class="fas fa-undo"></i></button>
+            <button class="btn-top btn-warning" onclick="redo()" title="Redo (Ctrl+Y)"><i
+                    class="fas fa-redo"></i></button>
             <button class="btn-top btn-info" onclick="openTemplates()"><i class="fas fa-book"></i> Templates</button>
-            <button class="btn-top btn-info" onclick="toggleQuickAdd()" title="Quick Add Mode"><i class="fas fa-bolt"></i> Quick</button>
-            <button class="btn-top btn-save" onclick="toggleSplitView()" title="Toggle Editor"><i class="fas fa-columns"></i></button>
-            <button class="btn-top btn-info" onclick="toggleShortcuts()" title="Keyboard Shortcuts"><i class="fas fa-keyboard"></i></button>
+            <button class="btn-top btn-info" onclick="toggleQuickAdd()" title="Quick Add Mode"><i
+                    class="fas fa-bolt"></i> Quick</button>
+            <button class="btn-top btn-save" onclick="toggleSplitView()" title="Toggle Editor"><i
+                    class="fas fa-columns"></i></button>
+            <button class="btn-top btn-info" onclick="toggleShortcuts()" title="Keyboard Shortcuts"><i
+                    class="fas fa-keyboard"></i></button>
             <button class="btn-top btn-save" onclick="exportJSON()"><i class="fas fa-file-export"></i> JSON</button>
-            <button class="btn-top btn-save" onclick="document.getElementById('importFile').click()"><i class="fas fa-file-import"></i> Import</button>
+            <button class="btn-top btn-save" onclick="document.getElementById('importFile').click()"><i
+                    class="fas fa-file-import"></i> Import</button>
             <button class="btn-top btn-download" onclick="downloadImage()"><i class="fas fa-image"></i> PNG</button>
             <button class="btn-top btn-download" onclick="downloadHTML()"><i class="fas fa-code"></i> HTML</button>
             <button class="btn-top btn-download" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
@@ -617,9 +850,11 @@
         <div style="font-size: 10px; font-weight: bold; margin-bottom: 6px; padding: 4px;">
             <i class="fas fa-folder"></i> CHEAT SHEETS
         </div>
-        <input type="text" id="searchFiles" class="search-box" placeholder="🔍 Search files..." oninput="searchFiles()" style="background: #2c3e50; color: white; border-color: #34495e;">
+        <input type="text" id="searchFiles" class="search-box" placeholder="🔍 Search files..." oninput="searchFiles()"
+            style="background: #2c3e50; color: white; border-color: #34495e;">
         <div id="filesList"></div>
-        <button class="btn-small btn-add" style="width: 100%; margin-top: 8px; font-size: 10px; padding: 5px;" onclick="createNewFile()">
+        <button class="btn-small btn-add" style="width: 100%; margin-top: 8px; font-size: 10px; padding: 5px;"
+            onclick="createNewFile()">
             <i class="fas fa-plus"></i> New Sheet
         </button>
     </div>
@@ -631,11 +866,13 @@
             <div style="margin-bottom: 10px;">
                 <div class="form-group">
                     <label>TITLE</label>
-                    <input type="text" id="sheetTitle" placeholder="e.g., Python Basics" oninput="updatePreview(); autoSave()">
+                    <input type="text" id="sheetTitle" placeholder="e.g., Python Basics"
+                        oninput="updatePreview(); autoSave()">
                 </div>
                 <div class="form-group">
                     <label>SUBTITLE</label>
-                    <input type="text" id="sheetSubtitle" placeholder="Quick Reference" oninput="updatePreview(); autoSave()">
+                    <input type="text" id="sheetSubtitle" placeholder="Quick Reference"
+                        oninput="updatePreview(); autoSave()">
                 </div>
                 <div class="form-group">
                     <label>LAYOUT</label>
@@ -647,11 +884,15 @@
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #2c3e50;">
-                <strong style="font-size: 11px;"><i class="fas fa-layer-group"></i> SECTIONS (Click to collapse)</strong>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #2c3e50;">
+                <strong style="font-size: 11px;"><i class="fas fa-layer-group"></i> SECTIONS (Click to
+                    collapse)</strong>
                 <div>
-                    <button class="btn-small btn-info" onclick="expandAllSections()" title="Expand All"><i class="fas fa-expand"></i></button>
-                    <button class="btn-small btn-info" onclick="collapseAllSections()" title="Collapse All"><i class="fas fa-compress"></i></button>
+                    <button class="btn-small btn-info" onclick="expandAllSections()" title="Expand All"><i
+                            class="fas fa-expand"></i></button>
+                    <button class="btn-small btn-info" onclick="collapseAllSections()" title="Collapse All"><i
+                            class="fas fa-compress"></i></button>
                     <button class="btn-small btn-add" onclick="addSection()"><i class="fas fa-plus"></i> Add</button>
                 </div>
             </div>
@@ -762,7 +1003,8 @@
                 <h3><i class="fas fa-book"></i> Templates Library</h3>
                 <button class="modal-close" onclick="closeModal('templatesModal')">✕</button>
             </div>
-            <input type="text" class="search-box" placeholder="🔍 Search templates..." id="searchTemplates" oninput="filterTemplates()">
+            <input type="text" class="search-box" placeholder="🔍 Search templates..." id="searchTemplates"
+                oninput="filterTemplates()">
             <div id="templatesList"></div>
         </div>
     </div>
@@ -776,37 +1018,45 @@
             </div>
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: bold;">
-                    <input type="checkbox" id="autoSaveToggle" onchange="toggleAutoSave()" checked> 
+                    <input type="checkbox" id="autoSaveToggle" onchange="toggleAutoSave()" checked>
                     Enable Auto-Save (every 3 seconds)
                 </label>
             </div>
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: bold;">Theme Color</label>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button onclick="changeTheme('blue')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 5px; cursor: pointer;"></button>
-                    <button onclick="changeTheme('green')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #11998e, #38ef7d); border: none; border-radius: 5px; cursor: pointer;"></button>
-                    <button onclick="changeTheme('orange')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #f46b45, #eea849); border: none; border-radius: 5px; cursor: pointer;"></button>
-                    <button onclick="changeTheme('pink')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff6b9d, #c06c84); border: none; border-radius: 5px; cursor: pointer;"></button>
-                    <button onclick="changeTheme('purple')" style="width: 50px; height: 50px; background: linear-gradient(135deg, #8e2de2, #4a00e0); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('blue')"
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('green')"
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #11998e, #38ef7d); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('orange')"
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #f46b45, #eea849); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('pink')"
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #ff6b9d, #c06c84); border: none; border-radius: 5px; cursor: pointer;"></button>
+                    <button onclick="changeTheme('purple')"
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #8e2de2, #4a00e0); border: none; border-radius: 5px; cursor: pointer;"></button>
                 </div>
             </div>
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: bold;">Font Size Multiplier</label>
-                <input type="range" id="fontSizeSlider" min="0.8" max="1.5" step="0.1" value="1" oninput="changeFontSize(this.value)" style="width: 100%;">
+                <input type="range" id="fontSizeSlider" min="0.8" max="1.5" step="0.1" value="1"
+                    oninput="changeFontSize(this.value)" style="width: 100%;">
                 <span id="fontSizeValue">1.0x</span>
             </div>
-            <button onclick="exportAllData()" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 10px;">
+            <button onclick="exportAllData()"
+                style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 10px;">
                 <i class="fas fa-download"></i> Backup All Data
             </button>
-            <button onclick="clearAllData()" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
+            <button onclick="clearAllData()"
+                style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
                 <i class="fas fa-trash"></i> Clear All Data
             </button>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'cheatSheetFiles';
-        const SETTINGS_KEY = 'cheatSheetSettings';
+        const STORAGE_KEY = 'cheatSheetBuilder_Files';
+        const SETTINGS_KEY = 'cheatSheetBuilder_Settings';
         let files = {};
         let currentFileId = null;
         let settings = { theme: 'blue', fontSize: 1, layout: 'compact', zoom: 1, autoSave: true };
@@ -857,7 +1107,7 @@
         // NEW: Auto-save functionality
         function autoSave() {
             if (!settings.autoSave) return;
-            
+
             clearTimeout(autoSaveTimeout);
             autoSaveTimeout = setTimeout(() => {
                 if (currentFileId) {
@@ -916,7 +1166,7 @@
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
                 return;
             }
-            
+
             // Ctrl+S - Save
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
@@ -1019,7 +1269,7 @@
             const bulkBar = document.getElementById('bulkActions');
             const count = selectedItems.size;
             document.getElementById('selectedCount').textContent = count;
-            
+
             if (count > 0) {
                 bulkBar.classList.add('show');
             } else {
@@ -1035,9 +1285,9 @@
 
         function deleteSelectedItems() {
             if (!confirm(`Delete ${selectedItems.size} selected items?`)) return;
-            
+
             saveState();
-            
+
             // Convert to array and sort in reverse to delete from end
             const toDelete = Array.from(selectedItems).map(key => {
                 const [sIdx, iIdx] = key.split('-').map(Number);
@@ -1046,16 +1296,16 @@
                 if (a.sIdx !== b.sIdx) return b.sIdx - a.sIdx;
                 return b.iIdx - a.iIdx;
             });
-            
-            toDelete.forEach(({sIdx, iIdx}) => {
+
+            toDelete.forEach(({ sIdx, iIdx }) => {
                 if (currentData.sections[sIdx] && currentData.sections[sIdx].items[iIdx]) {
                     currentData.sections[sIdx].items.splice(iIdx, 1);
                 }
             });
-            
+
             // Remove empty sections
             currentData.sections = currentData.sections.filter(s => s.items.length > 0);
-            
+
             clearSelection();
             renderEditor();
             updatePreview();
@@ -1134,7 +1384,7 @@
 
         function updateQuickAddSections() {
             const select = document.getElementById('quickSection');
-            select.innerHTML = '<option value="">Select Section</option>' + 
+            select.innerHTML = '<option value="">Select Section</option>' +
                 currentData.sections.map((s, i) => `<option value="${i}">${s.title}</option>`).join('');
         }
 
@@ -1144,9 +1394,9 @@
                 alert('Please select a section');
                 return;
             }
-            
+
             saveState();
-            
+
             const item = {
                 name: document.getElementById('quickName').value || 'New Item',
                 desc: document.getElementById('quickDesc').value || '',
@@ -1156,15 +1406,15 @@
                 note: '',
                 related: ''
             };
-            
+
             currentData.sections[parseInt(sIdx)].items.push(item);
-            
+
             // Clear form
             document.getElementById('quickName').value = '';
             document.getElementById('quickDesc').value = '';
             document.getElementById('quickCode').value = '';
             document.getElementById('quickName').focus();
-            
+
             renderEditor();
             updatePreview();
             autoSave();
@@ -1204,7 +1454,7 @@
                     animation: 150,
                     handle: '.section-box',
                     ghostClass: 'dragging',
-                    onEnd: function(evt) {
+                    onEnd: function (evt) {
                         saveState();
                         const item = currentData.sections.splice(evt.oldIndex, 1)[0];
                         currentData.sections.splice(evt.newIndex, 0, item);
@@ -1223,7 +1473,7 @@
                     animation: 150,
                     handle: '.item-mini',
                     ghostClass: 'dragging',
-                    onEnd: function(evt) {
+                    onEnd: function (evt) {
                         saveState();
                         const item = currentData.sections[sIdx].items.splice(evt.oldIndex, 1)[0];
                         currentData.sections[sIdx].items.splice(evt.newIndex, 0, item);
@@ -1264,7 +1514,7 @@
                     unit: 'mm',
                     format: 'a4'
                 });
-                
+
                 const imgWidth = 210;
                 const pageHeight = 297;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -1282,7 +1532,7 @@
                 }
 
                 pdf.save(`${currentData.title.replace(/\s+/g, '_')}.pdf`);
-                
+
                 btn.innerHTML = '<i class="fas fa-check"></i> Done!';
                 setTimeout(() => {
                     btn.innerHTML = orig;
@@ -1357,17 +1607,17 @@
 
         function renderFilesList(search = '') {
             const container = document.getElementById('filesList');
-            const filtered = Object.keys(files).filter(id => 
+            const filtered = Object.keys(files).filter(id =>
                 files[id].name.toLowerCase().includes(search)
             );
-            
+
             // Sort: favorites first
             filtered.sort((a, b) => {
                 if (favorites.has(a) && !favorites.has(b)) return -1;
                 if (!favorites.has(a) && favorites.has(b)) return 1;
                 return 0;
             });
-            
+
             container.innerHTML = filtered.map(id => `
                 <div class="file-item ${id === currentFileId ? 'active' : ''} ${favorites.has(id) ? 'favorite' : ''}" onclick="loadFile('${id}')">
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
@@ -1386,7 +1636,7 @@
         function createNewFile() {
             const name = prompt('Enter cheat sheet name:', 'My Cheat Sheet');
             if (!name) return;
-            
+
             const id = 'file_' + Date.now();
             files[id] = {
                 name: name,
@@ -1395,9 +1645,11 @@
                     subtitle: "Quick Reference",
                     layout: "compact",
                     sections: [
-                        { title: "Section 1", items: [
-                            { name: "Item 1", desc: "Description", code: "code()", example: "", noteType: "", note: "", related: "" }
-                        ]}
+                        {
+                            title: "Section 1", items: [
+                                { name: "Item 1", desc: "Description", code: "code()", example: "", noteType: "", note: "", related: "" }
+                            ]
+                        }
                     ]
                 }
             };
@@ -1430,7 +1682,7 @@
                 files[currentFileId].data = JSON.parse(JSON.stringify(currentData));
                 saveFiles();
                 renderFilesList();
-                
+
                 const btn = event.target;
                 const orig = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
@@ -1443,7 +1695,7 @@
                 delete files[id];
                 favorites.delete(id);
                 localStorage.setItem(LS_PREFIX + 'cheatSheetFavorites', JSON.stringify([...favorites]));
-                
+
                 if (id === currentFileId) {
                     currentFileId = null;
                     const remaining = Object.keys(files);
@@ -1477,9 +1729,9 @@
                                 <input type="text" value="${section.title}" placeholder="Section Title" oninput="updateSectionTitle(${sIdx}, this.value); autoSave()">
                             </div>
                             ${section.items.map((item, iIdx) => {
-                                const itemKey = `${sIdx}-${iIdx}`;
-                                const isSelected = selectedItems.has(itemKey);
-                                return `
+                    const itemKey = `${sIdx}-${iIdx}`;
+                    const isSelected = selectedItems.has(itemKey);
+                    return `
                                     <div class="item-mini ${isSelected ? 'selected' : ''}" data-item="${iIdx}">
                                         <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
                                             <span style="font-size: 9px; font-weight: bold;">
@@ -1505,7 +1757,7 @@
                                         <input type="text" value="${item.related || ''}" placeholder="Related items" oninput="updateItem(${sIdx}, ${iIdx}, 'related', this.value); autoSave()">
                                     </div>
                                 `;
-                            }).join('')}
+                }).join('')}
                             <button class="btn-small btn-add" style="width: 100%; margin-top: 4px;" onclick="addItem(${sIdx})">
                                 <i class="fas fa-plus"></i> Add Item
                             </button>
@@ -1513,7 +1765,7 @@
                     </div>
                 `;
             }).join('');
-            
+
             setTimeout(() => {
                 initSortable();
                 currentData.sections.forEach((_, idx) => initItemSortable(idx));
@@ -1523,10 +1775,10 @@
         function updatePreview() {
             currentData.title = document.getElementById('sheetTitle').value;
             currentData.subtitle = document.getElementById('sheetSubtitle').value;
-            
+
             document.getElementById('previewTitle').textContent = currentData.title || 'Your Cheat Sheet';
             document.getElementById('previewSubtitle').textContent = currentData.subtitle || '';
-            
+
             const content = document.getElementById('previewContent');
             content.innerHTML = currentData.sections.map((section, sIdx) => {
                 const isCollapsed = collapsedSections.has(sIdx);
@@ -1538,9 +1790,9 @@
                         </div>
                         <div class="section-content ${isCollapsed ? 'collapsed' : ''}">
                             ${section.items.map(item => {
-                                const codeHighlighted = item.code ? hljs.highlightAuto(item.code).value : '';
-                                const exampleHighlighted = item.example ? hljs.highlightAuto(item.example).value : '';
-                                return `
+                    const codeHighlighted = item.code ? hljs.highlightAuto(item.code).value : '';
+                    const exampleHighlighted = item.example ? hljs.highlightAuto(item.example).value : '';
+                    return `
                                     <div class="sheet-item-micro">
                                         <strong>${item.name}</strong>
                                         ${item.desc ? `<p>${item.desc}</p>` : ''}
@@ -1561,7 +1813,7 @@
                                         ${item.related ? `<div class="related-items">→ See also: ${item.related}</div>` : ''}
                                     </div>
                                 `;
-                            }).join('')}
+                }).join('')}
                         </div>
                     </div>
                 `;
@@ -1598,14 +1850,14 @@
 
         function addItem(sIdx) {
             saveState();
-            currentData.sections[sIdx].items.push({ 
-                name: "New", 
-                desc: "", 
-                code: "", 
-                example: "", 
-                noteType: "", 
-                note: "", 
-                related: "" 
+            currentData.sections[sIdx].items.push({
+                name: "New",
+                desc: "",
+                code: "",
+                example: "",
+                noteType: "",
+                note: "",
+                related: ""
             });
             renderEditor();
             updatePreview();
@@ -1718,7 +1970,7 @@
         function importJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
+
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -1755,7 +2007,7 @@
         function filterTemplates() {
             const search = document.getElementById('searchTemplates').value.toLowerCase();
             const list = document.getElementById('templatesList');
-            list.innerHTML = Object.keys(templates).filter(key => 
+            list.innerHTML = Object.keys(templates).filter(key =>
                 templates[key].name.toLowerCase().includes(search) ||
                 templates[key].description.toLowerCase().includes(search)
             ).map(key => {
@@ -1829,4 +2081,5 @@
         loadFiles();
     </script>
 </body>
+
 </html>

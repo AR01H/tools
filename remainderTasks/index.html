@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <script>const LS_PREFIX = "taskRemainder_";
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>taskRemainder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root,
+    [data-theme="dark"] {
+      --bg: #0d0d0f;
+      --surface: #15151a;
+      --surface2: #1e1e26;
+      --surface3: #25252f;
+      --border: #2e2e3a;
+      --border2: #3d3d4d;
+      --text: #f0f0f5;
+      --text2: #9090a8;
+      --text3: #5a5a72;
+      --accent: #7c6af7;
+      --accent2: #9d8fff;
+      --accent-bg: #1d1a35;
+      --accent-bd: #3d356b;
+      --green: #34d17a;
+      --gbg: #0f2a1c;
+      --gbd: #1a3d28;
+      --amber: #f5a623;
+      --abg: #2a1e0a;
+      --abd: #3a2c10;
+      --red: #f56060;
+      --rbg: #2a0f0f;
+      --rbd: #3a1515;
+      --blue: #4ea8f5;
+      --bbg: #0a1a2a;
+      --bbd: #103050;
+      --shadow: 0 4px 32px rgba(0, 0, 0, .55);
+      --overlay: rgba(0, 0, 0, .82);
+      --sw: 230px;
+    }
+
+    [data-theme="light"] {
+      --bg: #f2f2f6;
+      --surface: #fff;
+      --surface2: #f0f0f5;
+      --surface3: #e6e6ee;
+      --border: #dcdce8;
+      --border2: #c4c4d4;
+      --text: #14141e;
+      --text2: #5a5a72;
+      --text3: #9090a8;
+      --accent: #6254e8;
+      --accent2: #7c6af7;
+      --accent-bg: #eeedf9;
+      --accent-bd: #c5c0f5;
+      --green: #1d9e56;
+      --gbg: #eaf7f0;
+      --gbd: #abe8cc;
+      --amber: #c47d0a;
+      --abg: #fdf3e0;
+      --abd: #f5d98a;
+      --red: #d94040;
+      --rbg: #fdeaea;
+      --rbd: #f5b0b0;
+      --blue: #1d78d6;
+      --bbg: #e8f2fd;
+      --bbd: #a8cffa;
+      --shadow: 0 4px 24px rgba(0, 0, 0, .1);
+      --overlay: rgba(40, 40, 60, .55);
+    }
+
+    html,
+    body {
+      height: 100%;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      transition: background .2s, color .2s
+    }
+
+    input,
+    select,
+    textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      border-radius: 8px;
+      padding: 8px 11px;
+      outline: none;
+      transition: border .15s, background .15s;
+      width: 100%
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      background: var(--surface)
+    }
+
+    input[type=checkbox] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0
+    }
+
+    input[type=date],
+    input[type=time] {
+      color-scheme: dark
+    }
+
+    [data-theme="light"] input[type=date],
+    [data-theme="light"] input[type=time] {
+      color-scheme: light
+    }
+
+    select option {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    button {
+      font-family: 'Syne', sans-serif;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all .15s
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.55
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 4px
+    }
+
+    /* layout */
+    .app {
+      display: grid;
+      grid-template-columns: var(--sw) 1fr;
+      height: 100vh;
+      overflow: hidden
+    }
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: transform .25s;
+      z-index: 200
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      min-width: 0
+    }
+
+    /* sidebar */
+    .logo {
+      padding: 17px 15px 15px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .logo-t {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.04em
+    }
+
+    .logo-t span {
+      color: var(--accent)
+    }
+
+    .logo-s {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      margin-top: 2px
+    }
+
+    .ns {
+      padding: 7px 0
+    }
+
+    .nl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 0 13px 5px
+    }
+
+    .ni {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 13px;
+      cursor: pointer;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .12s;
+      user-select: none
+    }
+
+    .ni:hover {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .ni.active {
+      background: var(--accent-bg);
+      color: var(--accent2)
+    }
+
+    .ni .ic {
+      font-size: 13px;
+      width: 17px;
+      text-align: center;
+      flex-shrink: 0
+    }
+
+    .ni .bk {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 20px;
+      font-family: 'DM Mono', monospace;
+      background: var(--surface3);
+      color: var(--text3);
+      flex-shrink: 0
+    }
+
+    .ni.active .bk {
+      background: var(--accent);
+      color: #fff
+    }
+
+    .sb-foot {
+      margin-top: auto;
+      padding: 13px 14px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .pb-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px
+    }
+
+    .pb-row span {
+      font-size: 10px;
+      color: var(--text3);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em
+    }
+
+    .pb {
+      height: 3px;
+      background: var(--surface3);
+      border-radius: 2px;
+      overflow: hidden
+    }
+
+    .pf {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      transition: width .4s
+    }
+
+    .div {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0
+    }
+
+    /* topbar */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-shrink: 0
+    }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text2);
+      font-size: 17px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1
+    }
+
+    .pg-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .sw {
+      position: relative;
+      flex: 1;
+      max-width: 260px;
+      min-width: 80px
+    }
+
+    .sw input {
+      padding-left: 30px;
+      height: 33px;
+      font-size: 12px
+    }
+
+    .sic {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text3);
+      pointer-events: none;
+      font-size: 13px
+    }
+
+    .tr {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap
+    }
+
+    .bp {
+      background: var(--accent);
+      color: #fff
+    }
+
+    .bp:hover {
+      background: var(--accent2);
+      transform: translateY(-1px)
+    }
+
+    .bg {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2)
+    }
+
+    .bg:hover {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .bd {
+      background: var(--rbg);
+      color: var(--red);
+      border: 1px solid var(--rbd)
+    }
+
+    .bd:hover {
+      filter: brightness(1.15)
+    }
+
+    .bs {
+      background: var(--gbg);
+      color: var(--green);
+      border: 1px solid var(--gbd)
+    }
+
+    .bs:hover {
+      filter: brightness(1.15)
+    }
+
+    .bam {
+      background: var(--abg);
+      color: var(--amber);
+      border: 1px solid var(--abd)
+    }
+
+    .bam:hover {
+      filter: brightness(1.15)
+    }
+
+    .bic {
+      width: 31px;
+      height: 31px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2)
+    }
+
+    .bic:hover {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .vtg {
+      display: flex;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden
+    }
+
+    .vb {
+      padding: 5px 10px;
+      font-size: 11px;
+      background: transparent;
+      color: var(--text2);
+      border: none;
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      transition: all .15s
+    }
+
+    .vb.on {
+      background: var(--accent);
+      color: #fff
+    }
+
+    /* content */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+      margin-bottom: 16px
+    }
+
+    .sc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 14px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .sc::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px
+    }
+
+    .sc.ct::before {
+      background: var(--accent)
+    }
+
+    .sc.cp::before {
+      background: var(--amber)
+    }
+
+    .sc.cd::before {
+      background: var(--green)
+    }
+
+    .sc.co::before {
+      background: var(--red)
+    }
+
+    .sl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      margin-bottom: 5px
+    }
+
+    .sn {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1
+    }
+
+    .sn.ct {
+      color: var(--text)
+    }
+
+    .sn.cd {
+      color: var(--green)
+    }
+
+    .sn.cp {
+      color: var(--amber)
+    }
+
+    .sn.co {
+      color: var(--red)
+    }
+
+    /* filter bar */
+    .fb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 13px;
+      flex-wrap: wrap
+    }
+
+    .fl {
+      font-size: 10px;
+      color: var(--text3);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      white-space: nowrap
+    }
+
+    .ch {
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none
+    }
+
+    .ch:hover,
+    .ch.on {
+      background: var(--accent-bg);
+      border-color: var(--accent-bd);
+      color: var(--accent2)
+    }
+
+    .fsep {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      flex-shrink: 0
+    }
+
+    .ss {
+      height: 27px;
+      font-size: 11px;
+      padding: 0 7px;
+      width: auto
+    }
+
+    /* bulk bar */
+    .bkbar {
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-bd);
+      border-radius: 12px;
+      padding: 8px 13px;
+      display: none;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 11px;
+      flex-wrap: wrap
+    }
+
+    .bkbar.show {
+      display: flex
+    }
+
+    .bki {
+      font-size: 12px;
+      color: var(--text2);
+      flex: 1;
+      min-width: 70px
+    }
+
+    .bki strong {
+      color: var(--accent2)
+    }
+
+    /* sections */
+    .sec {
+      margin-bottom: 20px
+    }
+
+    .sh {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      user-select: none;
+      padding: 3px 0
+    }
+
+    .shic {
+      font-size: 15px
+    }
+
+    .sht {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text3)
+    }
+
+    .shc {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      background: var(--surface3);
+      color: var(--text3);
+      padding: 2px 6px;
+      border-radius: 10px
+    }
+
+    .shl {
+      flex: 1;
+      height: 1px;
+      background: var(--border)
+    }
+
+    .shto {
+      font-size: 10px;
+      color: var(--text3);
+      transition: transform .2s;
+      flex-shrink: 0
+    }
+
+    .shto.coll {
+      transform: rotate(-90deg)
+    }
+
+    .tg {
+      display: flex;
+      flex-direction: column;
+      gap: 7px
+    }
+
+    /* task card */
+    .tc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 13px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: border .15s, background .15s;
+      position: relative;
+      overflow: hidden
+    }
+
+    .tc:hover {
+      border-color: var(--border2);
+      background: var(--surface2)
+    }
+
+    .tc.sel {
+      border-color: var(--accent);
+      background: var(--accent-bg)
+    }
+
+    .tc.done {
+      opacity: .55
+    }
+
+    .tcbar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: 2px 0 0 2px
+    }
+
+    .tccb {
+      flex-shrink: 0;
+      padding-top: 1px
+    }
+
+    .tcb {
+      flex: 1;
+      min-width: 0;
+      cursor: pointer
+    }
+
+    .tcr {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    .tct {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      word-break: break-word
+    }
+
+    .tct.done {
+      text-decoration: line-through;
+      color: var(--text3)
+    }
+
+    .pb2 {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      flex-shrink: 0;
+      border: 1px solid
+    }
+
+    .pb2.high {
+      background: var(--rbg);
+      color: var(--red);
+      border-color: var(--rbd)
+    }
+
+    .pb2.medium {
+      background: var(--abg);
+      color: var(--amber);
+      border-color: var(--abd)
+    }
+
+    .pb2.low {
+      background: var(--gbg);
+      color: var(--green);
+      border-color: var(--gbd)
+    }
+
+    .sb2 {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      flex-shrink: 0
+    }
+
+    .st-pending {
+      background: var(--abg);
+      color: var(--amber)
+    }
+
+    .st-in-progress {
+      background: var(--bbg);
+      color: var(--blue)
+    }
+
+    .st-completed {
+      background: var(--gbg);
+      color: var(--green)
+    }
+
+    .st-cancelled {
+      background: var(--surface3);
+      color: var(--text3)
+    }
+
+    .tcd {
+      font-size: 11px;
+      color: var(--text2);
+      margin-top: 4px;
+      line-height: 1.5
+    }
+
+    .tm {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 7px;
+      flex-wrap: wrap
+    }
+
+    .mc {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: var(--text3);
+      background: var(--surface3);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      white-space: nowrap
+    }
+
+    .mc.ov {
+      background: var(--rbg);
+      color: var(--red)
+    }
+
+    .mc.tod {
+      background: var(--abg);
+      color: var(--amber)
+    }
+
+    .tca {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0
+    }
+
+    .ib {
+      width: 27px;
+      height: 27px;
+      border-radius: 7px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .ib:hover {
+      background: var(--surface3);
+      border-color: var(--border);
+      color: var(--text)
+    }
+
+    .ib.del:hover {
+      background: var(--rbg);
+      border-color: var(--rbd);
+      color: var(--red)
+    }
+
+    .ib.ok:hover {
+      background: var(--gbg);
+      border-color: var(--gbd);
+      color: var(--green)
+    }
+
+    /* table */
+    .tw {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 580px
+    }
+
+    th {
+      background: var(--surface2);
+      padding: 8px 11px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      white-space: nowrap
+    }
+
+    td {
+      padding: 9px 11px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      vertical-align: middle
+    }
+
+    tr:hover td {
+      background: var(--surface2)
+    }
+
+    /* modal */
+    .mo {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      backdrop-filter: blur(3px)
+    }
+
+    .mo.open {
+      display: flex
+    }
+
+    .md {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      position: relative
+    }
+
+    .md.sm {
+      max-width: 400px
+    }
+
+    .md.lg {
+      max-width: 720px
+    }
+
+    .mt {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.03em;
+      padding-right: 26px
+    }
+
+    .mx {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 16px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      border-radius: 6px
+    }
+
+    .mx:hover {
+      background: var(--surface2);
+      color: var(--text)
+    }
+
+    .mf {
+      display: flex;
+      gap: 7px;
+      justify-content: flex-end;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border)
+    }
+
+    .fr2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .fr3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 9px
+    }
+
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 12px
+    }
+
+    .fg label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .07em
+    }
+
+    /* bulk add rows */
+    .brow {
+      display: grid;
+      grid-template-columns: 1fr 85px 80px 85px 95px 95px 85px 26px;
+      gap: 5px;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .brow.hdr {
+      background: var(--surface2);
+      padding: 6px 9px;
+      border-radius: 8px;
+      margin-bottom: 7px;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .06em
+    }
+
+    .brwrap {
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 3px
+    }
+
+    .brow input,
+    .brow select {
+      font-size: 11px;
+      padding: 4px 6px;
+      height: 28px
+    }
+
+    .drb {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--rbg);
+      color: var(--red);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0
+    }
+
+    .drb:hover {
+      filter: brightness(1.2)
+    }
+
+    .arb {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px dashed var(--border2);
+      color: var(--text2);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      margin-top: 9px
+    }
+
+    .arb:hover {
+      background: var(--accent-bg);
+      border-color: var(--accent-bd);
+      color: var(--accent2)
+    }
+
+    .sharedbox {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px;
+      margin-bottom: 14px
+    }
+
+    .sharedbox .fg {
+      margin-bottom: 0
+    }
+
+    /* bulk change fields */
+    .bcfield {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .bcfield label {
+      font-size: 11px;
+      font-weight: 600;
+      width: 85px;
+      color: var(--text2);
+      flex-shrink: 0
+    }
+
+    /* empty */
+    .empty {
+      text-align: center;
+      padding: 52px 18px;
+      color: var(--text3)
+    }
+
+    .ei {
+      font-size: 36px;
+      margin-bottom: 11px
+    }
+
+    .et {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 5px
+    }
+
+    .es {
+      font-size: 12px;
+      line-height: 1.6
+    }
+
+    /* toast */
+    #tw {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none
+    }
+
+    .toast {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 11px;
+      padding: 10px 15px;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 290px;
+      pointer-events: all;
+      animation: tIn .22s ease
+    }
+
+    @keyframes tIn {
+      from {
+        opacity: 0;
+        transform: translateX(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0)
+      }
+    }
+
+    @keyframes tOut {
+      from {
+        opacity: 1
+      }
+
+      to {
+        opacity: 0;
+        transform: translateX(12px)
+      }
+    }
+
+    .toast.out {
+      animation: tOut .22s ease forwards
+    }
+
+    .td {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .td.s {
+      background: var(--green)
+    }
+
+    .td.e {
+      background: var(--red)
+    }
+
+    .td.i {
+      background: var(--accent)
+    }
+
+    .td.w {
+      background: var(--amber)
+    }
+
+    /* confirm */
+    .confbox {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 20px;
+      width: 100%;
+      max-width: 340px;
+      box-shadow: var(--shadow)
+    }
+
+    /* sidebar overlay (mobile) */
+    .sbov {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 150
+    }
+
+    /* responsive */
+    @media(max-width:850px) {
+      :root {
+        --sw: 200px
+      }
+    }
+
+    @media(max-width:680px) {
+      .app {
+        grid-template-columns: 1fr
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        transform: translateX(-100%);
+        z-index: 250
+      }
+
+      .sidebar.mopen {
+        transform: translateX(0)
+      }
+
+      .sbov.show {
+        display: block
+      }
+
+      .hamburger {
+        display: block
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .fr2 {
+        grid-template-columns: 1fr
+      }
+
+      .fr3 {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .topbar {
+        padding: 9px 13px;
+        gap: 7px
+      }
+
+      .content {
+        padding: 13px
+      }
+
+      .sw {
+        max-width: 140px
+      }
+
+      .tr .vtg {
+        display: none
+      }
+
+      .brow {
+        grid-template-columns: 1fr 65px 65px 70px 80px 80px 65px 24px
+      }
+
+      .sharedbox {
+        grid-template-columns: 1fr 1fr
+      }
+    }
+
+    @media(max-width:480px) {
+      .stats {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .fr3 {
+        grid-template-columns: 1fr
+      }
+
+      .sw {
+        display: none
+      }
+
+      .sharedbox {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .brow {
+        grid-template-columns: 1fr 55px 55px 60px 70px 70px 55px 22px
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sbov" id="sbov" onclick="closeSB()"></div>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-t">task<span>Remainder</span>_</div>
+        <div class="logo-s">// by husien</div>
+      </div>
+      <div class="ns">
+        <div class="nl">Views</div>
+        <div class="ni active" data-view="all" onclick="setView('all')"> <span class="ic">◉</span>All Tasks <span
+            class="bk" id="nb-all">0</span></div>
+        <div class="ni" data-view="pending" onclick="setView('pending')"> <span class="ic">⏳</span>Pending <span
+            class="bk" id="nb-p">0</span></div>
+        <div class="ni" data-view="in-progress" onclick="setView('in-progress')"><span class="ic">▶</span>In Progress
+          <span class="bk" id="nb-i">0</span>
+        </div>
+        <div class="ni" data-view="completed" onclick="setView('completed')"> <span class="ic">✓</span>Completed <span
+            class="bk" id="nb-d">0</span></div>
+        <div class="ni" data-view="overdue" onclick="setView('overdue')"> <span class="ic">!</span>Overdue <span
+            class="bk" id="nb-o">0</span></div>
+        <div class="ni" data-view="today" onclick="setView('today')"> <span class="ic">☀</span>Today <span class="bk"
+            id="nb-t">0</span></div>
+      </div>
+      <div class="div" style="margin:3px 13px"></div>
+      <div class="ns" style="flex:1">
+        <div class="nl">Categories</div>
+        <div id="catnav"></div>
+        <div class="ni" style="color:var(--text3);font-size:12px" onclick="clearCat()"><span class="ic">✕</span>Clear
+          filter</div>
+      </div>
+      <div class="sb-foot">
+        <div class="pb-row"><span>Progress</span><span style="font-family:'DM Mono',monospace" id="pblbl">0/0</span>
+        </div>
+        <div class="pb">
+          <div class="pf" id="pbfill" style="width:0%"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <button class="hamburger" onclick="toggleSB()">☰</button>
+        <div class="pg-title" id="pgtitle">All Tasks</div>
+        <div class="sw"><span class="sic">⌕</span><input type="text" id="search" placeholder="Search..."
+            oninput="render()"></div>
+        <div class="tr">
+          <div class="vtg"><button class="vb on" id="vcard" onclick="setVM('card')">▦</button><button class="vb"
+              id="vtbl" onclick="setVM('table')">≡</button></div>
+          <button class="bic" id="thmbtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+          <button class="btn bg" onclick="openBOM()">⚡ Bulk Ops</button>
+          <button class="btn bg" onclick="openBAM()">＋＋ Add Many</button>
+          <button class="btn bp" onclick="openAdd()">＋ Add</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="stats">
+          <div class="sc ct">
+            <div class="sl">Total</div>
+            <div class="sn ct" id="stot">0</div>
+          </div>
+          <div class="sc cp">
+            <div class="sl">Pending</div>
+            <div class="sn cp" id="spend">0</div>
+          </div>
+          <div class="sc cd">
+            <div class="sl">Done</div>
+            <div class="sn cd" id="sdone">0</div>
+          </div>
+          <div class="sc co">
+            <div class="sl">Overdue</div>
+            <div class="sn co" id="sover">0</div>
+          </div>
+        </div>
+
+        <div class="fb">
+          <span class="fl">Priority:</span>
+          <div class="ch on" data-pri="all" onclick="setPri('all')">All</div>
+          <div class="ch" data-pri="high" onclick="setPri('high')">🔴 High</div>
+          <div class="ch" data-pri="medium" onclick="setPri('medium')">🟡 Med</div>
+          <div class="ch" data-pri="low" onclick="setPri('low')">🟢 Low</div>
+          <div class="fsep"></div>
+          <span class="fl">Sort:</span>
+          <select class="ss" id="sortsel" onchange="render()">
+            <option value="due">Due Date</option>
+            <option value="priority">Priority</option>
+            <option value="status">Status</option>
+            <option value="title">Title</option>
+            <option value="created">Newest</option>
+          </select>
+          <div class="fsep"></div>
+          <span class="fl">Group:</span>
+          <div class="ch on" data-grp="category" onclick="setGrp('category')">Category</div>
+          <div class="ch" data-grp="priority" onclick="setGrp('priority')">Priority</div>
+          <div class="ch" data-grp="status" onclick="setGrp('status')">Status</div>
+          <div class="ch" data-grp="none" onclick="setGrp('none')">None</div>
+        </div>
+
+        <div class="bkbar" id="bkbar">
+          <input type="checkbox" id="selallcb" onchange="selAll(this.checked)" title="Select all">
+          <div class="bki"><strong id="selcnt">0</strong> selected</div>
+          <button class="btn bs" onclick="bulkSt('completed')">✓ Done</button>
+          <button class="btn bg" onclick="bulkSt('in-progress')" style="padding:5px 9px">▶ Progress</button>
+          <button class="btn bg" onclick="bulkSt('pending')" style="padding:5px 9px">⏳ Pending</button>
+          <button class="btn bam" onclick="openBCM()">✏ Change Fields</button>
+          <button class="btn bd" onclick="bulkDel()">🗑 Delete</button>
+          <button class="btn bg" onclick="clearSel()" style="padding:5px 9px">✕</button>
+        </div>
+
+        <div id="tasklist"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SINGLE ADD/EDIT MODAL -->
+  <div class="mo" id="tmod" onclick="closeTM(event)">
+    <div class="md">
+      <button class="mx" onclick="closeTMD()">✕</button>
+      <div class="mt" id="tmt">Add Task</div>
+      <div class="fg"><label>Title *</label><input id="ft" placeholder="What needs to be done?"></div>
+      <div class="fg"><label>Description</label><textarea id="fd" style="min-height:62px"
+          placeholder="Details..."></textarea></div>
+      <div class="fr2" style="margin-bottom:12px">
+        <div class="fg" style="margin-bottom:0"><label>Category</label>
+          <select id="fcat">
+            <option value="Work">💼 Work</option>
+            <option value="Personal">👤 Personal</option>
+            <option value="Health">❤️ Health</option>
+            <option value="Finance">💰 Finance</option>
+            <option value="Learning">📚 Learning</option>
+            <option value="Shopping">🛒 Shopping</option>
+            <option value="Home">🏠 Home</option>
+            <option value="Other">📌 Other</option>
+          </select>
+        </div>
+        <div class="fg" style="margin-bottom:0"><label>Priority</label>
+          <select id="fpri">
+            <option value="high">🔴 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select id="fst">
+          <option value="pending">⏳ Pending</option>
+          <option value="in-progress">▶ In Progress</option>
+          <option value="completed">✓ Completed</option>
+          <option value="cancelled">✕ Cancelled</option>
+        </select>
+      </div>
+      <div class="fr3" style="margin-bottom:12px">
+        <div class="fg" style="margin-bottom:0"><label>Start Date</label><input type="date" id="fstart"></div>
+        <div class="fg" style="margin-bottom:0"><label>Due Date</label><input type="date" id="fdue"></div>
+        <div class="fg" style="margin-bottom:0"><label>Reminder</label><input type="time" id="frem"></div>
+      </div>
+      <div class="fr2" style="margin-bottom:12px">
+        <div class="fg" style="margin-bottom:0"><label>Location</label><input id="floc" placeholder="Office, Home...">
+        </div>
+        <div class="fg" style="margin-bottom:0"><label>Assigned To</label><input id="fass" placeholder="Name..."></div>
+      </div>
+      <div class="fg"><label>Tags (comma-separated)</label><input id="ftags" placeholder="design, urgent..."></div>
+      <div class="fg"><label>Notes / Links</label><textarea id="fnotes" style="min-height:50px"
+          placeholder="Extra notes..."></textarea></div>
+      <div class="mf">
+        <button class="btn bg" onclick="closeTMD()">Cancel</button>
+        <button class="btn bp" onclick="saveTask()">💾 Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK ADD MODAL -->
+  <div class="mo" id="bam" onclick="closeBAM(event)">
+    <div class="md lg">
+      <button class="mx" onclick="closeBAMD()">✕</button>
+      <div class="mt">＋＋ Bulk Add Tasks</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:11px;line-height:1.6">Set <strong
+          style="color:var(--text)">shared defaults</strong> — they apply to all rows unless you override them per-row.
+        Leave per-row fields blank to use the default.</p>
+      <div class="sharedbox">
+        <div class="fg"><label>Default Category</label>
+          <select id="bacat">
+            <option value="Work">💼 Work</option>
+            <option value="Personal">👤 Personal</option>
+            <option value="Health">❤️ Health</option>
+            <option value="Finance">💰 Finance</option>
+            <option value="Learning">📚 Learning</option>
+            <option value="Shopping">🛒 Shopping</option>
+            <option value="Home">🏠 Home</option>
+            <option value="Other">📌 Other</option>
+          </select>
+        </div>
+        <div class="fg"><label>Default Priority</label>
+          <select id="bapri">
+            <option value="high">🔴 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+        <div class="fg"><label>Default Status</label>
+          <select id="bast">
+            <option value="pending" selected>⏳ Pending</option>
+            <option value="in-progress">▶ Progress</option>
+            <option value="completed">✓ Done</option>
+            <option value="cancelled">✕ Cancelled</option>
+          </select>
+        </div>
+        <div class="fg"><label>Default Due Date</label><input type="date" id="badue"></div>
+        <div class="fg"><label>Default Tags</label><input id="batags" placeholder="tag1, tag2..."></div>
+        <div class="fg"><label>Default Location</label><input id="baloc" placeholder="Office..."></div>
+        <div class="fg"><label>Default Assigned</label><input id="baass" placeholder="Name..."></div>
+        <div class="fg"><label>Default Reminder</label><input type="time" id="barem"></div>
+      </div>
+
+      <div class="brow hdr">
+        <div>Title *</div>
+        <div>Category</div>
+        <div>Priority</div>
+        <div>Status</div>
+        <div>Due Date</div>
+        <div>Tags</div>
+        <div>Location</div>
+        <div></div>
+      </div>
+      <div class="brwrap" id="barows"></div>
+      <button class="arb" onclick="addBR()">＋ Add Row</button>
+
+      <div class="mf">
+        <button class="btn bg" onclick="closeBAMD()">Cancel</button>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:11px;color:var(--text3)" id="bacnt">0 rows</span>
+          <button class="btn bp" onclick="saveBulkAdd()">💾 Add All Tasks</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK OPS MODAL -->
+  <div class="mo" id="bopmod" onclick="closeBOM(event)">
+    <div class="md sm">
+      <button class="mx" onclick="closeBOMD()">✕</button>
+      <div class="mt">⚡ Bulk Operations</div>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:14px;line-height:1.6">Operates on all <strong
+          style="color:var(--text)">filtered visible</strong> tasks (or selected tasks if any checked).</p>
+
+      <div
+        style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">
+        Set Status</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+        <button class="btn bg" onclick="bulkAllSt('completed');closeBOMD()">✓ All → Done</button>
+        <button class="btn bg" onclick="bulkAllSt('in-progress');closeBOMD()">▶ All → Progress</button>
+        <button class="btn bg" onclick="bulkAllSt('pending');closeBOMD()">⏳ All → Pending</button>
+        <button class="btn bg" onclick="bulkAllSt('cancelled');closeBOMD()">✕ All → Cancelled</button>
+      </div>
+
+      <div
+        style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px">
+        Move / Update</div>
+      <div class="fr2" style="margin-bottom:9px">
+        <div class="fg" style="margin-bottom:0"><label>Move to Category</label>
+          <select id="bomcat">
+            <option value="Work">💼 Work</option>
+            <option value="Personal">👤 Personal</option>
+            <option value="Health">❤️ Health</option>
+            <option value="Finance">💰 Finance</option>
+            <option value="Learning">📚 Learning</option>
+            <option value="Shopping">🛒 Shopping</option>
+            <option value="Home">🏠 Home</option>
+            <option value="Other">📌 Other</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end"><button class="btn bp" style="width:100%;justify-content:center"
+            onclick="bulkMoveCat();closeBOMD()">Move</button></div>
+      </div>
+      <div class="fr2" style="margin-bottom:9px">
+        <div class="fg" style="margin-bottom:0"><label>Set Priority</label>
+          <select id="bompri">
+            <option value="high">🔴 High</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end"><button class="btn bp" style="width:100%;justify-content:center"
+            onclick="bulkMovePri();closeBOMD()">Apply</button></div>
+      </div>
+      <div class="fr2" style="margin-bottom:14px">
+        <div class="fg" style="margin-bottom:0"><label>Set Due Date</label><input type="date" id="bomdue"></div>
+        <div style="display:flex;align-items:flex-end"><button class="btn bp" style="width:100%;justify-content:center"
+            onclick="bulkSetDue();closeBOMD()">Set</button></div>
+      </div>
+
+      <div
+        style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">
+        Danger</div>
+      <button class="btn bd" style="width:100%;justify-content:center" onclick="confirmBulkDelAll()">🗑 Delete All
+        Filtered Tasks</button>
+      <div class="mf"><button class="btn bg" onclick="closeBOMD()">Close</button></div>
+    </div>
+  </div>
+
+  <!-- BULK CHANGE MODAL (selected tasks, pick fields) -->
+  <div class="mo" id="bcmod" onclick="closeBCM(event)">
+    <div class="md sm">
+      <button class="mx" onclick="closeBCMD()">✕</button>
+      <div class="mt">✏ Change Selected Tasks</div>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.6">Check each field you want to
+        update. Unchecked fields stay unchanged.</p>
+      <div id="bcfields"></div>
+      <div class="mf">
+        <button class="btn bg" onclick="closeBCMD()">Cancel</button>
+        <button class="btn bp" onclick="applyBC()">Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL MODAL -->
+  <div class="mo" id="detmod" onclick="closeDM(event)">
+    <div class="md sm">
+      <button class="mx" onclick="closeDMD()">✕</button>
+      <div id="detbody"></div>
+    </div>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div class="mo" id="confmod">
+    <div class="confbox">
+      <div style="font-size:14px;font-weight:700;margin-bottom:7px" id="conftit">Confirm</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:16px" id="confmsg"></div>
+      <div style="display:flex;gap:7px;justify-content:flex-end">
+        <button class="btn bg" onclick="resConf(false)">Cancel</button>
+        <button class="btn bd" onclick="resConf(true)">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tw"></div>
+
+  <script>
+    const CATS = {
+      Work: { color: '#4ea8f5', bg: '#0a1a2a', icon: '💼' },
+      Personal: { color: '#c77dff', bg: '#1e1030', icon: '👤' },
+      Health: { color: '#f472b6', bg: '#2a0f1e', icon: '❤️' },
+      Finance: { color: '#34d17a', bg: '#0f2a1c', icon: '💰' },
+      Learning: { color: '#f5a623', bg: '#2a1e0a', icon: '📚' },
+      Shopping: { color: '#fb923c', bg: '#2a1505', icon: '🛒' },
+      Home: { color: '#2dd4bf', bg: '#0a2520', icon: '🏠' },
+      Other: { color: '#9090a8', bg: '#1e1e26', icon: '📌' },
+    };
+    const CATLIST = Object.keys(CATS);
+    const PO = { high: 0, medium: 1, low: 2 };
+    const SO = { pending: 0, 'in-progress': 1, completed: 2, cancelled: 3 };
+
+    let tasks = [], editId = null, curView = 'all', curCat = null, priF = 'all', vm = 'card', grp = 'category', sel = new Set(), coll = new Set(), confCB = null;
+    let theme = localStorage.getItem(LS_PREFIX + 'tr_theme') || 'dark';
+
+    // ── Theme ──
+    function applyTheme() { document.documentElement.setAttribute('data-theme', theme); document.getElementById('thmbtn').textContent = theme === 'dark' ? '🌙' : '☀️'; }
+    function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; localStorage.setItem(LS_PREFIX + 'tr_theme', theme); applyTheme(); }
+
+    // ── Storage ──
+    function load() { try { const d = localStorage.getItem(LS_PREFIX + 'taskRemainder_tasks'); if (d) tasks = JSON.parse(d); } catch { tasks = [] } }
+    function save() { try { localStorage.setItem(LS_PREFIX + 'taskRemainder_tasks', JSON.stringify(tasks)); } catch { } }
+
+    // ── Utils ──
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+    function today() { return new Date().toISOString().split('T')[0]; }
+    function isOv(t) { return t.due && t.due < today() && t.status !== 'completed' && t.status !== 'cancelled'; }
+    function isTod(t) { return t.due === today(); }
+    function fmt(d) { if (!d) return ''; const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; }
+    function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+    // ── Mobile sidebar ──
+    function toggleSB() { const s = document.getElementById('sidebar'), o = document.getElementById('sbov'), op = s.classList.toggle('mopen'); o.classList.toggle('show', op); }
+    function closeSB() { document.getElementById('sidebar').classList.remove('mopen'); document.getElementById('sbov').classList.remove('show'); }
+
+    // ── Filter/Sort ──
+    function getFiltered() {
+      const q = (document.getElementById('search').value || '').toLowerCase().trim();
+      const sort = document.getElementById('sortsel').value;
+      let arr = tasks.filter(t => {
+        if (curView === 'pending' && t.status !== 'pending') return false;
+        if (curView === 'in-progress' && t.status !== 'in-progress') return false;
+        if (curView === 'completed' && t.status !== 'completed') return false;
+        if (curView === 'overdue' && !isOv(t)) return false;
+        if (curView === 'today' && !isTod(t)) return false;
+        if (curCat && t.category !== curCat) return false;
+        if (priF !== 'all' && t.priority !== priF) return false;
+        if (q) { const h = [t.title, t.desc, t.category, t.tags, t.location, t.assign, t.notes].join(' ').toLowerCase(); if (!h.includes(q)) return false; }
+        return true;
+      });
+      if (sort === 'due') arr.sort((a, b) => ((a.due || '9999') > (b.due || '9999') ? 1 : -1));
+      else if (sort === 'priority') arr.sort((a, b) => PO[a.priority] - PO[b.priority]);
+      else if (sort === 'status') arr.sort((a, b) => SO[a.status] - SO[b.status]);
+      else if (sort === 'title') arr.sort((a, b) => a.title.localeCompare(b.title));
+      else arr.sort((a, b) => b.created - a.created);
+      return arr;
+    }
+
+    // ── Stats ──
+    function updateStats() {
+      const tot = tasks.length, done = tasks.filter(t => t.status === 'completed').length;
+      const pend = tasks.filter(t => t.status === 'pending').length, prog = tasks.filter(t => t.status === 'in-progress').length;
+      const over = tasks.filter(t => isOv(t)).length, tod = tasks.filter(t => isTod(t)).length;
+      document.getElementById('stot').textContent = tot;
+      document.getElementById('sdone').textContent = done;
+      document.getElementById('spend').textContent = pend;
+      document.getElementById('sover').textContent = over;
+      document.getElementById('nb-all').textContent = tot;
+      document.getElementById('nb-p').textContent = pend;
+      document.getElementById('nb-i').textContent = prog;
+      document.getElementById('nb-d').textContent = done;
+      document.getElementById('nb-o').textContent = over;
+      document.getElementById('nb-t').textContent = tod;
+      const pct = tot ? Math.round(done / tot * 100) : 0;
+      document.getElementById('pbfill').style.width = pct + '%';
+      document.getElementById('pblbl').textContent = done + '/' + tot;
+      document.getElementById('catnav').innerHTML = CATLIST.map(c => {
+        const cnt = tasks.filter(t => t.category === c).length;
+        return `<div class="ni${curCat === c ? ' active' : ''}" onclick="setCat('${c}')"><span class="ic">${CATS[c].icon}</span>${c}<span class="bk">${cnt}</span></div>`;
+      }).join('');
+    }
+
+    // ── Render ──
+    function render() {
+      updateStats(); updateBKBar();
+      const arr = getFiltered();
+      const el = document.getElementById('tasklist');
+      if (!arr.length) { el.innerHTML = '<div class="empty"><div class="ei">📭</div><div class="et">No tasks here</div><div class="es">Use "+ Add" for single tasks or "++ Add Many" for bulk.</div></div>'; return; }
+      if (vm === 'table') { renderTable(arr, el); return; }
+      renderCards(arr, el);
+    }
+
+    function renderCards(arr, el) {
+      if (grp === 'none') { el.innerHTML = '<div class="tg">' + arr.map(taskCard).join('') + '</div>'; return; }
+      let groups = {};
+      if (grp === 'category') CATLIST.forEach(c => { if (arr.some(t => t.category === c)) groups[c] = arr.filter(t => t.category === c); });
+      else if (grp === 'priority') ['high', 'medium', 'low'].forEach(p => { if (arr.some(t => t.priority === p)) groups[p] = arr.filter(t => t.priority === p); });
+      else['pending', 'in-progress', 'completed', 'cancelled'].forEach(s => { if (arr.some(t => t.status === s)) groups[s] = arr.filter(t => t.status === s); });
+      el.innerHTML = Object.entries(groups).map(([k, ts]) => {
+        const m = CATS[k] || { icon: '◉' };
+        const sid = 's_' + k.replace(/[\s-]/g, '_');
+        const co = coll.has(sid);
+        return `<div class="sec"><div class="sh" onclick="togSec('${sid}')"><span class="shic">${m.icon || '◉'}</span><span class="sht">${k}</span><span class="shc">${ts.length}</span><div class="shl"></div><span class="shto${co ? ' coll' : ''}" id="sto-${sid}">▼</span></div><div class="tg" id="${sid}" style="display:${co ? 'none' : 'flex'}">${ts.map(taskCard).join('')}</div></div>`;
+      }).join('');
+    }
+
+    function taskCard(t) {
+      const ov = isOv(t), tod = isTod(t), s = sel.has(t.id), cat = CATS[t.category] || CATS.Other, done = t.status === 'completed';
+      return `<div class="tc${s ? ' sel' : ''}${done ? ' done' : ''}" id="tc-${t.id}">
+    <div class="tcbar" style="background:${cat.color}"></div>
+    <div class="tccb"><input type="checkbox" ${s ? 'checked' : ''} onchange="togSel('${t.id}',this.checked)"></div>
+    <div class="tcb" onclick="openDet('${t.id}')">
+      <div class="tcr">
+        <span class="tct${done ? ' done' : ''}">${esc(t.title)}</span>
+        <span class="pb2 ${t.priority}">${t.priority}</span>
+        <span class="sb2 st-${t.status.replace(' ', '-')}">${t.status}</span>
+      </div>
+      ${t.desc ? `<div class="tcd">${esc(t.desc.slice(0, 90))}${t.desc.length > 90 ? '…' : ''}</div>` : ''}
+      <div class="tm">
+        ${t.due ? `<span class="mc ${ov ? 'ov' : tod ? 'tod' : ''}">📅 ${fmt(t.due)}${ov ? ' · overdue' : tod ? ' · today' : ''}</span>` : ''}
+        ${t.start ? `<span class="mc">▶ ${fmt(t.start)}</span>` : ''}
+        ${t.remind ? `<span class="mc">🔔 ${t.remind}</span>` : ''}
+        ${t.location ? `<span class="mc">📍 ${esc(t.location)}</span>` : ''}
+        ${t.assign ? `<span class="mc">👤 ${esc(t.assign)}</span>` : ''}
+        ${t.tags ? t.tags.split(',').map(g => `<span class="mc">#${esc(g.trim())}</span>`).join('') : ''}
+      </div>
+    </div>
+    <div class="tca">
+      <button class="ib ok" onclick="qDone('${t.id}')">${done ? '↩' : '✓'}</button>
+      <button class="ib"    onclick="openEdit('${t.id}')">✏</button>
+      <button class="ib del" onclick="confDel('${t.id}')">🗑</button>
+    </div>
+  </div>`;
+    }
+
+    function renderTable(arr, el) {
+      el.innerHTML = `<div class="tw"><table><thead><tr>
+    <th><input type="checkbox" id="tblcb" onchange="selAll(this.checked)"></th>
+    <th>Title</th><th>Cat</th><th>Priority</th><th>Status</th><th>Due</th><th>Location</th><th>Tags</th><th>Actions</th>
+  </tr></thead><tbody>${arr.map(t => {
+        const ov = isOv(t), done = t.status === 'completed', cat = CATS[t.category] || CATS.Other;
+        return `<tr>
+      <td><input type="checkbox" ${sel.has(t.id) ? 'checked' : ''} onchange="togSel('${t.id}',this.checked)"></td>
+      <td><div style="font-weight:600;font-size:12px;${done ? 'text-decoration:line-through;color:var(--text3)' : ''};cursor:pointer" onclick="openDet('${t.id}')">${esc(t.title)}</div>${t.desc ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">${esc(t.desc.slice(0, 45))}${t.desc.length > 45 ? '…' : ''}</div>` : ''}</td>
+      <td style="color:${cat.color};font-size:11px;font-weight:600">${cat.icon} ${t.category}</td>
+      <td><span class="pb2 ${t.priority}">${t.priority}</span></td>
+      <td><span class="sb2 st-${t.status.replace(' ', '-')}">${t.status}</span></td>
+      <td style="font-size:11px;${ov ? 'color:var(--red)' : ''}">${t.due ? fmt(t.due) + (ov ? ' ⚠' : '') : '—'}</td>
+      <td style="font-size:11px;color:var(--text2)">${t.location ? esc(t.location) : '—'}</td>
+      <td style="font-size:10px">${t.tags ? t.tags.split(',').map(g => `<span class="mc">#${esc(g.trim())}</span>`).join(' ') : '—'}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="ib ok" onclick="qDone('${t.id}')">${done ? '↩' : '✓'}</button>
+        <button class="ib"    onclick="openEdit('${t.id}')">✏</button>
+        <button class="ib del" onclick="confDel('${t.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+      }).join('')}</tbody></table></div>`;
+      const cb = document.getElementById('tblcb');
+      if (cb) cb.checked = arr.length > 0 && arr.every(t => sel.has(t.id));
+    }
+
+    // ── Section toggle ──
+    function togSec(sid) {
+      if (coll.has(sid)) coll.delete(sid); else coll.add(sid);
+      const e = document.getElementById(sid), t = document.getElementById('sto-' + sid);
+      if (e) e.style.display = coll.has(sid) ? 'none' : 'flex';
+      if (t) t.classList.toggle('coll', coll.has(sid));
+    }
+
+    // ── Selection ──
+    function togSel(id, chk) {
+      if (chk) sel.add(id); else sel.delete(id);
+      const e = document.getElementById('tc-' + id); if (e) e.classList.toggle('sel', chk);
+      updateBKBar();
+    }
+    function selAll(chk) { const arr = getFiltered(); if (chk) arr.forEach(t => sel.add(t.id)); else sel.clear(); updateBKBar(); render(); }
+    function clearSel() { sel.clear(); updateBKBar(); render(); }
+    function updateBKBar() {
+      const bar = document.getElementById('bkbar'), cnt = sel.size;
+      bar.classList.toggle('show', cnt > 0);
+      document.getElementById('selcnt').textContent = cnt;
+      const cb = document.getElementById('selallcb'), arr = getFiltered();
+      if (cb) cb.checked = arr.length > 0 && arr.every(t => sel.has(t.id));
+    }
+
+    // ── View controls ──
+    function setView(v) {
+      curView = v; curCat = null;
+      document.querySelectorAll('.ni[data-view]').forEach(e => e.classList.toggle('active', e.dataset.view === v));
+      const titles = { all: 'All Tasks', pending: 'Pending', 'in-progress': 'In Progress', completed: 'Completed', overdue: 'Overdue', today: 'Today' };
+      document.getElementById('pgtitle').textContent = titles[v] || 'Tasks';
+      closeSB(); render();
+    }
+    function setCat(c) {
+      curCat = c; curView = 'all';
+      document.querySelectorAll('.ni[data-view]').forEach(e => e.classList.remove('active'));
+      document.getElementById('pgtitle').textContent = (CATS[c]?.icon || '') + ' ' + c;
+      closeSB(); render();
+    }
+    function clearCat() { curCat = null; document.getElementById('pgtitle').textContent = 'All Tasks'; render(); }
+    function setPri(p) { priF = p; document.querySelectorAll('.ch[data-pri]').forEach(e => e.classList.toggle('on', e.dataset.pri === p)); render(); }
+    function setGrp(g) { grp = g; document.querySelectorAll('.ch[data-grp]').forEach(e => e.classList.toggle('on', e.dataset.grp === g)); render(); }
+    function setVM(m) { vm = m; document.getElementById('vcard').classList.toggle('on', m === 'card'); document.getElementById('vtbl').classList.toggle('on', m === 'table'); render(); }
+
+    // ── Add / Edit ──
+    function openAdd() {
+      editId = null;
+      document.getElementById('tmt').textContent = 'Add Task';
+      ['ft', 'fd', 'floc', 'ftags', 'fstart', 'fdue', 'frem', 'fass', 'fnotes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('fcat').value = 'Work';
+      document.getElementById('fpri').value = 'medium';
+      document.getElementById('fst').value = 'pending';
+      document.getElementById('tmod').classList.add('open');
+      setTimeout(() => document.getElementById('ft').focus(), 80);
+    }
+    function openEdit(id) {
+      editId = id; const t = tasks.find(x => x.id === id); if (!t) return;
+      document.getElementById('tmt').textContent = 'Edit Task';
+      document.getElementById('ft').value = t.title;
+      document.getElementById('fd').value = t.desc || '';
+      document.getElementById('fcat').value = t.category;
+      document.getElementById('fpri').value = t.priority;
+      document.getElementById('fst').value = t.status;
+      document.getElementById('fstart').value = t.start || '';
+      document.getElementById('fdue').value = t.due || '';
+      document.getElementById('frem').value = t.remind || '';
+      document.getElementById('floc').value = t.location || '';
+      document.getElementById('fass').value = t.assign || '';
+      document.getElementById('ftags').value = t.tags || '';
+      document.getElementById('fnotes').value = t.notes || '';
+      document.getElementById('tmod').classList.add('open');
+      setTimeout(() => document.getElementById('ft').focus(), 80);
+    }
+    function saveTask() {
+      const title = document.getElementById('ft').value.trim();
+      if (!title) { toast('Title is required', 'e'); return; }
+      const t = {
+        id: editId || uid(), title,
+        desc: document.getElementById('fd').value.trim(),
+        category: document.getElementById('fcat').value,
+        priority: document.getElementById('fpri').value,
+        status: document.getElementById('fst').value,
+        start: document.getElementById('fstart').value,
+        due: document.getElementById('fdue').value,
+        remind: document.getElementById('frem').value,
+        location: document.getElementById('floc').value.trim(),
+        assign: document.getElementById('fass').value.trim(),
+        tags: document.getElementById('ftags').value.trim(),
+        notes: document.getElementById('fnotes').value.trim(),
+        created: editId ? (tasks.find(x => x.id === editId) || { created: Date.now() }).created : Date.now(),
+        updated: Date.now()
+      };
+      if (editId) { const i = tasks.findIndex(x => x.id === editId); if (i > -1) tasks[i] = t; }
+      else tasks.unshift(t);
+      save(); render(); closeTMD(); toast(editId ? 'Updated ✓' : 'Added ✓', 's');
+    }
+    function qDone(id) { const t = tasks.find(x => x.id === id); if (!t) return; t.status = t.status === 'completed' ? 'pending' : 'completed'; t.updated = Date.now(); save(); render(); toast(t.status === 'completed' ? '✓ Done' : '↩ Reopened', 's'); }
+    function closeTM(e) { if (e.target === document.getElementById('tmod')) closeTMD(); }
+    function closeTMD() { document.getElementById('tmod').classList.remove('open'); }
+
+    // ── Delete ──
+    function confDel(id) { const t = tasks.find(x => x.id === id); openConf(`Delete "${t ? esc(t.title) : 'task'}"?`, 'Cannot be undone.', () => { tasks = tasks.filter(x => x.id !== id); sel.delete(id); save(); render(); toast('Deleted', 'i'); }); }
+
+    // ── Detail ──
+    function openDet(id) {
+      const t = tasks.find(x => x.id === id); if (!t) return;
+      const cat = CATS[t.category] || CATS.Other, ov = isOv(t);
+      document.getElementById('detbody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:24px">${cat.icon}</span>
+      <div><div style="font-size:15px;font-weight:700;letter-spacing:-0.02em">${esc(t.title)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${t.category} · ${new Date(t.created).toLocaleDateString()}</div></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      <span class="pb2 ${t.priority}">${t.priority}</span><span class="sb2 st-${t.status.replace(' ', '-')}">${t.status}</span>
+    </div>
+    ${t.desc ? `<div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:11px">${esc(t.desc)}</div>` : ''}
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      ${t.start ? `<tr><td style="color:var(--text3);padding:4px 0;width:90px">Start</td><td>${fmt(t.start)}</td></tr>` : ''}
+      ${t.due ? `<tr><td style="color:var(--text3);padding:4px 0">Due</td><td style="${ov ? 'color:var(--red)' : ''}">${fmt(t.due)}${ov ? ' ⚠ overdue' : isTod(t) ? ' · today' : ''}</td></tr>` : ''}
+      ${t.remind ? `<tr><td style="color:var(--text3);padding:4px 0">Reminder</td><td>🔔 ${t.remind}</td></tr>` : ''}
+      ${t.location ? `<tr><td style="color:var(--text3);padding:4px 0">Location</td><td>📍 ${esc(t.location)}</td></tr>` : ''}
+      ${t.assign ? `<tr><td style="color:var(--text3);padding:4px 0">Assigned</td><td>👤 ${esc(t.assign)}</td></tr>` : ''}
+      ${t.tags ? `<tr><td style="color:var(--text3);padding:4px 0">Tags</td><td>${t.tags.split(',').map(g => `<span class="mc">#${esc(g.trim())}</span>`).join(' ')}</td></tr>` : ''}
+    </table>
+    ${t.notes ? `<div style="margin-top:11px;background:var(--surface2);border-radius:8px;padding:10px;font-size:12px;color:var(--text2);line-height:1.6"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Notes</div>${esc(t.notes)}</div>` : ''}
+    <div style="display:flex;gap:6px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+      ${t.status !== 'completed' ? `<button class="btn bs" onclick="qDone('${t.id}');closeDMD()">✓ Complete</button>` : ''}
+      <button class="btn bg" onclick="openEdit('${t.id}');closeDMD()">✏ Edit</button>
+      <button class="btn bd" onclick="closeDMD();confDel('${t.id}')">🗑 Delete</button>
+    </div>`;
+      document.getElementById('detmod').classList.add('open');
+    }
+    function closeDM(e) { if (e.target === document.getElementById('detmod')) closeDMD(); }
+    function closeDMD() { document.getElementById('detmod').classList.remove('open'); }
+
+    // ── Bulk Add ──
+    let brCount = 0;
+    function openBAM() {
+      document.getElementById('barows').innerHTML = ''; brCount = 0;
+      ['bacat', 'bapri', 'bast', 'badue', 'batags', 'baloc', 'baass', 'barem'].forEach(id => { const e = document.getElementById(id); if (e.tagName === 'SELECT') e.selectedIndex = 0; else e.value = ''; });
+      document.getElementById('bacat').value = 'Work';
+      document.getElementById('bapri').value = 'medium';
+      document.getElementById('bast').value = 'pending';
+      addBR(); addBR(); addBR();
+      document.getElementById('bam').classList.add('open');
+    }
+    function addBR() {
+      brCount++; const rid = `br${brCount}`;
+      const wrap = document.getElementById('barows');
+      const row = document.createElement('div'); row.className = 'brow'; row.id = rid;
+      row.innerHTML = `
+    <input placeholder="Task title *" class="brt">
+    <select class="brc">${CATLIST.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+    <select class="brp"><option value="">— default</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+    <select class="brs"><option value="">— default</option><option value="pending">Pending</option><option value="in-progress">In Progress</option><option value="completed">Done</option><option value="cancelled">Cancelled</option></select>
+    <input type="date" class="brd">
+    <input class="brtg" placeholder="tags...">
+    <input class="brl" placeholder="location...">
+    <button class="drb" onclick="removeBR('${rid}')">✕</button>`;
+      wrap.appendChild(row); updBACount();
+    }
+    function removeBR(id) { const e = document.getElementById(id); if (e) e.remove(); updBACount(); }
+    function updBACount() { const c = document.querySelectorAll('#barows .brow').length; document.getElementById('bacnt').textContent = c + ' row' + (c !== 1 ? 's' : ''); }
+    function saveBulkAdd() {
+      const rows = document.querySelectorAll('#barows .brow');
+      const dc = document.getElementById('bacat').value;
+      const dp = document.getElementById('bapri').value;
+      const ds = document.getElementById('bast').value;
+      const dd = document.getElementById('badue').value;
+      const dt = document.getElementById('batags').value.trim();
+      const dl = document.getElementById('baloc').value.trim();
+      const da = document.getElementById('baass').value.trim();
+      const dr = document.getElementById('barem').value;
+      const newT = []; let skip = 0;
+      rows.forEach((row, i) => {
+        const title = (row.querySelector('.brt').value || '').trim();
+        if (!title) { skip++; return; }
+        newT.push({
+          id: uid(), title,
+          category: row.querySelector('.brc').value || dc,
+          priority: row.querySelector('.brp').value || dp,
+          status: row.querySelector('.brs').value || ds,
+          due: row.querySelector('.brd').value || dd,
+          tags: row.querySelector('.brtg').value.trim() || dt,
+          location: row.querySelector('.brl').value.trim() || dl,
+          assign: da, remind: dr, desc: '', start: '', notes: '',
+          created: Date.now() + i, updated: Date.now()
+        });
+      });
+      if (!newT.length) { toast('Add at least one title', 'e'); return; }
+      tasks.unshift(...newT); save(); render(); closeBAMD();
+      toast(`${newT.length} task${newT.length > 1 ? 's' : ''} added${skip ? ' (' + skip + ' skipped)' : ''}  ✓`, 's');
+    }
+    function closeBAM(e) { if (e.target === document.getElementById('bam')) closeBAMD(); }
+    function closeBAMD() { document.getElementById('bam').classList.remove('open'); }
+
+    // ── Bulk Ops Modal ──
+    function openBOM() { document.getElementById('bopmod').classList.add('open'); }
+    function closeBOM(e) { if (e.target === document.getElementById('bopmod')) closeBOMD(); }
+    function closeBOMD() { document.getElementById('bopmod').classList.remove('open'); }
+
+    // ── Bulk Change Modal ──
+    function openBCM() {
+      if (!sel.size) { toast('Select tasks first', 'w'); return; }
+      const catOpts = CATLIST.map(c => `<option value="${c}">${CATS[c].icon} ${c}</option>`).join('');
+      document.getElementById('bcfields').innerHTML = `
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Updating <strong style="color:var(--text)">${sel.size} task${sel.size > 1 ? 's' : ''}</strong>. Checked fields will be changed.</div>
+    ${bcf('bccat', 'Category', 'select', `${catOpts}`)}
+    ${bcf('bcpri', 'Priority', 'select', '<option value="high">🔴 High</option><option value="medium">🟡 Medium</option><option value="low">🟢 Low</option>')}
+    ${bcf('bcst', 'Status', 'select', '<option value="pending">⏳ Pending</option><option value="in-progress">▶ In Progress</option><option value="completed">✓ Completed</option><option value="cancelled">✕ Cancelled</option>')}
+    ${bcf('bcdue', 'Due Date', 'date')}
+    ${bcf('bctags', 'Tags', 'text', '', 'tag1, tag2...')}
+    ${bcf('bcloc', 'Location', 'text', '', 'Office...')}
+    ${bcf('bcass', 'Assigned', 'text', '', 'Name...')}
+    ${bcf('bcrem', 'Reminder', 'time')}
+  `;
+      document.getElementById('bcmod').classList.add('open');
+    }
+    function bcf(id, lbl, type, opts = '', ph = '') {
+      if (type === 'select') return `<div class="bcfield"><input type="checkbox" id="ck-${id}"><label for="ck-${id}">${lbl}</label><select id="${id}-v" style="flex:1;font-size:11px;padding:5px 8px;height:28px">${opts}</select></div>`;
+      return `<div class="bcfield"><input type="checkbox" id="ck-${id}"><label for="ck-${id}">${lbl}</label><input type="${type}" id="${id}-v" placeholder="${ph}" style="flex:1;font-size:11px;padding:5px 8px;height:28px"></div>`;
+    }
+    function applyBC() {
+      const fields = [['bccat', 'category'], ['bcpri', 'priority'], ['bcst', 'status'], ['bcdue', 'due'], ['bctags', 'tags'], ['bcloc', 'location'], ['bcass', 'assign'], ['bcrem', 'remind']];
+      const ch = {};
+      fields.forEach(([id, key]) => { const cb = document.getElementById('ck-' + id); if (cb && cb.checked) { const v = document.getElementById(id + '-v').value; if (v !== undefined) ch[key] = v; } });
+      if (!Object.keys(ch).length) { toast('Check at least one field', 'w'); return; }
+      tasks.filter(t => sel.has(t.id)).forEach(t => { Object.assign(t, ch); t.updated = Date.now(); });
+      save(); clearSel(); render(); closeBCMD(); toast('Selected tasks updated ✓', 's');
+    }
+    function closeBCM(e) { if (e.target === document.getElementById('bcmod')) closeBCMD(); }
+    function closeBCMD() { document.getElementById('bcmod').classList.remove('open'); }
+
+    // ── Bulk actions ──
+    function getTarget() { return sel.size > 0 ? tasks.filter(t => sel.has(t.id)) : getFiltered(); }
+    function bulkSt(s) { const arr = tasks.filter(t => sel.has(t.id)); if (!arr.length) { toast('Select tasks first', 'w'); return; } arr.forEach(t => { t.status = s; t.updated = Date.now(); }); save(); clearSel(); render(); toast(arr.length + ' → ' + s, 's'); }
+    function bulkAllSt(s) { const arr = getFiltered(); arr.forEach(t => { t.status = s; t.updated = Date.now(); }); save(); render(); toast(arr.length + ' → ' + s, 's'); }
+    function bulkMoveCat() { const c = document.getElementById('bomcat').value, arr = getTarget(); arr.forEach(t => { t.category = c; t.updated = Date.now(); }); save(); clearSel(); render(); toast(arr.length + ' → ' + c, 's'); }
+    function bulkMovePri() { const p = document.getElementById('bompri').value, arr = getTarget(); arr.forEach(t => { t.priority = p; t.updated = Date.now(); }); save(); clearSel(); render(); toast(arr.length + ' → ' + p, 's'); }
+    function bulkSetDue() { const d = document.getElementById('bomdue').value; if (!d) { toast('Pick a date', 'e'); return; } const arr = getTarget(); arr.forEach(t => { t.due = d; t.updated = Date.now(); }); save(); clearSel(); render(); toast(arr.length + ' due date set', 's'); }
+    function bulkDel() { const cnt = sel.size; if (!cnt) { toast('Select tasks first', 'w'); return; } openConf('Delete ' + cnt + ' tasks?', 'Cannot be undone.', () => { tasks = tasks.filter(t => !sel.has(t.id)); sel.clear(); save(); render(); toast(cnt + ' deleted', 'i'); }); }
+    function confirmBulkDelAll() { const arr = getFiltered(); openConf('Delete all ' + arr.length + ' filtered tasks?', 'Cannot be undone.', () => { const ids = new Set(arr.map(t => t.id)); tasks = tasks.filter(t => !ids.has(t.id)); sel.clear(); save(); closeBOMD(); render(); toast(arr.length + ' deleted', 'i'); }); }
+
+    // ── Confirm ──
+    function openConf(tit, msg, cb) { document.getElementById('conftit').textContent = tit; document.getElementById('confmsg').textContent = msg; confCB = cb; document.getElementById('confmod').classList.add('open'); }
+    function resConf(yes) { document.getElementById('confmod').classList.remove('open'); if (yes && confCB) confCB(); confCB = null; }
+
+    // ── Toast ──
+    function toast(msg, type = 'i') {
+      const w = document.getElementById('tw'), el = document.createElement('div');
+      el.className = 'toast'; el.innerHTML = `<span class="td ${type}"></span>${esc(msg)}`;
+      w.appendChild(el); setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 240); }, 2400);
+    }
+
+    // ── Keyboard shortcuts ──
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeTMD(); closeBAMD(); closeBOMD(); closeBCMD(); closeDMD(); resConf(false); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openAdd(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('search').focus(); }
+    });
+
+    // ── Init ──
+    applyTheme();
+    load();
+    render();
+  </script>
+</body>
+
+</html>

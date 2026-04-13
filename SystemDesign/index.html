@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>System Design Pro</title>
+  <title>System Design</title>
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600&family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
@@ -448,7 +448,7 @@
       font-weight: 700;
       background: var(--accentBg);
       color: var(--accentL);
-      border: 1px solid rgba(107,95,255,.25);
+      border: 1px solid rgba(107, 95, 255, .25);
       cursor: default;
     }
 
@@ -1076,14 +1076,67 @@
       color: var(--accent);
       background: var(--accentBg)
     }
-    
-    #notePreview { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.6; padding:14px; background:var(--bg1); border:1px solid var(--border); border-radius:10px; width:100%; min-height:120px; overflow-y:auto; }
-    #notePreview h1, #notePreview h2, #notePreview h3 { color: var(--text); margin-top: 10px; margin-bottom: 6px; font-weight: 700; }
-    #notePreview p { margin-bottom: 10px; color: var(--text2); }
-    #notePreview ul, #notePreview ol { margin-left: 20px; margin-bottom: 10px; color: var(--text2); }
-    #notePreview code { background: var(--bg4); padding: 2px 5px; border-radius: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accentL); }
-    #notePreview pre { background: var(--bg0); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; overflow-x: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text2); }
-    #notePreview blockquote { border-left: 3px solid var(--orange); padding-left: 10px; color: var(--text3); }
+
+    #notePreview {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 14px;
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 100%;
+      min-height: 120px;
+      overflow-y: auto;
+    }
+
+    #notePreview h1,
+    #notePreview h2,
+    #notePreview h3 {
+      color: var(--text);
+      margin-top: 10px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    #notePreview p {
+      margin-bottom: 10px;
+      color: var(--text2);
+    }
+
+    #notePreview ul,
+    #notePreview ol {
+      margin-left: 20px;
+      margin-bottom: 10px;
+      color: var(--text2);
+    }
+
+    #notePreview code {
+      background: var(--bg4);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--accentL);
+    }
+
+    #notePreview pre {
+      background: var(--bg0);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--text2);
+    }
+
+    #notePreview blockquote {
+      border-left: 3px solid var(--orange);
+      padding-left: 10px;
+      color: var(--text3);
+    }
 
     .del-btn {
       background: none;
@@ -1119,7 +1172,8 @@
     .branch-col::before {
       content: '';
       position: absolute;
-      top: 5px; bottom: 5px;
+      top: 5px;
+      bottom: 5px;
       left: 50%;
       width: 2px;
       background: color-mix(in srgb, var(--purple) 30%, transparent);
@@ -1427,7 +1481,7 @@
 
   <div class="topbar">
     <div class="logo">
-      <div class="logo-mark">⬡</div>ArchFlow
+      <div class="logo-mark">⬡</div>System Design
     </div>
     <div class="tb-div"></div>
     <input class="proj-name" id="projName" value="My System Design" spellcheck="false">
@@ -1447,7 +1501,8 @@
           <div class="drop-item" onclick="exportImage('hlArea')">🔷 PNG — flow only</div>
           <div class="drop-sep"></div>
           <div class="drop-item" onclick="saveJSON()">💾 Save Full Project (.json)</div>
-          <label class="drop-item" style="cursor:pointer;margin:0">📂 Load Full Project <input type="file" accept=".json" style="display:none" onchange="loadJSON(event)"></label>
+          <label class="drop-item" style="cursor:pointer;margin:0">📂 Load Full Project <input type="file"
+              accept=".json" style="display:none" onchange="loadJSON(event)"></label>
           <div class="drop-sep"></div>
           <div class="drop-item" onclick="exportMermaid()">🧜‍♂️ Copy Mermaid.js Code</div>
         </div>
@@ -1464,7 +1519,8 @@
           <div class="sb-label">Architecture Nodes</div>
           <button class="sb-toggle" onclick="toggleSidebar()" title="Collapse sidebar" id="sbToggleBtn">‹</button>
         </div>
-        <button class="btn" id="addNodeSbBtn" style="width:100%;margin-top:6px" onclick="openAddNode()">＋ Add Node</button>
+        <button class="btn" id="addNodeSbBtn" style="width:100%;margin-top:6px" onclick="openAddNode()">＋ Add
+          Node</button>
         <input class="sb-search" id="sbSearch" placeholder="🔍 Search features…" oninput="renderSidebar()">
       </div>
       <div class="sb-list" id="sbList"></div>
@@ -1479,7 +1535,9 @@
         <div class="dash-stat"><span class="dash-val" id="dWip" style="color:var(--orange)">0</span> WIP</div>
         <div class="dash-stat"><span class="dash-val" id="dP0" style="color:var(--red)">0</span> P0 open</div>
         <div class="dash-stat"><span class="dash-val" id="dEst" style="color:var(--purple)">0h</span> Est.</div>
-        <div class="dash-prog"><div class="dash-prog-fill" id="dProg" style="width:0%"></div></div>
+        <div class="dash-prog">
+          <div class="dash-prog-fill" id="dProg" style="width:0%"></div>
+        </div>
         <div class="dash-stat" id="dPct" style="font-size:12px;font-weight:800;color:var(--text2)">0% done</div>
       </div>
 
@@ -1522,9 +1580,11 @@
                 <button class="tab" onclick="showTab('note')">📝 Notes</button>
               </div>
               <div class="tag-row" id="tagRow">
-                <span style="font-size:9px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:.7px">Tags:</span>
+                <span
+                  style="font-size:9px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:.7px">Tags:</span>
                 <div id="tagChips"></div>
-                <input class="tag-input" id="tagInput" placeholder="+ add tag, press Enter" onkeydown="handleTagKey(event)">
+                <input class="tag-input" id="tagInput" placeholder="+ add tag, press Enter"
+                  onkeydown="handleTagKey(event)">
               </div>
             </div>
           </div>
@@ -1571,8 +1631,10 @@
 
           <!-- CODE PANE -->
           <div class="pane code-pane" id="pane-code">
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Code reference for this component (editable)</div>
-            <div class="code-block" id="codeBlock" contenteditable="true" spellcheck="false" title="Click to edit code"></div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Code reference for this component
+              (editable)</div>
+            <div class="code-block" id="codeBlock" contenteditable="true" spellcheck="false" title="Click to edit code">
+            </div>
           </div>
 
           <!-- NOTE PANE -->
@@ -1580,11 +1642,14 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
               <div style="font-size:11px;color:var(--text3)">Architecture notes (Markdown Supported)</div>
               <div class="tabs" style="background:var(--bg2)">
-                <button class="tab active" id="noteEditBtn" onclick="toggleNoteMode('edit')" style="padding:2px 10px">Edit</button>
-                <button class="tab" id="notePrevBtn" onclick="toggleNoteMode('preview')" style="padding:2px 10px">Preview</button>
+                <button class="tab active" id="noteEditBtn" onclick="toggleNoteMode('edit')"
+                  style="padding:2px 10px">Edit</button>
+                <button class="tab" id="notePrevBtn" onclick="toggleNoteMode('preview')"
+                  style="padding:2px 10px">Preview</button>
               </div>
             </div>
-            <textarea class="note-box" id="noteBox" placeholder="Add architecture decisions... \n# Heading\n- Item 1"></textarea>
+            <textarea class="note-box" id="noteBox"
+              placeholder="Add architecture decisions... \n# Heading\n- Item 1"></textarea>
             <div id="notePreview" style="display:none"></div>
           </div>
         </div>
@@ -1616,7 +1681,7 @@
 
   <script>
     /* ═══════ CONSTANTS & SETUP ═══════ */
-    const LS_PREFIX = 'AR01H_SDE_DATA';
+    const LS_PREFIX = 'systemDesign_';
 
     /* ═══════ SHAPES ═══════ */
     const SHAPES = {
@@ -1642,154 +1707,10 @@
 
     /* ═══════ DATA ═══════ */
     const NODES = {
-      req: {
-        title: 'Request', sub: 'Client / Browser', shape: 'rounded', color: 'violet',
-        features: [
-          { f: 'HTTPS enforcement', d: 'Redirect HTTP→HTTPS (301)', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'CORS policy', d: 'Whitelist allowed origins', s: 'wip', p: 'P1', o: 'Backend' },
-          { f: 'Rate limiting', d: 'Max 100 req/min per IP', s: 'todo', p: 'P1', o: 'Infra' },
-          { f: 'Auth header', d: 'Bearer token or API key', s: 'done', p: 'P0', o: 'Backend' },
-          { f: 'Request ID', d: 'Inject X-Request-ID for tracing', s: 'todo', p: 'P2', o: 'Backend' },
-          { f: 'Retry policy', d: '3 retries + exponential backoff', s: 'todo', p: 'P2', o: 'Frontend' },
-        ],
-        code: `<span class="cmt">// Client request with auth + retry</span>
-<span class="kw">async function</span> <span class="fn">apiRequest</span>(url, opts = {}) {
-  <span class="kw">const</span> headers = {
-    <span class="str">'Authorization'</span>: \`Bearer \${getToken()}\`,
-    <span class="str">'X-Request-ID'</span>: crypto.randomUUID()
-  };
-  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
-    <span class="kw">try</span> {
-      <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url, { ...opts, headers });
-      <span class="kw">if</span> (res.ok) <span class="kw">return</span> res.<span class="fn">json</span>();
-    } <span class="kw">catch</span> (e) {
-      <span class="kw">await</span> <span class="fn">sleep</span>(<span class="num">200</span> * (<span class="num">2</span> ** i));
-    }
-  }
-}`,
-        note: 'All requests must use HTTPS. Inject X-Request-ID for end-to-end tracing. Auth tokens must be refreshed before expiry using silent refresh.'
-      },
-
-      lb: {
-        title: 'Load Balancer', sub: 'nginx / AWS ALB', shape: 'hexagon', color: 'blue',
-        features: [
-          { f: 'Round-robin routing', d: 'Default distribution algorithm', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'Health checks', d: 'GET /health every 10s', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'SSL termination', d: 'TLS 1.3 at LB layer', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'Sticky sessions', d: 'Cookie-based for WebSocket routes', s: 'wip', p: 'P1', o: 'Infra' },
-          { f: 'DDoS protection', d: 'AWS Shield Standard', s: 'done', p: 'P0', o: 'Security' },
-          { f: 'WAF rules', d: 'OWASP rule set enabled', s: 'todo', p: 'P1', o: 'Security' },
-        ],
-        code: `<span class="cmt"># nginx upstream config</span>
-<span class="kw">upstream</span> app_servers {
-  least_conn;
-  server <span class="str">10.0.0.1:3000</span> weight=<span class="num">1</span>;
-  server <span class="str">10.0.0.2:3000</span> weight=<span class="num">1</span>;
-  keepalive <span class="num">32</span>;
-}
-server {
-  listen <span class="num">443</span> ssl http2;
-  location / {
-    proxy_pass http://app_servers;
-    proxy_read_timeout <span class="num">30</span>s;
-  }
-}`,
-        note: 'Use least_conn for uneven workloads. Health check must be lightweight — no DB calls. SSL terminates here; upstream is plain HTTP on private subnet.'
-      },
-
-      as: {
-        title: 'Autoscaling', sub: 'EC2 ASG / K8s HPA', shape: 'diamond', color: 'orange',
-        features: [
-          { f: 'Scale-out trigger', d: 'CPU >70% for 2 min → add instance', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'Scale-in trigger', d: 'CPU <30% for 5 min → remove', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'Min instances', d: 'Always keep 2 running', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'Max instances', d: 'Hard cap at 20', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'Cooldown period', d: '300s between scale events', s: 'wip', p: 'P1', o: 'Infra' },
-          { f: 'Lifecycle hooks', d: 'Drain connections before terminate', s: 'todo', p: 'P1', o: 'Backend' },
-        ],
-        code: `<span class="cmt"># Kubernetes HPA</span>
-<span class="kw">apiVersion</span>: autoscaling/v2
-<span class="kw">kind</span>: HorizontalPodAutoscaler
-<span class="kw">spec</span>:
-  minReplicas: <span class="num">2</span>
-  maxReplicas: <span class="num">20</span>
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        averageUtilization: <span class="num">70</span>`,
-        note: 'Autoscaling is the heart of resilience. Always test scale-in events. Use lifecycle hooks + LB connection draining together, never one without the other.'
-      },
-
-      app: {
-        title: 'App Server', sub: 'Node.js / Python', shape: 'rect', color: 'green',
-        features: [
-          { f: 'JWT validation', d: 'Verify token signature + expiry', s: 'done', p: 'P0', o: 'Backend' },
-          { f: 'DB connection pool', d: 'Max 10 connections per instance', s: 'done', p: 'P0', o: 'Backend' },
-          { f: 'Redis cache', d: 'Cache hot queries 60s TTL', s: 'wip', p: 'P1', o: 'Backend' },
-          { f: 'Input sanitisation', d: 'Strip SQL injections, XSS', s: 'done', p: 'P0', o: 'Security' },
-          { f: 'Structured logging', d: 'JSON logs → CloudWatch', s: 'done', p: 'P0', o: 'Backend' },
-          { f: 'Background jobs', d: 'Bull queue for async tasks', s: 'todo', p: 'P1', o: 'Backend' },
-        ],
-        code: `<span class="cmt">// Express route with auth + pool</span>
-<span class="kw">const</span> pool = <span class="kw">new</span> <span class="fn">Pool</span>({ max: <span class="num">10</span> });
-app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth, <span class="kw">async</span> (req, res) => {
-  <span class="kw">const</span> cached = <span class="kw">await</span> redis.<span class="fn">get</span>(\`user:\${req.params.id}\`);
-  <span class="kw">if</span> (cached) <span class="kw">return</span> res.<span class="fn">json</span>(JSON.<span class="fn">parse</span>(cached));
-  <span class="kw">const</span> { rows } = <span class="kw">await</span> pool.<span class="fn">query</span>(
-    <span class="str">'SELECT * FROM users WHERE id=$1'</span>, [req.params.id]
-  );
-  res.<span class="fn">json</span>(rows[<span class="num">0</span>]);
-});`,
-        note: 'Never open raw DB connections per request — always use pool. Redis cache layer reduces DB read load significantly. Structured logs are mandatory for CloudWatch Insights.'
-      },
-
-      db: {
-        title: 'MySQL DB', sub: 'Primary + Replica', shape: 'cylinder', color: 'red',
-        features: [
-          { f: 'Primary + replica', d: '1 write, 2 read replicas', s: 'done', p: 'P0', o: 'DBA' },
-          { f: 'Connection pooling', d: 'ProxySQL in front of MySQL', s: 'done', p: 'P0', o: 'DBA' },
-          { f: 'Index optimisation', d: 'EXPLAIN slow queries >100ms', s: 'wip', p: 'P0', o: 'DBA' },
-          { f: 'Automated backups', d: 'Daily snapshots, 30-day retention', s: 'done', p: 'P0', o: 'Infra' },
-          { f: 'Schema migrations', d: 'Flyway / Liquibase versioned', s: 'wip', p: 'P1', o: 'Backend' },
-          { f: 'Read replica lag', d: 'Alert if replica lag >5s', s: 'todo', p: 'P1', o: 'DBA' },
-        ],
-        code: `<span class="cmt">-- Schema + index example</span>
-<span class="kw">CREATE TABLE</span> users (
-  id         BIGINT UNSIGNED <span class="kw">NOT NULL AUTO_INCREMENT</span>,
-  email      VARCHAR(<span class="num">255</span>) <span class="kw">NOT NULL UNIQUE</span>,
-  created_at TIMESTAMP <span class="kw">DEFAULT</span> CURRENT_TIMESTAMP,
-  status     ENUM(<span class="str">'active'</span>,<span class="str">'inactive'</span>) <span class="kw">DEFAULT</span> <span class="str">'active'</span>,
-  <span class="kw">PRIMARY KEY</span> (id),
-  <span class="kw">INDEX</span> idx_status (status, created_at)
-);`,
-        note: 'Never query primary for reads unless you need latest-write consistency. All schema changes go through migration scripts — no manual ALTER in production.'
-      },
-
-      out: {
-        title: 'Output / API', sub: 'JSON Response', shape: 'parallel', color: 'pink',
-        features: [
-          { f: 'JSON envelope', d: '{ data, meta, errors }', s: 'done', p: 'P0', o: 'Backend' },
-          { f: 'HTTP status codes', d: '200/201/400/401/404/500', s: 'done', p: 'P0', o: 'Backend' },
-          { f: 'Pagination', d: 'Cursor-based page+limit params', s: 'wip', p: 'P1', o: 'Backend' },
-          { f: 'Response compression', d: 'gzip if client supports it', s: 'done', p: 'P1', o: 'Infra' },
-          { f: 'ETag caching', d: '304 Not Modified for unchanged data', s: 'todo', p: 'P2', o: 'Backend' },
-          { f: 'API versioning', d: '/api/v1/ prefix on all routes', s: 'done', p: 'P0', o: 'Backend' },
-        ],
-        code: `<span class="cmt">// Standard response envelope</span>
-<span class="kw">function</span> <span class="fn">respond</span>(res, data, meta = {}) {
-  res.<span class="fn">json</span>({ data, meta: { ...meta, ts: Date.<span class="fn">now</span>() }, errors: <span class="kw">null</span> });
-}
-<span class="kw">function</span> <span class="fn">respondError</span>(res, code, message) {
-  res.<span class="fn">status</span>(code).<span class="fn">json</span>({ data: <span class="kw">null</span>, meta:{}, errors:[{code,message}] });
-}`,
-        note: 'Consistent response envelope is non-negotiable. Never leak DB errors or stack traces to the client. ETag + 304 is easy wins for repeat-read API endpoints.'
-      },
     };
 
     // Simple flat nodeOrder — each entry is a string node ID
-    let nodeOrder = ['req', 'lb', 'as', 'app', 'db', 'out'];
+    let nodeOrder = [];
     let currentNode = null, currentTab = 'feat', currentFilter = 'all';
     let modalMode = 'add', selShape = 'rect', selColor = 'violet';
     const FLOW_COLS = 15;
@@ -1798,8 +1719,8 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
     function attachCostListeners() {
       const mapKey = { cInst: 'inst', cType: 'type', cCost: 'cost', cRPS: 'rps', cNotes: 'notes' };
       ['cInst', 'cType', 'cCost', 'cRPS', 'cNotes'].forEach(id => {
-        document.getElementById(id).addEventListener('input', function() {
-          if(!currentNode) return;
+        document.getElementById(id).addEventListener('input', function () {
+          if (!currentNode) return;
           const val = this.type === 'number' ? Number(this.value) : this.value;
           if (!NODES[currentNode].cost) NODES[currentNode].cost = { inst: 0, type: '', cost: 0, rps: 0, notes: '' };
           NODES[currentNode].cost[mapKey[id]] = val;
@@ -1813,7 +1734,7 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
       nodeOrder.forEach(id => {
         const nd = NODES[id];
         if (nd && nd.cost && nd.cost.cost) {
-           total += (Number(nd.cost.cost) * (Number(nd.cost.inst) || 1));
+          total += (Number(nd.cost.cost) * (Number(nd.cost.inst) || 1));
         }
       });
       document.getElementById('hl-label').innerHTML = `High-Level Architecture Flow &nbsp; <span style="color:var(--green)">$${total.toLocaleString()}/mo estimated</span>`;
@@ -1831,7 +1752,7 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
           const match = nd.title.toLowerCase().includes(q) ||
             nd.sub.toLowerCase().includes(q) ||
             (nd.tags || []).some(t => t.toLowerCase().includes(q)) ||
-            nd.features.some(f => f.f.toLowerCase().includes(q) || (f.d||'').toLowerCase().includes(q));
+            nd.features.some(f => f.f.toLowerCase().includes(q) || (f.d || '').toLowerCase().includes(q));
           if (!match) return;
         }
         const total = nd.features.length;
@@ -1839,7 +1760,7 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
         const design = nd.features.filter(f => f.s === 'design').length;
         const wip = nd.features.filter(f => f.s === 'wip').length;
         const totalEst = nd.features.reduce((a, f) => a + (parseFloat(f.est) || 0), 0);
-        
+
         const el = document.createElement('div');
         el.className = 'snode' + (currentNode === id ? ' active' : '');
         el.onclick = () => selectNode(id);
@@ -1927,13 +1848,13 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
       document.getElementById('llWs').classList.add('open');
       const nd = NODES[id];
       if (!nd.tags) nd.tags = [];
-      
+
       document.getElementById('llBadge').innerHTML = svgShape(nd.shape, nd.color, 44);
       document.getElementById('llTitle').textContent = nd.title;
       document.getElementById('llSub').textContent = nd.sub;
       document.getElementById('noteBox').value = nd.note || '';
       renderTags();
-      
+
       // Auto-refresh Markdown preview if active
       if (document.getElementById('notePrevBtn').classList.contains('active')) {
         toggleNoteMode('preview');
@@ -1947,7 +1868,7 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
       if (!currentNode) return;
       const tags = NODES[currentNode].tags || [];
       const box = document.getElementById('tagChips');
-      box.innerHTML = tags.map((t, i) => 
+      box.innerHTML = tags.map((t, i) =>
         `<span class="tag-chip">${esc(t)}<span class="tag-x" onclick="removeTag(${i})">×</span></span>`
       ).join('');
     }
@@ -2025,7 +1946,7 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
         hold = feats.filter(f => f.s === 'hold').length,
         reject = feats.filter(f => f.s === 'reject').length;
       const totalEst = feats.reduce((a, f) => a + (parseFloat(f.est) || 0), 0);
-      
+
       const pct = t => total ? Math.round(t / total * 100) : 0;
 
       document.getElementById('sumRow').innerHTML = `
@@ -2067,7 +1988,7 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
         <div style="display:flex;gap:2px;">
           <button class="action-btn" title="Move Up" onclick="moveFeat(${i}, -1)">▲</button>
           <button class="action-btn" title="Move Down" onclick="moveFeat(${i}, 1)">▼</button>
-          <button class="action-btn" title="Insert Below" onclick="addFeatAt(${i+1})">＋</button>
+          <button class="action-btn" title="Insert Below" onclick="addFeatAt(${i + 1})">＋</button>
           <button class="del-btn" title="Delete feature" onclick="delFeat(${i})">×</button>
         </div>
       </td>`;
@@ -2085,10 +2006,10 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
     }
     function delFeat(i) { NODES[currentNode].features.splice(i, 1); renderFeatures(); renderDashboard(); }
     function addFeature() { if (!currentNode) return; NODES[currentNode].features.push({ f: 'New feature', d: 'Describe here', s: 'todo', p: 'P2', o: '', est: '' }); renderFeatures() }
-    function addFeatAt(i) { 
-      if (!currentNode) return; 
-      NODES[currentNode].features.splice(i, 0, { f: 'New feature', d: 'Describe here', s: 'todo', p: 'P2', o: '', est: '' }); 
-      renderFeatures(); 
+    function addFeatAt(i) {
+      if (!currentNode) return;
+      NODES[currentNode].features.splice(i, 0, { f: 'New feature', d: 'Describe here', s: 'todo', p: 'P2', o: '', est: '' });
+      renderFeatures();
     }
     function moveFeat(i, dir) {
       if (!currentNode) return;
@@ -2249,18 +2170,18 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
       const str = localStorage.getItem(LS_PREFIX);
       if (!str) return;
       try {
-         const data = JSON.parse(str);
-         if (data.nodes && data.order) {
-            document.getElementById('projName').value = data.proj || 'My System Design';
-            nodeOrder = data.order; // supports both flat strings and nested arrays
-            Object.keys(data.nodes).forEach(k => {
-               if (data.nodes[k].code === undefined) data.nodes[k].code = '';
-               if (data.nodes[k].note === undefined) data.nodes[k].note = '';
-            });
-            for (let key in NODES) delete NODES[key];
-            Object.assign(NODES, data.nodes);
-         }
-      } catch(e) { console.error('Error loading data:', e); }
+        const data = JSON.parse(str);
+        if (data.nodes && data.order) {
+          document.getElementById('projName').value = data.proj || 'My System Design';
+          nodeOrder = data.order; // supports both flat strings and nested arrays
+          Object.keys(data.nodes).forEach(k => {
+            if (data.nodes[k].code === undefined) data.nodes[k].code = '';
+            if (data.nodes[k].note === undefined) data.nodes[k].note = '';
+          });
+          for (let key in NODES) delete NODES[key];
+          Object.assign(NODES, data.nodes);
+        }
+      } catch (e) { console.error('Error loading data:', e); }
     }
 
     function saveJSON() {
@@ -2273,26 +2194,26 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
 
     function loadJSON(e) {
       const file = e.target.files[0];
-      if(!file) return;
+      if (!file) return;
       const reader = new FileReader();
       reader.onload = ev => {
-         try {
-           const data = JSON.parse(ev.target.result);
-           if(data.nodes && data.order) {
-              document.getElementById('projName').value = data.proj || 'My System Design';
-              nodeOrder = data.order;
-              Object.keys(data.nodes).forEach(k => {
-                 if (!data.nodes[k].cost) data.nodes[k].cost = { inst: 0, type: '', cost: 0, rps: 0, notes: '' };
-                 if (data.nodes[k].code === undefined) data.nodes[k].code = '';
-              });
-              for (let key in NODES) delete NODES[key];
-              Object.assign(NODES, data.nodes);
-              renderSidebar(); renderFlow();
-              if (nodeOrder.length) selectNode(nodeOrder[0]);
-              updateTotalCost();
-              toast('Project Loaded ✓', 'ok');
-           }
-         } catch(err) { toast('Invalid JSON', 'err'); }
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.nodes && data.order) {
+            document.getElementById('projName').value = data.proj || 'My System Design';
+            nodeOrder = data.order;
+            Object.keys(data.nodes).forEach(k => {
+              if (!data.nodes[k].cost) data.nodes[k].cost = { inst: 0, type: '', cost: 0, rps: 0, notes: '' };
+              if (data.nodes[k].code === undefined) data.nodes[k].code = '';
+            });
+            for (let key in NODES) delete NODES[key];
+            Object.assign(NODES, data.nodes);
+            renderSidebar(); renderFlow();
+            if (nodeOrder.length) selectNode(nodeOrder[0]);
+            updateTotalCost();
+            toast('Project Loaded ✓', 'ok');
+          }
+        } catch (err) { toast('Invalid JSON', 'err'); }
       };
       reader.readAsText(file);
       e.target.value = '';
@@ -2565,9 +2486,9 @@ app.<span class="fn">get</span>(<span class="str">'/api/users/:id'</span>, auth,
       document.body.parentElement.setAttribute('data-theme', savedTheme);
       document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
     }
-    
+
     const loadedStr = localStorage.getItem(LS_PREFIX);
-    if(loadedStr) {
+    if (loadedStr) {
       loadData();
       renderSidebar();
       renderFlow();

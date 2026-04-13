@@ -1,4 +1,4 @@
-I want the end to end Quiz APP And the data you want to take from the google drive with the gogle app scirpts in the code.gs want to add RootID of the Folder inside just ignore the files their 3 folders will thier Questions Data, Quiz Config Data, Result Data int he Quiz Config their is the Folder direclty take the hardcoded title as quiz_config their are the differn columsn settison will be their in the csv - ie., Quiz Config Sample.csv which i have provided an dinthe Questions Data folder thier are folder so fhte different concepts inside the csv files are thier that sampel data iproided to you and when user completed quiz then inteh Result Data their is a file Result_data ehti u add the entry and their is the filepath their will file the fileid whichis for the what user selected ander thall that withign end to end store here jsut like more data in the rreports and in the project user the html,css,js,jqeury etc things use liek the url for support use the chart.js one test is completed then charts wahtnt o sheor etc uideisng what to show use the project model proejct usehte multiple scirpt file,css files for the quiestion type configurjation type sall the use sueperate seperate way so easy to usnder stand hn chane - It should be responside - dark/light theme Application Design when open the url then inthe ui Yourname,DOB,Phonenumer/Email start their should be quiz configuration their first want to select the quiz topic (which is the folder name insid the Question Folder) and option can select eveyrhting or multipc topc selections once select and continue then show the add teh categories,subcateoeis,tags,dificulty,question types,question count, wll where ther can be sleect multiple or single whatever want will section and also u please handle if i selecht categoryeis then only related to that subcateis want to liest and their select (multipel or all) then next page waht to show the Quiz configutriaong thi show the drop down defualt which i provided show it and also ther is the custom when select the custom then manulay what every the configutaotn want that will select and starthte test once start the test entry will happen inteh csv and quiz pages will load according to it. and start the quiz user will take the quiz as per the quiz configuration. once done the test immediately send the end time entry on the reuslt data anc d=create a file inthat folder and link it and based onthe conigutationif resutl show is thier then show accurayt,timetiaken,correctwitntoison,categyt wirse score, level wise report, quesiton view,answkery keyu, what is wornand wirng , reiveew moe,take mdoe , downloadd as pdf all the quesiotn things, downlaod as pdf as reuslt liekthat crate evyeth thgns and total UI must be adavned profession vide deisng and quiz takingui bee be ACT/DSAT/CompetativeExample Desing i want the view. And also gie the share option direlcty user will no need ot fil the detaisl except the personal details. if new personal detials wna tot add it wnat ot be easy to add like tht give me configutriane in one place. add mroe feuats and give me best way.
+I want the end to end Quiz APP And the data you want to take from the google drive with the gogle app scirpts in the code.gs want to add RootID of the Folder inside just ignore the files their 3 folders will thier Questions Data, Quiz Config Data, Result Data int he Quiz Config their is the Folder direclty take the hardcoded title as quiz_config their are the differn columsn settison will be their in the csv - ie., Quiz Config Sample.csv which i have provided an dinthe Questions Data folder thier are folder so fhte different concepts inside the csv files are thier that sampel data iproided to you and when user completed quiz then inteh Result Data their is a file Result_data ehti u add the entry and their is the filepath their will file the fileid whichis for the what user selected ander thall that withign end to end store here jsut like more data in the rreports and in the project user the REACT etc things use liek the url for support use the chart.js one test is completed then charts wahtnt o sheor etc uideisng what to show use the project model proejct usehte multiple scirpt file,css files for the quiestion type configurjation type sall the use sueperate seperate way so easy to usnder stand hn chane - It should be responside - dark/light theme Application Design when open the url then inthe ui Yourname,DOB,Phonenumer/Email start their should be quiz configuration their first want to select the quiz topic (which is the folder name insid the Question Folder) and option can select eveyrhting or multipc topc selections once select and continue then show the add teh categories,subcateoeis,tags,dificulty,question types,question count, wll where ther can be sleect multiple or single whatever want will section and also u please handle if i selecht categoryeis then only related to that subcateis want to liest and their select (multipel or all) then next page waht to show the Quiz configutriaong thi show the drop down defualt which i provided show it and also ther is the custom when select the custom then manulay what every the configutaotn want that will select and starthte test once start the test entry will happen inteh csv and quiz pages will load according to it. and start the quiz user will take the quiz as per the quiz configuration. once done the test immediately send the end time entry on the reuslt data anc d=create a file inthat folder and link it and based onthe conigutationif resutl show is thier then show accurayt,timetiaken,correctwitntoison,categyt wirse score, level wise report, quesiton view,answkery keyu, what is wornand wirng , reiveew moe,take mdoe , downloadd as pdf all the quesiotn things, downlaod as pdf as reuslt liekthat crate evyeth thgns and total UI must be adavned profession vide deisng and quiz takingui bee be ACT/DSAT/CompetativeExample Desing i want the view. And also gie the share option direlcty user will no need ot fil the detaisl except the personal details. if new personal detials wna tot add it wnat ot be easy to add like tht give me configutriane in one place. add mroe feuats and give me best way.
 
 Storage: Google Drive
 Folder structure (you MUST follow this):
@@ -24,32 +24,12 @@ ROOT_FOLDER_ID/
 
 Project Structure
 
-/quiz-app
-│
-├── index.html
-│
-├── /css
-│     ├── main.css
-│     ├── dark.css
-│
-├── /js
-│     ├── api.js
-│     ├── state.js
-│     ├── quiz.js
-│     ├── filters.js
-│     ├── result.js
-│     ├── ui.js
-|     |--- dashboard.js
-│     ├── ..........
-│
-├── /components
-│     ├── mcq.js
-│     ├── matching.js
-│     ├── dragdrop.js
-|     |.................
+
 
 And in the Side keep a things Settiosn when whe click popup want to codme ask the do tyou have other exaple data prove the ScriptID,FolderID...once save then wantot take formther. side the keep a option as remove the then remove the scitpid,folderid takethedetualt
 
-- Multiple Themes are rquies tfor th quiz ui ther selction want to come after teh selciton fo the quiz confiutison main tings
+- Multiple Themplates are requies tfor th quiz ui - HEre template means not colors. it is the design fof test handle evyerhting. if poosibel add additonla features 
 
 Give code as the multiple files as above and also provid e the Code.gs to add inteh Google App Script
+
+Give me whole code in the react

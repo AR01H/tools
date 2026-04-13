@@ -318,8 +318,8 @@ let sidebarOpen=true,currentTab='edit',isDark=true;
 let csvParsed=null;
 
 /* ══════════════════ STORAGE ═══════════════════ */
-function load(){try{charts=JSON.parse(localStorage.getItem('app_charts_data')||'[]')}catch{charts=[]}}
-function save(){localStorage.setItem('app_charts_data',JSON.stringify(charts))}
+function load(){try{charts=JSON.parse(localStorage.getItem('chartVisualizer_app_charts_data')||'[]')}catch{charts=[]}}
+function save(){localStorage.setItem('chartVisualizer_app_charts_data',JSON.stringify(charts))}
 
 /* ══════════════════ UTILS ═══════════════════ */
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}

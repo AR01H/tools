@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <script>const LS_PREFIX = "secretsKeeper_index_";
-</script>
+    <script>const LS_PREFIX = "secretsKeeper_";
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C WW | Secret Keeper</title>
@@ -449,6 +450,7 @@
                 opacity: 0;
                 transform: translateY(-5px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -460,6 +462,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -523,7 +526,7 @@
             }
 
             .table-header span:nth-child(5),
-            .entry > div:nth-child(5) {
+            .entry>div:nth-child(5) {
                 display: none;
             }
 
@@ -573,7 +576,7 @@
             }
 
             .table-header span:nth-child(6),
-            .entry > div:nth-child(6) {
+            .entry>div:nth-child(6) {
                 display: none;
             }
 
@@ -594,6 +597,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Header -->
@@ -672,7 +676,7 @@
         <!-- Toolbar -->
         <div class="toolbar">
             <input type="text" class="search-bar" id="search" placeholder="Search...">
-            
+
             <div class="bulk-actions" id="bulkActions">
                 <span class="bulk-count" id="bulkCount">0</span>
                 <button class="btn btn-sm" id="bulkDeleteBtn">
@@ -700,7 +704,7 @@
     </div>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const STORAGE_KEY = 'secrets';
             let editingId = null;
             let editingApp = null;
@@ -712,7 +716,7 @@
                 stats();
             };
 
-            $('#addForm').submit(function(e) {
+            $('#addForm').submit(function (e) {
                 e.preventDefault();
                 const app = $('#app').val().trim();
                 const name = $('#name').val().trim();
@@ -727,7 +731,7 @@
 
                 let d = load();
                 if (!d[app]) d[app] = [];
-                
+
                 if (editingId && editingApp) {
                     d[editingApp] = d[editingApp].map(e => {
                         if (e.id === editingId) {
@@ -764,7 +768,7 @@
                 $('#cancelEditBtn').hide();
             });
 
-            $('#cancelEditBtn').click(function() {
+            $('#cancelEditBtn').click(function () {
                 clearForm();
                 editingId = null;
                 editingApp = null;
@@ -774,7 +778,7 @@
                 toast('Cancelled!');
             });
 
-            $(document).on('click', '.delete-btn', function() {
+            $(document).on('click', '.delete-btn', function () {
                 const app = $(this).data('app');
                 const id = $(this).data('id');
 
@@ -787,38 +791,38 @@
                 }
             });
 
-            $(document).on('click', '.edit-btn', function() {
+            $(document).on('click', '.edit-btn', function () {
                 $('.entry.editing').removeClass('editing');
-                
+
                 const entry = $(this).closest('.entry');
                 const app = entry.find('.delete-btn').data('app');
                 const id = entry.find('.delete-btn').data('id');
-                
+
                 let d = load();
                 const secret = d[app].find(e => e.id == id);
-                
+
                 editingId = id;
                 editingApp = app;
                 entry.addClass('editing');
-                
+
                 $('#app').val(app);
                 $('#name').val(secret.name);
                 $('#value').val(secret.value);
                 $('#note').val(secret.note);
                 $('#tags').val(secret.tags || '');
-                
+
                 $('#submitBtn').html('<i class="fas fa-check"></i>');
-                
+
                 $('#cancelEditBtn').show();
                 $('#app').focus();
                 toast('Editing...');
             });
 
-            $(document).on('click', '.pin-btn', function() {
+            $(document).on('click', '.pin-btn', function () {
                 const entry = $(this).closest('.entry');
                 const app = entry.find('.delete-btn').data('app');
                 const id = entry.find('.delete-btn').data('id');
-                
+
                 let d = load();
                 const secret = d[app].find(e => e.id == id);
                 secret.pinned = !secret.pinned;
@@ -826,7 +830,7 @@
                 toast(secret.pinned ? 'Pinned!' : 'Unpinned!');
             });
 
-            $(document).on('click', '.copy-btn', function() {
+            $(document).on('click', '.copy-btn', function () {
                 const val = $(this).data('value');
                 navigator.clipboard.writeText(val).then(() => {
                     toast('Copied!');
@@ -835,7 +839,7 @@
                 });
             });
 
-            $(document).on('change', '.entry-checkbox', function() {
+            $(document).on('change', '.entry-checkbox', function () {
                 const count = $('.entry-checkbox:checked').length;
                 if (count > 0) {
                     $('#bulkActions').addClass('show');
@@ -849,7 +853,7 @@
                 const count = $('.entry-checkbox:checked').length;
                 if (confirm(`Delete ${count}?`)) {
                     let d = load();
-                    $('.entry-checkbox:checked').closest('.entry').each(function() {
+                    $('.entry-checkbox:checked').closest('.entry').each(function () {
                         const app = $(this).find('.delete-btn').data('app');
                         const id = $(this).find('.delete-btn').data('id');
                         d[app] = d[app].filter(e => e.id != id);
@@ -862,16 +866,16 @@
 
             $('#bulkExportBtn').click(() => {
                 const selected = {};
-                $('.entry-checkbox:checked').closest('.entry').each(function() {
+                $('.entry-checkbox:checked').closest('.entry').each(function () {
                     const app = $(this).find('.delete-btn').data('app');
                     const id = $(this).find('.delete-btn').data('id');
                     let d = load();
                     if (!selected[app]) selected[app] = [];
                     selected[app].push(d[app].find(e => e.id == id));
                 });
-                
+
                 const json = JSON.stringify(selected, null, 2);
-                const blob = new Blob([json], {type: 'application/json'});
+                const blob = new Blob([json], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 a.download = `secrets-${new Date().toISOString().split('T')[0]}.json`;
@@ -879,9 +883,9 @@
                 toast('Exported!');
             });
 
-            $('#search').on('keyup', function() {
+            $('#search').on('keyup', function () {
                 const q = $(this).val().toLowerCase();
-                $('.entry').each(function() {
+                $('.entry').each(function () {
                     $(this).toggle($(this).text().toLowerCase().includes(q));
                 });
             });
@@ -929,7 +933,7 @@
                 const allEntries = [];
                 Object.entries(d).forEach(([app, entries]) => {
                     entries.forEach(e => {
-                        allEntries.push({app, ...e});
+                        allEntries.push({ app, ...e });
                     });
                 });
                 allEntries.sort((a, b) => b.pinned - a.pinned);
@@ -938,7 +942,7 @@
                     const pinnedClass = e.pinned ? 'pinned' : '';
                     const tagsHtml = e.tags ? e.tags.split(',').map(tag => `<div class="tag">${tag.trim()}</div>`).join('') : '';
                     const secretIndicator = e.value ? '<span class="key-indicator">✓ SET</span>' : '<span class="key-indicator not-set">✗ NOT</span>';
-                    
+
                     const h = `
                         <div class="entry ${pinnedClass}">
                             <input type="checkbox" class="entry-checkbox">
@@ -978,7 +982,7 @@
             };
 
             $('#importBtn').click(() => $('#importFile').click());
-            $('#importFile').change(function(e) {
+            $('#importFile').change(function (e) {
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
@@ -1016,7 +1020,7 @@
 
             $('#exportBtn').click(() => {
                 const json = JSON.stringify(load(), null, 2);
-                const blob = new Blob([json], {type: 'application/json'});
+                const blob = new Blob([json], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 a.download = `secrets-${new Date().toISOString().split('T')[0]}.json`;
@@ -1044,4 +1048,5 @@
         });
     </script>
 </body>
+
 </html>
