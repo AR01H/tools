@@ -103,6 +103,87 @@
   --color-info:   #67e8f9;
 }
 
+/* ── 6. SAT CLASSIC (Image 1) ── */
+[data-theme="sat"] {
+  --bg-base:     #f8f9fc;
+  --bg-surface:  #ffffff;
+  --bg-elevated: #f1f4f9;
+  --bg-hover:    #e8edf5;
+  --border-color:#d1d9e6;
+  --text-primary:#1a1c1e;
+  --text-secondary:#44474e;
+  --text-muted:  #74777f;
+  --accent-primary:  #6750a4; /* Deep Purple */
+  --accent-secondary:#9a82db;
+  --accent-muted:    rgba(103,80,164,.1);
+  --accent-shadow:   rgba(103,80,164,.25);
+  --color-success:#1a6c31;
+  --color-error:  #ba1a1a;
+  --color-warn:   #765a00;
+  --color-info:   #0061a4;
+}
+
+/* ── 7. QUIZPRO DARK (Image 2) ── */
+[data-theme="quizpro-dark"] {
+  --bg-base:     #03070a;
+  --bg-surface:  #0a0f14;
+  --bg-elevated: #111820;
+  --bg-hover:    #1a242d;
+  --border-color:#1e293b;
+  --text-primary:#f1f5f9;
+  --text-secondary:#94a3b8;
+  --text-muted:  #475569;
+  --accent-primary:  #2dd4bf; /* Teal/Cyan */
+  --accent-secondary:#14b8a6;
+  --accent-muted:    rgba(45,212,191,.1);
+  --accent-shadow:   rgba(45,212,191,.4);
+  --color-success:#10b981;
+  --color-error:  #f43f5e;
+  --color-warn:   #f59e0b;
+  --color-info:   #0ea5e9;
+}
+
+/* ── 8. MODERN EDITORIAL (Image 3) ── */
+[data-theme="editorial"] {
+  --bg-base:     #f7f3f0; /* Paper-like */
+  --bg-surface:  #ffffff;
+  --bg-elevated: #efeae6;
+  --bg-hover:    #e6ded8;
+  --border-color:#d4c8bd;
+  --text-primary:#1c1917;
+  --text-secondary:#57534e;
+  --text-muted:  #a8a29e;
+  --accent-primary:  #a82d1c; /* Brick Red */
+  --accent-secondary:#c2410c;
+  --accent-muted:    rgba(168,45,28,.08);
+  --accent-shadow:   rgba(168,45,28,.2);
+  --color-success:#166534;
+  --color-error:  #991b1b;
+  --color-warn:   #92400e;
+  --color-info:   #075985;
+  --font-content: 'Libre Baskerville', serif;
+}
+
+/* ── 9. VIBRANT GRADIENT (Image 4) ── */
+[data-theme="vibrant"] {
+  --bg-base:     #ffffff;
+  --bg-surface:  #ffffff;
+  --bg-elevated: #f8fafc;
+  --bg-hover:    #f1f5f9;
+  --border-color:#e2e8f0;
+  --text-primary:#0f172a;
+  --text-secondary:#475569;
+  --text-muted:  #94a3b8;
+  --accent-primary:  #3b82f6; /* Blue */
+  --accent-secondary:#f97316; /* Orange */
+  --accent-muted:    rgba(59,130,246,.1);
+  --accent-shadow:   rgba(59,130,246,.3);
+  --color-success:#22c55e;
+  --color-error:  #ef4444;
+  --color-warn:   #f59e0b;
+  --color-info:   #6366f1;
+}
+
 /* ── Theme-specific decorative overrides ── */
 
 /* Light: warm paper grain */

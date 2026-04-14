@@ -11,16 +11,16 @@ const PageQuiz = (() => {
   let _started = false;
 
   function render(main) {
-    const quiz = State.get('quiz');
-    const cfg  = quiz.config;
-    const qs   = quiz.questions;
-    const totalTime = parseInt(cfg['Quiz Time'] || 0);
-    const allowBack = (cfg['Allow Back'] || 'On') === 'On';
-    const canPause  = (cfg['Pause / Resume Allowed'] || 'On') === 'On';
-    const showHint  = (cfg['Show Hint'] || 'On') === 'On';
-    const markReview= (cfg['Mark for Review'] || 'On') === 'On';
+    const quiz = State.get("quiz");
+    const cfg = quiz.config;
+    const qs = quiz.questions;
+    const totalTime = parseInt(cfg["Quiz Time"] || 0);
+    const allowBack = (cfg["Allow Back"] || "On") === "On";
+    const canPause = (cfg["Pause / Resume Allowed"] || "On") === "On";
+    const showHint = (cfg["Show Hint"] || "On") === "On";
+    const markReview = (cfg["Mark for Review"] || "On") === "On";
 
-    const tmpl      = quiz.template || 'default';
+    const tmpl = quiz.template || "default";
 
     // Base variables for injection
     const timerHTML = `
@@ -31,193 +31,192 @@ const PageQuiz = (() => {
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;min-width:52px;padding:4px 8px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border-color)">
           <p style="font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Total</p>
-          <p class="font-mono timer-safe" style="font-size:.82rem;font-weight:700;line-height:1" id="total-timer">${totalTime ? fmtTime(totalTime) : '∞'}</p>
+          <p class="font-mono timer-safe" style="font-size:.82rem;font-weight:700;line-height:1" id="total-timer">${
+            totalTime ? fmtTime(totalTime) : "∞"
+          }</p>
         </div>
       </div>`;
     const actionsHTML = `
       <div style="display:flex;gap:4px">
-        ${showHint  ? `<button class="btn btn-ghost btn-sm" id="hint-btn" onclick="QuizEngine.showHint()" title="Hint">💡 Hint</button>` : ''}
-        ${markReview? `<button class="btn btn-ghost btn-sm" id="mark-btn" onclick="QuizEngine.toggleMark()" title="Mark for Review">🚩 Mark</button>` : ''}
+        ${
+          showHint
+            ? `<button class="btn btn-ghost btn-sm" id="hint-btn" onclick="QuizEngine.showHint()" title="Hint">💡 Hint</button>`
+            : ""
+        }
+        ${
+          markReview
+            ? `<button class="btn btn-ghost btn-sm" id="mark-btn" onclick="QuizEngine.toggleMark()" title="Mark for Review">🚩 Mark</button>`
+            : ""
+        }
       </div>`;
     const submitHTML = `<button class="btn btn-sm" style="background:var(--color-error);color:#fff;font-weight:700" onclick="QuizEngine.confirmSubmit()">Submit</button>`;
-    const pauseHTML  = canPause ? `<button class="btn btn-ghost btn-sm" id="pause-btn" onclick="QuizEngine.togglePause()" title="Pause">⏸</button>` : '';
+    const pauseHTML = canPause
+      ? `<button class="btn btn-ghost btn-sm" id="pause-btn" onclick="QuizEngine.togglePause()" title="Pause">⏸</button>`
+      : "";
 
-    let layoutHtml = '';
-
+    let layout; // ─────────────────────────────────────────────────────────
+    // 1. SAT STYLE (Image 1)
     // ─────────────────────────────────────────────────────────
-    // 1. SAT FORMAT — compact sidebar map + main question area
-    // ─────────────────────────────────────────────────────────
-    if (tmpl === 'sat') {
+    if (tmpl === "sat") {
       layoutHtml = `
         <div class="layout-sat">
           <div class="sat-sidebar">
-            <div style="padding:var(--sp-sm) var(--sp-md);border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)">Questions</span>
-              <span class="text-xs" id="sat-answered-count" style="color:var(--accent-primary);font-weight:700">0/${qs.length}</span>
+            <div class="sat-sidebar-header">
+              <span class="sat-sidebar-title">Question Map</span>
+              <span class="sat-sidebar-stats" id="sat-answered-count">0/${
+                qs.length
+              }</span>
             </div>
-            <div id="q-nav" style="display:flex;flex-wrap:wrap;gap:5px;padding:var(--sp-sm);overflow-y:auto;flex:1;align-content:flex-start"></div>
-            <div style="padding:var(--sp-sm) var(--sp-md);border-top:1px solid var(--border-color);display:flex;flex-direction:column;gap:5px">
-              <div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text-muted)">
-                <div style="width:10px;height:10px;border-radius:2px;background:var(--accent-primary)"></div>Current
-                <div style="width:10px;height:10px;border-radius:2px;background:var(--color-success)"></div>Answered
-                <div style="width:10px;height:10px;border-radius:2px;background:rgba(251,191,36,.4)"></div>Flagged
-              </div>
+            <div class="sat-sidebar-legend">
+              <div class="legend-item"><div class="dot active"></div>Current</div>
+              <div class="legend-item"><div class="dot done"></div>Answered</div>
+              <div class="legend-item"><div class="dot flagged"></div>Flagged</div>
             </div>
+            <div class="sat-sidebar-footer">
+               <div class="section-stats">
+                  <p>Answered: <span id="stat-ans">0</span></p>
+                  <p>Flagged: <span id="stat-flag">0</span></p>
+                  <p>Remaining: <span id="stat-rem">${qs.length}</span></p>
+               </div>
+            </div>
+            <div id="q-nav" class="sat-q-nav"></div>
           </div>
           <div class="sat-main">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--sp-sm) var(--sp-lg);border-bottom:1px solid var(--border-color);background:var(--bg-surface);position:sticky;top:0;z-index:10">
-              <div style="display:flex;align-items:center;gap:var(--sp-md)">
-                <div class="badge badge-info" style="font-size:.65rem">SAT</div>
-                <span style="font-size:.85rem;font-weight:600">Q <span id="q-idx">1</span> <span class="text-muted">/ ${qs.length}</span></span>
+            <div class="sat-header">
+              <div class="sat-header-left">
+                <span class="sat-q-counter">Question <span id="q-idx">1</span> of ${
+                  qs.length
+                }</span>
               </div>
-              <div style="flex:1;max-width:240px;margin:0 var(--sp-lg)">
-                <div class="progress-bar" style="height:4px"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
+              <div class="sat-progress-wrap">
+                <div class="progress-bar"><div class="progress-fill" id="quiz-progress"></div></div>
               </div>
-              <div style="display:flex;align-items:center;gap:var(--sp-sm)">
+              <div class="sat-header-right" style="display:flex;align-items:center;gap:var(--sp-md)">
                 ${timerHTML}${pauseHTML}${submitHTML}
               </div>
             </div>
-            <div style="padding:var(--sp-lg);flex:1;overflow-y:auto">
+            <div class="sat-content">
               <div id="question-panel"></div>
-              <div style="display:flex;justify-content:space-between;padding-top:var(--sp-md);margin-top:var(--sp-lg);border-top:1px solid var(--border-color)">
-                <button class="btn btn-ghost" id="btn-prev" onclick="QuizEngine.prev()" ${!allowBack ? 'disabled' : ''}>← Back</button>
-                <div style="display:flex;gap:var(--sp-sm)">${actionsHTML}<button class="btn btn-primary" id="btn-next" onclick="QuizEngine.next()">Next →</button></div>
+              <div class="sat-actions">
+                <button class="btn btn-ghost" id="btn-prev" onclick="QuizEngine.prev()" ${
+                  !allowBack ? "disabled" : ""
+                }>← Back</button>
+                <div class="flex gap-md">${actionsHTML}<button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()">Next →</button></div>
               </div>
             </div>
           </div>
         </div>`;
     }
+    // ──────────────────────────────────────────────────────────
+    // 2. QUIZPRO DARK (Image 2) — Split view with passage
+    // ──────────────────────────────────────────────────────────
+    else if (tmpl === "quizpro-dark") {
+      layoutHtml = `
+        <div class="layout-quizpro">
+          <div class="quizpro-topbar">
+            <div class="qp-logo"><span>QUIZPRO</span><p class="text-xs opacity-50">SECTION 1</p></div>
+            <div class="qp-segmented-progress" id="quiz-segmented-progress"></div>
+            <div class="qp-timer-wrap">
+               <div class="font-mono text-xl" id="total-timer-qp">00:00</div>
+               <p class="text-xs opacity-50 uppercase">Remaining</p>
             </div>
           </div>
-          <div class="sat-main">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-lg)">
-              <div style="display:flex;align-items:center;gap:var(--sp-md)">
-                <div class="chip" style="background:var(--accent-primary);color:#fff;border:none">SAT MODE</div>
-                <span class="font-bold">Question <span id="q-idx">1</span> of ${qs.length}</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:var(--sp-md)">
-                 ${timerHTML}
-                 ${pauseHTML}
-                 ${submitHTML}
-              </div>
+          <div class="quizpro-body">
+            <div class="qp-question">
+               <div class="qp-q-header">QUESTION <span id="q-idx">1</span> / ${
+                 qs.length
+               } <span class="text-muted ml-md">+2 PTS</span></div>
+               <div id="question-panel"></div>
+               <div id="q-nav" class="qp-mini-nav"></div>
             </div>
-            <div class="progress-bar" style="height:6px;margin-bottom:var(--sp-xl)"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
-            <div id="question-panel" style="flex:1"></div>
-            <div style="display:flex;justify-content:space-between;padding-top:var(--sp-md);border-top:1px solid var(--border-color);margin-top:var(--sp-xl)">
-              <button class="btn btn-ghost" id="btn-prev" onclick="QuizEngine.prev()" ${!allowBack ? 'disabled' : ''}>← Back</button>
-              <div style="display:flex;gap:var(--sp-sm)">
+          </div>
+          <div class="quizpro-footer">
+             <button class="btn btn-secondary btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${
+               !allowBack ? "disabled" : ""
+             }>← Back</button>
+             <div class="qp-footer-center">
+                <span class="text-xs"><span id="qp-ans-count">0</span> answered • <span id="qp-flag-count">0</span> flagged</span>
+             </div>
+             <div style="display:flex;gap:var(--sp-sm)">
                 ${actionsHTML}
-                <button class="btn btn-primary" id="btn-next" onclick="QuizEngine.next()">Next →</button>
-              </div>
-            </div>
+                <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="min-width:140px; background:var(--accent-primary);color:#000">Next →</button>
+             </div>
           </div>
         </div>`;
     }
     // ──────────────────────────────────────────────────────────
-    // 2. GRE MODE — full-frame, horizontal scroll nav
+    // 3. MODERN EDITORIAL (Image 3) — Right sidebar list
     // ──────────────────────────────────────────────────────────
-    else if (tmpl === 'gre') {
+    else if (tmpl === "editorial") {
       layoutHtml = `
-        <div class="layout-gre">
-          <div class="gre-topbar">
-            <div style="display:flex;align-items:center;gap:var(--sp-sm)">
-              <div class="badge badge-info" style="font-size:.65rem">GRE</div>
-              <span style="font-weight:800;font-size:.95rem;letter-spacing:-.02em">${cfg['Quiz Settings Title']||'GRE Practice'}</span>
-            </div>
-            <div style="flex:1;max-width:260px;margin:0 var(--sp-lg)">
-              <div class="progress-bar" style="height:3px"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-sm)">
-              ${timerHTML}${pauseHTML}${submitHTML}
-            </div>
+        <div class="layout-editorial">
+          <div class="ed-header">
+             <div>
+                <p class="ed-meta">MATHEMATICS • ALGEBRA</p>
+                <h1 class="ed-title">Test Session</h1>
+             </div>
+             <div class="ed-time-wrap">
+                <div class="ed-time" id="total-timer-ed">00:00</div>
+                <p class="ed-time-label">TIME REMAINING</p>
+             </div>
           </div>
-          <div class="gre-body">
-            <div id="question-panel" class="card" style="border:none;border-radius:0;flex:1;overflow-y:auto;padding:var(--sp-lg)"></div>
-          </div>
-          <div class="gre-footer">
-            <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${!allowBack ? 'disabled' : ''}>← Back</button>
-            <div id="q-nav" style="display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;flex:1;margin:0 var(--sp-md);padding:2px;scrollbar-width:none"></div>
-            <style>#q-nav::-webkit-scrollbar{display:none}</style>
-            <div style="display:flex;align-items:center;gap:var(--sp-sm)">
-              <span style="font-size:.75rem;color:var(--text-muted);white-space:nowrap">Q <span id="q-idx">1</span>/${qs.length}</span>
-              ${actionsHTML}
-              <button class="btn btn-primary btn-sm" id="btn-next" onclick="QuizEngine.next()">Next →</button>
-            </div>
-          </div>
-        </div>`;
-    }
-    // ──────────────────────────────────────────────────────────
-    // 3. DSAT / ACT — split with compact dot-grid sidebar
-    // ──────────────────────────────────────────────────────────
-    else if (tmpl === 'dsat') {
-      layoutHtml = `
-        <div class="layout-dsat">
-          <div class="dsat-header">
-            <div style="display:flex;align-items:center;gap:var(--sp-sm)">
-              <div class="badge badge-warn" style="font-size:.65rem">ACT / SAT</div>
-              <div>
-                <p style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em">${cfg['Quiz Settings Title']||'Practice Test'}</p>
-                <p style="font-size:1rem;font-weight:800;letter-spacing:-.02em">Section <span id="q-idx">1</span> <span style="color:var(--text-muted);font-weight:400;font-size:.85rem">of ${qs.length}</span></p>
-              </div>
-            </div>
-            <div style="flex:1;max-width:200px;margin:0 var(--sp-lg)">
-              <div class="progress-bar" style="height:4px"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--sp-sm)">
-              ${timerHTML}${pauseHTML}${submitHTML}
-            </div>
-          </div>
-          <div class="dsat-cols">
-            <div class="dsat-main">
-              <div id="question-panel"></div>
-              <div style="display:flex;justify-content:space-between;margin-top:var(--sp-xl);padding-top:var(--sp-md);border-top:1px solid var(--border-color)">
-                <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${!allowBack?'disabled':''}>← Back</button>
-                <div style="display:flex;gap:var(--sp-sm)">${actionsHTML}<button class="btn btn-primary btn-sm" id="btn-next" onclick="QuizEngine.next()">Next →</button></div>
-              </div>
-            </div>
-            <div class="dsat-sidebar">
-              <p style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:var(--sp-sm)">All Questions</p>
-              <div id="q-nav" style="display:flex;flex-wrap:wrap;gap:5px;overflow-y:auto;max-height:calc(100vh - 200px);align-content:flex-start;scrollbar-width:thin"></div>
-              <div style="margin-top:auto;padding-top:var(--sp-md);border-top:1px solid var(--border-color);display:flex;flex-direction:column;gap:4px">
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text-muted)"><div style="width:10px;height:10px;border-radius:2px;background:var(--accent-primary)"></div>Active</div>
-                  <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text-muted)"><div style="width:10px;height:10px;border-radius:2px;background:var(--color-success)"></div>Done</div>
-                  <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text-muted)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(251,191,36,.5)"></div>Flagged</div>
+          <div class="ed-body">
+             <div class="ed-main">
+                <div class="ed-q-meta">QUESTION <span id="q-idx">1</span> OF ${
+                  qs.length
+                } • DIFFICULTY: MEDIUM</div>
+                <div id="question-panel" class="ed-panel"></div>
+                <div class="ed-actions">
+                   <button class="btn btn-ghost" id="btn-prev" onclick="QuizEngine.prev()" ${
+                     !allowBack ? "disabled" : ""
+                   }>← Back</button>
+                   ${actionsHTML}
+                   <button class="btn btn-secondary" onclick="QuizEngine.confirmSubmit()">Submit</button>
+                   <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()">Next →</button>
                 </div>
-              </div>
-            </div>
+             </div>
+             <div class="ed-sidebar">
+                <p class="ed-sb-title">ALL QUESTIONS</p>
+                <div id="q-nav" class="ed-q-nav"></div>
+                <div class="ed-sb-footer">
+                   <div class="flex items-center gap-md text-xs">
+                      <span class="flex items-center gap-xs"><div class="dot done"></div> Answered</span>
+                      <span class="flex items-center gap-xs"><div class="dot flagged"></div> Flagged</span>
+                   </div>
+                </div>
+             </div>
           </div>
         </div>`;
     }
-    }
     // ──────────────────────────────────────────
-    // 4. Mobile Minimal Mode
+    // 4. VIBRANT (Image 4) — Gamified
     // ──────────────────────────────────────────
-    else if (tmpl === 'minimal') {
+    else if (tmpl === "vibrant") {
       layoutHtml = `
-        <div class="layout-minimal">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-md)">
-            <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${!allowBack?'disabled':''}>←</button>
-            <div class="font-bold">Q<span id="q-idx">1</span> <span class="text-muted text-sm">/${qs.length}</span></div>
-            ${timerHTML}
+        <div class="layout-vibrant">
+          <div class="vib-header">
+             <button class="vib-back" onclick="QuizEngine.confirmSubmit()">←</button>
+             <div class="vib-topic-badge">Science • Biology</div>
+             <div class="vib-timer" id="total-timer-vib">00:00</div>
           </div>
-          <div class="progress-bar" style="height:6px;border-radius:10px;margin-bottom:var(--sp-lg)"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
+          <div class="vib-progress-wrap">
+             <div class="progress-bar"><div class="progress-fill" id="quiz-progress"></div></div>
+             <div class="vib-q-indicator"><span id="q-idx">1</span>/${qs.length}</div>
+          </div>
           
-          <div id="question-panel" style="flex:1"></div>
+          <div class="vib-content">
+             <div id="question-panel"></div>
+             <div id="q-nav" class="vib-q-nav"></div>
+          </div>
           
-          <div style="display:none" id="q-nav"></div> <!-- hidden nav -->
-          
-          <div style="position:sticky;bottom:0;background:var(--bg-base);padding:var(--sp-md) 0;border-top:1px solid var(--border-color);display:flex;gap:var(--sp-sm);align-items:center;margin-top:var(--sp-xl)">
-             ${pauseHTML}
-             ${actionsHTML}
-             <div style="flex:1"></div>
-             ${submitHTML}
-             <button class="btn btn-primary" style="padding:12px 24px;border-radius:24px" id="btn-next" onclick="QuizEngine.next()">Next →</button>
+          <div class="vib-footer">
+             <button class="vib-action-btn skip" onclick="QuizEngine.next()">Skip</button>
+             <button class="vib-action-btn next" id="btn-next" onclick="QuizEngine.next()">Next →</button>
           </div>
         </div>`;
     }
     // ──────────────────────────────────────────────────────────
-    // 5. DEFAULT QuizPro — clean full-width, sticky footer nav
+    // 5. DEFAULT
     // ──────────────────────────────────────────────────────────
     else {
       layoutHtml = `
@@ -225,18 +224,21 @@ const PageQuiz = (() => {
           <div style="display:flex;align-items:center;gap:var(--sp-md);padding:var(--sp-sm) 0;border-bottom:1px solid var(--border-color)">
             <span style="font-size:.78rem;color:var(--text-muted)">Q</span>
             <span style="font-weight:700;font-size:.9rem"><span id="q-idx">1</span></span>
-            <span style="font-size:.78rem;color:var(--text-muted)">/ ${qs.length}</span>
+            <span style="font-size:.78rem;color:var(--text-muted)">/ ${
+              qs.length
+            }</span>
             <div style="flex:1"><div class="progress-bar" style="height:4px"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div></div>
             ${timerHTML}${pauseHTML}${submitHTML}
           </div>
           <div class="card" id="question-panel" style="padding:var(--sp-lg)"></div>
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-sm);padding:var(--sp-sm) 0;border-top:1px solid var(--border-color)">
-            <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${!allowBack ? 'disabled' : ''}>← Back</button>
+            <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${
+              !allowBack ? "disabled" : ""
+            }>← Back</button>
             <div id="q-nav" style="display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;flex:1;margin:0 var(--sp-md);scrollbar-width:none"></div>
             <div style="display:flex;gap:var(--sp-sm)">${actionsHTML}<button class="btn btn-primary btn-sm" id="btn-next" onclick="QuizEngine.next()">Next →</button></div>
           </div>
         </div>`;
-    }
     }
 
     const pauseOverlay = `
@@ -251,19 +253,83 @@ const PageQuiz = (() => {
 
     const stylesHTML = `
       <style>
-        /* ── SAT Mode ── */
-        .layout-sat { display:flex; height:calc(100vh - 52px); overflow:hidden; }
-        .sat-sidebar { width:200px; flex-shrink:0; display:flex; flex-direction:column; background:var(--bg-surface); border-right:1px solid var(--border-color); }
-        .sat-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+        [data-theme="editorial"] #question-panel { font-family: var(--font-content, serif); }
+        [data-theme="editorial"] .mcq-option { border: none !important; border-bottom: 1px solid var(--border-color) !important; border-radius: 0 !important; padding: 10px 0 !important; background: transparent !important; }
+        [data-theme="vibrant"] .mcq-option { border-radius: 12px !important; margin-bottom: 6px; padding: 12px !important; border: 2px solid var(--border-color) !important; font-size: 0.95rem; }
+        [data-theme="quizpro-dark"] .mcq-option { border-radius: 6px !important; border-width: 1px !important; background: var(--bg-elevated) !important; padding: 10px 14px !important; margin-bottom: 8px; }
 
-        /* ── GRE Mode ── */
-        .layout-gre { display:flex; flex-direction:column; height:calc(100vh - 52px); overflow:hidden; background:var(--bg-surface); border:1px solid var(--border-color); }
-        .gre-topbar { display:flex; align-items:center; justify-content:space-between; padding:var(--sp-sm) var(--sp-lg); border-bottom:2px solid var(--accent-primary); background:var(--bg-base); flex-shrink:0; }
-        .gre-body { flex:1; display:flex; overflow:hidden; }
-        .gre-footer { display:flex; align-items:center; justify-content:space-between; padding:var(--sp-sm) var(--sp-lg); border-top:1px solid var(--border-color); background:var(--bg-base); flex-shrink:0; gap:var(--sp-md); }
-        .layout-gre #question-panel { flex:1; display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-lg); background:transparent; box-shadow:none; border:none; }
-        .layout-gre .q-left-panel { display:flex !important; overflow-y:auto; }
-        @media(max-width:900px){ .layout-gre #question-panel { grid-template-columns:1fr; } .layout-gre .q-left-panel { display:none !important; } }
+        /* ── SAT Style ── */
+        .layout-sat { display:flex; height:calc(100vh - 52px); overflow:hidden; background:var(--bg-base); }
+        .sat-sidebar { width:200px; display:flex; flex-direction:column; border-right:1px solid var(--border-color); background:var(--bg-surface); }
+        .sat-sidebar-header { padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .sat-sidebar-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+        .sat-q-nav { padding: 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; overflow-y: auto; }
+        .sat-sidebar-legend { padding: 10px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; font-size: 0.6rem; color: var(--text-secondary); }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .dot { width: 6px; height: 6px; border-radius: 2px; border: 1px solid var(--border-color); }
+        .dot.active { background: var(--accent-primary); border-color: var(--accent-primary); }
+        .dot.done { background: var(--color-success); border-color: var(--color-success); }
+        .dot.flagged { background: var(--color-warn); border-color: var(--color-warn); }
+        .sat-sidebar-footer { padding: 10px; background: var(--bg-elevated); border-top: 1px solid var(--border-color); font-size: 0.65rem; }
+        .sat-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+        .sat-header { padding: 6px 16px; height: 44px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); flex-wrap: wrap; }
+        .sat-badge { background: var(--text-primary); color: var(--bg-surface); padding: 2px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 800; }
+        .sat-q-counter { font-size: 0.75rem; font-weight: 700; color: var(--text-primary); }
+        .sat-progress-wrap { flex: 1; max-width: 280px; margin: 0 20px; }
+        .sat-content { flex: 1; overflow-y: auto; padding: 15px 6%; display: flex; flex-direction: column; }
+        .sat-actions { display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; }
+
+        /* ── QuizPro Dark ── */
+        .layout-quizpro { display:flex; flex-direction:column; height:calc(100vh - 52px); background:var(--bg-base); color:var(--text-primary); }
+        .quizpro-topbar { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--border-color); }
+        .qp-logo { display:flex; flex-direction:column; font-weight:900; letter-spacing:0.5px; line-height:1; font-size:0.9rem; }
+        .qp-segmented-progress { display: flex; gap: 2px; flex: 1; max-width: 350px; margin: 0 20px; height: 3px; }
+        .qp-seg { height: 100%; flex: 1; background: var(--border-color); border-radius: 1px; }
+        .qp-timer-wrap { text-align: right; }
+        .quizpro-body { flex: 1; display: flex; overflow: hidden; }
+        .qp-passage { flex: 1; border-right: 1px solid var(--border-color); padding: 16px; overflow-y: auto; background: var(--bg-surface); }
+        .qp-passage-header { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 10px; }
+        .qp-passage-content { font-size: 0.95rem; line-height: 1.5; opacity: 0.9; }
+        .qp-question { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; }
+        .qp-q-header { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; }
+        .qp-mini-nav { display: flex; gap: 3px; flex-wrap: wrap; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); }
+        .quizpro-footer { height: 52px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--bg-surface); }
+
+        /* ── Editorial ── */
+        .layout-editorial { max-width: 1100px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; }
+        .ed-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid var(--text-primary); padding-bottom: 15px; margin-bottom: 24px; }
+        .ed-meta { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); }
+        .ed-title { font-family: var(--font-content, serif); font-size: 1.8rem; }
+        .ed-time-wrap { text-align: right; }
+        .ed-time { font-family: var(--font-content, serif); font-size: 2rem; color: var(--accent-primary); line-height: 1; }
+        .ed-time-label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); }
+        .ed-body { display: flex; gap: 40px; }
+        .ed-main { flex: 1; }
+        .ed-q-meta { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; }
+        .ed-panel { font-size: 1.15rem; line-height: 1.5; margin-bottom: 24px; }
+        .ed-actions { display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .ed-sidebar { width: 260px; background: var(--bg-elevated); padding: 16px; border-radius: 4px; height: fit-content; position: sticky; top: 20px; }
+        .ed-sb-title { font-size: 0.65rem; font-weight: 800; margin-bottom: 12px; color: var(--text-muted); }
+        .ed-q-nav { display: flex; flex-direction: column; gap: 1px; max-height: 400px; overflow-y: auto; margin-bottom: 15px; }
+        .ed-q-row { display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
+        .ed-q-row.active { background: var(--text-primary); color: var(--bg-base); }
+
+        /* ── Vibrant ── */
+        .layout-vibrant { max-width: 460px; margin: 0 auto; background: var(--bg-base); min-height: 100vh; display: flex; flex-direction: column; }
+        .vib-header { padding: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .vib-back { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-primary); color: #fff; display: grid; place-items: center; font-size: 1.1rem; }
+        .vib-topic-badge { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; }
+        .vib-timer { background: #fee2e2; color: #ef4444; padding: 4px 10px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; }
+        .vib-progress-wrap { padding: 0 15px 15px 15px; position: relative; }
+        .vib-q-indicator { position: absolute; right: 22px; top: -6px; background: #334155; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; }
+        .vib-content { flex: 1; padding: 15px; background: var(--bg-surface); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
+        .vib-tag { background: var(--bg-elevated); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .vib-score-tag { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }
+        .vib-q-nav { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
+        .vib-footer { padding: 15px; display: flex; gap: 12px; background: var(--bg-surface); }
+        .vib-action-btn { flex: 1; height: 48px; border-radius: 14px; font-weight: 800; font-size: 0.9rem; transition: 0.2s; }
+        .vib-action-btn.skip { background: var(--bg-base); color: var(--text-primary); }
+        .vib-action-btn.next { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; box-shadow: 0 10px 20px rgba(234,88,12,0.3); }
 
         /* ── DSAT / ACT Mode ── */
         .layout-dsat { display:flex; flex-direction:column; height:calc(100vh - 52px); overflow:hidden; }
@@ -279,7 +345,6 @@ const PageQuiz = (() => {
 
     main.innerHTML = stylesHTML + layoutHtml + pauseOverlay;
 
-
     // Init engine
     QuizEngine.init();
   }
@@ -292,25 +357,25 @@ const PageQuiz = (() => {
 // ============================================================
 const QuizEngine = (() => {
   let _totalTimer = null;
-  let _qTimer     = null;
-  let _totalSec   = 0;
-  let _qSec       = 0;
-  let _paused     = false;
+  let _qTimer = null;
+  let _totalSec = 0;
+  let _qSec = 0;
+  let _paused = false;
   let _qStartTime = 0;
 
   function init() {
-    const quiz = State.get('quiz');
-    State.merge('quiz', { currentIdx: 0 });
+    const quiz = State.get("quiz");
+    State.merge("quiz", { currentIdx: 0 });
     startTotalTimer();
     renderQuestion();
     renderQNav();
   }
 
   function startTotalTimer() {
-    const quiz   = State.get('quiz');
-    const cfg    = quiz.config;
-    const limit  = parseInt(cfg['Quiz Time'] || 0);
-    _totalSec    = limit > 0 ? limit : 0;
+    const quiz = State.get("quiz");
+    const cfg = quiz.config;
+    const limit = parseInt(cfg["Quiz Time"] || 0);
+    _totalSec = limit > 0 ? limit : 0;
 
     clearInterval(_totalTimer);
     _totalTimer = setInterval(() => {
@@ -318,7 +383,10 @@ const QuizEngine = (() => {
       if (limit > 0) {
         _totalSec--;
         updateTotalTimerEl();
-        if (_totalSec <= 0) { clearInterval(_totalTimer); autoSubmit(); }
+        if (_totalSec <= 0) {
+          clearInterval(_totalTimer);
+          autoSubmit();
+        }
       } else {
         _totalSec++;
         updateTotalTimerEl();
@@ -327,109 +395,189 @@ const QuizEngine = (() => {
   }
 
   function updateTotalTimerEl() {
-    const el = document.getElementById('total-timer');
-    if (!el) return;
-    const quiz = State.get('quiz');
-    const limit = parseInt(quiz.config['Quiz Time'] || 0);
-    const remaining = limit > 0 ? _totalSec : null;
-    el.textContent = fmtTime(limit > 0 ? _totalSec : _totalSec);
-    if (limit > 0) {
-      el.className = 'font-mono font-bold ' + (_totalSec < 60 ? 'timer-danger' : _totalSec < 300 ? 'timer-warn' : 'timer-safe');
-    }
+    const quiz = State.get("quiz");
+    const limit = parseInt(quiz.config["Quiz Time"] || 0);
+    const timeStr = fmtTime(_totalSec);
+
+    // Update all potential timer elements across templates
+    [
+      "total-timer",
+      "total-timer-qp",
+      "total-timer-ed",
+      "total-timer-vib",
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = timeStr;
+        if (limit > 0) {
+          el.className =
+            "font-mono font-bold " +
+            (_totalSec < 60
+              ? "timer-danger"
+              : _totalSec < 300
+              ? "timer-warn"
+              : "timer-safe");
+        }
+      }
+    });
   }
 
   function startQTimer() {
-    const quiz  = State.get('quiz');
-    const limit = parseInt(quiz.config['Question Time'] || 0);
+    const quiz = State.get("quiz");
+    const limit = parseInt(quiz.config["Question Time"] || 0);
     _qSec = limit > 0 ? limit : 0;
     _qStartTime = Date.now();
 
     clearInterval(_qTimer);
     if (limit <= 0) {
-      const el = document.getElementById('q-timer');
-      if (el) el.textContent = '—';
+      const el = document.getElementById("q-timer");
+      if (el) el.textContent = "—";
       return;
     }
 
-    const el = document.getElementById('q-timer');
-    if (el) { el.textContent = fmtTime(_qSec); el.className = 'font-mono font-bold timer-safe'; }
+    const el = document.getElementById("q-timer");
+    if (el) {
+      el.textContent = fmtTime(_qSec);
+      el.className = "font-mono font-bold timer-safe";
+    }
 
     _qTimer = setInterval(() => {
       if (_paused) return;
       _qSec--;
       if (el) {
         el.textContent = fmtTime(Math.max(0, _qSec));
-        el.className = 'font-mono font-bold ' + (_qSec < 10 ? 'timer-danger' : _qSec < 30 ? 'timer-warn' : 'timer-safe');
+        el.className =
+          "font-mono font-bold " +
+          (_qSec < 10
+            ? "timer-danger"
+            : _qSec < 30
+            ? "timer-warn"
+            : "timer-safe");
       }
       if (_qSec <= 0) {
         clearInterval(_qTimer);
-        const cfg = State.get('quiz').config;
-        if ((cfg['Auto Next Question'] || 'Off') === 'On') next();
+        const cfg = State.get("quiz").config;
+        if ((cfg["Auto Next Question"] || "Off") === "On") next();
       }
     }, 1000);
   }
 
   function renderQuestion() {
-    const quiz = State.get('quiz');
-    const q    = quiz.questions[quiz.currentIdx];
+    const quiz = State.get("quiz");
+    const q = quiz.questions[quiz.currentIdx];
     if (!q) return;
 
-    // Update nav indicators
-    const elIdx = document.getElementById('q-idx');
-    if (elIdx) elIdx.textContent = quiz.currentIdx + 1;
-    
-    const elProg = document.getElementById('quiz-progress');
-    if (elProg) {
-      const pct = ((quiz.currentIdx) / quiz.questions.length) * 100;
-      elProg.style.width = pct + '%';
+    // Update common markers
+    const elsIdx = document.querySelectorAll("#q-idx");
+    elsIdx.forEach((el) => (el.textContent = quiz.currentIdx + 1));
+
+    // Progress Bars
+    const elProg = document.getElementById("quiz-progress");
+    const pct = (quiz.currentIdx / quiz.questions.length) * 100;
+    if (elProg) elProg.style.width = pct + "%";
+
+    // Segmented Progress (QuizPro Theme)
+    const segProg = document.getElementById("quiz-segmented-progress");
+    if (segProg) {
+      segProg.innerHTML = quiz.questions
+        .map(
+          (_, i) =>
+            `<div class="qp-seg ${i <= quiz.currentIdx ? "active" : ""}"></div>`
+        )
+        .join("");
     }
 
-    const satCount = document.getElementById('sat-answered-count');
-    if (satCount) satCount.textContent = countAnswered() + ' / ' + quiz.questions.length;
+    // Theme specific stats
+    const satCount = document.getElementById("sat-answered-count");
+    const totalAns = countAnswered();
+    if (satCount)
+      satCount.textContent = totalAns + " / " + quiz.questions.length;
+
+    const sAns = document.getElementById("stat-ans"),
+      sRem = document.getElementById("stat-rem");
+    if (sAns) sAns.textContent = totalAns;
+    if (sRem) sRem.textContent = quiz.questions.length - totalAns;
+
+    const qpAns = document.getElementById("qp-ans-count");
+    if (qpAns) qpAns.textContent = totalAns;
 
     // Mark/flag UI
     const ans = quiz.answers[quiz.currentIdx] || {};
-    const markBtn = document.getElementById('mark-btn');
-    if (markBtn) markBtn.style.color = ans.flagged ? 'var(--color-warn)' : '';
+    const markBtn = document.getElementById("mark-btn");
+    if (markBtn) markBtn.style.color = ans.flagged ? "var(--color-warn)" : "";
 
-    // Render question
-    const panel = document.getElementById('question-panel');
-    const type  = q['Question Type'] || 'Multichoice';
+    // Render question content
+    const panel = document.getElementById("question-panel");
     QuestionRenderer.render(panel, q, quiz.currentIdx);
+
     startQTimer();
     renderQNav();
 
-    // Prev/Next state
+    // Navigation state
     const cfg = quiz.config;
-    const allowBack = (cfg['Allow Back'] || 'On') === 'On';
-    const prevBtn = document.getElementById('btn-prev');
-    const nextBtn = document.getElementById('btn-next');
+    const allowBack = (cfg["Allow Back"] || "On") === "On";
+    const prevBtn = document.getElementById("btn-prev");
+    const nextBtn = document.getElementById("btn-next");
     if (prevBtn) prevBtn.disabled = !allowBack || quiz.currentIdx === 0;
     const isLast = quiz.currentIdx === quiz.questions.length - 1;
-    if (nextBtn) nextBtn.textContent = isLast ? '✓ Finish' : 'Next →';
+    if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish" : "Next →";
   }
 
   function renderQNav() {
-    const quiz = State.get('quiz');
-    const nav  = document.getElementById('q-nav');
+    const quiz = State.get("quiz");
+    const nav = document.getElementById("q-nav");
     if (!nav) return;
-    nav.innerHTML = '';
+    nav.innerHTML = "";
+
+    const tmpl = quiz.template || "default";
+
     quiz.questions.forEach((_, i) => {
       const ans = quiz.answers[i] || {};
-      const btn = document.createElement('button');
-      btn.className = 'q-nav-dot';
-      btn.textContent = i + 1;
-      btn.title = `Q${i+1}${ans.flagged ? ' 🚩' : ''}`;
-      btn.style.cssText = `
-        width:28px;height:28px;border-radius:6px;font-size:.72rem;font-weight:700;
-        border:1.5px solid var(--border-color);cursor:pointer;
-        background:${i === quiz.currentIdx ? 'var(--accent-primary)' : ans.userAnswer !== undefined ? 'var(--color-success)' : ans.flagged ? 'rgba(251,191,36,.2)' : 'var(--bg-elevated)'};
-        color:${i === quiz.currentIdx ? '#fff' : 'var(--text-secondary)'};
-        border-color:${ans.flagged ? 'var(--color-warn)' : 'var(--border-color)'};
-        transition:all .15s;
-      `;
-      btn.onclick = () => jumpTo(i);
-      nav.appendChild(btn);
+      const isActive = i === quiz.currentIdx;
+
+      if (tmpl === "editorial") {
+        const row = document.createElement("div");
+        row.className = "ed-q-row" + (isActive ? " active" : "");
+        row.innerHTML = `
+           <span style="width:24px;opacity:.5">${String(i + 1).padStart(
+             2,
+             "0"
+           )}</span>
+           <span style="flex:1">${(
+             quiz.questions[i].Category || "General Question"
+           ).substring(0, 20)}...</span>
+           <div class="dot ${
+             ans.userAnswer !== undefined
+               ? "done"
+               : ans.flagged
+               ? "flagged"
+               : ""
+           }"></div>`;
+        row.onclick = () => jumpTo(i);
+        nav.appendChild(row);
+      } else {
+        const btn = document.createElement("button");
+        btn.className = "q-nav-dot";
+        btn.textContent = i + 1;
+        btn.style.cssText = `
+          width:28px;height:28px;border-radius:6px;font-size:.72rem;font-weight:700;
+          border:1.5px solid var(--border-color);cursor:pointer;
+          background:${
+            isActive
+              ? "var(--accent-primary)"
+              : ans.userAnswer !== undefined
+              ? "var(--color-success)"
+              : ans.flagged
+              ? "rgba(251,191,36,.2)"
+              : "var(--bg-elevated)"
+          };
+          color:${isActive ? "#fff" : "var(--text-secondary)"};
+          transition:all .15s;
+        `;
+        if (ans.flagged) btn.style.borderColor = "var(--color-warn)";
+        btn.onclick = () => jumpTo(i);
+        nav.appendChild(btn);
+      }
     });
   }
 
@@ -439,102 +587,117 @@ const QuizEngine = (() => {
 
   function next() {
     saveCurrentAnswer();
-    const quiz = State.get('quiz');
-    const cfg  = quiz.config;
+    const quiz = State.get("quiz");
+    const cfg = quiz.config;
 
     // Mandatory answer check
-    if ((cfg['Mandatory Answer'] || 'Off') === 'On') {
+    if ((cfg["Mandatory Answer"] || "Off") === "On") {
       const ans = quiz.answers[quiz.currentIdx];
-      if (!ans || ans.userAnswer === undefined || ans.userAnswer === '' || ans.userAnswer === null) {
-        UI.toast('Answer is mandatory before proceeding', 'warn'); return;
+      if (
+        !ans ||
+        ans.userAnswer === undefined ||
+        ans.userAnswer === "" ||
+        ans.userAnswer === null
+      ) {
+        UI.toast("Answer is mandatory before proceeding", "warn");
+        return;
       }
     }
 
     if (quiz.currentIdx >= quiz.questions.length - 1) {
       confirmSubmit();
     } else {
-      State.merge('quiz', { currentIdx: quiz.currentIdx + 1 });
+      State.merge("quiz", { currentIdx: quiz.currentIdx + 1 });
       renderQuestion();
     }
   }
 
   function prev() {
     saveCurrentAnswer();
-    const quiz = State.get('quiz');
+    const quiz = State.get("quiz");
     if (quiz.currentIdx > 0) {
-      State.merge('quiz', { currentIdx: quiz.currentIdx - 1 });
+      State.merge("quiz", { currentIdx: quiz.currentIdx - 1 });
       renderQuestion();
     }
   }
 
   function jumpTo(idx) {
-    const quiz = State.get('quiz');
-    const cfg  = quiz.config;
-    if ((cfg['Question Navigation'] || 'Free') === 'Sequential') {
-      if (idx > quiz.currentIdx + 1) { UI.toast('Sequential navigation: go one by one', 'warn'); return; }
+    const quiz = State.get("quiz");
+    const cfg = quiz.config;
+    if ((cfg["Question Navigation"] || "Free") === "Sequential") {
+      if (idx > quiz.currentIdx + 1) {
+        UI.toast("Sequential navigation: go one by one", "warn");
+        return;
+      }
     }
     saveCurrentAnswer();
-    State.merge('quiz', { currentIdx: idx });
+    State.merge("quiz", { currentIdx: idx });
     renderQuestion();
   }
 
   function saveCurrentAnswer() {
-    const quiz    = State.get('quiz');
-    const idx     = quiz.currentIdx;
+    const quiz = State.get("quiz");
+    const idx = quiz.currentIdx;
     const current = QuestionRenderer.collectAnswer();
     if (current !== null) {
       const answers = { ...quiz.answers };
-      answers[idx]  = { ...answers[idx], userAnswer: current, timeTaken: getQTime() };
-      State.merge('quiz', { answers });
+      answers[idx] = {
+        ...answers[idx],
+        userAnswer: current,
+        timeTaken: getQTime(),
+      };
+      State.merge("quiz", { answers });
     }
   }
 
   function toggleMark() {
-    const quiz    = State.get('quiz');
-    const idx     = quiz.currentIdx;
+    const quiz = State.get("quiz");
+    const idx = quiz.currentIdx;
     const answers = { ...quiz.answers };
-    answers[idx]  = { ...answers[idx], flagged: !(answers[idx] || {}).flagged };
-    State.merge('quiz', { answers });
-    renderQNav();
-    const btn = document.getElementById('mark-btn');
-    if (btn) btn.style.color = answers[idx].flagged ? 'var(--color-warn)' : '';
+    answers[idx] = { ...answers[idx], flagged: !(answers[idx] || {}).flagged };
+    State.merge("quiz", { answers });
+    renderQuestion();
   }
 
   function showHint() {
-    const quiz = State.get('quiz');
-    const q    = quiz.questions[quiz.currentIdx];
-    UI.toast(q.Hint || 'No hint available', 'info', 5000);
+    const quiz = State.get("quiz");
+    const q = quiz.questions[quiz.currentIdx];
+    UI.toast(q.Hint || "No hint available", "info", 5000);
   }
 
   function togglePause() {
     _paused = !_paused;
-    const overlay = document.getElementById('pause-overlay');
-    if (overlay) {
-      overlay.style.display = _paused ? 'grid' : 'none';
-      overlay.classList.toggle('hidden', !_paused);
-    }
-    const btn = document.getElementById('pause-btn');
-    if (btn) btn.textContent = _paused ? '▶' : '⏸';
+    const overlay = document.getElementById("pause-overlay");
+    if (overlay) overlay.style.display = _paused ? "grid" : "none";
+    const btn = document.getElementById("pause-btn");
+    if (btn) btn.textContent = _paused ? "▶" : "⏸";
   }
 
   function confirmSubmit() {
     UI.modal(`
       <div style="text-align:center;padding:var(--sp-md)">
-        <div style="font-size:3rem;margin-bottom:var(--sp-md)">📋</div>
-        <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:var(--sp-sm)">Submit Quiz?</h2>
+        <div style="font-size:3.5rem;margin-bottom:var(--sp-md)">📄</div>
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:var(--sp-sm)">Finish Attempt?</h2>
         <p class="text-muted" style="margin-bottom:var(--sp-xl)">
-          You've answered <strong>${countAnswered()}</strong> of <strong>${State.get('quiz').questions.length}</strong> questions.
+          You've completed <strong>${countAnswered()}</strong> / <strong>${
+      State.get("quiz").questions.length
+    }</strong> questions.
         </p>
         <div style="display:flex;gap:var(--sp-md);justify-content:center">
-          <button class="btn btn-ghost" onclick="UI.closeModal()">Keep Going</button>
-          <button class="btn btn-primary" onclick="UI.closeModal();QuizEngine.submit()">Submit Now</button>
+          <button class="btn btn-secondary btn-lg" onclick="UI.closeModal()">Not Yet</button>
+          <button class="btn btn-primary btn-lg" onclick="UI.closeModal();QuizEngine.submit()">Submit Quiz</button>
         </div>
       </div>`);
   }
 
   function countAnswered() {
-    const { answers } = State.get('quiz');
-    return Object.values(answers).filter(a => a.userAnswer !== undefined && a.userAnswer !== null && a.userAnswer !== '').length;
+    const { answers } = State.get("quiz");
+    return Object.values(answers).filter(
+      (a) =>
+        a.userAnswer !== undefined &&
+        a.userAnswer !== null &&
+        a.userAnswer !== ""
+    ).length;
   }
 
   async function submit() {
@@ -542,9 +705,10 @@ const QuizEngine = (() => {
     clearInterval(_totalTimer);
     clearInterval(_qTimer);
 
-    const quiz     = State.get('quiz');
-    const endTime  = new Date().toISOString();
-    const score    = Results.calculateScore(quiz);
+    const quiz = State.get("quiz");
+    UI.setLoading(true, "Finalizing your attempt...");
+    const endTime = new Date().toISOString();
+    const score = Results.calculateScore(quiz);
 
     // Save to Drive
     try {
@@ -554,40 +718,66 @@ const QuizEngine = (() => {
           const correct = Results.isCorrect(q, ans.userAnswer);
           return {
             QuestionIndex: i + 1,
-            QuestionText:  q.Question,
-            UserAnswer:    Array.isArray(ans.userAnswer) ? ans.userAnswer.join('|') : (ans.userAnswer || ''),
-            CorrectAnswer: q['Correct Answer'],
-            IsCorrect:     correct ? 'TRUE' : 'FALSE',
-            TimeTaken:     ans.timeTaken || 0,
-            Category:      q.Category || '',
-            SubCategory:   q['Sub Category'] || '',
-            Difficulty:    q.Difficulty || '',
-            QuestionType:  q['Question Type'] || '',
-            Score:         q.Score || 1,
-            NegScore:      q['Negative Score'] || 0,
-            PartialScore:  q['Partial Score'] || 0,
+            QuestionText: q.Question,
+            UserAnswer: Array.isArray(ans.userAnswer)
+              ? ans.userAnswer.join("|")
+              : ans.userAnswer || "",
+            CorrectAnswer: q["Correct Answer"],
+            IsCorrect: correct ? "TRUE" : "FALSE",
+            TimeTaken: ans.timeTaken || 0,
+            Category: q.Category || "",
+            SubCategory: q["Sub Category"] || "",
+            Difficulty: q.Difficulty || "",
+            QuestionType: q["Question Type"] || "",
+            Score: q.Score || 1,
+            NegScore: q["Negative Score"] || 0,
+            PartialScore: q["Partial Score"] || 0,
           };
         });
         await API.saveAttemptDetail(quiz.fileId, rows);
-        await API.endAttempt({ fileId: quiz.fileId, endTime, score: score.total });
+        await API.endAttempt({
+          fileId: quiz.fileId,
+          endTime,
+          score: score.total,
+        });
       }
-    } catch(e) {
-      console.warn('Could not save results:', e.message);
+    } catch (e) {
+      console.warn("Could not save results:", e.message);
     }
 
-    State.set('result', { quiz, score, endTime, startTime: new Date(quiz.startTime).toISOString() });
+    State.set("result", {
+      quiz,
+      score,
+      endTime,
+      startTime: new Date(quiz.startTime).toISOString(),
+    });
+
+    UI.setLoading(false);
+
     const cfg = quiz.config;
-    if ((cfg['Final Result'] || 'On') === 'On') {
-      UI.pushPage('result');
+    if ((cfg["Final Result"] || "On") === "On") {
+      UI.pushPage("result");
     } else {
-      UI.toast('Quiz submitted!', 'success');
-      UI.pushPage('welcome');
+      UI.toast("Quiz submitted!", "success");
+      UI.pushPage("welcome");
     }
   }
 
-  function autoSubmit() { submit(); }
+  function autoSubmit() {
+    submit();
+  }
 
-  return { init, next, prev, jumpTo, toggleMark, showHint, togglePause, confirmSubmit, submit };
+  return {
+    init,
+    next,
+    prev,
+    jumpTo,
+    toggleMark,
+    showHint,
+    togglePause,
+    confirmSubmit,
+    submit,
+  };
 })();
 
 // ── Time formatter ─────────────────────────────────────────
@@ -595,6 +785,10 @@ function fmtTime(sec) {
   const s = Math.max(0, Math.round(sec));
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
-  if (h > 0) return `${h}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
-  return `${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  if (h > 0)
+    return `${h}:${String(m % 60).padStart(2, "0")}:${String(s % 60).padStart(
+      2,
+      "0"
+    )}`;
+  return `${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }

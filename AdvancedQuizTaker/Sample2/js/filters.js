@@ -4,32 +4,57 @@
 // ============================================================
 
 const Filters = (() => {
-
   // ── Extract unique values from question list ───────────────
   function extract(questions, key) {
-    return [...new Set(questions.map(q => q[key]).filter(Boolean))].sort();
+    const all = questions.flatMap((q) =>
+      (q[key] ? q[key].toString().split(",") : [])
+        .map((s) => s.trim())
+        .filter(Boolean)
+    );
+    return [...new Set(all)].sort();
   }
 
   function applyFilters(questions, setup) {
     let q = [...questions];
 
     // Filter Status = Active only
-    q = q.filter(r => (r.Status || 'Active').toLowerCase() === 'active');
+    q = q.filter((r) => (r.Status || "Active").toLowerCase() === "active");
 
-    if (setup.selectedCategory.length)
-      q = q.filter(r => setup.selectedCategory.includes(r.Category));
+    if (setup.selectedCategory && setup.selectedCategory.length)
+      q = q.filter((r) => {
+        const cats = (r.Category || "")
+          .toString()
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+        return cats.some((c) => setup.selectedCategory.includes(c));
+      });
 
-    if (setup.selectedSubCat.length)
-      q = q.filter(r => setup.selectedSubCat.includes(r['Sub Category']));
+    if (setup.selectedSubCat && setup.selectedSubCat.length)
+      q = q.filter((r) => {
+        const scats = (r["Sub Category"] || "")
+          .toString()
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+        return scats.some((c) => setup.selectedSubCat.includes(c));
+      });
 
     if (setup.selectedTags.length)
-      q = q.filter(r => setup.selectedTags.some(t => (r.Tags || '').split(',').map(x=>x.trim()).includes(t)));
+      q = q.filter((r) =>
+        setup.selectedTags.some((t) =>
+          (r.Tags || "")
+            .split(",")
+            .map((x) => x.trim())
+            .includes(t)
+        )
+      );
 
     if (setup.selectedDifficulty.length)
-      q = q.filter(r => setup.selectedDifficulty.includes(r.Difficulty));
+      q = q.filter((r) => setup.selectedDifficulty.includes(r.Difficulty));
 
     if (setup.selectedTypes.length)
-      q = q.filter(r => setup.selectedTypes.includes(r['Question Type']));
+      q = q.filter((r) => setup.selectedTypes.includes(r["Question Type"]));
 
     // Shuffle
     q = shuffle(q);
@@ -50,9 +75,10 @@ const Filters = (() => {
 
   function shuffleOptions(question) {
     // Returns question with randomised Choice order
-    const choices = ['Choice1','Choice2','Choice3','Choice4']
-      .map(k => question[k]).filter(Boolean);
-    const correct = (question['Correct Answer'] || '').split('|');
+    const choices = ["Choice1", "Choice2", "Choice3", "Choice4"]
+      .map((k) => question[k])
+      .filter(Boolean);
+    const correct = (question["Correct Answer"] || "").split("|");
     // Map original correct values
     const shuffled = shuffle(choices);
     return { shuffled, correct };
@@ -65,56 +91,148 @@ const Filters = (() => {
 //  Page: Setup Topics
 // ============================================================
 const PageSetupTopics = (() => {
-  function render(main) {
-    const topics = State.get('topics');
-    main.innerHTML = `
-      <div class="animate-up">
-        ${UI.stepsHtml(['Select Topics','Filter Questions','Quiz Config'], 0)}
-        
-        <div style="margin-bottom:var(--sp-xl)">
-          <h1 style="font-size:1.8rem; font-weight:700; color:var(--text-primary); margin-bottom:8px">Select Quiz Topics</h1>
-          <p style="color:var(--text-muted); font-size:1rem;">Choose one or more topic areas to draw questions from.</p>
-        </div>
-        
-        <div class="divider" style="margin-bottom:var(--sp-lg)"></div>
-        
-        <div id="topic-chips" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:var(--sp-xl); min-height:60px;"></div>
-        
-        <div style="display:flex; justify-content:flex-start; gap:var(--sp-md); align-items:center;">
-           <button class="btn btn-primary" id="topics-next" onclick="topicsNext()">
-             Continue to Filters →
-           </button>
-           <button class="btn btn-ghost btn-sm" onclick="selectAllTopics()">Select All</button>
-        </div>
-      </div>`;
+  const ICON_MAP = {
+    docker: "🐳",
+    javascript: "JS",
+    python: "🐍",
+    java: "☕",
+    css: "🎨",
+    html: "🌐",
+    react: "⚛️",
+    node: "🟢",
+    database: "🗄️",
+    cloud: "☁️",
+    security: "🛡️",
+    sample: "🧪",
+    default: "📁",
+  };
 
-    const container = document.getElementById('topic-chips');
-    const sel = State.get('setup').selectedTopics;
-    UI.makeChips(container, topics.map(t => t.name), sel, true);
+  function render(main) {
+    const topics = State.get("topics");
+    const sel = State.get("setup").selectedTopics || [];
+
+    main.innerHTML = `
+      <div class="animate-up" style="max-width:1100px; margin:0 auto">
+        ${UI.stepsHtml(
+          ["Select Topics", "Filters", "Config", "Quiz Themes"],
+          0
+        )}
+        
+        <div style="text-align:center; margin-bottom:var(--sp-2xl)">
+          <h1 style="font-size:2.8rem; font-weight:900; letter-spacing:-0.05em; color:var(--text-primary); margin-bottom:12px">Choose Knowledge Domains</h1>
+          <p style="color:var(--text-secondary); font-size:1.15rem; max-width:600px; margin:0 auto">Select one or more specialized subjects to build your assessment challenge.</p>
+        </div>
+
+        <div id="topic-grid" class="topic-grid">
+          ${topics
+            .map((t) => {
+              const isSelected = sel.includes(t.name);
+              const icon =
+                ICON_MAP[t.name.toLowerCase()] || ICON_MAP["default"];
+              return `
+              <div class="topic-card ${
+                isSelected ? "selected" : ""
+              }" onclick="PageSetupTopics.toggle(this, '${t.name}')">
+                <div class="selected-badge">✓</div>
+                <div class="topic-icon">${icon}</div>
+                <div class="topic-name">${t.name}</div>
+              </div>
+            `;
+            })
+            .join("")}
+        </div>
+        
+        <div style="display:flex; justify-content:center; gap:var(--sp-lg); align-items:center; margin-top:var(--sp-2xl); border-top:1px solid var(--border-color); padding-top:var(--sp-2xl)">
+           <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()" style="padding:16px 52px; font-size:1.1rem; box-shadow: 0 15px 35px -5px var(--accent-shadow)">
+             Continue to Advanced Filters →
+           </button>
+           <button class="btn btn-ghost" onclick="selectAllTopics()" style="font-weight:700">Select All Domains</button>
+        </div>
+      </div>
+      <style>
+        .topic-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+          gap: 6px;
+        }
+        .topic-card {
+          background: var(--bg-surface);
+          border: 2px solid var(--border-color);
+          border-radius: var(--radius-lg);
+          padding: 32px 24px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+        }
+        .topic-card:hover {
+          transform: translateY(-8px);
+          border-color: var(--accent-primary);
+          box-shadow: 0 20px 40px -10px var(--accent-shadow);
+        }
+        .topic-card.selected {
+          border-color: var(--accent-primary);
+          background: var(--accent-muted);
+          transform: scale(1.03);
+          box-shadow: 0 10px 20px -5px var(--accent-shadow);
+        }
+        .topic-card .topic-icon {
+          font-size: 3.2rem;
+          margin-bottom: 8px;
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+          transition: transform 0.3s var(--ease);
+        }
+        .topic-card:hover .topic-icon { transform: scale(1.15) rotate(5deg); }
+        .topic-card .topic-name { font-weight: 800; font-size: 1.1rem; color: var(--text-primary); }
+        .topic-card .topic-meta { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .topic-card .selected-badge {
+          position: absolute; top: 12px; right: 12px;
+          width: 24px; height: 24px; border-radius: 50%;
+          background: var(--accent-primary); color: #fff;
+          display: grid; place-items: center; font-size: 12px; font-weight: 800;
+          opacity: 0; transform: scale(0.5); transition: all 0.3s var(--ease);
+        }
+        .topic-card.selected .selected-badge { opacity: 1; transform: scale(1); }
+      </style>`;
+  }
+
+  function toggle(el, name) {
+    el.classList.toggle("selected");
   }
 
   window.selectAllTopics = () => {
-    document.querySelectorAll('#topic-chips .chip').forEach(c => c.classList.add('selected'));
+    document
+      .querySelectorAll(".topic-card")
+      .forEach((c) => c.classList.add("selected"));
   };
 
   window.topicsNext = async () => {
-    const sel = UI.getSelectedChips(document.getElementById('topic-chips'));
-    if (!sel.length) { UI.toast('Select at least one topic', 'warn'); return; }
-    State.merge('setup', { selectedTopics: sel });
+    const sel = [...document.querySelectorAll(".topic-card.selected")].map(
+      (c) => c.querySelector(".topic-name").textContent
+    );
+    if (!sel.length) {
+      UI.toast("Please select at least one domain", "warn");
+      return;
+    }
+    State.merge("setup", { selectedTopics: sel });
 
-    UI.setLoading(true, 'Loading questions…');
+    UI.setLoading(true, "Initializing questions pool...");
     try {
       const questions = await API.getQuestions(sel);
-      State.set('questions', questions);
+      State.set("questions", questions);
       UI.setLoading(false);
-      UI.pushPage('setup-filters');
-    } catch(e) {
+      UI.pushPage("setup-filters");
+    } catch (e) {
       UI.setLoading(false);
-      UI.toast(e.message, 'error');
+      UI.toast(e.message, "error");
     }
   };
 
-  return { render };
+  return { render, toggle };
 })();
 
 // ============================================================
@@ -122,155 +240,252 @@ const PageSetupTopics = (() => {
 // ============================================================
 const PageSetupFilters = (() => {
   function render(main) {
-    const questions = State.get('questions');
-    const setup     = State.get('setup');
-    const cats      = Filters.extract(questions, 'Category');
-    const tags      = Filters.extract(questions, 'Tags');
-    const diffs     = Filters.extract(questions, 'Difficulty');
-    const types     = Filters.extract(questions, 'Question Type');
+    const questions = State.get("questions");
+    const setup = State.get("setup");
+    const cats = Filters.extract(questions, "Category");
+    const tags = Filters.extract(questions, "Tags");
+    const diffs = Filters.extract(questions, "Difficulty");
+    const types = Filters.extract(questions, "Question Type");
 
     main.innerHTML = `
-      <div class="animate-up">
-        ${UI.stepsHtml(['Select Topics','Filter Questions','Quiz Config'], 1)}
+      <div class="animate-up" style="max-width:1100px; margin:0 auto">
+        ${UI.stepsHtml(
+          ["Select Topics", "Filters", "Config", "Quiz Themes"],
+          1
+        )}
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-xl)">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-2xl)">
            <div>
-             <h1 style="font-size:1.8rem; font-weight:700; color:var(--text-primary); margin-bottom:8px">Filter Questions</h1>
-             <p style="color:var(--text-muted); font-size:1rem">Target exactly what you need from <strong>${questions.length}</strong> available parameters.</p>
+             <h4 style="font-size:0.75rem; font-weight:900; color:var(--accent-primary); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px">Granular Control</h4>
+             <h1 style="font-size:2.4rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Refine Your Assessment</h1>
            </div>
-           <div>${UI.backBtn('Topics')}</div>
+           <div>${UI.backBtn("Topics")}</div>
         </div>
         
-        <div style="display:flex; flex-direction:column; gap:var(--sp-xl);">
+        <div style="display:flex; flex-direction:column; gap:24px;">
            
-           <!-- Filters List -->
-           <div>
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-sm);">
-               <p class="form-label" style="margin:0">Category</p>
-               <button class="btn btn-ghost btn-sm" onclick="selectAllChips('cat-chips')" style="padding:0; font-size:12px">All</button>
+           <div class="grid-2" style="gap:24px">
+             <!-- Category Filter -->
+             <div class="filter-group-card">
+               <div class="filter-header">
+                 <div class="filter-header-main">
+                    <span class="filter-icon">📁</span>
+                    <div>
+                      <span class="filter-label">Target Category</span>
+                      <p class="filter-desc">Filter by high-level domain</p>
+                    </div>
+                 </div>
+                 <button class="btn btn-ghost btn-sm" onclick="selectAllChips('cat-chips')" style="font-size:10px; text-decoration:underline">Select All</button>
+               </div>
+               <div id="cat-chips" class="chip-container"></div>
              </div>
-             <div id="cat-chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+ 
+             <!-- Sub-category Filter -->
+             <div class="filter-group-card">
+               <div class="filter-header">
+                 <div class="filter-header-main">
+                    <span class="filter-icon">📑</span>
+                    <div>
+                      <span class="filter-label">Specializations</span>
+                      <p class="filter-desc">Specific subject areas</p>
+                    </div>
+                 </div>
+                 <button class="btn btn-ghost btn-sm" onclick="selectAllChips('subcat-chips')" style="font-size:10px; text-decoration:underline">Select All</button>
+               </div>
+               <div id="subcat-chips" class="chip-container"></div>
+             </div>
            </div>
 
-           <div>
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-sm);">
-               <p class="form-label" style="margin:0">Sub Category <span class="text-muted" style="font-weight:normal; font-size:0.75rem">(updates with category)</span></p>
-               <button class="btn btn-ghost btn-sm" onclick="selectAllChips('subcat-chips')" style="padding:0; font-size:12px">All</button>
+           <!-- Meta Filters -->
+           <div style="display:grid; grid-template-columns: 1fr 1fr 1.5fr; gap:24px;">
+             <div class="filter-group-card small">
+               <span class="filter-label-small">Difficulty Range</span>
+               <div id="diff-chips" class="chip-container compact"></div>
              </div>
-             <div id="subcat-chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-           </div>
-
-           <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-lg)">
-             <div>
-               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-sm);">
-                 <p class="form-label" style="margin:0">Difficulty</p>
-                 <button class="btn btn-ghost btn-sm" onclick="selectAllChips('diff-chips')" style="padding:0; font-size:12px">All</button>
+             <div class="filter-group-card small">
+               <span class="filter-label-small">Question Format</span>
+               <div id="type-chips" class="chip-container compact"></div>
+             </div>
+             <div class="filter-group-card small">
+               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+                  <span class="filter-label-small">Advanced Tag Filtering</span>
+                  <button class="btn btn-ghost btn-sm" onclick="clearAllChips('tag-chips')" style="font-size:9px; padding:0">Clear</button>
                </div>
-               <div id="diff-chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-             </div>
-             <div>
-               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-sm);">
-                 <p class="form-label" style="margin:0">Question Type</p>
-                 <button class="btn btn-ghost btn-sm" onclick="selectAllChips('type-chips')" style="padding:0; font-size:12px">All</button>
-               </div>
-               <div id="type-chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+               <div id="tag-chips" class="chip-container compact scrollable-chips"></div>
              </div>
            </div>
            
-           <div>
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-sm);">
-               <p class="form-label" style="margin:0">Tags</p>
-               <button class="btn btn-ghost btn-sm" onclick="selectAllChips('tag-chips')" style="padding:0; font-size:12px">All</button>
-             </div>
-             <div id="tag-chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
-           </div>
-           
-           <div class="divider" style="margin:var(--sp-sm) 0"></div>
-           
-           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--sp-md)">
-              <div style="flex:1;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-                  <p class="form-label" style="margin:0">Question Limit</p>
-                  <span id="q-preview" style="font-size:0.8rem; color:var(--text-muted); font-weight:500;">Calculating...</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:var(--sp-md)">
-                   <input type="range" id="q-count" min="1" max="${Math.min(questions.length,200)}" value="${setup.questionCount}" oninput="updateCount(this.value)" style="flex:1; accent-color:var(--accent-primary); height:4px;">
-                   <span id="q-count-val" style="font-family:monospace; font-weight:bold; font-size:1.1rem; width:40px">${setup.questionCount}</span>
-                </div>
+           <!-- Action Bar -->
+           <div class="action-summary-bar">
+              <div style="flex:1">
+                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px">
+                    <div>
+                       <span class="filter-label-small" style="font-size:0.65rem">Session Magnitude</span>
+                       <div style="display:flex; align-items:baseline; gap:8px">
+                         <span id="q-count-val" style="font-family:var(--font-mono); font-weight:900; font-size:2rem; color:var(--accent-primary)">${
+                           setup.questionCount
+                         }</span>
+                         <span style="font-size:0.75rem; font-weight:800; opacity:0.6">QUESTIONS SELECTED</span>
+                       </div>
+                    </div>
+                    <span id="q-preview" class="pool-badge">Calculating pool...</span>
+                 </div>
+                 <input type="range" id="q-count" min="1" max="${Math.min(
+                   questions.length,
+                   200
+                 )}" value="${
+      setup.questionCount
+    }" oninput="updateCount(this.value)" class="fancy-slider">
               </div>
               
-              <button class="btn btn-primary" onclick="filtersNext()" style="padding:10px 24px">
-                Continue to Config →
+              <button class="btn btn-primary btn-lg" onclick="filtersNext()" style="padding:16px 52px; font-size:1.1rem; border-radius:var(--radius-lg); box-shadow:0 12px 30px -5px var(--accent-shadow)">
+                Configure Session →
               </button>
            </div>
         </div>
-      </div>`;
+      </div>
+      <style>
+        .filter-group-card { background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; transition: border-color 0.3s; }
+        .filter-group-card:hover { border-color: var(--text-muted); }
+        .filter-group-card.small { padding: 16px 20px; }
+        .filter-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .filter-header-main { display: flex; gap: 12px; align-items: center; }
+        .filter-icon { font-size: 1.6rem; background: var(--bg-elevated); width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; }
+        .filter-label { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); display: block; }
+        .filter-desc { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+        .filter-label-small { font-size: 0.7rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 12px; }
+        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip-container.compact { gap: 6px; }
+        .scrollable-chips { max-height: 80px; overflow-y: auto; padding-right: 8px; scrollbar-width: thin; }
+        .action-summary-bar { 
+          background: var(--text-primary); color: var(--bg-base); border-radius: var(--radius-lg); padding: 32px; 
+          display: flex; gap: 40px; align-items: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .action-summary-bar .filter-label-small { color: rgba(255,255,255,0.4); }
+        .pool-badge { background: rgba(255,255,255,0.1); color: #fff; font-size: 0.7rem; font-weight: 800; padding: 4px 12px; border-radius: 99px; }
+        .fancy-slider { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; appearance: none; outline: none; }
+        .fancy-slider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; border: 4px solid var(--text-primary); box-shadow: 0 0 0 2px var(--accent-primary); }
+      </style>`;
 
     // Build chips
-    UI.makeChips(document.getElementById('cat-chips'),  cats,  setup.selectedCategory);
-    UI.makeChips(document.getElementById('tag-chips'),  tags,  setup.selectedTags);
-    UI.makeChips(document.getElementById('diff-chips'), diffs, setup.selectedDifficulty);
-    UI.makeChips(document.getElementById('type-chips'), types, setup.selectedTypes);
+    UI.makeChips(
+      document.getElementById("cat-chips"),
+      cats,
+      setup.selectedCategory
+    );
+    UI.makeChips(
+      document.getElementById("tag-chips"),
+      tags,
+      setup.selectedTags
+    );
+    UI.makeChips(
+      document.getElementById("diff-chips"),
+      diffs,
+      setup.selectedDifficulty
+    );
+    UI.makeChips(
+      document.getElementById("type-chips"),
+      types,
+      setup.selectedTypes
+    );
 
     // Initial subcat
     updateSubcats();
 
     // When category changes, update subcat
-    document.getElementById('cat-chips').addEventListener('click', () => {
+    document.getElementById("cat-chips").addEventListener("click", () => {
       setTimeout(updateSubcats, 50);
       updatePreview();
     });
-    ['tag-chips','diff-chips','type-chips'].forEach(id => {
-      document.getElementById(id).addEventListener('click', () => setTimeout(updatePreview, 50));
+    ["tag-chips", "diff-chips", "type-chips"].forEach((id) => {
+      document
+        .getElementById(id)
+        .addEventListener("click", () => setTimeout(updatePreview, 50));
     });
     updatePreview();
   }
 
   function updateSubcats() {
-    const questions = State.get('questions');
-    const selCats   = UI.getSelectedChips(document.getElementById('cat-chips'));
-    let filtered    = selCats.length ? questions.filter(q => selCats.includes(q.Category)) : questions;
-    const subcats   = Filters.extract(filtered, 'Sub Category');
-    const prevSel   = UI.getSelectedChips(document.getElementById('subcat-chips'));
-    UI.makeChips(document.getElementById('subcat-chips'), subcats, prevSel.filter(s => subcats.includes(s)));
-    document.getElementById('subcat-chips').addEventListener('click', () => setTimeout(updatePreview, 50));
+    const questions = State.get("questions");
+    const selCats = UI.getSelectedChips(document.getElementById("cat-chips"));
+    let filtered = selCats.length
+      ? questions.filter((q) => {
+          const cats = (q.Category || "")
+            .toString()
+            .split(",")
+            .map((c) => c.trim())
+            .filter(Boolean);
+          return cats.some((c) => selCats.includes(c));
+        })
+      : questions;
+    const subcats = Filters.extract(filtered, "Sub Category");
+    const prevSel = UI.getSelectedChips(
+      document.getElementById("subcat-chips")
+    );
+    UI.makeChips(
+      document.getElementById("subcat-chips"),
+      subcats,
+      prevSel.filter((s) => subcats.includes(s))
+    );
+    document
+      .getElementById("subcat-chips")
+      .addEventListener("click", () => setTimeout(updatePreview, 50));
   }
 
   function updatePreview() {
-    const questions = State.get('questions');
-    const setup     = buildSetup();
-    const filtered  = Filters.applyFilters(questions, { ...setup, questionCount: 9999 });
-    const count     = parseInt(document.getElementById('q-count').value);
-    const show      = Math.min(filtered.length, count);
-    document.getElementById('q-preview').textContent =
-      `${filtered.length} questions match your filters → ${show} will be selected`;
+    const questions = State.get("questions");
+    const setup = buildSetup();
+    const filtered = Filters.applyFilters(questions, {
+      ...setup,
+      questionCount: 9999,
+    });
+    const count = parseInt(document.getElementById("q-count").value);
+    const show = Math.min(filtered.length, count);
+    document.getElementById(
+      "q-preview"
+    ).textContent = `${filtered.length} questions match your filters → ${show} will be selected`;
   }
 
   function buildSetup() {
     return {
-      selectedCategory:  UI.getSelectedChips(document.getElementById('cat-chips')),
-      selectedSubCat:    UI.getSelectedChips(document.getElementById('subcat-chips')),
-      selectedTags:      UI.getSelectedChips(document.getElementById('tag-chips')),
-      selectedDifficulty:UI.getSelectedChips(document.getElementById('diff-chips')),
-      selectedTypes:     UI.getSelectedChips(document.getElementById('type-chips')),
-      questionCount:     parseInt(document.getElementById('q-count').value),
+      selectedCategory: UI.getSelectedChips(
+        document.getElementById("cat-chips")
+      ),
+      selectedSubCat: UI.getSelectedChips(
+        document.getElementById("subcat-chips")
+      ),
+      selectedTags: UI.getSelectedChips(document.getElementById("tag-chips")),
+      selectedDifficulty: UI.getSelectedChips(
+        document.getElementById("diff-chips")
+      ),
+      selectedTypes: UI.getSelectedChips(document.getElementById("type-chips")),
+      questionCount: parseInt(document.getElementById("q-count").value),
     };
   }
 
   window.updateCount = (val) => {
-    document.getElementById('q-count-val').textContent = val;
+    document.getElementById("q-count-val").textContent = val;
     updatePreview();
   };
 
   window.selectAllChips = (id) => {
-    document.querySelectorAll(`#${id} .chip`).forEach(c => c.classList.add('selected'));
+    document
+      .querySelectorAll(`#${id} .chip`)
+      .forEach((c) => c.classList.add("selected"));
+    updatePreview();
+  };
+
+  window.clearAllChips = (id) => {
+    document
+      .querySelectorAll(`#${id} .chip`)
+      .forEach((c) => c.classList.remove("selected"));
     updatePreview();
   };
 
   window.filtersNext = () => {
     const s = buildSetup();
-    State.merge('setup', s);
-    UI.pushPage('setup-config');
+    State.merge("setup", s);
+    UI.pushPage("setup-config");
   };
 
   return { render };

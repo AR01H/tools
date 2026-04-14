@@ -12,7 +12,7 @@
 // 4. Copy the /exec URL → paste into Quiz App Settings
 // ─────────────────────────────────────────────────────────────
 
-var ROOT_FOLDER_ID = "";   // ← paste your Drive folder ID here
+var ROOT_FOLDER_ID = "1qKJihERrxvmtYOYr1umKUsZC6nqRJFep";   // ← paste your Drive folder ID here
 
 // ── CORS / Entry Point ───────────────────────────────────────
 function doGet(e) {
@@ -33,11 +33,13 @@ function handleRequest(e) {
       try { body = JSON.parse(e.postData.contents); } catch(err) {}
     }
     var result = dispatch(action, params, body, folderId);
-    output = ContentService.createTextOutput(JSON.stringify({ ok: true, data: result }));
+    var response = { ok: true, data: result };
+    output = ContentService.createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
-    output = ContentService.createTextOutput(JSON.stringify({ ok: false, error: err.message }));
+    output = ContentService.createTextOutput(JSON.stringify({ ok: false, error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  output.setMimeType(ContentService.MimeType.JSON);
   return output;
 }
 
@@ -50,6 +52,8 @@ function dispatch(action, params, body, folderId) {
     case "endAttempt":         return endAttempt(folderId, body);
     case "saveAttemptDetail":  return saveAttemptDetail(folderId, body);
     case "getAttempt":         return getAttempt(folderId, params);
+    case "getHistory":         return getHistory(folderId, params);
+    case "test":               return { status: "ok", timestamp: new Date().toISOString() };
     default: throw new Error("Unknown action: " + action);
   }
 }
@@ -59,26 +63,36 @@ function getRootFolder(folderId) {
   return DriveApp.getFolderById(folderId || ROOT_FOLDER_ID);
 }
 
-function getSubFolder(parent, name) {
+function getOrCreateSubFolder(parent, name) {
   var it = parent.getFoldersByName(name);
   if (it.hasNext()) return it.next();
-  throw new Error("Folder not found: " + name);
+  return parent.createFolder(name);
 }
 
 function csvToObjects(csvText) {
   var lines = csvText.split(/\r?\n/).filter(function(l){ return l.trim(); });
   if (!lines.length) return [];
-  var headers = lines[0].split(",").map(function(h){ return h.trim().replace(/^"|"$/g,""); });
+  
+  // Auto-detect separator: check comma vs tab in header
+  var separator = (lines[0].indexOf("\t") > -1 && lines[0].indexOf(",") === -1) ? "\t" : ",";
+  var headers = lines[0].split(separator).map(function(h){ return h.trim().replace(/^"|"$/g,""); });
+  
   return lines.slice(1).map(function(line) {
-    // simple CSV parse (handles quoted commas)
-    var vals = [], cur = "", inQ = false;
-    for (var i = 0; i < line.length; i++) {
-      var c = line[i];
-      if (c === '"') { inQ = !inQ; }
-      else if (c === ',' && !inQ) { vals.push(cur.trim()); cur = ""; }
-      else { cur += c; }
+    var vals = [];
+    if (separator === ",") {
+      // simple CSV parse (handles quoted commas)
+      var cur = "", inQ = false;
+      for (var i = 0; i < line.length; i++) {
+        var c = line[i];
+        if (c === '"') { inQ = !inQ; }
+        else if (c === ',' && !inQ) { vals.push(cur.trim()); cur = ""; }
+        else { cur += c; }
+      }
+      vals.push(cur.trim());
+    } else {
+      vals = line.split("\t").map(function(v){ return v.trim(); });
     }
-    vals.push(cur.trim());
+    
     var obj = {};
     headers.forEach(function(h, idx){ obj[h] = (vals[idx] || "").replace(/^"|"$/g,""); });
     return obj;
@@ -107,7 +121,7 @@ function appendRowToSheet(fileId, rowObj, headers) {
 // GET TOPICS — folder names inside "Questions Data"
 function getTopics(folderId) {
   var root = getRootFolder(folderId);
-  var qFolder = getSubFolder(root, "Questions Data");
+  var qFolder = getOrCreateSubFolder(root, "Questions Data");
   var topics = [];
   var it = qFolder.getFolders();
   while (it.hasNext()) {
@@ -120,7 +134,7 @@ function getTopics(folderId) {
 // GET QUESTIONS — read all CSVs in selected topic folders
 function getQuestions(folderId, params) {
   var root = getRootFolder(folderId);
-  var qFolder = getSubFolder(root, "Questions Data");
+  var qFolder = getOrCreateSubFolder(root, "Questions Data");
   var topicNames = (params.topics || "").split("|").map(function(t){ return t.trim(); }).filter(Boolean);
   var allQuestions = [];
 
@@ -143,7 +157,7 @@ function getQuestions(folderId, params) {
 // GET QUIZ CONFIGS
 function getQuizConfigs(folderId) {
   var root = getRootFolder(folderId);
-  var cfgFolder = getSubFolder(root, "Quiz Config Data");
+  var cfgFolder = getOrCreateSubFolder(root, "Quiz Config Data");
   var it = cfgFolder.getFilesByName("quiz_config.csv");
   if (!it.hasNext()) throw new Error("quiz_config.csv not found in Quiz Config Data");
   return readCsvFile(it.next());
@@ -152,7 +166,7 @@ function getQuizConfigs(folderId) {
 // START ATTEMPT — write row to Result_Data.csv + create attempt file
 function startAttempt(folderId, body) {
   var root = getRootFolder(folderId);
-  var resultFolder = getSubFolder(root, "Result Data");
+  var resultFolder = getOrCreateSubFolder(root, "Result Data");
 
   // Get/create Result_Data.csv
   var rdFile;
@@ -161,7 +175,7 @@ function startAttempt(folderId, body) {
     rdFile = rdIt.next();
   } else {
     rdFile = resultFolder.createFile("Result_Data.csv",
-      "Student Name,Quiz Name,Quiz Topic,Start Time,End Time,Result Score,Filepath\n", MimeType.PLAIN_TEXT);
+      "Student Name,Identifier,Quiz Name,Quiz Topic,Start Time,End Time,Result Score,Filepath\n", MimeType.PLAIN_TEXT);
   }
 
   var attemptId = "attempt_" + Date.now();
@@ -172,9 +186,10 @@ function startAttempt(folderId, body) {
   var detailFile = resultFolder.createFile(attemptFileName, detailHeaders + "\n", MimeType.PLAIN_TEXT);
 
   // Append to Result_Data
-  var rdHeaders = ["Student Name","Quiz Name","Quiz Topic","Start Time","End Time","Result Score","Filepath"];
+  var rdHeaders = ["Student Name","Identifier","Quiz Name","Quiz Topic","Start Time","End Time","Result Score","Filepath"];
   var row = {
     "Student Name": body.studentName || "",
+    "Identifier":   body.identifier || "",
     "Quiz Name":    body.quizName || "",
     "Quiz Topic":   body.quizTopic || "",
     "Start Time":   body.startTime || new Date().toISOString(),
@@ -190,12 +205,12 @@ function startAttempt(folderId, body) {
 // END ATTEMPT — update End Time + score in Result_Data
 function endAttempt(folderId, body) {
   var root = getRootFolder(folderId);
-  var resultFolder = getSubFolder(root, "Result Data");
+  var resultFolder = getOrCreateSubFolder(root, "Result Data");
   var rdIt = resultFolder.getFilesByName("Result_Data.csv");
   if (!rdIt.hasNext()) throw new Error("Result_Data.csv not found");
   var rdFile = rdIt.next();
   var rows = readCsvFile(rdFile);
-  var headers = ["Student Name","Quiz Name","Quiz Topic","Start Time","End Time","Result Score","Filepath"];
+  var headers = ["Student Name","Identifier","Quiz Name","Quiz Topic","Start Time","End Time","Result Score","Filepath"];
 
   // Find matching row by fileId (Filepath column)
   var updated = false;
@@ -221,7 +236,7 @@ function endAttempt(folderId, body) {
 // SAVE ATTEMPT DETAIL — append answered question rows
 function saveAttemptDetail(folderId, body) {
   var root = getRootFolder(folderId);
-  var resultFolder = getSubFolder(root, "Result Data");
+  var resultFolder = getOrCreateSubFolder(root, "Result Data");
   var file = DriveApp.getFileById(body.fileId);
   var existing = file.getBlob().getDataAsString();
   var headers = ["QuestionIndex","QuestionText","UserAnswer","CorrectAnswer","IsCorrect","TimeTaken",
@@ -238,4 +253,30 @@ function saveAttemptDetail(folderId, body) {
 function getAttempt(folderId, params) {
   var file = DriveApp.getFileById(params.fileId);
   return readCsvFile(file);
+}
+
+// GET HISTORY — find all attempts for an identifier
+function getHistory(folderId, params) {
+  var root = getRootFolder(folderId);
+  var resultFolder = getOrCreateSubFolder(root, "Result Data");
+  var rdIt = resultFolder.getFilesByName("Result_Data.csv");
+  if (!rdIt.hasNext()) return [];
+  
+  var rdFile = rdIt.next();
+  var rows = readCsvFile(rdFile);
+  var identifier = (params.identifier || "").toLowerCase().trim();
+  
+  if (!identifier) return [];
+  
+  return rows.filter(function(r) {
+    // Robust key find: find value by key matching 'identifier' or 'phone' or 'email'
+    var val = "";
+    Object.keys(r).forEach(function(k) {
+      var cleanK = k.toLowerCase().trim();
+      if (cleanK === "identifier" || cleanK === "email" || cleanK === "phone/email") {
+        val = (r[k] || "").toLowerCase().trim();
+      }
+    });
+    return val === identifier;
+  });
 }

@@ -20,8 +20,14 @@ const API = (() => {
     const url = `${baseUrl}?${qs}`;
 
     const opts = body
-      ? { method: 'POST', body: JSON.stringify({ ...body, action }), headers: { 'Content-Type': 'application/json' } }
-      : { method: 'GET' };
+      ? { 
+          method: 'POST', 
+          body: JSON.stringify({ ...body, action }),
+          mode: 'cors',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        }
+      : { method: 'GET', mode: 'cors', redirect: 'follow' };
 
     const res = await fetch(url, opts);
     const json = await res.json();
@@ -59,6 +65,10 @@ const API = (() => {
     return call('getAttempt', { fileId });
   }
 
+  async function getHistory(identifier) {
+    return call('getHistory', { identifier });
+  }
+
   // ── Test connection ───────────────────────────────────────
   async function testConnection(scriptUrl, folderId) {
     const qs = new URLSearchParams({ action: 'getTopics', folderId });
@@ -68,5 +78,5 @@ const API = (() => {
     return true;
   }
 
-  return { getTopics, getQuestions, getQuizConfigs, startAttempt, endAttempt, saveAttemptDetail, getAttempt, testConnection };
+  return { getTopics, getQuestions, getQuizConfigs, startAttempt, endAttempt, saveAttemptDetail, getAttempt, getHistory, testConnection };
 })();
