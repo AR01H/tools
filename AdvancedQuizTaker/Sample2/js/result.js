@@ -1297,9 +1297,34 @@ const PageResult = (() => {
     const user = State.get("user") || { name: "Guest" };
     const cats = score.categoryMap;
     const diffs = score.difficultyMap;
+    const items = score.details;
+    const qCount = quiz.questions.length || 1;
 
-    const insightsS = getInsights(score, "strengths");
-    const insightsW = getInsights(score, "weaknesses");
+    // Formal Table Analytics
+    const diffKeys = Object.keys(diffs);
+    if (!diffKeys.length) diffKeys.push("General");
+    const diffTableHtml = diffKeys.map(k => {
+       const m = diffs[k] || { correct: score.correct, total: qCount };
+       const pct = Math.round((m.correct / (m.total || 1)) * 100);
+       return `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0; font-size:12px">${k}</td>
+                   <td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:center; font-size:12px">${m.correct} / ${m.total}</td>
+                   <td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right; font-size:12px; font-weight:bold">${pct}%</td></tr>`;
+    }).join("");
+
+    const usePhases = qCount >= 4;
+    let fatigueHtml = "";
+    if (usePhases) {
+       fatigueHtml = [0,1,2,3].map(i => {
+          const start = Math.floor((i * qCount) / 4);
+          const end = Math.floor(((i + 1) * qCount) / 4);
+          const qs = items.slice(start, end);
+          const pct = qs.length ? Math.round((qs.filter(q => q.isCorrect).length / qs.length) * 100) : 0;
+          return `<tr><td style="padding:8px; border-bottom:1px solid #e2e8f0; font-size:12px">Phase ${i+1}</td>
+                      <td style="padding:8px; border-bottom:1px solid #e2e8f0; text-align:right; font-size:12px; font-weight:bold">${pct}%</td></tr>`;
+       }).join("");
+    } else {
+       fatigueHtml = `<tr><td colspan="2" style="padding:8px; font-size:12px; color:#64748b">Test too short for phase analysis.</td></tr>`;
+    }
 
     const pdfContainer = document.createElement("div");
     pdfContainer.style.width = "210mm";
@@ -1312,18 +1337,15 @@ const PageResult = (() => {
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="width: 44px; height: 44px; background: #0f172a; color: #fff; display: grid; place-items: center; border-radius: 8px; font-weight: 800; font-size: 20px;">Q</div>
                 <div>
-                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Assessment Report</h1>
-                    <div style="font-size: 14px; color: #64748b; font-weight: 600;">Secure Assessment Engine Report</div>
+                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Official Assessment Transcript</h1>
+                    <div style="font-size: 14px; color: #64748b; font-weight: 600;">Secure Assessment Engine Diagnostics</div>
                 </div>
             </div>
             <div style="text-align: right">
                 <div style="font-size: 14px; font-weight: 800;">${
                   quiz.config["Quiz Settings Title"] || "Assessment Report"
                 }</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">UID: ${endTime.slice(
-                  0,
-                  10
-                )}</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">UID: ${endTime.slice(0,10)}</div>
             </div>
         </div>
 
@@ -1337,42 +1359,52 @@ const PageResult = (() => {
             <div style="border-left: 3px solid #e2e8f0; padding-left: 12px;"><div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">STATUS</div><div style="font-size: 14px; font-weight: 700; color: #10b981">COMPLETED</div></div>
         </div>
 
-        <div style="background: #0f172a; color: #fff; border-radius: 12px; padding: 32px; display: flex; justify-content: space-between; gap: 20px; margin-bottom: 40px; align-items: center;">
+        <div style="background: #0f172a; color: #fff; border-radius: 12px; padding: 24px; display: flex; justify-content: space-between; gap: 20px; margin-bottom: 40px; align-items: center;">
             <div style="border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px">
-                <div style="font-size: 44px; font-weight: 800; line-height: 1;">${
-                  score.accuracy
-                }%</div>
-                <div style="font-size: 12px; font-weight: 600; opacity: 0.7; margin-top: 4px;">ACCURACY</div>
+                <div style="font-size: 44px; font-weight: 800; line-height: 1;">${score.accuracy}%</div>
+                <div style="font-size: 12px; font-weight: 600; opacity: 0.7; margin-top: 4px;">SYSTEM ACCURACY</div>
             </div>
             <div style="text-align: center;">
-                <div style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${score.total.toFixed(
-                  1
-                )} / ${score.maxTotal}</div>
-                <div style="font-size: 10px; font-weight: 600; opacity: 0.6; text-transform: uppercase;">SCORE</div>
+                <div style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${score.total.toFixed(1)} / ${score.maxTotal}</div>
+                <div style="font-size: 10px; font-weight: 600; opacity: 0.6; text-transform: uppercase;">RAW SCORE</div>
             </div>
             <div style="text-align: center;">
-                <div style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${fmtTime(
-                  score.timeTaken
-                )}</div>
-                <div style="font-size: 10px; font-weight: 600; opacity: 0.6; text-transform: uppercase;">TIME</div>
+                <div style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${fmtTime(score.timeTaken)}</div>
+                <div style="font-size: 10px; font-weight: 600; opacity: 0.6; text-transform: uppercase;">ELAPSED TIME</div>
             </div>
             <div style="text-align: center;">
-                <div style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${
-                  score.correct
-                } / ${quiz.questions.length}</div>
-                <div style="font-size: 10px; font-weight: 600; opacity: 0.6; text-transform: uppercase;">CORRECT</div>
+                <div style="font-size: 18px; font-weight: 700; margin-bottom: 2px;">${score.correct} / ${quiz.questions.length}</div>
+                <div style="font-size: 10px; font-weight: 600; opacity: 0.6; text-transform: uppercase;">VALID RESULTS</div>
             </div>
         </div>
 
-        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Domain Performance</h3>
-        <div style="margin-bottom: 40px;">
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Adaptive Intelligence Analytics</h3>
+        <div style="display: flex; gap: 20px; margin-bottom: 40px; page-break-inside: avoid;">
+            <div style="flex:1">
+               <div style="font-size:12px; font-weight:700; background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:8px; border:1px solid #e2e8f0;">Difficulty Distribution</div>
+               <table style="width:100%; border-collapse: collapse;">
+                  <thead><tr><th style="text-align:left; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">TIER</th><th style="text-align:center; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">RATIO</th><th style="text-align:right; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">ACCURACY</th></tr></thead>
+                  <tbody>${diffTableHtml}</tbody>
+               </table>
+            </div>
+            <div style="flex:1">
+               <div style="font-size:12px; font-weight:700; background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:8px; border:1px solid #e2e8f0;">Endurance & Cognitive Fatigue</div>
+               <table style="width:100%; border-collapse: collapse;">
+                  <thead><tr><th style="text-align:left; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">QUARTER</th><th style="text-align:right; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">ACCURACY</th></tr></thead>
+                  <tbody>${fatigueHtml}</tbody>
+               </table>
+            </div>
+        </div>
+
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Comprehensive Domain Performance</h3>
+        <div style="margin-bottom: 40px; page-break-inside: avoid;">
             ${Object.entries(cats)
               .map(([cat, d]) => {
                 const pct = d.max ? Math.round((d.score / d.max) * 100) : 0;
                 return `
                 <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 12px;">
                     <div style="width: 180px; font-size: 13px; font-weight: 700;">${cat}</div>
-                    <div style="flex: 1; height: 8px; background: #f8fafc; border-radius: 4px; overflow: hidden; border: 1px solid #e2e8f0;">
+                    <div style="flex: 1; height: 10px; background: #f8fafc; border-radius: 4px; overflow: hidden; border: 1px solid #e2e8f0;">
                         <div style="height: 100%; background: #0f172a; width: ${pct}%"></div>
                     </div>
                     <div style="width: 40px; text-align: right; font-size: 12px; font-weight: 800;">${pct}%</div>
@@ -1381,72 +1413,61 @@ const PageResult = (() => {
               .join("")}
         </div>
 
-        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; page-break-before: always;">Question Review</h3>
-        <div class="questions">
-            ${quiz.questions
-              .map((q, i) => {
-                const ans = quiz.answers[i] || {};
-                const corr = Results.isCorrect(q, ans.userAnswer);
-                const type = (q["Question Type"] || "").trim();
-                const isDrag = type === "Drag & Drop";
-                const isMultiMatch = type === "Multi Matching";
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; page-break-before: always;">Official Itemized Data Transcript</h3>
+        <table style="width:100%; border-collapse: collapse; font-size: 12px; page-break-inside: auto;">
+          <thead>
+             <tr style="background: #0f172a; color: #fff;">
+               <th style="padding: 12px 10px; text-align: left; border-top-left-radius:8px;">#</th>
+               <th style="padding: 12px 10px; text-align: left; width:45%;">Prompt/Question</th>
+               <th style="padding: 12px 10px; text-align: left;">Domain</th>
+               <th style="padding: 12px 10px; text-align: center;">Pacing</th>
+               <th style="padding: 12px 10px; text-align: left;">Candidate Input</th>
+               <th style="padding: 12px 10px; text-align: center; border-top-right-radius:8px;">Status</th>
+             </tr>
+          </thead>
+          <tbody>
+             ${quiz.questions.map((q, i) => {
+                 const ans = quiz.answers[i] || {};
+                 const corr = Results.isCorrect(q, ans.userAnswer);
+                 const time = items[i] ? items[i].timeTaken : (ans.timeTaken || 0);
+                 const type = (q["Question Type"] || "").trim();
+                 const isDrag = type === "Drag & Drop";
+                 const isMultiMatch = type === "Multi Matching";
 
-                let uaStr = "";
-                if (isMultiMatch && ans.userAnswer) {
-                  try {
-                    const map = JSON.parse(ans.userAnswer);
-                    uaStr = Object.entries(map)
-                      .map(([k, v]) => `${k}: ${v.join(", ")}`)
-                      .join("; ");
-                  } catch (e) {
-                    uaStr = ans.userAnswer;
-                  }
-                } else {
-                  uaStr = Array.isArray(ans.userAnswer)
-                    ? ans.userAnswer.join(", ")
-                    : ans.userAnswer || "—";
-                }
+                 let uaStr = "";
+                 if (isMultiMatch && ans.userAnswer) {
+                   try {
+                     const map = JSON.parse(ans.userAnswer);
+                     uaStr = Object.entries(map).map(([k, v]) => `${k}: ${v.join(", ")}`).join("; ");
+                   } catch(e) { uaStr = ans.userAnswer; }
+                 } else {
+                   uaStr = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : ans.userAnswer || "—";
+                 }
 
-                const correctKey =
-                  isDrag || isMultiMatch
-                    ? Results.getChoices(q)
-                        .map((c) => {
-                          if (isMultiMatch) {
-                            const pts = c.split("-");
-                            return `${pts[0]}: ${pts[1] ? pts[1].replace(/\|/g, ", ") : ""}`;
-                          }
-                          return c;
-                        })
-                        .join(" | ")
-                    : q["Correct Answer"];
+                 const correctKey = isDrag || isMultiMatch ? Results.getChoices(q).map((c) => {
+                   if (isMultiMatch) {
+                     const pts = c.split("-");
+                     return `${pts[0]}: ${pts[1] ? pts[1].replace(/\|/g, ", ") : ""}`;
+                   }
+                   return c;
+                 }).join(" | ") : q["Correct Answer"];
 
-                return `
-                <div style="margin-bottom: 30px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">
-                        <span>QUESTION ${i + 1}</span>
-                        <span style="color: ${corr ? "#10b981" : "#ef4444"}">${
-                  corr ? "PASSED" : "FAILED"
-                }</span>
-                    </div>
-                    <div style="font-size: 16px; font-weight: 700; margin-bottom: 20px; line-height: 1.5;">${
-                      q.Question
-                    }</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="font-size: 9px; font-weight: 800; color: #64748b; margin-bottom: 6px;">RESPONSE</div>
-                            <div style="font-size: 13px; font-weight: 700; color: ${
-                              corr ? "#0f172a" : "#ef4444"
-                            }">${uaStr}</div>
-                        </div>
-                        <div style="background: #f0fdf4; padding: 16px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
-                            <div style="font-size: 9px; font-weight: 800; color: #64748b; margin-bottom: 6px;">CORRECT KEY</div>
-                            <div style="font-size: 13px; font-weight: 700; color: #10b981">${correctKey}</div>
-                        </div>
-                    </div>
-                </div>`;
-              })
-              .join("")}
-        </div>
+                 return `
+                   <tr style="border-bottom: 1px solid #e2e8f0; page-break-inside: avoid; background: ${i%2===0 ? '#fff' : '#f8fafc'}">
+                      <td style="padding: 12px 10px; vertical-align: top; font-weight:800;">${i+1}</td>
+                      <td style="padding: 12px 10px; vertical-align: top;">
+                         <div style="font-weight:700; margin-bottom:8px; line-height:1.4;">${q.Question}</div>
+                         <div style="font-size:10px; color:#10b981; font-weight:600; padding:4px 6px; background:rgba(16,185,129,0.1); border-radius:4px; display:inline-block;">KEY: ${correctKey}</div>
+                      </td>
+                      <td style="padding: 12px 10px; vertical-align: top; font-size:10px; color:#64748b; font-weight:600;">${q.Category || "-"}</td>
+                      <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-family:monospace;">${time}s</td>
+                      <td style="padding: 12px 10px; vertical-align: top; font-weight:600; color: ${corr ? '#0f172a': '#ef4444'}">${uaStr}</td>
+                      <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-weight:800; color: ${corr ? '#10b981': '#ef4444'}">${corr ? 'PASS' : 'FAIL'}</td>
+                   </tr>
+                 `;
+             }).join("")}
+          </tbody>
+        </table>
       </div>
     `;
 
