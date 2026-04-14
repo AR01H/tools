@@ -285,7 +285,7 @@ const PageResult = (() => {
         <!-- ── TABS NAVIGATION ── -->
         <div class="dash-nav-with-actions">
            <div class="dash-tabs" id="result-tabs">
-             ${["overview", "questions", "category", "difficulty", "answer-key"]
+             ${["overview", "questions", "category", "difficulty", "answer-key", "adaptive"]
                .map(
                  (t, i) => `
                <button class="dash-tab-btn ${
@@ -298,6 +298,7 @@ const PageResult = (() => {
                      "📁 Categories",
                      "⚡ Difficulty",
                      "🔑 Key",
+                     "🧠 Adaptive Analysis"
                    ][i]
                  }
                </button>`
@@ -345,6 +346,7 @@ const PageResult = (() => {
         "category",
         "difficulty",
         "answer-key",
+        "adaptive"
       ];
       b.classList.toggle("active", tabs[i] === tab);
     });
@@ -371,6 +373,183 @@ const PageResult = (() => {
       case "answer-key":
         body.innerHTML = renderAnswerKey(result);
         break;
+      case "adaptive":
+        body.innerHTML = renderAdaptive(result);
+        setTimeout(() => initAdaptiveCharts(result), 50);
+        break;
+    }
+  }
+
+  function renderAdaptive(result) {
+    return `
+      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(500px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+        <div class="chart-card"><h3 class="chart-label">Performance by Difficulty Tier</h3><div class="chart-box"><canvas id="chart-adaptive-difficulty"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Endurance & Cognitive Fatigue</h3><div class="chart-box"><canvas id="chart-adaptive-fatigue"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Pacing vs Precision Map</h3><div class="chart-box"><canvas id="chart-adaptive-pacing"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Domain Resource Allocation</h3><div class="chart-box"><canvas id="chart-adaptive-time-allocation"></canvas></div></div>
+      </div>
+      <div class="card" style="padding:var(--sp-lg); background:var(--bg-elevated); border-radius:16px; margin-bottom:var(--sp-lg); border:1px solid var(--border-color)">
+        <h3 class="chart-label" style="font-size:1.1rem;margin-bottom:16px;">Diagnostic Intelligence (Current Session)</h3>
+        <ul id="adaptive-next-steps" style="line-height:2.0; color:var(--text-secondary); font-weight:700; padding-left:20px;"></ul>
+      </div>
+    `;
+  }
+
+  function initAdaptiveCharts(result) {
+    _activeCharts.forEach((c) => c.destroy());
+    _activeCharts = [];
+    if (typeof Chart === "undefined") return;
+
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+    Chart.defaults.color = isDark ? "#94a3b8" : "#64748b";
+    
+    const { score, quiz } = result;
+
+    const createChart = (id, cfg) => {
+      const el = document.getElementById(id);
+      if (el) _activeCharts.push(new Chart(el, cfg));
+    };
+
+    const qCount = quiz.questions.length || 1;
+    const items = score.details;
+
+    // 1. Difficulty Tier Performance
+    const diffKeys = Object.keys(score.difficultyMap);
+    if (!diffKeys.includes("Easy") && !diffKeys.includes("Medium")) {
+       diffKeys.push("General");
+    }
+    const diffData = diffKeys.map(k => {
+       const m = score.difficultyMap[k] || { correct: score.correct, total: qCount };
+       return (m.correct / (m.total || 1)) * 100;
+    });
+
+    createChart("chart-adaptive-difficulty", {
+      type: "bar",
+      data: {
+        labels: diffKeys,
+        datasets: [{
+          label: "Accuracy %",
+          data: diffData,
+          backgroundColor: diffData.map(acc => acc > 75 ? "rgba(16, 185, 129, 0.7)" : acc > 50 ? "rgba(245, 158, 11, 0.7)" : "rgba(239, 68, 68, 0.7)"),
+          borderRadius: 6
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor } }, y: { beginAtZero: true, max: 100, grid: { color: gridColor } } } }
+    });
+
+    // 2. Endurance & Cognitive Fatigue
+    const usePhases = qCount >= 4;
+    let fatigueLabels, fatigueData;
+    if (usePhases) {
+       fatigueLabels = ["Phase 1 (Start)", "Phase 2", "Phase 3", "Phase 4 (End)"];
+       fatigueData = fatigueLabels.map((_, i) => {
+          const start = Math.floor((i * qCount) / 4);
+          const end = Math.floor(((i + 1) * qCount) / 4);
+          const qs = items.slice(start, end);
+          return qs.length ? (qs.filter(q => q.isCorrect).length / qs.length) * 100 : 0;
+       });
+    } else {
+       fatigueLabels = items.map((_, i) => "Q" + (i + 1));
+       fatigueData = items.map(q => q.isCorrect ? 100 : 0);
+    }
+
+    createChart("chart-adaptive-fatigue", {
+      type: "line",
+      data: {
+        labels: fatigueLabels,
+        datasets: [{
+          label: "Accuracy Trajectory",
+          data: fatigueData,
+          borderColor: "#ec4899",
+          backgroundColor: "rgba(236,72,153,0.1)",
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor } }, y: { beginAtZero: true, max: 100, grid: { color: gridColor } } } }
+    });
+
+    // 3. Pacing vs Precision Taget Map
+    createChart("chart-adaptive-pacing", {
+      type: "scatter",
+      data: {
+        datasets: [
+          {
+             label: "Correct Validation",
+             data: items.filter(q => q.isCorrect).map(q => ({ x: q.timeTaken, y: q.score })),
+             backgroundColor: "rgba(16, 185, 129, 0.7)",
+             pointRadius: 6
+          },
+          {
+             label: "Incorrect Validation",
+             data: items.filter(q => !q.isCorrect).map(q => ({ x: q.timeTaken, y: q.score })),
+             backgroundColor: "rgba(239, 68, 68, 0.7)",
+             pointRadius: 6
+          }
+        ]
+      },
+      options: { 
+        responsive: true, maintainAspectRatio: false,
+        scales: { 
+           x: { title: { display: true, text: 'Time Expended (Seconds)' }, grid: { color: gridColor }, beginAtZero: true },
+           y: { title: { display: true, text: 'Points Earned' }, grid: { color: gridColor } }
+        }
+      }
+    });
+
+    // 4. Topic Resource Allocation
+    const catKeys = Object.keys(score.categoryMap);
+    const catTimes = catKeys.map(k => {
+        const arr = items.filter((_,i) => (quiz.questions[i].Category || "General") === k);
+        return arr.reduce((a,b) => a+b.timeTaken, 0);
+    });
+
+    createChart("chart-adaptive-time-allocation", {
+      type: "doughnut",
+      data: {
+        labels: catKeys,
+        datasets: [
+          {
+             label: "Total Seconds Allocated",
+             data: catTimes,
+             backgroundColor: ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#ef4444", "#14b8a6", "#f97316"],
+             borderWidth: 0
+          }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: "60%" }
+    });
+    
+    // 5. Diagnostic Intelligence AI Text
+    const stepsEl = document.getElementById("adaptive-next-steps");
+    if (stepsEl) {
+      const html = [];
+      const weakDiff = diffKeys.find(k => {
+         const m = score.difficultyMap[k];
+         return m && m.total >= 1 && (m.correct / m.total) < 0.5;
+      });
+      if (weakDiff) {
+         html.push(`Your accuracy on <b>${weakDiff}</b> questions dropped below 50%. Focus your practice on this specific difficulty magnitude.`);
+      }
+
+      if (usePhases && fatigueData[3] < fatigueData[0] - 20) {
+         html.push(`You suffered a <b>${Math.round(fatigueData[0] - fatigueData[3])}%</b> accuracy drop towards the end of the session, indicating <b>test fatigue</b>. Simulate longer active exam conditions.`);
+      }
+
+      const avgTime = Math.max(score.timeTaken / qCount, 1);
+      const rushedErrors = items.filter(i => !i.isCorrect && i.timeTaken < (avgTime * 0.4)).length;
+      if (rushedErrors > 1) {
+         html.push(`You incorrectly validated <b>${rushedErrors}</b> questions abnormally fast (<${Math.round(avgTime * 0.4)}s). Guard against skipping critical prompt subtext.`);
+      }
+
+      const maxCatTimeIdx = catTimes.indexOf(Math.max(...catTimes));
+      if (maxCatTimeIdx >= 0 && score.timeTaken > 0) {
+         html.push(`You invested a massive <b>${Math.round((catTimes[maxCatTimeIdx] / score.timeTaken) * 100)}%</b> of your total session time purely analyzing the <b>${catKeys[maxCatTimeIdx]}</b> domain.`);
+      }
+
+      if (!html.length) html.push("Overall pacing and precision execution are steady. Ensure consistent interval reviews to maintain these strong diagnostics.");
+      stepsEl.innerHTML = html.map(h => `<li>${h}</li>`).join("");
     }
   }
 
@@ -1553,6 +1732,11 @@ const PageHistory = (() => {
       </div>`;
   }
 
+  let _cachedHistory = [];
+  let _activeTopicFilter = "All Topics";
+  let _topicGraphsOpen = false;
+  let _historyChart = null;
+
   async function load() {
     const body = document.getElementById("history-body");
     if (!body) return;
@@ -1568,15 +1752,85 @@ const PageHistory = (() => {
       '<div class="spinner" style="margin:var(--sp-lg) auto"></div>';
 
     try {
-      const history = await API.getHistory(user.identifier);
+      _cachedHistory = await API.getHistory(user.identifier);
 
-      if (!history || !history.length) {
+      if (!_cachedHistory || !_cachedHistory.length) {
         body.innerHTML =
           '<p class="text-muted text-sm" style="text-align:center;padding:var(--sp-lg)">No previous attempts found for your ID.</p>';
         return;
       }
+      
+      _activeTopicFilter = "All Topics";
+      _topicGraphsOpen = false;
+      renderHistoryUI();
+    } catch (e) {
+      body.innerHTML = `<div style="padding:20px; text-align:center">
+        <p class="text-error text-sm">${e.message}</p>
+        <p class="text-xs text-muted">Ensure your Google Script is correctly deployed.</p>
+      </div>`;
+    }
+  }
 
-      body.innerHTML = `
+  function renderHistoryUI() {
+    const body = document.getElementById("history-body");
+    if (!body) return;
+
+    const topics = [...new Set(_cachedHistory.map(r => r["Quiz Topic"] || "Unknown"))].filter(Boolean).sort();
+    
+    let filteredHistory = _cachedHistory;
+    if (_activeTopicFilter !== "All Topics") {
+        filteredHistory = _cachedHistory.filter(r => (r["Quiz Topic"] || "Unknown") === _activeTopicFilter);
+    }
+
+    const reversedHistory = [...filteredHistory].reverse(); 
+    const last10 = reversedHistory.slice(0, 10).reverse();
+
+    body.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-md); flex-wrap:wrap; gap:16px;">
+           <h3 style="font-size:1.2rem; font-weight:800; color:var(--text-primary)">Performance Tracking</h3>
+           <select id="history-topic-filter" class="form-control" style="width:auto; min-width:200px; padding:8px 12px; border-radius:8px; font-weight:600; font-size:0.9rem;" onchange="PageHistory.setFilter(this.value)">
+              <option value="All Topics" ${_activeTopicFilter === "All Topics" ? "selected" : ""}>All Topics</option>
+              ${topics.map(t => `<option value="${t}" ${_activeTopicFilter === t ? "selected" : ""}>${t}</option>`).join("")}
+           </select>
+        </div>
+
+        <div class="card" style="padding:var(--sp-lg); background:var(--bg-elevated); margin-bottom:var(--sp-xl); border:1px solid var(--border-color); border-radius:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                <h3 style="font-size:1.1rem; font-weight:800; color:var(--text-primary)">Trend Trajectory (${_activeTopicFilter})</h3>
+                <button class="btn btn-ghost btn-sm" style="font-weight:700" onclick="PageHistory.toggleTopicGraphs()">
+                   📊 Compare Topics <span id="topic-graph-icon" style="opacity:0.5; margin-left:6px">${_topicGraphsOpen ? '▲' : '▼'}</span>
+                </button>
+            </div>
+            
+            <div style="height:250px">
+               <canvas id="chart-history-adaptive"></canvas>
+            </div>
+            
+            <div id="topic-graphs-container" style="display:${_topicGraphsOpen ? 'block' : 'none'}; margin-top:24px; padding-top:24px; border-top:1px dashed var(--border-color)">
+               <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:var(--sp-xl);">
+                  <div>
+                      <h4 style="font-size:0.9rem; margin-bottom:8px; color:var(--text-secondary); text-align:center;">Average Score by Topic</h4>
+                      <div style="height:250px"><canvas id="chart-history-topic-bars"></canvas></div>
+                  </div>
+                  <div>
+                      <h4 style="font-size:0.9rem; margin-bottom:8px; color:var(--text-secondary); text-align:center;">Attempt Frequency per Topic</h4>
+                      <div style="height:250px"><canvas id="chart-history-topic-radar"></canvas></div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="dash-metrics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-md);margin-top:var(--sp-md)">
+              <div class="metric-card" style="background:var(--bg-surface)">
+                <span class="m-label" style="font-size:0.75rem">Average Score (Top ${last10.length})</span>
+                <div class="m-value text-accent">${last10.length ? Math.round(last10.reduce((a,b)=>a+(parseFloat(b["Result Score"])||0),0)/last10.length) : 0}</div>
+              </div>
+              <div class="metric-card" style="background:var(--bg-surface)">
+                <span class="m-label" style="font-size:0.75rem">Trend Trajectory</span>
+                <div class="m-value ${last10.length >= 2 && (parseFloat(last10[last10.length-1]["Result Score"]) >= parseFloat(last10[0]["Result Score"])) ? "text-success" : "text-warn"}">${last10.length >= 2 ? (parseFloat(last10[last10.length-1]["Result Score"]) >= parseFloat(last10[0]["Result Score"]) ? "Improving" : "Declining") : "Neutral"}</div>
+              </div>
+            </div>
+        </div>
+
         <div style="overflow-x:auto">
           <table class="data-table">
             <thead>
@@ -1589,13 +1843,11 @@ const PageHistory = (() => {
               </tr>
             </thead>
             <tbody>
-              ${history
-                .reverse()
+              ${reversedHistory
                 .map((r) => {
                   const dateVal = r["End Time"] || r["Start Time"] || "";
                   const date = dateVal ? new Date(dateVal).toLocaleString() : "Date Unknown";
                   const score = r["Result Score"] || "—";
-                  // Robustly find filepath key
                   const filepath = r.Filepath || r.filepath || r.FILEPATH || r["Filepath"] || "";
                   
                   return `
@@ -1614,15 +1866,107 @@ const PageHistory = (() => {
                   </tr>`;
                 })
                 .join("")}
+               ${reversedHistory.length === 0 ? `<tr><td colspan="5" style="text-align:center; padding:var(--sp-xl)">No attempts found for this topic filter.</td></tr>` : ""}
             </tbody>
           </table>
         </div>`;
-    } catch (e) {
-      body.innerHTML = `<div style="padding:20px; text-align:center">
-        <p class="text-error text-sm">${e.message}</p>
-        <p class="text-xs text-muted">Ensure your Google Script is correctly deployed.</p>
-      </div>`;
-    }
+
+      setTimeout(() => {
+        if (typeof Chart === "undefined") return;
+        if (_historyChart) _historyChart.destroy();
+        
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+        Chart.defaults.color = isDark ? "#94a3b8" : "#64748b";
+        
+        const el = document.getElementById("chart-history-adaptive");
+        if (el && last10.length > 0) {
+           _historyChart = new Chart(el, {
+             type: "line",
+             data: {
+               labels: last10.map((_, i) => "S" + (i + 1)),
+               datasets: [{
+                 label: "Score",
+                 data: last10.map(r => parseFloat(r["Result Score"]) || 0),
+                 borderColor: "#8b5cf6",
+                 backgroundColor: "rgba(139, 92, 246, 0.1)",
+                 fill: true,
+                 tension: 0.3
+               }]
+             },
+             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor } }, y: { beginAtZero: true, grid: { color: gridColor } } } }
+           });
+        }
+
+        if (_topicGraphsOpen) {
+           renderDetailedTopicGraphs(_cachedHistory, isDark, gridColor);
+        }
+      }, 50);
+  }
+
+  let _barChart = null;
+  let _radarChart = null;
+
+  function renderDetailedTopicGraphs(dataToUse, isDark, gridColor) {
+      if (_barChart) _barChart.destroy();
+      if (_radarChart) _radarChart.destroy();
+
+      const topicStats = {};
+      dataToUse.forEach(r => {
+         const t = r["Quiz Topic"] || "Unknown";
+         if (!topicStats[t]) topicStats[t] = { scoreSum: 0, count: 0 };
+         topicStats[t].scoreSum += (parseFloat(r["Result Score"]) || 0);
+         topicStats[t].count += 1;
+      });
+
+      const labels = Object.keys(topicStats);
+      const avgScores = labels.map(t => topicStats[t].scoreSum / topicStats[t].count);
+      const counts = labels.map(t => topicStats[t].count);
+
+      const elBar = document.getElementById("chart-history-topic-bars");
+      if (elBar) {
+         _barChart = new Chart(elBar, {
+             type: "bar",
+             data: {
+                 labels: labels,
+                 datasets: [{
+                     label: "Average Score",
+                     data: avgScores,
+                     backgroundColor: "rgba(59, 130, 246, 0.7)",
+                     borderRadius: 4
+                 }]
+             },
+             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor } }, y: { beginAtZero: true, max: 100, grid: { color: gridColor } } } }
+         });
+      }
+
+      const elRadar = document.getElementById("chart-history-topic-radar");
+      if (elRadar) {
+         _radarChart = new Chart(elRadar, {
+             type: "radar",
+             data: {
+                 labels: labels,
+                 datasets: [{
+                     label: "Attempt Count",
+                     data: counts,
+                     backgroundColor: "rgba(16, 185, 129, 0.3)",
+                     borderColor: "#10b981",
+                     borderWidth: 2
+                 }]
+             },
+             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { grid: { color: gridColor }, angleLines: { color: gridColor }, ticks: { stepSize: 1 } } } }
+         });
+      }
+  }
+
+  function toggleTopicGraphs() {
+      _topicGraphsOpen = !_topicGraphsOpen;
+      renderHistoryUI();
+  }
+
+  function setFilter(val) {
+      _activeTopicFilter = val;
+      renderHistoryUI();
   }
 
   async function viewCloudAttempt(fileId) {
@@ -1669,5 +2013,5 @@ const PageHistory = (() => {
     }
   }
 
-  return { render, load, viewCloudAttempt };
+  return { render, load, viewCloudAttempt, toggleTopicGraphs, setFilter };
 })();
