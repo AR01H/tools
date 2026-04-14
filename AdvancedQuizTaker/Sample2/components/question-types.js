@@ -30,7 +30,10 @@ const QuestionRenderer = (() => {
     const dc = diffColor[(q.Difficulty||'').toLowerCase()] || 'var(--text-muted)';
 
     panel.innerHTML = `
-      <div class="animate-fade" style="display:flex;flex-direction:column;gap:var(--sp-lg)">
+      <div class="q-left-panel" style="display:${q.Passage ? 'flex' : 'none'};flex-direction:column;gap:var(--sp-md);background:var(--bg-elevated);border-right:1px solid var(--border-color)">
+        ${q.Passage ? passageHtml : `<div style="padding:var(--sp-lg);color:var(--text-muted);text-align:center;font-style:italic;margin:auto">Read the question carefully and select the best answer from the options provided.</div>`}
+      </div>
+      <div class="q-right-panel animate-fade" style="display:flex;flex-direction:column;gap:var(--sp-lg)">
         <!-- Meta row -->
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           ${q.Category ? `<span class="badge badge-info">${q.Category}</span>` : ''}
@@ -41,9 +44,6 @@ const QuestionRenderer = (() => {
           ${q['Negative Score']>0 ? `<span class="badge badge-error">-${q['Negative Score']}</span>` : ''}
           <span style="margin-left:auto;font-size:.75rem;color:var(--text-muted)">#${idx+1}</span>
         </div>
-
-        <!-- Passage -->
-        ${passageHtml}
 
         <!-- Question text -->
         <div style="font-size:1.05rem;font-weight:600;line-height:1.6;color:var(--text-primary)">

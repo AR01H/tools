@@ -156,7 +156,7 @@
 /* ── Quiz-specific theming overrides ── */
 .option-card {
   background:var(--bg-elevated); border:2px solid var(--border-color);
-  border-radius:var(--radius-md); padding:var(--sp-md);
+  border-radius:var(--radius-sm); padding:var(--sp-xs);
   cursor:pointer; transition:all var(--dur-fast);
   display:flex; align-items:center; gap:var(--sp-md);
 }
@@ -198,10 +198,10 @@
 
 /* ── Answer key view ── */
 .answer-row {
-  display:grid; grid-template-columns:40px 1fr 120px 120px 80px;
-  gap:var(--sp-sm); padding:10px var(--sp-md);
+  display:grid; grid-template-columns:40px 3fr 2fr 2fr 60px;
+  gap:var(--sp-lg); padding:12px var(--sp-md);
   border-bottom:1px solid var(--border-color); align-items:center;
-  font-size:.85rem;
+  font-size:.85rem; word-break: break-word;
 }
 .answer-row:hover { background:var(--bg-hover); }
 .answer-row .q-num { font-weight:700; color:var(--text-muted); }

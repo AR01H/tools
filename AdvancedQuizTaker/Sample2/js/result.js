@@ -129,52 +129,47 @@ const PageResult = (() => {
     const showQWise = (cfg['Question Wise Result'] || 'On') === 'On';
 
     main.innerHTML = `
-      <div style="margin:0 auto" class="animate-up">
-        <!-- Header -->
-        <div style="text-align:center;margin-bottom:var(--sp-xl)">
-          <div class="score-ring-wrap" style="margin-bottom:var(--sp-lg)">
-            <svg viewBox="0 0 160 160" width="160" height="160">
-              <circle class="score-ring-bg" cx="80" cy="80" r="68"/>
-              <circle class="score-ring-fill" id="ring-fill" cx="80" cy="80" r="68"
-                stroke-dasharray="${2*Math.PI*68}" stroke-dashoffset="${2*Math.PI*68}"/>
-            </svg>
-            <div class="score-ring-text">
-              <div style="display:flex;flex-direction:column;align-items:center">
-                <span style="font-size:2.2rem;font-weight:800" id="score-pct">${score.accuracy}%</span>
-                <span style="font-size:.7rem;color:var(--text-muted);font-weight:600;letter-spacing:.06em">ACCURACY</span>
-              </div>
+      <div class="animate-up">
+        <!-- Compact Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-md); background:var(--bg-elevated); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color)">
+          
+          <div style="display:flex; flex-direction:column; gap:4px">
+            <h1 style="font-size:1.4rem; font-weight:800; margin:0">Session Complete</h1>
+            <p class="text-muted" style="margin:0; font-size:0.85rem">
+              ${score.total.toFixed(1)} / ${score.maxTotal} points • ${fmtTime(score.timeTaken)} • ${new Date(endTime).toLocaleString()}
+            </p>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:var(--sp-lg)">
+            <!-- Accuracy Bar -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
+               <span style="font-size:1.2rem; font-weight:800; color:${score.accuracy >= 70 ? 'var(--color-success)' : score.accuracy >= 40 ? 'var(--color-warn)' : 'var(--color-error)'}">${score.accuracy}% Accuracy</span>
+               <div style="width:150px; height:6px; background:var(--bg-surface); border-radius:3px; overflow:hidden">
+                 <div style="height:100%; width:${score.accuracy}%; background:${score.accuracy >= 70 ? 'var(--color-success)' : score.accuracy >= 40 ? 'var(--color-warn)' : 'var(--color-error)'}"></div>
+               </div>
+            </div>
+
+            <!-- Quick stats -->
+            <div style="display:flex; gap:16px; align-items:center; border-left:1px solid var(--border-color); padding-left:16px">
+              ${[
+                { num: score.correct,  label: '✓ Checked',  color: 'var(--color-success)' },
+                { num: score.wrong,    label: '✕ Missed',    color: 'var(--color-error)'   },
+                { num: score.skipped,  label: '⚠ Skipped',  color: 'var(--color-warn)'    }
+              ].map(s=>`
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                  <div style="color:${s.color}; font-weight:700; font-size:1.1rem">${s.num}</div>
+                  <div style="color:var(--text-muted); font-size:0.7rem; text-transform:uppercase">${s.label}</div>
+                </div>`).join('')}
             </div>
           </div>
-          <h1 style="font-size:1.8rem;font-weight:800;margin-bottom:4px">
-            ${score.accuracy >= 80 ? '🏆 Excellent!' : score.accuracy >= 60 ? '👍 Good Job!' : score.accuracy >= 40 ? '📚 Keep Practicing!' : '💪 Keep Going!'}
-          </h1>
-          <p class="text-muted">
-            ${score.total.toFixed(1)} / ${score.maxTotal} points •
-            ${fmtTime(score.timeTaken)} taken •
-            ${new Date(endTime).toLocaleString()}
-          </p>
-        </div>
-
-        <!-- Quick stats -->
-        <div class="grid-4" style="margin-bottom:var(--sp-xl)">
-          ${[
-            { num: score.correct,  label: 'Correct',  color: 'var(--color-success)' },
-            { num: score.wrong,    label: 'Wrong',    color: 'var(--color-error)'   },
-            { num: score.skipped,  label: 'Skipped',  color: 'var(--color-warn)'    },
-            { num: quiz.questions.length, label: 'Total Qs', color: 'var(--accent-primary)' },
-          ].map(s=>`
-            <div class="report-stat-card">
-              <div class="report-stat-num" style="color:${s.color}">${s.num}</div>
-              <div class="report-stat-label">${s.label}</div>
-            </div>`).join('')}
         </div>
 
         <!-- Action bar -->
-        <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;margin-bottom:var(--sp-xl);justify-content:center">
-          <button class="btn btn-primary" onclick="PageResult.downloadPDF()">📥 Download PDF</button>
-          <button class="btn btn-secondary" onclick="PageResult.shareResult()">🔗 Share Result</button>
-          <button class="btn btn-secondary" onclick="PageResult.retakeQuiz()">🔁 Retake Quiz</button>
-          <button class="btn btn-ghost" onclick="UI.navigate('welcome')">🏠 Home</button>
+        <div style="display:flex; justify-content:flex-end; gap:var(--sp-sm); margin-bottom:var(--sp-md)">
+          <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadPDF()">📥 PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick="PageResult.shareResult()">🔗 Share</button>
+          <button class="btn btn-secondary btn-sm" onclick="PageResult.retakeQuiz()">🔁 Retake</button>
+          <button class="btn btn-secondary btn-sm" onclick="UI.navigate('welcome')">🏠 Home</button>
         </div>
 
         <!-- Tabs -->
@@ -217,7 +212,10 @@ const PageResult = (() => {
     const body = document.getElementById('result-tab-body');
     if (!body) return;
     switch(tab) {
-      case 'overview':   body.innerHTML = renderOverview(result);    break;
+      case 'overview':   
+        body.innerHTML = renderOverview(result);    
+        setTimeout(() => initOverviewCharts(result), 50);
+        break;
       case 'category':   body.innerHTML = renderCategory(result);    break;
       case 'difficulty': body.innerHTML = renderDifficulty(result);  break;
       case 'type':       body.innerHTML = renderTypeTab(result);     break;
@@ -228,48 +226,254 @@ const PageResult = (() => {
 
   // ── OVERVIEW TAB ──────────────────────────────────────────
   function renderOverview(result) {
-    const { quiz, score } = result;
-    const tot = quiz.questions.length;
-    const cPct = tot ? (score.correct / tot * 100) : 0;
-    const wPct = tot ? (score.wrong / tot * 100) : 0;
-    const sPct = tot ? (score.skipped / tot * 100) : 0;
-    const conic = `conic-gradient(var(--color-success) 0% ${cPct}%, var(--color-error) ${cPct}% ${cPct+wPct}%, var(--color-warn) ${cPct+wPct}% 100%)`;
-
     return `
-      <div style="display:flex;gap:var(--sp-lg);flex-wrap:wrap">
-        <div style="flex:1;min-width:280px;display:flex;flex-direction:column;align-items:center;padding:var(--sp-md) 0">
-          <div style="width:220px;height:220px;border-radius:50%;background:${conic};position:relative;display:flex;align-items:center;justify-content:center">
-            <div style="width:65%;height:65%;border-radius:50%;background:var(--bg-main);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 10px rgba(0,0,0,0.3)">
-              <span style="font-size:1.8rem;font-weight:800">${score.accuracy}%</span>
-              <span style="font-size:0.7rem;color:var(--text-muted);font-weight:600">SCORE</span>
-            </div>
-          </div>
-          <!-- Legend -->
-          <div style="display:flex;gap:16px;margin-top:24px;font-size:0.85rem">
-            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-success)"></div>Correct</div>
-            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-error)"></div>Wrong</div>
-            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--color-warn)"></div>Skipped</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+        
+        <!-- Chart 1: Donut Distribution -->
+        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Answers Distribution</h3>
+          <div style="flex:1;position:relative;height:180px;display:flex;align-items:center;justify-content:center">
+            <canvas id="chart-answers"></canvas>
           </div>
         </div>
-        <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:var(--sp-sm)">
-          ${[
-            ['Total Score',    `${score.total.toFixed(1)} / ${score.maxTotal}`],
-            ['Accuracy',       `${score.accuracy}%`],
-            ['Time Taken',     fmtTime(score.timeTaken)],
-            ['Questions',      quiz.questions.length],
-            ['Correct',        score.correct],
-            ['Wrong',          score.wrong],
-            ['Skipped',        score.skipped],
-            ['Config',         quiz.config['Quiz Settings Title'] || 'Custom'],
-            ['Topics',         (quiz.config._topics || State.get('setup').selectedTopics||[]).join(', ')],
-          ].map(([k,v])=>`
-            <div style="display:flex;justify-content:space-between;padding:8px var(--sp-md);
-                        background:var(--bg-elevated);border-radius:var(--radius-sm)">
-              <span class="text-sm text-muted">${k}</span>
-              <span class="text-sm font-bold">${v}</span>
-            </div>`).join('')}
+
+        <!-- Chart 2: Category Bar -->
+        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Category Accuracy (%)</h3>
+          <div style="flex:1;position:relative;height:180px">
+            <canvas id="chart-categories"></canvas>
+          </div>
         </div>
-      </div>`;
+
+        <!-- Chart 3: Difficulty Breakdown -->
+        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Difficulty Distribution</h3>
+          <div style="flex:1;position:relative;height:180px">
+            <canvas id="chart-difficulties"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 4: Timeline / Progression -->
+        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Score Progression</h3>
+          <div style="flex:1;position:relative;height:180px">
+            <canvas id="chart-timeline"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 5: Question Types Accuracy -->
+        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Accuracy by Type</h3>
+          <div style="flex:1;position:relative;height:180px">
+            <canvas id="chart-types"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 6: Capability Radar -->
+        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
+          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Capability Radar</h3>
+          <div style="flex:1;position:relative;height:180px;display:flex;align-items:center;justify-content:center">
+            <canvas id="chart-radar"></canvas>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  let _activeCharts = [];
+
+  function initOverviewCharts(result) {
+    // Destroy previous chart instances to avoid canvas reuse errors
+    _activeCharts.forEach(c => c.destroy());
+    _activeCharts = [];
+
+    if (typeof Chart === 'undefined') return;
+    
+    // Setup Theme Colors based on active app theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    Chart.defaults.color = isDark ? '#94a3b8' : '#64748b';
+    Chart.defaults.font.family = '"Inter", "Sora", sans-serif';
+    Chart.defaults.font.size = 11;
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+    const { score, quiz } = result;
+
+    // 1. Answers Doughnut
+    const ctxAnswers = document.getElementById('chart-answers');
+    if (ctxAnswers) {
+      _activeCharts.push(new Chart(ctxAnswers, {
+        type: 'doughnut',
+        data: {
+          labels: ['Correct', 'Wrong', 'Skipped'],
+          datasets: [{
+            data: [score.correct, score.wrong, score.skipped],
+            backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' } },
+          cutout: '70%'
+        }
+      }));
+    }
+
+    // 2. Category Bar
+    const ctxCat = document.getElementById('chart-categories');
+    if (ctxCat) {
+      const catLabels = Object.keys(score.categoryMap).slice(0, 8); // Top 8
+      const catData = catLabels.map(k => {
+        const d = score.categoryMap[k];
+        return d.max ? Math.round((d.score/d.max)*100) : 0;
+      });
+      _activeCharts.push(new Chart(ctxCat, {
+        type: 'bar',
+        data: {
+          labels: catLabels.length ? catLabels : ['Uncategorised'],
+          datasets: [{
+            label: 'Accuracy %',
+            data: catData.length ? catData : [score.accuracy],
+            backgroundColor: '#0ea5e9',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: gridColor }, beginAtZero: true, max: 100 }
+          }
+        }
+      }));
+    }
+
+    // 3. Difficulty Bar (Horizontal)
+    const ctxDiff = document.getElementById('chart-difficulties');
+    if (ctxDiff) {
+      const diffKeys = ['easy', 'medium', 'hard'];
+      const diffData = diffKeys.map(k => {
+        const d = score.difficultyMap[k] || score.difficultyMap[k.charAt(0).toUpperCase() + k.slice(1)];
+        if (!d || !d.total) return 0;
+        return Math.round((d.correct/d.total)*100);
+      });
+      _activeCharts.push(new Chart(ctxDiff, {
+        type: 'bar',
+        data: {
+          labels: ['Easy', 'Medium', 'Hard'],
+          datasets: [{
+            label: 'Accuracy %',
+            data: diffData,
+            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { grid: { color: gridColor }, beginAtZero: true, max: 100 } }
+        }
+      }));
+    }
+
+    // 4. Timeline (Line)
+    const ctxTime = document.getElementById('chart-timeline');
+    if (ctxTime) {
+      const timeLabels = quiz.questions.map((_, i) => 'Q' + (i+1));
+      let runTotal = 0;
+      const timeData = quiz.questions.map((q, i) => {
+        // Find if this question was correct
+        const ua = (quiz.answers[i]||{}).userAnswer;
+        const pts = Results.getQuestionScore(q, ua, quiz.config);
+        runTotal += pts;
+        return Math.max(0, runTotal);
+      });
+      _activeCharts.push(new Chart(ctxTime, {
+        type: 'line',
+        data: {
+          labels: timeLabels,
+          datasets: [{
+            label: 'Cumulative Score',
+            data: timeData,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            fill: true, tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: gridColor }, beginAtZero: true }
+          }
+        }
+      }));
+    }
+
+    // 5. Types (Bar)
+    const ctxType = document.getElementById('chart-types');
+    if (ctxType) {
+      const typeLabels = Object.keys(score.typeMap).slice(0, 6);
+      const typeData = typeLabels.map(k => Math.round((score.typeMap[k].correct / score.typeMap[k].total)*100));
+      _activeCharts.push(new Chart(ctxType, {
+        type: 'bar',
+        data: {
+          labels: typeLabels,
+          datasets: [{
+            label: 'Accuracy %',
+            data: typeData,
+            backgroundColor: '#ec4899',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: gridColor }, beginAtZero: true, max: 100 }
+          }
+        }
+      }));
+    }
+
+    // 6. Capability Radar
+    const ctxRadar = document.getElementById('chart-radar');
+    if (ctxRadar) {
+      const tops = Object.keys({...score.categoryMap, ...score.typeMap}).slice(0, 6);
+      if (tops.length >= 3) {
+        const radarData = tops.map(k => {
+          if (score.categoryMap[k]) return score.categoryMap[k].max ? Math.round(score.categoryMap[k].score/score.categoryMap[k].max*100) : 0;
+          if (score.typeMap[k]) return score.typeMap[k].total ? Math.round(score.typeMap[k].correct/score.typeMap[k].total*100) : 0;
+          return 0;
+        });
+        _activeCharts.push(new Chart(ctxRadar, {
+          type: 'radar',
+          data: {
+            labels: tops,
+            datasets: [{
+              label: 'Capability (%)',
+              data: radarData,
+              backgroundColor: 'rgba(14, 165, 233, 0.2)',
+              borderColor: '#0ea5e9',
+              pointBackgroundColor: '#0ea5e9'
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { display: false } } }
+          }
+        }));
+      } else {
+         // Fallback if not enough dimensions for radar
+         ctxRadar.outerHTML = '<p class="text-muted text-sm text-center">Not enough data vectors to generate radar.</p>';
+      }
+    }
   }
 
   // ── CATEGORY TAB ─────────────────────────────────────────
@@ -465,10 +669,126 @@ const PageResult = (() => {
   }
 
   function downloadPDF() {
-    UI.toast('Preparing PDF…', 'info');
-    setTimeout(() => {
-      window.print();
-    }, 300);
+    if (typeof html2pdf === 'undefined') {
+      UI.toast('PDF engine loading, please try again in a moment...', 'warn');
+      return;
+    }
+    UI.setLoading(true, 'Generating HD Report…');
+    
+    const result = State.get('result');
+    const user   = State.get('user') || {name: 'Guest'};
+    const score  = result.score;
+    const cats   = score.categoryMap;
+    const diffs  = score.difficultyMap;
+
+    const pdfContainer = document.createElement('div');
+    pdfContainer.style.background = '#ffffff';
+    pdfContainer.style.color = '#1e293b';
+    pdfContainer.style.padding = '40px';
+    pdfContainer.style.fontFamily = '"Inter", "Sora", sans-serif';
+    pdfContainer.style.width = '800px';
+
+    pdfContainer.innerHTML = `
+      <div style="border-bottom: 3px solid #0f172a; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <h1 style="font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.5px;">Performance Report</h1>
+          <p style="font-size: 14px; color: #64748b; font-weight: 500;">CANDIDATE: <span style="color:#0f172a;font-weight:700">${user.name}</span></p>
+        </div>
+        <div style="text-align: right;">
+          <p style="font-size: 14px; color: #64748b; margin-bottom: 4px;">DATE: ${new Date(result.endTime).toLocaleDateString()}</p>
+          <p style="font-size: 14px; color: #64748b;">QUIZ: ${result.quiz.config['Quiz Settings Title'] || 'Assessment Session'}</p>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center;">
+          <p style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Accuracy</p>
+          <p style="font-size: 36px; font-weight: 800; color: ${score.accuracy >= 70 ? '#10b981' : score.accuracy >= 40 ? '#f59e0b' : '#ef4444'}; margin-top: 8px;">${score.accuracy}%</p>
+        </div>
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center;">
+          <p style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Total Score</p>
+          <p style="font-size: 36px; font-weight: 800; color: #0f172a; margin-top: 8px;">${score.total.toFixed(1)} <span style="font-size:16px;color:#94a3b8">/ ${score.maxTotal}</span></p>
+        </div>
+        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; text-align: center;">
+          <p style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Time Taken</p>
+          <p style="font-size: 36px; font-weight: 800; color: #0f172a; margin-top: 8px;">${fmtTime(score.timeTaken)}</p>
+        </div>
+      </div>
+
+      <!-- Overview Stats -->
+      <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+        <div style="flex: 1; padding: 16px; border-left: 4px solid #10b981; background: #ecfdf5; color: #065f46; border-radius: 4px;">
+           <strong>${score.correct}</strong> Correct Responses
+        </div>
+        <div style="flex: 1; padding: 16px; border-left: 4px solid #ef4444; background: #fef2f2; color: #991b1b; border-radius: 4px;">
+           <strong>${score.wrong}</strong> Incorrect Responses
+        </div>
+        <div style="flex: 1; padding: 16px; border-left: 4px solid #f59e0b; background: #fffbeb; color: #92400e; border-radius: 4px;">
+           <strong>${score.skipped}</strong> Skipped Questions
+        </div>
+      </div>
+
+      <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Category Breakdown</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px;">
+        <thead>
+          <tr style="background: #f1f5f9;">
+            <th style="padding: 12px; text-align: left; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1;">Category</th>
+            <th style="padding: 12px; text-align: center; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1;">Correct / Total</th>
+            <th style="padding: 12px; text-align: right; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1;">Accuracy</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.entries(cats).length > 0 ? Object.entries(cats).map(([cat, d]) => `
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">${cat}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: center; color: #64748b;">${d.correct} / ${d.total}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 700; color: ${d.max && (d.score/d.max) >= 0.7 ? '#10b981' : d.max && (d.score/d.max) >= 0.4 ? '#f59e0b' : '#ef4444'};">${d.max ? Math.round(d.score/d.max*100) : 0}%</td>
+            </tr>
+          `).join('') : '<tr><td colspan="3" style="padding: 12px; text-align: center; color: #94a3b8;">No categories recorded.</td></tr>'}
+        </tbody>
+      </table>
+
+      <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">Difficulty Breakdown</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px;">
+        <thead>
+          <tr style="background: #f1f5f9;">
+            <th style="padding: 12px; text-align: left; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1;">Level</th>
+            <th style="padding: 12px; text-align: center; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1;">Correct / Total</th>
+            <th style="padding: 12px; text-align: right; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1;">Accuracy</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.entries(diffs).length > 0 ? Object.entries(diffs).map(([d, v]) => `
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-transform: capitalize; font-weight: 600; color: #0f172a;">${d}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: center; color: #64748b;">${v.correct} / ${v.total}</td>
+              <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 700; color: #0f172a;">${v.total ? Math.round(v.correct/v.total*100) : 0}%</td>
+            </tr>
+          `).join('') : '<tr><td colspan="3" style="padding: 12px; text-align: center; color: #94a3b8;">No difficulties recorded.</td></tr>'}
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+        Generated by QuizPro Assessment Framework • Official Candidate Report
+      </div>
+    `;
+
+    const opt = {
+      margin:       0.4,
+      filename:     `QuizPro_Report_${user.name.replace(/\s+/g,'_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(pdfContainer).save().then(() => {
+      UI.setLoading(false);
+      UI.toast('Report downloaded successfully!', 'success');
+    }).catch(err => {
+      UI.setLoading(false);
+      UI.toast('Failed to generate PDF.', 'error');
+      console.error(err);
+    });
   }
 
   function shareResult() {

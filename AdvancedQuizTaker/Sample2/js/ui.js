@@ -44,9 +44,11 @@ const UI = (() => {
       if (!el) {
         el = document.createElement('div');
         el.id = 'loading-overlay';
-        el.className = 'loading-overlay';
-        el.innerHTML = `<div class="spinner"></div><p style="color:var(--text-secondary);margin-top:12px">${msg}</p>`;
+        el.style.cssText = 'position:fixed;top:20px;right:20px;background:var(--bg-elevated);border:1px solid var(--border-color);padding:8px 16px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-md);z-index:9999;font-family:var(--font-ui)';
+        el.innerHTML = `<div class="spinner" style="width:16px;height:16px;border-width:2px;border-top-color:var(--accent-primary);"></div><p style="color:var(--text-primary);font-size:0.85rem;margin:0;font-weight:600">${msg}</p>`;
         document.body.appendChild(el);
+      } else {
+        el.querySelector('p').textContent = msg;
       }
     } else if (el) el.remove();
   }
@@ -67,6 +69,7 @@ const UI = (() => {
       'setup-topics':  PageSetupTopics.render,
       'setup-filters': PageSetupFilters.render,
       'setup-config':  PageSetupConfig.render,
+      'setup-template':PageSetupTemplate.render,
       'quiz':          PageQuiz.render,
       'result':        PageResult.render,
       'history':       PageHistory.render,
