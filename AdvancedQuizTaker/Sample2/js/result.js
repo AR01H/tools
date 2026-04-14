@@ -124,64 +124,49 @@ const Results = (() => {
 
   function calculateScore(quiz) {
     const cfg = quiz.config;
-    let total = 0,
-      maxTotal = 0,
-      correct = 0,
-      wrong = 0,
-      skipped = 0;
-    const categoryMap = {},
-      difficultyMap = {},
-      typeMap = {};
+    let total = 0, maxTotal = 0, correct = 0, wrong = 0, skipped = 0;
+    const categoryMap = {}, difficultyMap = {}, typeMap = {}, subCategoryMap = {};
 
     const details = quiz.questions.map((q, i) => {
-      const ans = quiz.answers[i];
-      const ua = ans ? ans.userAnswer : undefined;
+      const ans = quiz.answers[i] || {};
+      const ua = ans.userAnswer;
       const s = getQuestionScore(q, ua, cfg);
       const corr = isCorrect(q, ua);
-
       const maxQ = parseFloat(q.Score || 1);
+
       total += s;
       maxTotal += maxQ;
-      if (ua === undefined || ua === null || ua === "") skipped++;
+      if (ua === undefined || ua === null || ua === "" || (Array.isArray(ua) && ua.length === 0)) skipped++;
       else if (corr) correct++;
       else wrong++;
 
-      const cat = q.Category || "Uncategorised";
-      if (!categoryMap[cat])
-        categoryMap[cat] = { score: 0, max: 0, correct: 0, total: 0 };
-      categoryMap[cat].score += s;
-      categoryMap[cat].max += maxQ;
-      categoryMap[cat].total++;
-      if (corr) categoryMap[cat].correct++;
+      const track = (map, key) => {
+        if (!key) return;
+        if (!map[key]) map[key] = { score: 0, total: 0, max: 0, correct: 0 };
+        map[key].score += s;
+        map[key].total++;
+        map[key].max += maxQ;
+        if (corr) map[key].correct++;
+      };
 
-      const diff = q.Difficulty || "unknown";
-      if (!difficultyMap[diff])
-        difficultyMap[diff] = { correct: 0, total: 0, score: 0, max: 0 };
-      difficultyMap[diff].total++;
-      difficultyMap[diff].score += s;
-      difficultyMap[diff].max += maxQ;
-      if (corr) difficultyMap[diff].correct++;
+      track(categoryMap, q.Category || "General");
+      track(subCategoryMap, q["Sub Category"] || q.SubCategory);
+      track(difficultyMap, q.Difficulty || "Medium");
+      track(typeMap, q["Question Type"] || "Multichoice");
 
-      const t = q["Question Type"] || "Other";
-      if (!typeMap[t]) typeMap[t] = { correct: 0, total: 0 };
-      typeMap[t].total++;
-      if (corr) typeMap[t].correct++;
-
-      return { score: s, max: maxQ, correct: corr };
+      return { score: s, isCorrect: corr, timeTaken: ans.timeTaken || 0 };
     });
-
-    const accuracy = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
-    const timeTaken = Math.round((Date.now() - quiz.startTime) / 1000);
 
     return {
       total: Math.max(0, total),
       maxTotal,
-      accuracy,
+      accuracy: maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0,
       correct,
       wrong,
       skipped,
-      timeTaken,
+      timeTaken: details.reduce((acc, d) => acc + (d.timeTaken || 0), 0),
       categoryMap,
+      subCategoryMap,
       difficultyMap,
       typeMap,
       details,
@@ -198,15 +183,13 @@ const PageResult = (() => {
   let _activeTab = "overview";
 
   function getInsights(score, type) {
-    const cats = Object.keys(score.categoryMap).map((k) => ({
-      name: k,
-      acc: score.categoryMap[k].max
-        ? (score.categoryMap[k].score / score.categoryMap[k].total) * 100
-        : 0,
-    }));
-    if (type === "strengths")
-      return cats.filter((c) => c.acc >= 70).map((c) => c.name);
-    return cats.filter((c) => c.acc < 40).map((c) => c.name);
+    const combined = [
+      ...Object.entries(score.categoryMap).map(([k, v]) => ({ name: k, ...v, group: 'Sub' })),
+      ...Object.entries(score.subCategoryMap).map(([k, v]) => ({ name: k, ...v, group: 'Tag' }))
+    ];
+    const items = combined.map(c => ({ name: c.name, group: c.group, acc: c.max ? (c.score/c.max)*100 : 0 }));
+    if (type === "strengths") return items.filter(c => c.acc >= 75).slice(0, 5);
+    return items.filter(c => c.acc < 50).slice(0, 5);
   }
 
   function render(main, data) {
@@ -218,9 +201,7 @@ const PageResult = (() => {
     const { quiz, score, endTime } = result;
 
     main.innerHTML = `
-      <div class="animate-up dashboard-shell">
-        <!-- ── DASHBOARD HEADER ── -->
-        <div class="dash-hero">
+           <div class="dash-hero">
            <div class="dash-hero-info">
               <span class="dash-badge">${
                 quiz.config["Quiz Settings Title"] || "ASSESSMENT REPORT"
@@ -232,8 +213,8 @@ const PageResult = (() => {
               )} • ${fmtTime(score.timeTaken)} elapsed</p>
            </div>
            
-           <div class="dash-hero-stats">
-              <div class="hero-stat-main">
+           <div class="dash-hero-stats-new">
+              <div class="hero-ring-container">
                  <div class="hero-ring-wrap">
                     <svg viewBox="0 0 100 100">
                        <circle class="ring-bg" cx="50" cy="50" r="45"></circle>
@@ -245,83 +226,58 @@ const PageResult = (() => {
                     </div>
                  </div>
               </div>
-              <div class="hero-stat-cards">
-                 <div class="hero-card">
-                    <span class="hero-card-label">TOTAL SCORE</span>
-                    <span class="hero-card-val">${score.total.toFixed(
-                      1
-                    )}<span class="text-xs opacity-50"> / ${
-      score.maxTotal
-    }</span></span>
+
+              <div class="hero-stats-grid">
+                 <div class="hero-mini-card success">
+                    <span class="mini-label">CORRECT</span>
+                    <span class="mini-val">${score.correct}</span>
                  </div>
-                 <div class="hero-card">
-                    <span class="hero-card-label">TIME ACCURACY</span>
-                    <span class="hero-card-val">${
+                 <div class="hero-mini-card error">
+                    <span class="mini-label">INCORRECT</span>
+                    <span class="mini-val">${score.wrong}</span>
+                 </div>
+                 <div class="hero-mini-card warn">
+                    <span class="mini-label">SKIPPED</span>
+                    <span class="mini-val">${score.skipped}</span>
+                 </div>
+                 <div class="hero-mini-card info">
+                    <span class="mini-label">AVG / Q</span>
+                    <span class="mini-val">${(
+                      score.timeTaken / quiz.questions.length
+                    ).toFixed(1)}s</span>
+                 </div>
+              </div>
+
+              <div class="hero-totals-info">
+                 <div class="total-item">
+                    <span class="label">TOTAL SCORE</span>
+                    <span class="val">${score.total.toFixed(
+                      1
+                    )}<span class="small"> / ${score.maxTotal}</span></span>
+                 </div>
+                 <div class="total-item">
+                    <span class="label">PERFORMANCE PACE</span>
+                    <span class="val">${
                       score.timeTaken > 0
                         ? (score.correct / (score.timeTaken / 60)).toFixed(1)
                         : 0
-                    }<span class="text-xs opacity-50"> p/m</span></span>
+                    }<span class="small"> p/m</span></span>
                  </div>
               </div>
-           </div>
+            </div>
         </div>
 
-        <!-- ── ANALYTICS BAR ── -->
-        <div class="dash-analytics-bar">
-           <div class="ana-item success">
-              <div class="ana-icon">✓</div>
-              <div class="ana-text">
-                 <span class="ana-val">${score.correct}</span>
-                 <span class="ana-label">CORRECT</span>
-              </div>
-           </div>
-           <div class="ana-item error">
-              <div class="ana-icon">✕</div>
-              <div class="ana-text">
-                 <span class="ana-val">${score.wrong}</span>
-                 <span class="ana-label">INCORRECT</span>
-              </div>
-           </div>
-           <div class="ana-item warn">
-              <div class="ana-icon">!</div>
-              <div class="ana-text">
-                 <span class="ana-val">${score.skipped}</span>
-                 <span class="ana-label">SKIPPED</span>
-              </div>
-           </div>
-           <div class="ana-item info">
-              <div class="ana-icon">⏱</div>
-              <div class="ana-text">
-                 <span class="ana-val">${(
-                   score.timeTaken / quiz.questions.length
-                 ).toFixed(1)}s</span>
-                 <span class="ana-label">AVG / Q</span>
-              </div>
-           </div>
-        </div>
-
-        <!-- ── STRENGTHS & WEAKNESSES ── -->
         <div class="dash-insights">
            <div class="insight-card strengths">
-              <span class="insight-tag">✨ STRENGTHS</span>
+              <span class="insight-tag">✨ KEY STRENGTHS</span>
               <div class="insight-list">
-                 ${
-                   getInsights(score, "strengths")
-                     .map((s) => `<span class="tag-pill">${s}</span>`)
-                     .join("") ||
-                   '<span class="opacity-50">Maintain consistent practice</span>'
-                 }
+                 ${getInsights(score, "strengths").map(s => `<div class="tag-pill"><strong>${s.group}:</strong> ${s.name} <span class="text-xs">(${Math.round(s.acc)}%)</span></div>`).join("") || '<span class="opacity-50">Continue testing to surface strengths</span>'}
               </div>
            </div>
            <div class="insight-card weaknesses">
-              <span class="insight-tag">⚠️ WEAKNESSES</span>
+              <span class="insight-tag">⚠️ GROWTH AREAS</span>
               <div class="insight-list">
-                 ${
-                   getInsights(score, "weaknesses")
-                     .map((w) => `<span class="tag-pill">${w}</span>`)
-                     .join("") ||
-                   '<span class="opacity-50">No critical weaknesses identified</span>'
-                 }
+                 ${getInsights(score, "weaknesses").map(w => `<div class="tag-pill"><strong>${w.group}:</strong> ${w.name} <span class="text-xs">(${Math.round(w.acc)}%)</span></div>`).join("") || '<span class="opacity-50">Excellent performance, no major weaknesses</span>'}
               </div>
            </div>
         </div>
@@ -420,57 +376,45 @@ const PageResult = (() => {
 
   // ── OVERVIEW TAB ──────────────────────────────────────────
   function renderOverview(result) {
+    const { score } = result;
+    const pace = score.timeTaken / (result.quiz.questions.length || 1);
+    
     return `
-      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(380px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
-        
-        <!-- Chart 1: Donut Distribution -->
-        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
-          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Answers Distribution</h3>
-          <div style="flex:1;position:relative;height:180px;display:flex;align-items:center;justify-content:center">
-            <canvas id="chart-answers"></canvas>
-          </div>
+      <div class="dash-metrics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+        <div class="metric-card">
+          <span class="m-label">Knowledge Accuracy</span>
+          <div class="m-value text-success">${score.accuracy}%</div>
+          <div class="m-sub">${score.correct} of ${result.quiz.questions.length} Correct</div>
         </div>
-
-        <!-- Chart 2: Category Bar -->
-        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
-          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Category Accuracy (%)</h3>
-          <div style="flex:1;position:relative;height:180px">
-            <canvas id="chart-categories"></canvas>
-          </div>
+        <div class="metric-card">
+          <span class="m-label">Average Pace</span>
+          <div class="m-value text-accent">${pace.toFixed(1)}s</div>
+          <div class="m-sub">Seconds per question</div>
         </div>
-
-        <!-- Chart 3: Difficulty Breakdown -->
-        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
-          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Difficulty Distribution</h3>
-          <div style="flex:1;position:relative;height:180px">
-            <canvas id="chart-difficulties"></canvas>
-          </div>
+        <div class="metric-card">
+          <span class="m-label">Points Earned</span>
+          <div class="m-value">${score.total.toFixed(1)}</div>
+          <div class="m-sub">Out of ${score.maxTotal} Max</div>
         </div>
-
-        <!-- Chart 4: Timeline / Progression -->
-        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
-          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Score Progression</h3>
-          <div style="flex:1;position:relative;height:180px">
-            <canvas id="chart-timeline"></canvas>
-          </div>
+        <div class="metric-card">
+          <span class="m-label">Completion Status</span>
+          <div class="m-value" style="color:var(--color-warn)">${Math.round(((score.correct + score.wrong)/result.quiz.questions.length)*100)}%</div>
+          <div class="m-sub">${score.skipped} questions skipped</div>
         </div>
+      </div>
 
-        <!-- Chart 5: Question Types Accuracy -->
-        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
-          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Accuracy by Type</h3>
-          <div style="flex:1;position:relative;height:180px">
-            <canvas id="chart-types"></canvas>
-          </div>
-        </div>
-
-        <!-- Chart 6: Capability Radar -->
-        <div style="background:var(--bg-elevated); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; display:flex;flex-direction:column">
-          <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px">Capability Radar</h3>
-          <div style="flex:1;position:relative;height:180px;display:flex;align-items:center;justify-content:center">
-            <canvas id="chart-radar"></canvas>
-          </div>
-        </div>
-
+      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(600px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+        <div class="chart-card"><h3 class="chart-label">Success Profile</h3><div class="chart-box"><canvas id="chart-answers"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Topic Mastery</h3><div class="chart-box"><canvas id="chart-categories"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Weakest Knowledge Areas</h3><div class="chart-box"><canvas id="chart-weak-cats"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Critical Sub-Skill Gaps</h3><div class="chart-box"><canvas id="chart-weak-tags"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Difficulty Mastery</h3><div class="chart-box"><canvas id="chart-difficulties"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Time Drain Analysis (Top 8)</h3><div class="chart-box"><canvas id="chart-time-sinks"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Cumulative Time Consumption</h3><div class="chart-box"><canvas id="chart-total-time"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Skill Balance Radar</h3><div class="chart-box"><canvas id="chart-tags"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Time Intensity per Category</h3><div class="chart-box"><canvas id="chart-cat-time"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Question-wise Time Audit</h3><div class="chart-box"><canvas id="chart-q-time"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Accuracy by Engagement Type</h3><div class="chart-box"><canvas id="chart-q-types"></canvas></div></div>
       </div>
     `;
   }
@@ -478,254 +422,291 @@ const PageResult = (() => {
   let _activeCharts = [];
 
   function initOverviewCharts(result) {
-    // Destroy previous chart instances to avoid canvas reuse errors
     _activeCharts.forEach((c) => c.destroy());
     _activeCharts = [];
-
     if (typeof Chart === "undefined") return;
 
-    // Setup Theme Colors based on active app theme
-    const isDark =
-      document.documentElement.getAttribute("data-theme") === "dark";
+    const isDark = document.documentElement.getAttribute("data-theme") === "dark";
     Chart.defaults.color = isDark ? "#94a3b8" : "#64748b";
-    Chart.defaults.font.family = '"Inter", "Sora", sans-serif';
-    Chart.defaults.font.size = 11;
+    Chart.defaults.font.family = '"Inter", sans-serif';
     const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
-
     const { score, quiz } = result;
 
+    const createChart = (id, cfg) => {
+      const el = document.getElementById(id);
+      if (el) _activeCharts.push(new Chart(el, cfg));
+    };
+
     // 1. Answers Doughnut
-    const ctxAnswers = document.getElementById("chart-answers");
-    if (ctxAnswers) {
-      _activeCharts.push(
-        new Chart(ctxAnswers, {
-          type: "doughnut",
-          data: {
-            labels: ["Correct", "Wrong", "Skipped"],
-            datasets: [
-              {
-                data: [score.correct, score.wrong, score.skipped],
-                backgroundColor: ["#10b981", "#ef4444", "#f59e0b"],
-                borderWidth: 0,
-                hoverOffset: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: "bottom" } },
-            cutout: "70%",
-          },
-        })
-      );
-    }
+    createChart("chart-answers", {
+      type: "doughnut",
+      data: {
+        labels: ["Correct", "Wrong", "Skipped"],
+        datasets: [{ data: [score.correct, score.wrong, score.skipped], backgroundColor: ["#10b981", "#ef4444", "#f59e0b"], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: "75%", plugins: { legend: { position: 'bottom' } } }
+    });
 
-    // 2. Category Bar
-    const ctxCat = document.getElementById("chart-categories");
-    if (ctxCat) {
-      const catLabels = Object.keys(score.categoryMap).slice(0, 8); // Top 8
-      const catData = catLabels.map((k) => {
-        const d = score.categoryMap[k];
-        return d.max ? Math.round((d.score / d.max) * 100) : 0;
-      });
-      _activeCharts.push(
-        new Chart(ctxCat, {
-          type: "bar",
-          data: {
-            labels: catLabels.length ? catLabels : ["Uncategorised"],
-            datasets: [
-              {
-                label: "Accuracy %",
-                data: catData.length ? catData : [score.accuracy],
-                backgroundColor: "#0ea5e9",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { grid: { color: gridColor }, beginAtZero: true, max: 100 },
-            },
-          },
-        })
-      );
-    }
-
-    // 3. Difficulty Bar (Horizontal)
-    const ctxDiff = document.getElementById("chart-difficulties");
-    if (ctxDiff) {
-      const diffKeys = ["easy", "medium", "hard"];
-      const diffData = diffKeys.map((k) => {
-        const d =
-          score.difficultyMap[k] ||
-          score.difficultyMap[k.charAt(0).toUpperCase() + k.slice(1)];
-        if (!d || !d.total) return 0;
-        return Math.round((d.correct / d.total) * 100);
-      });
-      _activeCharts.push(
-        new Chart(ctxDiff, {
-          type: "bar",
-          data: {
-            labels: ["Easy", "Medium", "Hard"],
-            datasets: [
-              {
-                label: "Accuracy %",
-                data: diffData,
-                backgroundColor: ["#10b981", "#f59e0b", "#ef4444"],
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            indexAxis: "y",
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: gridColor }, beginAtZero: true, max: 100 },
-            },
-          },
-        })
-      );
-    }
-
-    // 4. Timeline (Line)
-    const ctxTime = document.getElementById("chart-timeline");
-    if (ctxTime) {
-      const timeLabels = quiz.questions.map((_, i) => "Q" + (i + 1));
-      let runTotal = 0;
-      const timeData = quiz.questions.map((q, i) => {
-        // Find if this question was correct
-        const ua = (quiz.answers[i] || {}).userAnswer;
-        const pts = Results.getQuestionScore(q, ua, quiz.config);
-        runTotal += pts;
-        return Math.max(0, runTotal);
-      });
-      _activeCharts.push(
-        new Chart(ctxTime, {
-          type: "line",
-          data: {
-            labels: timeLabels,
-            datasets: [
-              {
-                label: "Cumulative Score",
-                data: timeData,
-                borderColor: "#8b5cf6",
-                backgroundColor: "rgba(139, 92, 246, 0.1)",
-                fill: true,
-                tension: 0.4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { display: false } },
-              y: { grid: { color: gridColor }, beginAtZero: true },
-            },
-          },
-        })
-      );
-    }
-
-    // 5. Types (Bar)
-    const ctxType = document.getElementById("chart-types");
-    if (ctxType) {
-      const typeLabels = Object.keys(score.typeMap).slice(0, 6);
-      const typeData = typeLabels.map((k) =>
-        Math.round((score.typeMap[k].correct / score.typeMap[k].total) * 100)
-      );
-      _activeCharts.push(
-        new Chart(ctxType, {
-          type: "bar",
-          data: {
-            labels: typeLabels,
-            datasets: [
-              {
-                label: "Accuracy %",
-                data: typeData,
-                backgroundColor: "#ec4899",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { display: false } },
-              y: { grid: { color: gridColor }, beginAtZero: true, max: 100 },
-            },
-          },
-        })
-      );
-    }
-
-    // 6. Capability Radar
-    const ctxRadar = document.getElementById("chart-radar");
-    if (ctxRadar) {
-      const tops = Object.keys({
-        ...score.categoryMap,
-        ...score.typeMap,
-      }).slice(0, 6);
-      if (tops.length >= 3) {
-        const radarData = tops.map((k) => {
-          if (score.categoryMap[k])
-            return score.categoryMap[k].max
-              ? Math.round(
-                  (score.categoryMap[k].score / score.categoryMap[k].max) * 100
-                )
-              : 0;
-          if (score.typeMap[k])
-            return score.typeMap[k].total
-              ? Math.round(
-                  (score.typeMap[k].correct / score.typeMap[k].total) * 100
-                )
-              : 0;
-          return 0;
-        });
-        _activeCharts.push(
-          new Chart(ctxRadar, {
-            type: "radar",
-            data: {
-              labels: tops,
-              datasets: [
-                {
-                  label: "Capability (%)",
-                  data: radarData,
-                  backgroundColor: "rgba(14, 165, 233, 0.2)",
-                  borderColor: "#0ea5e9",
-                  pointBackgroundColor: "#0ea5e9",
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                r: {
-                  suggestedMin: 0,
-                  suggestedMax: 100,
-                  ticks: { display: false },
-                },
-              },
-            },
-          })
-        );
-      } else {
-        // Fallback if not enough dimensions for radar
-        ctxRadar.outerHTML =
-          '<p class="text-muted text-sm text-center">Not enough data vectors to generate radar.</p>';
+    // 2. Categories (Mastery)
+    const catLabels = Object.keys(score.categoryMap);
+    createChart("chart-categories", {
+      type: "bar",
+      data: {
+        labels: catLabels,
+        datasets: [{ 
+          label: "Accuracy %", 
+          data: catLabels.map(l => Math.round((score.categoryMap[l].correct / score.categoryMap[l].total) * 100)), 
+          backgroundColor: isDark ? "rgba(59, 130, 246, 0.7)" : "#3b82f6",
+          borderRadius: 6
+        }]
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false } },
+        scales: { 
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { callback: v => v + '%' } } 
+        } 
       }
-    }
+    });
+
+    // 3. Difficulty Mastery
+    const diffKeys = ["Easy", "Medium", "Hard"];
+    createChart("chart-difficulties", {
+      type: "bar",
+      data: {
+        labels: diffKeys,
+        datasets: [{ 
+          data: diffKeys.map(k => {
+            const d = score.difficultyMap[k] || score.difficultyMap[k.toLowerCase()] || { correct: 0, total: 0 };
+            return d.total ? Math.round((d.correct/d.total)*100) : 0;
+          }), 
+          backgroundColor: ["rgba(16, 185, 129, 0.7)", "rgba(245, 158, 11, 0.7)", "rgba(239, 68, 68, 0.7)"], 
+          borderRadius: 6 
+        }]
+      },
+      options: { 
+        indexAxis: 'y', 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display:false } },
+        scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { callback: v => v + '%' } }, y: { grid: { display : false } } }
+      }
+    });
+
+    // 5. Skill Balance (Radar)
+    const tagLabels = Object.keys(score.subCategoryMap).slice(0, 12);
+    createChart("chart-tags", {
+      type: "radar",
+      data: {
+        labels: tagLabels,
+        datasets: [{ 
+          label: "Mastery Level",
+          data: tagLabels.map(l => Math.round((score.subCategoryMap[l].correct/score.subCategoryMap[l].total)*100)), 
+          borderColor: "#8b5cf6", 
+          backgroundColor: "rgba(139, 92, 246, 0.2)",
+          pointBackgroundColor: "#8b5cf6",
+          borderWidth: 2
+        }]
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        scales: { r: { grid: { color: gridColor }, angleLines: { color: gridColor }, beginAtZero: true, max: 100, ticks: { display: false } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // 6. Time Intensity per Category
+    const catKeys = Object.keys(score.categoryMap);
+    createChart("chart-cat-time", {
+      type: "bar",
+      data: {
+        labels: catKeys,
+        datasets: [{
+          label: "Avg Time (s)",
+          data: catKeys.map(k => {
+            const items = score.details.filter((_, i) => (quiz.questions[i].Category || "General") === k);
+            return items.length ? Math.round(items.reduce((a,b) => a + b.timeTaken, 0) / items.length) : 0;
+          }),
+          backgroundColor: "rgba(59, 130, 246, 0.6)",
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, grid: { color: gridColor } }, y: { grid: { display: false } } }
+      }
+    });
+
+    // 7. Weakest Categories
+    const weakCats = Object.entries(score.categoryMap)
+      .map(([name, d]) => ({ 
+        name, 
+        acc: Math.round((d.correct / d.total) * 100) 
+      }))
+      .sort((a,b) => a.acc - b.acc)
+      .slice(0, 5);
+
+    createChart("chart-weak-cats", {
+      type: "bar",
+      data: {
+        labels: weakCats.map(c => c.name),
+        datasets: [{
+          label: "Accuracy %",
+          data: weakCats.map(c => c.acc),
+          backgroundColor: "rgba(239, 68, 68, 0.7)",
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor } }, y: { grid: { display: false } } }
+      }
+    });
+
+    // 8. Weakest Sub-Skills (Tags)
+    const weakTags = Object.entries(score.subCategoryMap)
+      .map(([name, d]) => ({ 
+        name, 
+        acc: Math.round((d.correct / d.total) * 100) 
+      }))
+      .sort((a,b) => a.acc - b.acc)
+      .slice(0, 8);
+
+    createChart("chart-weak-tags", {
+      type: "bar",
+      data: {
+        labels: weakTags.map(c => c.name),
+        datasets: [{
+          label: "Accuracy %",
+          data: weakTags.map(c => c.acc),
+          backgroundColor: "rgba(245, 158, 11, 0.7)",
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor } }, y: { grid: { display: false } } }
+      }
+    });
+
+    // 9. Time Drain Analysis (Time Sinks)
+    const timeSinks = score.details
+      .map((d, i) => ({ id: `Q${i+1}`, time: d.timeTaken, corr: d.isCorrect }))
+      .sort((a,b) => b.time - a.time)
+      .slice(0, 8);
+
+    createChart("chart-time-sinks", {
+      type: "bar",
+      data: {
+        labels: timeSinks.map(t => t.id),
+        datasets: [{
+          label: "Time Spent (s)",
+          data: timeSinks.map(t => t.time),
+          backgroundColor: timeSinks.map(t => t.corr ? "rgba(59, 130, 246, 0.6)" : "rgba(239, 68, 68, 0.6)"),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.raw} seconds` } }
+        },
+        scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } }
+      }
+    });
+
+    // 10. Question-wise Time (Audit)
+    createChart("chart-q-time", {
+      type: "bar",
+      data: {
+        labels: quiz.questions.map((_, i) => "Q" + (i + 1)),
+        datasets: [{
+          label: "Time Taken (s)",
+          data: score.details.map(d => d.timeTaken),
+          backgroundColor: score.details.map(d => d.isCorrect ? "rgba(16, 185, 129, 0.4)" : "rgba(239, 68, 68, 0.4)"),
+          borderColor: score.details.map(d => d.isCorrect ? "#10b981" : "#ef4444"),
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { 
+          x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+          y: { beginAtZero: true, grid: { color: gridColor }, title: { display: true, text: 'Seconds' } }
+        }
+      }
+    });
+
+    // 11. Accuracy by Question Type
+    const typeLabels = Object.keys(score.typeMap);
+    createChart("chart-q-types", {
+      type: "bar",
+      data: {
+        labels: typeLabels,
+        datasets: [{
+          label: "Accuracy %",
+          data: typeLabels.map(l => Math.round((score.typeMap[l].correct/score.typeMap[l].total)*100)),
+          backgroundColor: "#8b5cf6",
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { callback: v => v + '%' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // 12. Cumulative Time Consumption
+    let totalTimeRun = 0;
+    createChart("chart-total-time", {
+      type: "line",
+      data: {
+        labels: quiz.questions.map((_, i) => "Q" + (i + 1)),
+        datasets: [{
+          label: "Total Seconds",
+          data: score.details.map(d => {
+            totalTimeRun += d.timeTaken;
+            return totalTimeRun;
+          }),
+          borderColor: "#f59e0b",
+          backgroundColor: "rgba(245, 158, 11, 0.1)",
+          fill: true,
+          tension: 0.1,
+          pointRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { 
+          x: { grid: { display: false } }, 
+          y: { beginAtZero: true, grid: { color: gridColor }, title: { display: true, text: 'Total Seconds' } } 
+        }
+      }
+    });
   }
 
   // ── CATEGORY TAB ─────────────────────────────────────────
@@ -871,119 +852,65 @@ const PageResult = (() => {
             <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:4px;background:var(--color-error)"></div>Wrong</div>
           </div>
         </div>
-        <table class="data-table">
-          <thead><tr><th>Question Type</th><th>Correct</th><th>Total</th><th>Accuracy</th></tr></thead>
-          <tbody>
-            ${Object.entries(types)
-              .map(
-                ([t, v]) => `
+            ${Object.entries(result.score.typeMap).map(([t, v]) => `
               <tr>
                 <td>${t}</td>
                 <td><span class="badge badge-success">${v.correct}</span></td>
                 <td>${v.total}</td>
-                <td>${
-                  v.total ? Math.round((v.correct / v.total) * 100) : 0
-                }%</td>
-              </tr>`
-              )
-              .join("")}
+                <td>${v.total ? Math.round((v.correct / v.total) * 100) : 0}%</td>
+              </tr>`).join("")}
           </tbody>
         </table>
       </div>`;
   }
 
-  // ── QUESTIONS TAB ─────────────────────────────────────────
   function renderQuestions(result) {
     const { quiz } = result;
     return `
       <div class="dash-questions-report">
-        <div class="report-header">
-           <h2>Detailed Performance Review</h2>
-           <p>Showing each question with your response vs. the correct answer</p>
+        <div class="report-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+           <div>
+              <h2 style="font-size:1.6rem;font-weight:900;letter-spacing:-0.02em;margin:0">Performance Detail</h2>
+              <p class="text-xs text-muted">Deep-dive into individual responses and explanations</p>
+           </div>
+           <div class="review-controls" style="display:flex;gap:var(--sp-sm);flex:1;max-width:500px">
+              <div class="review-input-group" style="flex:1">
+                 <span class="search-icon-fixed">🔍</span>
+                 <input type="text" id="review-search" class="form-control" placeholder="Search questions..." oninput="PageResult.applyReviewFilters()">
+              </div>
+              <select id="review-filter" class="form-control" style="width:160px" onchange="PageResult.applyReviewFilters()">
+                 <option value="all">🔍 Show All</option>
+                 <option value="correct">✅ Correct</option>
+                 <option value="wrong">❌ Incorrect</option>
+                 <option value="skipped">⏭ Skipped</option>
+              </select>
+           </div>
         </div>
-        <div class="questions-list">
+        <div class="questions-list" id="review-list">
           ${quiz.questions
             .map((q, i) => {
               const ans = quiz.answers[i] || {};
               const corr = Results.isCorrect(q, ans.userAnswer);
               const type = (q["Question Type"] || "").trim();
-              const isDrag = type === "Drag & Drop";
-              const isMultiMatch = type === "Multi Matching";
-
-              let ua = "";
-              if (isMultiMatch && ans.userAnswer) {
-                try {
-                  const map = JSON.parse(ans.userAnswer);
-                  ua = Object.entries(map)
-                    .map(([k, v]) => `${k}: ${v.join(", ")}`)
-                    .join(" | ");
-                } catch (e) {
-                  ua = ans.userAnswer;
-                }
-              } else {
-                ua = Array.isArray(ans.userAnswer)
-                  ? ans.userAnswer.join(", ")
-                  : ans.userAnswer || "—";
-              }
-              const timeClass =
-                ans.timeTaken > 30
-                  ? "slow"
-                  : ans.timeTaken < 10
-                  ? "fast"
-                  : "avg";
-
-              const correctChoices = Results.getChoices(q);
-              const correctKey =
-                isDrag || isMultiMatch
-                  ? correctChoices
-                      .map((c) => {
-                        if (isMultiMatch) {
-                          const pts = c.split("-");
-                          return `${pts[0]}: ${pts[1] ? pts[1].replace(/\|/g, ", ") : ""}`;
-                        }
-                        return c;
-                      })
-                      .join(" | ")
-                  : q["Correct Answer"];
+              const isSkipped = (ans.userAnswer === undefined || ans.userAnswer === "" || (Array.isArray(ans.userAnswer) && ans.userAnswer.length === 0));
+              const timeClass = ans.timeTaken > 30 ? "slow" : ans.timeTaken < 10 ? "fast" : "avg";
+              const status = isSkipped ? "skipped" : (corr ? "correct" : "wrong");
 
               return `
-              <div class="report-q-card ${corr ? "correct" : "incorrect"}">
+              <div class="report-q-card ${status}" data-status="${status}" data-text="${q.Question.toLowerCase()}">
                 <div class="q-card-side">
-                   <div class="q-status-badge">${
-                     corr ? "CORRECT" : "WRONG"
-                   }</div>
-                   <div class="q-time-badge ${timeClass}">${
-                ans.timeTaken || 0
-              }s</div>
+                   <div class="q-status-badge">${status.toUpperCase()}</div>
+                   <div class="q-time-badge ${timeClass}">${ans.timeTaken || 0}s</div>
                 </div>
                 <div class="q-card-body">
-                   <div class="q-meta">${q.Category || "General"} • ${
-                q.Difficulty || "Medium"
-              }</div>
-                   <p class="q-text"><strong>Q${i + 1}.</strong> ${
-                q.Question
-              }</p>
-                   
-                   <div class="q-ans-compare">
-                      <div class="ans-box user">
-                         <span class="label">YOUR ANSWER</span>
-                         <span class="val">${ua}</span>
-                      </div>
-                      <div class="ans-box target">
-                         <span class="label">CORRECT KEY</span>
-                         <span class="val">${correctKey}</span>
-                      </div>
-                   </div>
-
-                   ${
-                     q.Explanation || q.Solution
-                       ? `
+                   <div class="q-meta">${q.Category || "General"} • ${q.Difficulty || "Medium"} • ${type}</div>
+                   <p class="q-text"><strong>Q${i + 1}.</strong> ${q.Question}</p>
+                   <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
+                   ${(q.Explanation || q.Solution) ? `
                    <div class="q-explanation">
                       <p class="label">EXPLANATION</p>
                       <p class="text">${q.Explanation || q.Solution}</p>
-                   </div>`
-                       : ""
-                   }
+                   </div>` : ""}
                 </div>
               </div>`;
             })
@@ -992,67 +919,119 @@ const PageResult = (() => {
       </div>`;
   }
 
+  function applyReviewFilters() {
+     const search = (document.getElementById('review-search')?.value || "").toLowerCase();
+     const filter = document.getElementById('review-filter')?.value || "all";
+     const cards = document.querySelectorAll('.report-q-card');
+
+     cards.forEach(card => {
+        const text = card.getAttribute('data-text');
+        const status = card.getAttribute('data-status');
+        
+        let matchSearch = text.includes(search);
+        let matchFilter = filter === "all" || status === filter;
+
+        card.style.display = (matchSearch && matchFilter) ? "flex" : "none";
+     });
+  }
+
+  function renderQuestionTypeReview(q, ua, isCorrect) {
+    const type = (q["Question Type"] || "").trim();
+    const correct = (q["Correct Answer"] || "").split("|").map(s => s.trim());
+    const choices = Results.getChoices(q);
+
+    if (type === "Multichoice" || type === "Multichoice Anycorrect" || type === "Multi Multichoice" || type === "Select All") {
+      const userAnswers = Array.isArray(ua) ? ua : (ua || "").split(", ").filter(Boolean);
+      return `<div class="review-choice-list">${choices.map(c => {
+        const isUser = userAnswers.includes(c);
+        const isCorr = correct.includes(c);
+        let state = isUser ? (isCorr ? "match-ok" : "match-err") : (isCorr ? "match-missed" : "");
+        return `<div class="review-choice-item ${state}">
+           <div class="choice-icon">${isUser ? (isCorr ? '✓' : '✕') : (isCorr ? '•' : '○')}</div>
+           <div class="choice-text">${c}</div>
+           ${state === "match-ok" ? '<span class="state-label">Your Correct Choice</span>' : ''}
+           ${state === "match-err" ? '<span class="state-label err">Your Incorrect Choice</span>' : ''}
+           ${state === "match-missed" ? '<span class="state-label miss">Missed Correct Choice</span>' : ''}
+        </div>`;
+      }).join("")}</div>`;
+    }
+
+    if (type === "Matching" || type === "Multi Matching") {
+       const userStr = Array.isArray(ua) ? ua.join(" | ") : (ua || "");
+       const userPairs = userStr.split(" | ").map(p => { 
+          const pts = p.split(": "); 
+          if (pts.length < 2) {
+             const pts2 = p.split("-");
+             return { l: pts2[0], r: pts2[1] };
+          }
+          return { l: pts[0], r: pts[1] }; 
+       }).filter(p => p.l);
+
+       const correctChoices = Results.getChoices(q).map(c => { 
+          const pts = c.split("-"); 
+          return { l: pts[0], r: (pts[1]||"").replace(/\|/g, ", ") }; 
+       });
+
+       return `
+         <div class="q-ans-compare">
+            <div class="ans-box user"><span class="label">YOUR MATCHES</span><div class="review-pairs">${userPairs.map(p => `<div>${p.l} → ${p.r}</div>`).join("") || "No matches selected"}</div></div>
+            <div class="ans-box target"><span class="label">EXPECTED PAIRS</span><div class="review-pairs">${correctChoices.map(p => `<div>${p.l} → ${p.r}</div>`).join("")}</div></div>
+         </div>
+       `;
+    }
+
+    return `
+      <div class="q-ans-compare">
+         <div class="ans-box user"><span class="label">YOUR ANSWER</span><span class="val">${ua || "—"}</span></div>
+         <div class="ans-box target"><span class="label">CORRECT KEY</span><span class="val">${correct.join(" | ")}</span></div>
+      </div>
+    `;
+  }
+
+
+
   // ── ANSWER KEY TAB ────────────────────────────────────────
   function renderAnswerKey(result) {
     const { quiz } = result;
     return `
-      <div>
-        <div class="answer-row" style="font-weight:700;background:var(--bg-elevated);border-radius:var(--radius-sm) var(--radius-sm) 0 0">
-          <span>#</span><span>Question</span><span>Correct</span><span>Your Answer</span><span>Result</span>
-        </div>
-        ${quiz.questions
-          .map((q, i) => {
-            const ans = quiz.answers[i] || {};
-            const corr = Results.isCorrect(q, ans.userAnswer);
-            const type = (q["Question Type"] || "").trim();
-            const isDrag = type === "Drag & Drop";
-            const isMultiMatch = type === "Multi Matching";
-
-            let ua = "";
-            if (isMultiMatch && ans.userAnswer) {
-              try {
-                const map = JSON.parse(ans.userAnswer);
-                ua = Object.entries(map)
-                  .map(([k, v]) => `${k}: ${v.join(", ")}`)
-                  .join("|");
-              } catch (e) {
-                ua = ans.userAnswer;
+      <div class="ans-key-container">
+        <table class="data-table ans-key-table">
+          <thead>
+            <tr>
+              <th style="width:50px">#</th>
+              <th>Question</th>
+              <th>Correct Answer</th>
+              <th>Your Selection</th>
+              <th style="width:100px">Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${quiz.questions.map((q, i) => {
+              const ans = quiz.answers[i] || {};
+              const corr = Results.isCorrect(q, ans.userAnswer);
+              const type = (q["Question Type"] || "").trim();
+              const isMultiMatch = type === "Multi Matching" || type === "Matching";
+              
+              let ua = "";
+              if (isMultiMatch && ans.userAnswer) {
+                ua = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(" | ") : (ans.userAnswer || "—");
+              } else {
+                ua = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : (ans.userAnswer || "—");
               }
-            } else {
-              ua = Array.isArray(ans.userAnswer)
-                ? ans.userAnswer.join("|")
-                : ans.userAnswer || "—";
-            }
 
-            const correctKey =
-              isDrag || isMultiMatch
-                ? Results.getChoices(q)
-                    .map((c) => {
-                      if (isMultiMatch) {
-                        const pts = c.split("-");
-                        return `${pts[0]}: ${pts[1] ? pts[1].replace(/\|/g, ", ") : ""}`;
-                      }
-                      return c;
-                    })
-                    .join(" | ")
-                : q["Correct Answer"];
+              const correctKey = Results.getChoices(q).join(" | ") || q["Correct Answer"];
 
-            return `
-            <div class="answer-row">
-              <span class="q-num">${i + 1}</span>
-              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px" title="${
-                q.Question
-              }">${q.Question.substring(0, 60)}${
-              q.Question.length > 60 ? "…" : ""
-            }</span>
-              <span class="text-success font-bold">${correctKey}</span>
-              <span style="color:${
-                corr ? "var(--color-success)" : "var(--color-error)"
-              }">${ua}</span>
-              <span>${corr ? "✅" : "❌"}</span>
-            </div>`;
-          })
-          .join("")}
+              return `
+              <tr>
+                <td class="font-bold">${i + 1}</td>
+                <td><div class="key-q-text">${q.Question}</div></td>
+                <td><div class="key-val success">${correctKey}</div></td>
+                <td><div class="key-val ${corr ? 'success' : 'error'}">${ua}</div></td>
+                <td><span class="badge ${corr ? 'badge-success' : 'badge-danger'}">${corr ? 'PASSED' : 'FAILED'}</span></td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
       </div>`;
   }
 
@@ -1121,7 +1100,7 @@ const PageResult = (() => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `QuizPro_Report_${new Date().getTime()}.csv`);
+    link.setAttribute("download", `PrepExecuter_Report_${new Date().getTime()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1294,7 +1273,7 @@ const PageResult = (() => {
 
     const opt = {
       margin: 0,
-      filename: `QuizPro_Report_${user.name.replace(/\s+/g, "_")}.pdf`,
+      filename: `PrepExecuter_Report_${user.name.replace(/\s+/g, "_")}.pdf`,
       image: { type: "jpeg", quality: 1 },
       html2canvas: {
         scale: 2,
@@ -1504,7 +1483,7 @@ const PageResult = (() => {
         </div>
 
         <div class="footer">
-            QuizPro Analytics Professional Series • Generated via Localized Assessment Engine • Official Transcript
+            Preparation Executer Analytics Professional Series • Generated via Localized Assessment Engine • Official Transcript
         </div>
     </div>
     <script>
@@ -1554,6 +1533,7 @@ const PageResult = (() => {
     openPrintReport,
     shareResult,
     retakeQuiz,
+    applyReviewFilters,
   };
 })();
 

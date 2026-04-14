@@ -63,6 +63,7 @@ const PageWelcome = (() => {
             ` : ''}
           </div>
 
+
           <!-- Container 2: User Details / Identity -->
           <div class="identity-container">
             <div class="card" style="padding:40px; border-radius:28px; background:var(--bg-surface); border:1px solid var(--border-color); box-shadow:var(--shadow-xl); position:relative; overflow:hidden">
@@ -71,7 +72,7 @@ const PageWelcome = (() => {
               <div style="text-align:center; margin-bottom:32px">
                 <div class="logo-mark" style="width:54px; height:54px; font-size:1.5rem; margin:0 auto 16px; border-radius:14px">Q</div>
                 <h3 style="font-size:1.5rem; font-weight:800; color:var(--text-primary)">Professional Identity</h3>
-                <p class="text-sm text-muted">Data entered here is used for your official transcript.</p>
+                <p class="text-sm text-muted">Data entered here is used for your official transcript in the cloud database.</p>
               </div>
 
               <div class="form-group" style="margin-bottom:20px">
@@ -91,7 +92,7 @@ const PageWelcome = (() => {
 
               ${user.name ? `
                 <div style="margin-top:24px; text-align:center">
-                  <button class="btn btn-ghost btn-sm" onclick="Dashboard.changeUser()" style="color:var(--text-muted); font-size:0.75rem">Switch to a different account</button>
+                  <button class="btn btn-ghost btn-sm" onclick="Dashboard.changeUser()" style="color:var(--text-muted); font-size:0.75rem">Switch Account</button>
                 </div>
               ` : ''}
             </div>

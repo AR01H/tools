@@ -40,7 +40,7 @@ const Filters = (() => {
         return scats.some((c) => setup.selectedSubCat.includes(c));
       });
 
-    if (setup.selectedTags.length)
+    if (setup.selectedTags && setup.selectedTags.length)
       q = q.filter((r) =>
         setup.selectedTags.some((t) =>
           (r.Tags || "")
@@ -50,10 +50,10 @@ const Filters = (() => {
         )
       );
 
-    if (setup.selectedDifficulty.length)
+    if (setup.selectedDifficulty && setup.selectedDifficulty.length)
       q = q.filter((r) => setup.selectedDifficulty.includes(r.Difficulty));
 
-    if (setup.selectedTypes.length)
+    if (setup.selectedTypes && setup.selectedTypes.length)
       q = q.filter((r) => setup.selectedTypes.includes(r["Question Type"]));
 
     // Shuffle
@@ -112,15 +112,24 @@ const PageSetupTopics = (() => {
     const sel = State.get("setup").selectedTopics || [];
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:1100px; margin:0 auto">
+      <div class="animate-up setup-container" style="max-width:1100px; margin:0 auto; padding-top:var(--sp-2xl)">
         ${UI.stepsHtml(
           ["Select Topics", "Filters", "Config", "Quiz Themes"],
           0
         )}
         
-        <div style="text-align:center; margin-bottom:var(--sp-2xl)">
-          <h1 style="font-size:2.8rem; font-weight:900; letter-spacing:-0.05em; color:var(--text-primary); margin-bottom:12px">Choose Knowledge Domains</h1>
-          <p style="color:var(--text-secondary); font-size:1.15rem; max-width:600px; margin:0 auto">Select one or more specialized subjects to build your assessment challenge.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-xl); border-bottom:1px solid var(--border-color); padding-bottom:var(--sp-md)">
+           <div>
+              <h1 style="font-size:2.2rem; font-weight:900; letter-spacing:-0.05em; color:var(--text-primary); margin:0">Assessment Domains</h1>
+              <p style="color:var(--text-secondary); font-size:0.95rem; margin-top:4px">Select specialized subjects to build your assessment.</p>
+           </div>
+           <div style="display:flex; gap:16px; align-items:center">
+              <div class="review-input-group" style="width:300px">
+                 <span class="search-icon-fixed">🔍</span>
+                 <input type="text" id="topic-search" class="form-control" placeholder="Search domains..." oninput="PageSetupTopics.filter(this.value)">
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="selectAllTopics()" style="font-weight:700">Select All</button>
+           </div>
         </div>
 
         <div id="topic-grid" class="topic-grid">
@@ -134,19 +143,20 @@ const PageSetupTopics = (() => {
                 isSelected ? "selected" : ""
               }" onclick="PageSetupTopics.toggle(this, '${t.name}')">
                 <div class="selected-badge">✓</div>
-                <div class="topic-icon">${icon}</div>
-                <div class="topic-name">${t.name}</div>
+                <div class="topic-icon" style="font-size:2rem">${icon}</div>
+                <div class="topic-name" style="font-size:0.95rem">${t.name}</div>
               </div>
             `;
             })
             .join("")}
         </div>
-        
-        <div style="display:flex; justify-content:center; gap:var(--sp-lg); align-items:center; margin-top:var(--sp-2xl); border-top:1px solid var(--border-color); padding-top:var(--sp-2xl)">
-           <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()" style="padding:16px 52px; font-size:1.1rem; box-shadow: 0 15px 35px -5px var(--accent-shadow)">
-             Continue to Advanced Filters →
-           </button>
-           <button class="btn btn-ghost" onclick="selectAllTopics()" style="font-weight:700">Select All Domains</button>
+
+        <div class="setup-footer">
+          <div class="setup-footer-content">
+            <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()" style="padding:16px 80px; font-size:1.1rem; border-radius:12px">
+              Initialize Question Pool →
+            </button>
+          </div>
         </div>
       </div>
       <style>
@@ -232,7 +242,15 @@ const PageSetupTopics = (() => {
     }
   };
 
-  return { render, toggle };
+  const filter = (query) => {
+    const q = query.toLowerCase();
+    document.querySelectorAll(".topic-card").forEach((card) => {
+      const name = card.querySelector(".topic-name").textContent.toLowerCase();
+      card.style.display = name.includes(q) ? "flex" : "none";
+    });
+  };
+
+  return { render, toggle, filter };
 })();
 
 // ============================================================
@@ -248,100 +266,85 @@ const PageSetupFilters = (() => {
     const types = Filters.extract(questions, "Question Type");
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:1100px; margin:0 auto">
+      <div class="animate-up setup-container" style="max-width:1100px; margin:0 auto">
         ${UI.stepsHtml(
           ["Select Topics", "Filters", "Config", "Quiz Themes"],
           1
         )}
         
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-2xl)">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-xl)">
            <div>
-             <h4 style="font-size:0.75rem; font-weight:900; color:var(--accent-primary); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px">Granular Control</h4>
-             <h1 style="font-size:2.4rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Refine Your Assessment</h1>
+              <h4 style="font-size:0.7rem; font-weight:900; color:var(--accent-primary); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">Granular Control</h4>
+              <h1 style="font-size:2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Precision Refinement</h1>
+              <p style="color:var(--text-muted); font-size:0.9rem; margin-top:4px">Calibrate the question pool parameters</p>
            </div>
            <div>${UI.backBtn("Topics")}</div>
         </div>
         
-        <div style="display:flex; flex-direction:column; gap:24px;">
+        <div style="display:flex; flex-direction:column; gap:16px;">
            
-           <div class="grid-2" style="gap:24px">
-             <!-- Category Filter -->
-             <div class="filter-group-card">
-               <div class="filter-header">
-                 <div class="filter-header-main">
-                    <span class="filter-icon">📁</span>
-                    <div>
-                      <span class="filter-label">Target Category</span>
-                      <p class="filter-desc">Filter by high-level domain</p>
-                    </div>
-                 </div>
-                 <button class="btn btn-ghost btn-sm" onclick="selectAllChips('cat-chips')" style="font-size:10px; text-decoration:underline">Select All</button>
-               </div>
-               <div id="cat-chips" class="chip-container"></div>
-             </div>
- 
-             <!-- Sub-category Filter -->
-             <div class="filter-group-card">
-               <div class="filter-header">
-                 <div class="filter-header-main">
-                    <span class="filter-icon">📑</span>
-                    <div>
-                      <span class="filter-label">Specializations</span>
-                      <p class="filter-desc">Specific subject areas</p>
-                    </div>
-                 </div>
-                 <button class="btn btn-ghost btn-sm" onclick="selectAllChips('subcat-chips')" style="font-size:10px; text-decoration:underline">Select All</button>
-               </div>
-               <div id="subcat-chips" class="chip-container"></div>
-             </div>
+           <div class="grid-2" style="gap:20px">
+              <!-- Category Filter -->
+              <div class="setup-compact-section" style="padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px">
+                  <span class="filter-label" style="font-size:0.85rem">Categories</span>
+                  <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('cat-chips', this.value)">
+                  <button class="btn btn-ghost btn-sm" onclick="selectAllChips('cat-chips')" style="font-size:10px">Select All</button>
+                </div>
+                <div id="cat-chips" class="chip-container"></div>
+              </div>
+  
+              <!-- Sub-category Filter -->
+              <div class="setup-compact-section" style="padding:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px">
+                  <span class="filter-label" style="font-size:0.85rem">Specializations</span>
+                  <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('subcat-chips', this.value)">
+                  <button class="btn btn-ghost btn-sm" onclick="selectAllChips('subcat-chips')" style="font-size:10px">Select All</button>
+                </div>
+                <div id="subcat-chips" class="chip-container" style="max-height:100px; overflow-y:auto"></div>
+              </div>
            </div>
 
            <!-- Meta Filters -->
-           <div style="display:grid; grid-template-columns: 1fr 1fr 1.5fr; gap:24px;">
-             <div class="filter-group-card small">
-               <span class="filter-label-small">Difficulty Range</span>
+           <div style="display:grid; grid-template-columns: 1fr 1fr 1.5fr; gap:16px;">
+             <div class="setup-compact-section" style="padding:16px">
+               <span class="filter-label" style="font-size:0.85rem; margin-bottom:12px">Difficulty Level</span>
                <div id="diff-chips" class="chip-container compact"></div>
              </div>
-             <div class="filter-group-card small">
-               <span class="filter-label-small">Question Format</span>
+             <div class="setup-compact-section" style="padding:16px">
+               <span class="filter-label" style="font-size:0.85rem; margin-bottom:12px">Question Format</span>
                <div id="type-chips" class="chip-container compact"></div>
              </div>
-             <div class="filter-group-card small">
-               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
-                  <span class="filter-label-small">Advanced Tag Filtering</span>
-                  <button class="btn btn-ghost btn-sm" onclick="clearAllChips('tag-chips')" style="font-size:9px; padding:0">Clear</button>
+             <div class="setup-compact-section" style="padding:16px">
+               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px">
+                  <span class="filter-label" style="font-size:0.85rem">Advanced Tags</span>
+                  <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('tag-chips', this.value)">
+                  <button class="btn btn-ghost btn-sm" onclick="clearAllChips('tag-chips')" style="font-size:10px">Clear</button>
                </div>
-               <div id="tag-chips" class="chip-container compact scrollable-chips"></div>
+               <div id="tag-chips" class="chip-container compact scrollable-chips" style="max-height:60px"></div>
              </div>
            </div>
-           
-           <!-- Action Bar -->
-           <div class="action-summary-bar">
-              <div style="flex:1">
-                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px">
-                    <div>
-                       <span class="filter-label-small" style="font-size:0.65rem">Session Magnitude</span>
-                       <div style="display:flex; align-items:baseline; gap:8px">
-                         <span id="q-count-val" style="font-family:var(--font-mono); font-weight:900; font-size:2rem; color:var(--accent-primary)">${
-                           setup.questionCount
-                         }</span>
-                         <span style="font-size:0.75rem; font-weight:800; opacity:0.6">QUESTIONS SELECTED</span>
-                       </div>
+        </div>
+
+        <div class="setup-footer">
+          <div class="setup-footer-content" style="display:flex; justify-content:space-between; align-items:center; width:100%; max-width:1100px; gap:40px">
+             <div style="flex:1">
+               <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px">
+                  <div>
+                    <span style="font-size:0.65rem; font-weight:900; color:var(--text-muted); text-transform:uppercase">Session Magnitude</span>
+                    <div style="display:flex; align-items:baseline; gap:8px">
+                      <span id="q-count-val" style="font-family:var(--font-mono); font-weight:900; font-size:1.8rem; color:var(--accent-primary)">${setup.questionCount}</span>
+                      <span style="font-size:0.7rem; font-weight:800; opacity:0.6">QS SELECTED</span>
                     </div>
-                    <span id="q-preview" class="pool-badge">Calculating pool...</span>
-                 </div>
-                 <input type="range" id="q-count" min="1" max="${Math.min(
-                   questions.length,
-                   200
-                 )}" value="${
-      setup.questionCount
-    }" oninput="updateCount(this.value)" class="fancy-slider">
-              </div>
-              
-              <button class="btn btn-primary btn-lg" onclick="filtersNext()" style="padding:16px 52px; font-size:1.1rem; border-radius:var(--radius-lg); box-shadow:0 12px 30px -5px var(--accent-shadow)">
-                Configure Session →
-              </button>
-           </div>
+                  </div>
+                  <span id="q-preview" class="pool-badge" style="background:var(--accent-primary-transparent); color:var(--accent-primary); border:1px solid var(--accent-primary-transparent)">Calculating pool...</span>
+               </div>
+               <input type="range" id="q-count" min="1" max="${Math.min(questions.length,200)}" value="${setup.questionCount}" oninput="updateCount(this.value)" class="fancy-slider">
+             </div>
+             <button class="btn btn-primary btn-lg" onclick="filtersNext()" style="padding:16px 60px; font-size:1.1rem; border-radius:12px">
+                Configure Engine →
+             </button>
+          </div>
         </div>
       </div>
       <style>
@@ -465,13 +468,17 @@ const PageSetupFilters = (() => {
 
   window.updateCount = (val) => {
     document.getElementById("q-count-val").textContent = val;
-    updatePreview();
+    updatePreview(true); // pass true to skip slider update loop
   };
 
   window.selectAllChips = (id) => {
     document
       .querySelectorAll(`#${id} .chip`)
-      .forEach((c) => c.classList.add("selected"));
+      .forEach((c) => {
+         if (window.getComputedStyle(c).display !== "none") {
+            c.classList.add("selected");
+         }
+      });
     updatePreview();
   };
 
@@ -482,11 +489,50 @@ const PageSetupFilters = (() => {
     updatePreview();
   };
 
+  function filterChips(containerId, query) {
+    const q = query.toLowerCase();
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll(".chip").forEach(chip => {
+      const text = chip.textContent.toLowerCase();
+      chip.style.display = text.includes(q) ? "inline-flex" : "none";
+    });
+  }
+
+  function updatePreview(skipSlider = false) {
+    const questions = State.get("questions");
+    const setup = buildSetup();
+    const filtered = Filters.applyFilters(questions, {
+      ...setup,
+      questionCount: 9999,
+    });
+    
+    // Update SLIDER constraints on the fly
+    const slider = document.getElementById("q-count");
+    const countVal = document.getElementById("q-count-val");
+    if (slider && !skipSlider) {
+       const maxMatch = filtered.length || 0;
+       slider.max = Math.max(1, maxMatch);
+       if (parseInt(slider.value) > maxMatch) {
+          slider.value = maxMatch;
+          if (countVal) countVal.textContent = maxMatch;
+       }
+    }
+
+    const count = parseInt(slider?.value || 0);
+    const show = Math.min(filtered.length, count);
+    
+    const preview = document.getElementById("q-preview");
+    if (preview) {
+       preview.innerHTML = `MATCHING: <b style="color:#fff">${filtered.length}</b> • PREPARING: <b style="color:var(--accent-primary)">${show} ITEMS</b>`;
+    }
+  }
+
   window.filtersNext = () => {
     const s = buildSetup();
     State.merge("setup", s);
     UI.pushPage("setup-config");
   };
 
-  return { render };
+  return { render, filterChips, updatePreview };
 })();

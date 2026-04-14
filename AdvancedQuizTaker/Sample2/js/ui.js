@@ -150,14 +150,6 @@ const UI = (() => {
           <input id="s-fid" class="form-control" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs…" value="${f}">
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Personal Fields (comma separated)</label>
-          <input id="s-fields" class="form-control" value="${fields.join(
-            ","
-          )}" placeholder="name,dob,email,phone">
-          <p class="text-xs text-muted mt-sm">Available: name, dob, email, phone</p>
-        </div>
-
         <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap">
           <button class="btn btn-secondary btn-sm" onclick="UI.testConn()">🔗 Test Connection</button>
           <button class="btn btn-danger btn-sm" onclick="UI.clearConfig()">🗑 Remove Config</button>
@@ -195,14 +187,8 @@ const UI = (() => {
   function saveSettings() {
     const url = document.getElementById("s-url").value.trim();
     const fid = document.getElementById("s-fid").value.trim();
-    const fields = document
-      .getElementById("s-fields")
-      .value.split(",")
-      .map((f) => f.trim())
-      .filter(Boolean);
     State.set("scriptUrl", url);
     State.set("folderId", fid);
-    State.set("personalFields", fields);
     closeModal();
     toast("Settings saved!", "success");
   }

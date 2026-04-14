@@ -118,48 +118,43 @@ const PageSetupConfig = (() => {
     const filtered = Filters.applyFilters(questions, setup);
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:1100px; margin:0 auto">
+      <div class="animate-up setup-container" style="max-width:1100px; margin:0 auto; padding-top:var(--sp-2xl)">
         ${UI.stepsHtml(
           ["Select Topics", "Filters", "Config", "Quiz Themes"],
           2
         )}
         
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-2xl)">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-lg)">
            <div>
-             <h4 style="font-size:0.75rem; font-weight:900; color:var(--accent-primary); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px">Engine Parameters</h4>
-             <h1 style="font-size:2.4rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Session Configuration</h1>
-             <p style="color:var(--text-muted); font-size:1.1rem; margin-top:8px"><strong>${
-               filtered.length
-             }</strong> questions ready. Select a preset profile or manually adjust.</p>
+              <h4 style="font-size:0.7rem; font-weight:900; color:var(--accent-primary); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">Engine Parameters</h4>
+              <h1 style="font-size:2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Session Configuration</h1>
+              <p style="color:var(--text-muted); font-size:0.95rem; margin-top:4px"><strong>${filtered.length}</strong> questions ready.</p>
            </div>
            <div>${UI.backBtn("Filters")}</div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:40px;">
-          
-          <div class="glass-stage">
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <div class="glass-stage" style="padding:20px">
             <p class="section-label">Preset Profiles</p>
             <div id="preset-chips" class="preset-grid">
-              ${configs
-                .map(
-                  (c) => `
+              ${configs.map(c => `
                 <div class="preset-card" onclick="selectPreset(this,'${c["Quiz Settings Title"]}')" data-preset="${c["Quiz Settings Title"]}">
-                   <div class="preset-icon">⚡</div>
+                   <div class="preset-icon" style="font-size:1.2rem">⚡</div>
                    <span class="preset-name">${c["Quiz Settings Title"]}</span>
-                </div>`
-                )
-                .join("")}
+                </div>`).join("")}
               <div class="preset-card custom" onclick="selectPreset(this,'custom')" data-preset="custom">
-                <div class="preset-icon">⚙️</div>
-                <span class="preset-name">Custom Build</span>
+                <div class="preset-icon" style="font-size:1.2rem">⚙️</div>
+                <span class="preset-name">Custom</span>
               </div>
             </div>
           </div>
           
           <div id="config-detail"></div>
-          
-          <div style="display:flex; justify-content:center; padding-bottom:40px">
-            <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style="padding:18px 64px; font-size:1.2rem; border-radius:var(--radius-lg); box-shadow: 0 20px 40px -10px var(--accent-shadow);">
+        </div>
+
+        <div class="setup-footer">
+          <div class="setup-footer-content">
+            <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style="padding:16px 80px; font-size:1.1rem; border-radius:12px">
               Initialize Assessment Engine →
             </button>
           </div>
@@ -188,14 +183,14 @@ const PageSetupConfig = (() => {
 
     // Auto-select first preset if available
     if (configs.length) {
-      const first = document.querySelector("#preset-chips .chip");
-      if (first) first.click();
+      const first = document.querySelector("#preset-chips .preset-card");
+      if (first) setTimeout(() => first.click(), 50);
     }
   }
 
   window.selectPreset = (el, name) => {
     document
-      .querySelectorAll("#preset-chips .chip")
+      .querySelectorAll("#preset-chips .preset-card")
       .forEach((c) => c.classList.remove("selected"));
     el.classList.add("selected");
     State.merge("setup", { quizConfig: name });
@@ -335,50 +330,51 @@ const PageSetupTemplate = (() => {
     const selected = State.get("setup").template || "default";
 
     main.innerHTML = `
-      <div class="animate-up" style="max-width:1100px; margin:0 auto">
+      <div class="animate-up setup-container" style="max-width:1100px; margin:0 auto; padding-top:var(--sp-2xl)">
         ${UI.stepsHtml(
           ["Select Topics", "Filters", "Config", "Quiz Themes"],
           3
         )}
 
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-2xl)">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-xl)">
            <div>
-             <h1 style="font-size:2.8rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.04em; margin:0">Choose App Interface</h1>
-             <p style="color:var(--text-muted); font-size:1.1rem; margin-top:10px">Select a high-end interaction model for your session</p>
+             <h1 style="font-size:2.2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.04em; margin:0">App Interface</h1>
+             <p style="color:var(--text-muted); font-size:0.95rem; margin-top:4px">Select an interaction model for your session</p>
            </div>
            <div>${UI.backBtn("Config")}</div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:60px">
+        <div style="display:flex; flex-direction:column; gap:32px">
           <div class="theme-gallery">
-            ${TEMPLATES.map(
-              (t) => `
+            ${TEMPLATES.map(t => `
               <div class="theme-card ${t.id === selected ? "active" : ""}" 
                    onclick="PageSetupTemplate.select('${t.id}')">
-                ${
-                  t.id === selected
-                    ? `<div class="theme-selected-badge">ACTIVE</div>`
-                    : ""
-                }
-                <div class="theme-preview-box">
-                   <div class="theme-icon-large">${t.icon}</div>
+                ${t.id === selected ? `<div class="theme-selected-badge">ACTIVE</div>` : ""}
+                <div class="theme-preview-box" style="height:120px">
+                   <div class="theme-icon-large" style="font-size:3rem">${t.icon}</div>
                 </div>
-                <div class="theme-info">
-                   <h3 class="theme-title">${t.name}</h3>
-                   <p class="theme-desc">${t.desc}</p>
+                <div class="theme-info" style="padding:16px">
+                   <h3 class="theme-title" style="font-size:1.1rem">${t.name}</h3>
+                   <p class="theme-desc" style="font-size:0.8rem">${t.desc}</p>
                 </div>
-              </div>
-            `
-            ).join("")}
+              </div>`).join("")}
           </div>
 
-          <div class="final-launch-card">
-             <div class="launch-text">
-                <span class="launch-label">PRE-FLIGHT READY</span>
-                <h4 class="launch-title">Initialize Assessment Engine</h4>
-                <p class="launch-desc">All parameters calibrated. System ready for session deployment with the selected interface.</p>
+          <div class="card" style="padding:24px; background:var(--bg-elevated); border-radius:16px; border:1px solid var(--border-color); margin-bottom:20px">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+                <h4 style="font-weight:800; color:var(--text-primary); margin:0; font-size:0.9rem">Session Identification</h4>
+                <div class="launch-label" style="opacity:0.6; font-size:0.6rem">DB KEY</div>
              </div>
-             <button class="btn btn-primary btn-lg launch-button" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()">
+             <div class="form-group">
+                <input type="text" id="custom-quiz-name" class="form-control" placeholder="Optional: Name your session..." 
+                       style="padding:12px; border-radius:10px; font-weight:700; font-size:1rem; border:1px solid var(--border-color); background:var(--bg-surface)">
+             </div>
+          </div>
+        </div>
+
+        <div class="setup-footer">
+          <div class="setup-footer-content">
+             <button class="btn btn-primary btn-lg" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()" style="padding:16px 100px; font-size:1.2rem; border-radius:12px">
                🚀 Launch Session
              </button>
           </div>
@@ -433,6 +429,9 @@ const PageSetupTemplate = (() => {
         btn.innerHTML = `<div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block"></div> Launching...`;
       }
 
+      const customName = document.getElementById("custom-quiz-name")?.value.trim();
+      const finalQuizName = customName || (config["Quiz Settings Title"] || setup.quizConfig || "Custom Assessment");
+
       let fileId = null,
         resultFileId = null,
         attemptId = null;
@@ -440,10 +439,7 @@ const PageSetupTemplate = (() => {
         const attempt = await API.startAttempt({
           studentName: user ? `${user.name}` : "Guest",
           identifier: user ? user.identifier : "",
-          quizName:
-            config["Quiz Settings Title"] ||
-            setup.quizConfig ||
-            "Custom Template Quiz",
+          quizName: finalQuizName,
           quizTopic: (setup.selectedTopics || []).join(", "),
           startTime: new Date().toISOString(),
         });
