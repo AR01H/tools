@@ -297,7 +297,7 @@ const PageQuiz = (() => {
         .quizpro-footer { height: 52px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--bg-surface); }
 
         /* ── Editorial ── */
-        .layout-editorial { max-width: 1100px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; }
+        .layout-editorial { margin: 0 auto; display: flex; flex-direction: column;}
         .ed-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid var(--text-primary); padding-bottom: 15px; margin-bottom: 24px; }
         .ed-meta { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); }
         .ed-title { font-family: var(--font-content, serif); font-size: 1.8rem; }
@@ -323,7 +323,7 @@ const PageQuiz = (() => {
         .vib-timer { background: #fee2e2; color: #ef4444; padding: 4px 10px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; }
         .vib-progress-wrap { padding: 0 15px 15px 15px; position: relative; }
         .vib-q-indicator { position: absolute; right: 22px; top: -6px; background: #334155; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; }
-        .vib-content { flex: 1; padding: 15px; background: var(--bg-surface); border-radius: 30px 30px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
+        .vib-content { flex: 1; padding: 15px; background: var(--bg-surface); border-radius: 4px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
         .vib-tag { background: var(--bg-elevated); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; color: var(--text-secondary); border: 1px solid var(--border-color); }
         .vib-score-tag { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }
         .vib-q-nav { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }

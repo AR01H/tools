@@ -1751,7 +1751,7 @@ select.form-control {
   gap: var(--sp-md);
   padding: var(--sp-lg);
   background: var(--bg-elevated);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xs);
   border: 1px solid var(--border-color);
   margin-bottom: var(--sp-lg);
 }
