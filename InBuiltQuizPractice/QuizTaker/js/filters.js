@@ -176,7 +176,7 @@ const PageSetupTopics = (() => {
           padding-bottom: 100px;
         }
         .topic-card {
-          background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 20px; 
+          background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 4px; 
           padding: 24px 16px; text-align: center; cursor: pointer; transition: 0.3s var(--ease);
           position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px;
         }
@@ -376,7 +376,7 @@ const PageSetupFilters = (() => {
         .magnitude-display { font-size: 2.8rem; font-weight: 900; color: var(--accent-primary); line-height: 1; margin: 0; font-family: var(--font-mono); letter-spacing: -2px; }
         .pool-badge { background: var(--accent-primary-transparent); color: var(--accent-primary); font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 99px; border: 1px solid var(--accent-primary-transparent); }
         .slider-wrapper { padding: 3px 0; }
-        .launch-btn { padding: 18px 54px; font-size: 1.15rem; font-weight: 800; border-radius: 16px; white-space: nowrap; box-shadow: 0 10px 20px -5px var(--accent-shadow); }
+        .launch-btn { padding: 18px 54px; font-size: 1.15rem; font-weight: 800; border-radius: 4px; white-space: nowrap; box-shadow: 0 10px 20px -5px var(--accent-shadow); }
 
         .fancy-slider { width: 100%; height: 8px; border-radius: 8px; appearance: none; background: var(--bg-elevated); outline: none; transition: 0.2s; }
         .fancy-slider::-webkit-slider-thumb { 
@@ -397,7 +397,7 @@ const PageSetupFilters = (() => {
         @media (max-width: 600px) {
           .setup-footer-content { flex-direction: column; gap: 0px; align-items: stretch; }
           .magnitude-display { font-size: 1.5rem; }
-          .launch-btn { padding: 16px; font-size: 1rem; }
+          .launch-btn { padding: 10px; font-size: 1rem; }
           .magnitude-header { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 0px;}
           .magnitude-titles { display: flex; align-items: baseline;}
         }

@@ -426,6 +426,7 @@ const PageQuiz = (() => {
         .ed-q-nav { display: flex; flex-direction: column; gap: 1px; max-height: 400px; overflow-y: auto; margin-bottom: 15px; }
         .ed-q-row { display: flex; align-items: center; padding: 8px; border-radius: 4px; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
         .ed-q-row.active { background: var(--text-primary); color: var(--bg-base); }
+        .ed-main {padding: 0 10px;}
 
         /* ── Vibrant ── */
         .layout-vibrant { max-width: 460px; margin: 0 auto; background: var(--bg-base); min-height: 100vh; display: flex; flex-direction: column; }
@@ -778,7 +779,11 @@ const QuizEngine = (() => {
     }
 
     if (quiz.currentIdx >= quiz.questions.length - 1) {
-      confirmSubmit();
+      if ((cfg["Auto Submit"] || "Off") === "On") {
+        submit();
+      } else {
+        confirmSubmit();
+      }
     } else {
       State.merge("quiz", { currentIdx: quiz.currentIdx + 1 });
       renderQuestion();
@@ -851,7 +856,31 @@ const QuizEngine = (() => {
   function showHint() {
     const quiz = State.get("quiz");
     const q = quiz.questions[quiz.currentIdx];
-    UI.toast(q.Hint || "No hint available", "info", 5000);
+    const hint = q.Hint || "No hint available for this question.";
+
+    // Remove any existing hint popup
+    const old = document.getElementById("hint-popup");
+    if (old) old.remove();
+
+    const popup = document.createElement("div");
+    popup.id = "hint-popup";
+    popup.innerHTML = `
+      <div class="hint-popup-inner">
+        <div class="hint-popup-header">
+          <span class="hint-popup-icon">💡</span>
+          <span class="hint-popup-title">HINT</span>
+          <button class="hint-popup-close" onclick="document.getElementById('hint-popup').remove()">✕</button>
+        </div>
+        <div class="hint-popup-body">${hint}</div>
+      </div>
+    `;
+    document.body.appendChild(popup);
+
+    // Auto-dismiss after 8s
+    setTimeout(() => {
+      const el = document.getElementById("hint-popup");
+      if (el) { el.classList.add("hint-exit"); setTimeout(() => el.remove(), 350); }
+    }, 8000);
   }
 
   function togglePause() {

@@ -492,6 +492,9 @@ select.form-control {
   background: var(--border-color);
   margin: var(--sp-md) 0;
 }
+.history-body{
+  text-align: center;
+}
 
 /* ── Section Header ── */
 .section-title {
@@ -1979,17 +1982,21 @@ select.form-control {
 /* ── Result Metrics Dashboard ── */
 .dash-metrics-grid {
   margin-bottom: var(--sp-lg);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .metric-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xs);
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width:100%;
 }
 
 .metric-card:hover {
@@ -2251,5 +2258,176 @@ select.form-control {
 @media (max-width: 480px) {
   .welcome-main-title { font-size: 2rem !important; }
   .identity-glass-card { padding: 20px !important; }
-  .btn-launch-primary { font-size: 0.95rem !important; padding: 14px !important; }
+  .btn-launch-primary { font-size: 0.95rem !important; padding: 8px !important; }
+}
+
+/* ── Hint Popup ── */
+#hint-popup {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  width: fit-content;
+  min-width: 300px;
+  max-width: 90%;
+  pointer-events: none;
+}
+
+.hint-popup-inner {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 16px 20px;
+  pointer-events: all;
+  animation: hint-slide-up 0.4s var(--ease);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#hint-popup.hint-exit .hint-popup-inner {
+  animation: hint-slide-down 0.35s var(--ease) forwards;
+}
+
+@keyframes hint-slide-up {
+  from { opacity: 0; transform: translateY(30px) translateX(-50%); }
+  to { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+
+@keyframes hint-slide-down {
+  from { opacity: 1; transform: translateY(0) translateX(-50%); }
+  to { opacity: 0; transform: translateY(30px) translateX(-50%); }
+}
+
+/* Fix: animations need to keep the translateX(-50%) toggle if they replace the transform property entirely, 
+   but here we are using translateY inside keyframes. 
+   Actually, it's safer to animate transform: translate(-50%, ...) */
+
+@keyframes hint-slide-up {
+  from { opacity: 0; transform: translate(-50%, 30px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes hint-slide-down {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, 30px); }
+}
+
+.hint-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hint-popup-icon {
+  font-size: 1.2rem;
+  filter: drop-shadow(0 0 5px var(--accent-shadow));
+}
+
+.hint-popup-title {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--accent-primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hint-popup-close {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.2s;
+  background: var(--bg-elevated);
+}
+
+.hint-popup-close:hover {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.hint-popup-body {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* ── Celebration System ── */
+.badge-shelf {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: var(--sp-md);
+}
+.achievement-badge {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: 0.3s;
+  animation: badgePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  opacity: 0;
+}
+@keyframes badgePop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.achievement-badge.success { border-color: var(--color-success); color: var(--color-success); background: rgba(16, 185, 129, 0.05); }
+.achievement-badge.warn { border-color: var(--color-warn); color: var(--color-warn); background: rgba(245, 158, 11, 0.05); }
+.achievement-badge.info { border-color: var(--color-info); color: var(--color-info); background: rgba(59, 130, 246, 0.05); }
+
+/* ── Time-Warp Heatmap ── */
+.heatmap-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+  margin-top: 15px;
+}
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: help;
+  position: relative;
+  transition: 0.2s;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.heatmap-cell:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); }
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+.heatmap-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+canvas#confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 99999;
 }

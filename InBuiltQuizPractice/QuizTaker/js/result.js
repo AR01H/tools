@@ -67,11 +67,24 @@ const Results = (() => {
       );
     }
     if (type === "Matching") {
-      return (
-        userAnswer &&
-        userAnswer !== "" &&
-        correct.every((c) => (userAnswer || "").includes(c))
-      );
+      if (!userAnswer || userAnswer === "") return false;
+      // Use choices as ground truth — each choice is "Left-Right"
+      const choices = getChoices(q);
+      const correctMap = {};
+      choices.forEach(c => {
+        const parts = c.split(/[-:→]/).map(s => s.trim());
+        if (parts.length >= 2) correctMap[parts[0].toLowerCase()] = parts[1].toLowerCase();
+      });
+      // Parse user answer pairs (format: "Left-Right|Left-Right|...")
+      const userMap = {};
+      userAnswer.split("|").forEach(p => {
+        const parts = p.split(/[-:→]/).map(s => s.trim());
+        if (parts.length >= 2) userMap[parts[0].toLowerCase()] = parts[1].toLowerCase();
+      });
+      // Compare: every correct pair must match
+      const correctKeys = Object.keys(correctMap);
+      if (correctKeys.length === 0) return false;
+      return correctKeys.every(k => correctMap[k] === userMap[k]);
     }
     if (type === "Multi Matching") {
       if (!userAnswer || userAnswer === "" || userAnswer === "{}") return false;
@@ -81,12 +94,12 @@ const Results = (() => {
 
         return choices.every((c) => {
           const parts = c.split("-");
-          const left = parts[0];
+          const left = parts[0].trim();
           const expectedTags = (parts[1] || "")
             .split("|")
             .map((t) => t.trim())
             .filter(Boolean);
-          const userTags = uaMap[left] || [];
+          const userTags = (uaMap[left] || []).map(t => t.trim());
 
           if (expectedTags.length !== userTags.length) return false;
           return expectedTags.every((t) => userTags.includes(t));
@@ -96,12 +109,18 @@ const Results = (() => {
       }
     }
     if (type === "Drag & Drop") {
+      if (!userAnswer || userAnswer === "") return false;
+      // Use choices as ground truth — each choice is "Item-Category"
       const choices = getChoices(q);
-      return (
-        userAnswer &&
-        userAnswer !== "" &&
-        choices.every((c) => (userAnswer || "").includes(c))
-      );
+      const correctSet = new Set(choices.map(c => c.trim().toLowerCase()));
+      // Parse user answer pairs
+      const userSet = new Set(userAnswer.split("|").map(p => p.trim().toLowerCase()));
+      // All correct pairs must exist in user answer and no extras
+      if (correctSet.size !== userSet.size) return false;
+      for (const c of correctSet) {
+        if (!userSet.has(c)) return false;
+      }
+      return true;
     }
     // Default single answer
     const ua = Array.isArray(userAnswer) ? userAnswer[0] : userAnswer;
@@ -203,12 +222,67 @@ const PageResult = (() => {
 
   function getInsights(score, type) {
     const combined = [
-      ...Object.entries(score.categoryMap).map(([k, v]) => ({ name: k, ...v, group: 'Sub' })),
-      ...Object.entries(score.subCategoryMap).map(([k, v]) => ({ name: k, ...v, group: 'Tag' }))
+      ...Object.entries(score.categoryMap || {}).map(([k, v]) => ({ name: k, ...v, group: 'Sub' })),
+      ...Object.entries(score.subCategoryMap || {}).map(([k, v]) => ({ name: k, ...v, group: 'Tag' }))
     ];
+    
+    // If no questions were actually attempted (no correct/wrong), return empty or notice
+    if (score.correct + score.wrong === 0) {
+       if (type === "strengths") return [];
+       return [{ name: "Insufficient Data", group: "System", acc: 0 }];
+    }
+
     const items = combined.map(c => ({ name: c.name, group: c.group, acc: c.max ? (c.score/c.max)*100 : 0 }));
     if (type === "strengths") return items.filter(c => c.acc >= 75).slice(0, 5);
     return items.filter(c => c.acc < 50).slice(0, 5);
+  }
+
+  function getAchievements(score, qCount) {
+    const badges = [];
+    if (score.accuracy >= 90) badges.push({ text: "Precision Master", icon: "🎯", type: "success" });
+    if (score.accuracy >= 100) badges.push({ text: "Immaculate", icon: "💎", type: "success" });
+    if (qCount >= 5 && score.timeTaken / qCount < 12) badges.push({ text: "Speed Demon", icon: "⚡", type: "warn" });
+    if (score.skipped === 0) badges.push({ text: "Completionist", icon: "✅", type: "info" });
+    if (qCount >= 25) badges.push({ text: "Marathoner", icon: "🏃", type: "info" });
+    return badges;
+  }
+
+  function renderHeatmap(score) {
+    const details = score.details || [];
+    if (!details.length) return "";
+    const avg = score.timeTaken / details.length;
+    
+    const getColor = (t) => {
+      if (t > avg * 2) return "background: #ef4444; color: #fff;";
+      if (t > avg * 1.3) return "background: #f59e0b; color: #fff;";
+      if (t > avg * 0.7) return "background: #3b82f6; color: #fff;";
+      return "background: rgba(59, 130, 246, 0.1); color: var(--text-primary); border: 1px solid var(--border-color);";
+    };
+
+    return `
+      <div class="card" style="padding:var(--sp-lg); margin-top:var(--sp-lg); border-radius:16px; border:1px solid var(--border-color); background:var(--bg-elevated)">
+        <h3 class="chart-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-size:0.9rem; letter-spacing:1px">
+          <span>🕒 TIME-WARP HEATMAP</span>
+          <span style="font-size:0.7rem; font-weight:500; opacity:0.6">Analysis of question-wise cognitive load</span>
+        </h3>
+        <div class="heatmap-container">
+          ${details.map((d, i) => `
+            <div class="heatmap-cell" style="${getColor(d.timeTaken)}" 
+                 title="Q${i+1}: ${d.timeTaken}s | ${d.isCorrect ? 'Correct' : 'Incorrect'}">
+              ${i+1}
+            </div>
+          `).join('')}
+        </div>
+        <div class="heatmap-legend">
+           <span>⚡ Fast</span>
+           <div class="heatmap-dot" style="background:rgba(59,130,246,0.1); border:1px solid var(--border-color)"></div>
+           <div class="heatmap-dot" style="background:#3b82f6"></div>
+           <div class="heatmap-dot" style="background:#f59e0b"></div>
+           <div class="heatmap-dot" style="background:#ef4444"></div>
+           <span>🛑 Complex</span>
+        </div>
+      </div>
+    `;
   }
 
   function render(main, data) {
@@ -218,6 +292,20 @@ const PageResult = (() => {
       return;
     }
     const { quiz, score, endTime } = result;
+    const cfg = quiz.config || {};
+
+    if ((cfg["Final Result"] || "On") === "Off") {
+       main.innerHTML = `
+         <div class="animate-up setup-container" style="max-width:600px; margin:100px auto; text-align:center">
+           <div style="font-size:4rem; margin-bottom:20px">✅</div>
+           <h1 style="font-size:2rem; font-weight:900">Quiz Submitted Successfully</h1>
+           <p style="color:var(--text-muted); margin-bottom:40px">Your attempt has been recorded. The session is now complete.</p>
+           <button class="btn btn-primary btn-lg" onclick="UI.navigate('welcome')">Return Home</button>
+         </div>`;
+       return;
+    }
+
+    const qWise = (cfg["Question Wise Result"] || "On") === "On";
 
     main.innerHTML = `
            <div class="dash-hero">
@@ -225,11 +313,20 @@ const PageResult = (() => {
               <span class="dash-badge">${
                 quiz.config["Quiz Settings Title"] || "ASSESSMENT REPORT"
               }</span>
-              <h1 class="dash-title">Comprehensive Analysis</h1>
               <p class="dash-subtitle">${new Date(endTime).toLocaleDateString(
                 undefined,
                 { month: "long", day: "numeric" }
               )} • ${fmtTime(score.timeTaken)} elapsed</p>
+
+              <div class="badge-shelf">
+                ${getAchievements(score, quiz.questions.length).map(b => `
+                  <div class="achievement-badge ${b.type}">
+                    <span>${b.icon}</span>
+                    <span>${b.text}</span>
+                  </div>
+                `).join('')}
+                ${score.accuracy >= 70 ? '<div class="achievement-badge success">🌟 Top Tier Performance</div>' : ''}
+              </div>
            </div>
            
            <div class="dash-hero-stats-new">
@@ -304,25 +401,23 @@ const PageResult = (() => {
         <!-- ── TABS NAVIGATION ── -->
         <div class="dash-nav-with-actions">
           <div class="dash-tabs" id="result-tabs">
-             ${["overview", "questions", "category", "difficulty", "answer-key", "adaptive"]
-               .map(
-                 (t, i) => `
-               <button class="dash-tab-btn ${
-                 t === _activeTab ? "active" : ""
-               }" onclick="PageResult.switchTab('${t}')">
-                 ${
-                   [
-                     "📊 Overview",
-                     "📝 Review",
-                     "📁 Categories",
-                     "⚡ Difficulty",
-                     "🔑 Key",
-                     "🧠 Adaptive"
-                   ][i]
-                 }
-               </button>`
-               )
-               .join("")}
+             ${(() => {
+                const allTabs = [
+                  { id: "overview", label: "📊 Overview" },
+                  { id: "questions", label: "📝 Review" },
+                  { id: "category", label: "📁 Categories" },
+                  { id: "difficulty", label: "⚡ Difficulty" },
+                  { id: "answer-key", label: "🔑 Key" },
+                  { id: "adaptive", label: "🧠 Adaptive" }
+                ];
+                return allTabs
+                  .filter(t => qWise || (t.id !== "questions" && t.id !== "answer-key"))
+                  .map(t => `
+                    <button class="dash-tab-btn ${t.id === _activeTab ? "active" : ""}" onclick="PageResult.switchTab('${t.id}')">
+                      ${t.label}
+                    </button>
+                  `).join("");
+             })()}
           </div>
            <div class="dash-actions">
               <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadPDF()">📥 PDF</button>
@@ -350,6 +445,9 @@ const PageResult = (() => {
             ? "#f59e0b"
             : "#ef4444";
       }
+      
+      // Celebration!
+      if (score.accuracy >= 80) UI.confetti();
     }, 300);
 
     switchTab(_activeTab, result);
@@ -552,19 +650,21 @@ const PageResult = (() => {
          html.push(`Your accuracy on <b>${weakDiff}</b> questions dropped below 50%. Focus your practice on this specific difficulty magnitude.`);
       }
 
-      if (usePhases && fatigueData[3] < fatigueData[0] - 20) {
-         html.push(`You suffered a <b>${Math.round(fatigueData[0] - fatigueData[3])}%</b> accuracy drop towards the end of the session, indicating <b>test fatigue</b>. Simulate longer active exam conditions.`);
-      }
+      if (score.timeTaken > 0) {
+          if (usePhases && fatigueData[3] < fatigueData[0] - 20) {
+             html.push(`You suffered a <b>${Math.round(fatigueData[0] - fatigueData[3])}%</b> accuracy drop towards the end of the session, indicating <b>test fatigue</b>. Simulate longer active exam conditions.`);
+          }
 
-      const avgTime = Math.max(score.timeTaken / qCount, 1);
-      const rushedErrors = items.filter(i => !i.isCorrect && i.timeTaken < (avgTime * 0.4)).length;
-      if (rushedErrors > 1) {
-         html.push(`You incorrectly validated <b>${rushedErrors}</b> questions abnormally fast (<${Math.round(avgTime * 0.4)}s). Guard against skipping critical prompt subtext.`);
-      }
+          const avgTime = Math.max(score.timeTaken / qCount, 1);
+          const rushedErrors = items.filter(i => !i.isCorrect && i.timeTaken < (avgTime * 0.4)).length;
+          if (rushedErrors > 1) {
+             html.push(`You incorrectly validated <b>${rushedErrors}</b> questions abnormally fast (<${Math.round(avgTime * 0.4)}s). Guard against skipping critical prompt subtext.`);
+          }
 
-      const maxCatTimeIdx = catTimes.indexOf(Math.max(...catTimes));
-      if (maxCatTimeIdx >= 0 && score.timeTaken > 0) {
-         html.push(`You invested a massive <b>${Math.round((catTimes[maxCatTimeIdx] / score.timeTaken) * 100)}%</b> of your total session time purely analyzing the <b>${catKeys[maxCatTimeIdx]}</b> domain.`);
+          const maxCatTimeIdx = catTimes.indexOf(Math.max(...catTimes));
+          if (maxCatTimeIdx >= 0 && score.timeTaken > 0) {
+             html.push(`You invested a massive <b>${Math.round((catTimes[maxCatTimeIdx] / score.timeTaken) * 100)}%</b> of your total session time purely analyzing the <b>${catKeys[maxCatTimeIdx]}</b> domain.`);
+          }
       }
 
       if (!html.length) html.push("Overall pacing and precision execution are steady. Ensure consistent interval reviews to maintain these strong diagnostics.");
@@ -614,6 +714,8 @@ const PageResult = (() => {
         <div class="chart-card"><h3 class="chart-label">Question-wise Time Audit</h3><div class="chart-box"><canvas id="chart-q-time"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Accuracy by Engagement Type</h3><div class="chart-box"><canvas id="chart-q-types"></canvas></div></div>
       </div>
+      
+      ${renderHeatmap(score)}
     `;
   }
 

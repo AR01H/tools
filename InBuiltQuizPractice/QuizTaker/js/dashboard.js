@@ -96,17 +96,6 @@ const PageWelcome = (() => {
                     <p>Filter questions by domain and complexity.</p>
                   </div>
                </div>
-               
-               <div class="process-step">
-                  <div class="step-num-hex">
-                    <span class="num">03</span>
-                    <div class="hex-bg"></div>
-                  </div>
-                  <div class="step-content">
-                    <h4>Excel</h4>
-                    <p>Deconstruct results with diagnostic AI.</p>
-                  </div>
-               </div>
             </div>
 
             ${!scriptConfigured ? `
@@ -150,7 +139,7 @@ const PageWelcome = (() => {
         .input-focus-ring { position: absolute; inset: -4px; border-radius: 20px; border: 2px solid var(--accent-primary); opacity: 0; pointer-events: none; transition: 0.3s; }
         .pro-input:focus + .input-focus-ring { opacity: 0.15; transform: scale(1); }
         
-        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 20px; border-radius: 18px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 12px 24px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; }
+        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 12px 24px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; }
         .btn-launch-primary:hover { transform: translateY(-4px); filter: brightness(1.1); box-shadow: 0 16px 32px var(--accent-shadow); }
         
         .session-management { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
@@ -186,7 +175,7 @@ const PageWelcome = (() => {
            .identity-header h3 { font-size: 1.25rem; }
            
            .pro-input { padding: 14px 16px; border-radius: 12px; }
-           .btn-launch-primary { padding: 16px; border-radius: 14px; font-size: 1rem; }
+           .btn-launch-primary { padding: 8px; font-size: 1rem; }
            
            .process-steps { gap: 12px; }
            .process-step { padding: 12px; }

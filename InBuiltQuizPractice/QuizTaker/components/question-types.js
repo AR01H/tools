@@ -8,6 +8,19 @@ const QuestionRenderer = (() => {
   let _currentQ = null;
   let _currentIdx = 0;
 
+  function checkLock() {
+    const quiz = State.get("quiz");
+    if (quiz.template === "study") return true; 
+    const cfg = quiz.config || {};
+    const answered = quiz.answers[_currentIdx];
+    const restrictChange = (cfg["Allow Option Change"] || "On") === "Off";
+    if (restrictChange && answered && (answered.userAnswer !== undefined && answered.userAnswer !== null && answered.userAnswer !== "")) {
+      UI.toast("Option change not allowed", "warn");
+      return true;
+    }
+    return false;
+  }
+
   function getChoices(obj) {
     return Object.keys(obj)
       .filter((k) => /^(choice|option)\s*\d+$/i.test(k))
@@ -139,8 +152,8 @@ const QuestionRenderer = (() => {
         return renderSequence(choices, saved);
 
       case "Short Answer":
-        return `<textarea id="short-ans" class="form-control" rows="4" style="width:100%;" placeholder="Type your answer here…"
-                  style="resize:vertical">${saved || ""}</textarea>`;
+        return `<textarea id="short-ans" class="form-control" rows="4" style="width:100%; resize:vertical" placeholder="Type your answer here…"
+                  onblur="QuestionRenderer.handleFillInstant(this)">${saved || ""}</textarea>`;
 
       case "Fill in the Blanks":
         return renderFillBlanks(q, saved);
@@ -232,18 +245,27 @@ const QuestionRenderer = (() => {
 
   // ── Sequence ──────────────────────────────────────────────
   function renderSequence(choices, saved) {
-    const order = saved ? saved : choices;
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    const order = saved ? (Array.isArray(saved) ? saved : saved.split("|")) : choices;
+    
+    let containerStyle = "";
+    if (showInstant && saved) {
+       const correct = (_currentQ["Correct Answer"] || "").split("|").map(s => s.trim());
+       const isCorrect = order.join("|") === correct.join("|");
+       containerStyle = `border:2px solid var(--color-${isCorrect ? "success" : "error"}); background:rgba(${isCorrect ? "34,197,94" : "239,68,68"}, 0.05)`;
+    }
+
     return `
-      <div id="seq-list" style="display:flex;flex-direction:column;gap:8px">
+      <div id="seq-list" style="display:flex;flex-direction:column;gap:8px; padding:8px; border-radius:var(--radius-md); ${containerStyle}">
         ${order
           .map(
             (c, i) => `
           <div class="option-card" draggable="true" data-val="${c}"
                style="cursor:grab;justify-content:space-between"
                ondragstart="SeqDrag.start(event)" ondragover="SeqDrag.over(event)" ondrop="SeqDrag.drop(event)">
-            <span style="font-weight:700;color:var(--text-muted)">${
-              i + 1
-            }.</span>
+            <span style="font-weight:700;color:var(--text-muted)">${i + 1}.</span>
             <span style="flex:1;margin:0 var(--sp-md)">${c}</span>
             <span style="color:var(--text-muted)">⠿</span>
           </div>`
@@ -273,22 +295,31 @@ const QuestionRenderer = (() => {
   }
 
   function renderMultiBlanks(q, saved) {
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
     const correct = (q["Correct Answer"] || "").split("|");
-    const saved2 = saved
-      ? Array.isArray(saved)
-        ? saved
-        : saved.split("|")
-      : [];
+    const saved2 = saved ? (Array.isArray(saved) ? saved : saved.split("|")) : [];
+
     return `
       <div style="display:flex;flex-direction:column;gap:var(--sp-sm)">
         ${correct
           .map(
-            (_, i) => `
-          <div class="form-group">
-            <label class="form-label">Blank ${i + 1}</label>
-            <input class="form-control multi-blank" data-idx="${i}" type="text"
-              placeholder="Answer ${i + 1}…" value="${saved2[i] || ""}">
-          </div>`
+            (c, i) => {
+              const val = saved2[i] || "";
+              const isCorr = val.toLowerCase().trim() === c.toLowerCase().trim();
+              let style = "";
+              if (showInstant && val) {
+                style = isCorr ? "border:2px solid var(--color-success); background:rgba(34,197,94,0.1)" : "border:2px solid var(--color-error); background:rgba(239,68,68,0.1)";
+              }
+              return `
+              <div class="form-group">
+                <label class="form-label">Blank ${i + 1}</label>
+                <input class="form-control multi-blank" data-idx="${i}" type="text"
+                  placeholder="Answer ${i + 1}…" value="${val}" style="${style}"
+                  onblur="QuestionRenderer.handleFillInstant(this)">
+              </div>`;
+            }
           )
           .join("")}
       </div>`;
@@ -408,9 +439,18 @@ const QuestionRenderer = (() => {
 
   // ── Drag & Drop ───────────────────────────────────────────
   function renderDragDrop(choices, saved) {
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    const correctVal = (_currentQ["Correct Answer"] || "");
+
     const categories = [
       ...new Set(choices.map((c) => c.split("-")[1]).filter(Boolean)),
     ];
+    
+    // Parse saved items if string
+    const savedMap = saved ? (typeof saved === 'string' ? JSON.parse(saved) : saved) : {};
+
     return `
       <div style="display:flex;gap:var(--sp-md);flex-wrap:wrap">
         <div style="flex:1;min-width:180px">
@@ -419,8 +459,10 @@ const QuestionRenderer = (() => {
             ${choices
               .map((c) => {
                 const label = c.split("-")[0];
-                return `<div class="option-card" draggable="true" data-val="${c}"
-                           ondragstart="DragDrop.startDrag(event)" style="cursor:grab">${label}</div>`;
+                const isDropped = Object.values(savedMap).flat().includes(c);
+                return `<div class="option-card" draggable="${!isDropped}" data-val="${c}"
+                           ondragstart="DragDrop.startDrag(event)" 
+                           style="cursor:${isDropped ? "default" : "grab"}; opacity:${isDropped ? "0.3" : "1"}; pointer-events:${isDropped ? "none" : "auto"}">${label}</div>`;
               })
               .join("")}
           </div>
@@ -430,14 +472,27 @@ const QuestionRenderer = (() => {
           <div style="display:flex;flex-direction:column;gap:var(--sp-sm)">
             ${categories
               .map(
-                (cat) => `
-              <div>
-                <p style="font-size:.8rem;font-weight:700;margin-bottom:4px;color:var(--accent-primary)">${cat}</p>
-                <div class="drag-target" data-cat="${cat}"
-                     ondragover="DragDrop.over(event)" ondrop="DragDrop.drop(event)" ondragleave="DragDrop.leave(event)"
-                     style="min-height:52px;border:2px dashed var(--border-color);border-radius:var(--radius-md);
-                            padding:var(--sp-sm);display:flex;flex-wrap:wrap;gap:6px"></div>
-              </div>`
+                (cat) => {
+                  const droppedItems = savedMap[cat] || [];
+                  return `
+                  <div>
+                    <p style="font-size:.8rem;font-weight:700;margin-bottom:4px;color:var(--accent-primary)">${cat}</p>
+                    <div class="drag-target" data-cat="${cat}"
+                         ondragover="DragDrop.over(event)" ondrop="DragDrop.drop(event)" ondragleave="DragDrop.leave(event)"
+                         style="min-height:52px;border:2px dashed var(--border-color);border-radius:var(--radius-md);
+                                padding:var(--sp-sm);display:flex;flex-wrap:wrap;gap:6px">
+                        ${droppedItems.map(itemVal => {
+                           const label = itemVal.split("-")[0];
+                           const isCorrect = correctVal.includes(`${label}-${cat}`);
+                           let style = "cursor:pointer;";
+                           if (showInstant) {
+                              style += `border:2px solid var(--color-${isCorrect ? "success" : "error"}); background:rgba(${isCorrect ? "34,197,94" : "239,68,68"}, 0.1);`;
+                           }
+                           return `<div class="option-card dropped-item" style="${style}" title="Click to remove" onclick="DragDrop.removeItem(this, document.querySelector('[data-val=\\'${itemVal}\\']'))">${label}</div>`;
+                        }).join("")}
+                    </div>
+                  </div>`;
+                }
               )
               .join("")}
           </div>
@@ -445,19 +500,31 @@ const QuestionRenderer = (() => {
       </div>`;
   }
 
-  // ── Range ─────────────────────────────────────────────────
   function renderRange(q, saved) {
-    const choices = ["Choice1", "Choice2", "Choice3", "Choice4"]
+    const choices = ["Choice1", "Choice2", "Choice3", "Choice4", "Choice5", "Choice6"]
       .map((k) => q[k])
       .filter(Boolean);
-    const min = parseFloat(choices[0]) || 0;
-    const max = parseFloat(choices[choices.length - 1]) || 100;
+    const numericChoices = choices.map(v => parseFloat(v)).filter(v => !isNaN(v));
+    const min = numericChoices.length ? Math.min(...numericChoices) : 0;
+    const max = numericChoices.length ? Math.max(...numericChoices) : 100;
+    
     const savedVal = saved || min;
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    
+    let extraStyle = "";
+    if (showInstant && saved) {
+       const correct = parseFloat(q["Correct Answer"] || 0);
+       const isCorrect = parseFloat(saved) === correct;
+       extraStyle = `border:2px solid var(--color-${isCorrect ? "success" : "error"}); background:rgba(${isCorrect ? "34,197,94" : "239,68,68"}, 0.05); padding:10px; border-radius:8px;`;
+    }
+
     return `
-      <div class="form-group">
+      <div class="form-group" style="${extraStyle}">
         <label class="form-label">Select Value: <span id="range-disp" class="font-mono font-bold text-accent">${savedVal}</span></label>
         <input type="range" id="range-input" class="w-full" min="${min}" max="${max}" step="1" value="${savedVal}"
-          oninput="document.getElementById('range-disp').textContent=this.value"
+          oninput="document.getElementById('range-disp').textContent=this.value; QuestionRenderer.handleRangeInstant(this)"
           style="accent-color:var(--accent-primary)">
         <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted)">
           <span>${min}</span><span>${max}</span>
@@ -545,37 +612,50 @@ const QuestionRenderer = (() => {
   }
 
   function handleMatchingChange(sel) {
-    const quiz = State.get("quiz");
-    if (quiz.template === "study") return; 
-    const cfg = quiz.config || {};
-    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
-    if (!showInstant) return;
-
-    const correctStr = _currentQ["Correct Answer"] || "";
-    const correctMap = Object.fromEntries(correctStr.split("|").map(p => p.split(/[:\-\u2192]/).map(s => s.trim())));
-    const l = sel.dataset.left;
-    const r = sel.value;
-    const row = sel.previousElementSibling.previousElementSibling; // The left side box
-
-    if (!r) {
-       sel.style.border = ""; sel.style.background = "";
-       row.style.border = ""; row.style.background = "";
+    if (checkLock()) {
+       // Revert select if locked
+       const quiz = State.get("quiz");
+       const saved = (quiz.answers[_currentIdx] || {}).userAnswer;
+       const savedMap = saved ? Object.fromEntries(saved.split("|").map(p => p.split("-"))) : {};
+       sel.value = savedMap[sel.dataset.left] || "";
        return;
     }
 
-    const isCorrect = correctMap[l] === r;
-    const style = isCorrect ? "2px solid var(--color-success)" : "2px solid var(--color-error)";
-    const bg = isCorrect ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)";
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    
+    if (showInstant) {
+      const correctStr = _currentQ["Correct Answer"] || "";
+      const correctMap = Object.fromEntries(correctStr.split("|").map(p => p.split(/[:\-\u2192]/).map(s => s.trim())));
+      const l = sel.dataset.left;
+      const r = sel.value;
+      const row = sel.previousElementSibling.previousElementSibling; // The left side box
 
-    sel.style.border = style; sel.style.background = bg;
-    row.style.border = style; row.style.background = bg;
+      if (!r) {
+         sel.style.border = ""; sel.style.background = "";
+         row.style.border = ""; row.style.background = "";
+         return;
+      }
 
-    if (isCorrect) UI.toast("Match Correct!", "success");
+      const isCorrect = correctMap[l] === r;
+      const style = isCorrect ? "2px solid var(--color-success)" : "2px solid var(--color-error)";
+      const bg = isCorrect ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)";
+
+      sel.style.border = style; sel.style.background = bg;
+      row.style.border = style; row.style.background = bg;
+
+      if (isCorrect) UI.toast("Match Correct!", "success");
+    }
   }
 
   function handleMultiMatchChange(cb) {
+    if (checkLock()) {
+       cb.checked = !cb.checked;
+       return;
+    }
+
     const quiz = State.get("quiz");
-    if (quiz.template === "study") return;
     const cfg = quiz.config || {};
     const showInstant = (cfg["Instant Answer"] || "Off") === "On";
     if (!showInstant) return;
@@ -606,18 +686,59 @@ const QuestionRenderer = (() => {
     if (isCorrect) UI.toast("Correct!", "success");
   }
 
-  // ── Toggle MCQ ────────────────────────────────────────────
-  function toggleMCQ(el, multiStr) {
+  function handleFillInstant(el) {
+    if (checkLock()) return;
     const quiz = State.get("quiz");
-    if (quiz.template === "study") return; // No interaction in study mode
     const cfg = quiz.config || {};
-    const answered = quiz.answers[_currentIdx];
-    const noChange = (cfg["Allow Option Change"] || "On") === "Off";
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    if (!showInstant) return;
+
+    const val = el.value.trim().toLowerCase();
+    const correctStr = (_currentQ["Correct Answer"] || "").toLowerCase();
     
-    if (noChange && answered && answered.userAnswer) {
-      UI.toast("Option change not allowed", "warn");
-      return;
+    let isCorrect = false;
+    if (el.classList.contains("multi-blank")) {
+       const idx = parseInt(el.dataset.idx);
+       const correctArr = correctStr.split("|");
+       isCorrect = val === (correctArr[idx] || "").trim();
+    } else {
+       isCorrect = val === correctStr.trim();
     }
+
+    if (val === "") {
+       el.style.border = ""; el.style.background = "";
+       return;
+    }
+
+    el.style.border = `2px solid var(--color-${isCorrect ? "success" : "error"})`;
+    el.style.background = `rgba(${isCorrect ? "34,197,94" : "239,68,68"}, 0.05)`;
+    if (isCorrect) UI.toast("Correct!", "success");
+  }
+
+  function handleRangeInstant(el) {
+    if (checkLock()) return;
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    if ((cfg["Instant Answer"] || "Off") === "Off") return;
+
+    const val = parseFloat(el.value);
+    const correct = parseFloat(_currentQ["Correct Answer"] || 0);
+    const isCorrect = val === correct;
+    const container = el.parentElement;
+
+    container.style.border = `2px solid var(--color-${isCorrect ? "success" : "error"})`;
+    container.style.background = `rgba(${isCorrect ? "34,197,94" : "239,68,68"}, 0.05)`;
+    container.style.padding = "10px";
+    container.style.borderRadius = "8px";
+    if (isCorrect) UI.toast("Target Reached!", "success");
+  }
+
+  function toggleMCQ(el, multiStr) {
+    if (checkLock()) return;
+
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    
 
     const multi = multiStr === "true";
     if (!multi) {
@@ -661,22 +782,6 @@ const QuestionRenderer = (() => {
     }
   }
 
-  function handleFillInstant(input) {
-    const quiz = State.get("quiz");
-    const cfg = quiz.config || {};
-    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
-    if (!showInstant) return;
-
-    const val = input.value.toLowerCase().trim();
-    const correct = (_currentQ["Correct Answer"] || "").toLowerCase().trim();
-    const isMatched = val === correct;
-
-    input.classList.remove("correct", "wrong");
-    if (val) {
-      input.classList.add(isMatched ? "correct" : "wrong");
-    }
-  }
-
   function speakQuestion() {
     if (!window.speechSynthesis) return UI.toast("Voice not supported in this browser", "error");
     window.speechSynthesis.cancel(); // Stop any currently speaking audio
@@ -698,13 +803,14 @@ const QuestionRenderer = (() => {
 
   function getCurrentQ() { return _currentQ; }
 
-  return { render, collectAnswer, toggleMCQ, handleMatchingChange, handleMultiMatchChange, handleFillInstant, speakQuestion, getChoices, getCurrentQ };
+  return { render, collectAnswer, toggleMCQ, checkLock, handleMatchingChange, handleMultiMatchChange, handleFillInstant, handleRangeInstant, speakQuestion, getChoices, getCurrentQ };
 })();
 
 // ── Drag helpers ──────────────────────────────────────────
 window.SeqDrag = {
   _el: null,
   start(e) {
+    if (QuestionRenderer.checkLock()) { e.preventDefault(); return; }
     this._el = e.currentTarget;
     e.dataTransfer.setData("text/plain", "");
     e.dataTransfer.effectAllowed = "move";
@@ -715,6 +821,7 @@ window.SeqDrag = {
   },
   drop(e) {
     e.preventDefault();
+    if (QuestionRenderer.checkLock()) return;
     const target = e.currentTarget;
     const list = document.getElementById("seq-list");
     if (target !== this._el && list) {
@@ -724,6 +831,20 @@ window.SeqDrag = {
       if (fromIdx > -1 && toIdx > -1) {
         if (fromIdx < toIdx) list.insertBefore(this._el, target.nextSibling);
         else list.insertBefore(this._el, target);
+
+        // Instant Answer feedback for Sequence
+        const quiz = State.get("quiz");
+        const cfg = quiz.config || {};
+        if ((cfg["Instant Answer"] || "Off") === "On") {
+           const currentQ = QuestionRenderer.getCurrentQ() || {};
+           const correctStr = currentQ["Correct Answer"] || "";
+           const correct = correctStr.split("|").map(s => s.trim());
+           const currentOrder = [...list.children].map(c => c.dataset.val);
+           const isCorrect = currentOrder.join("|") === correct.join("|");
+           list.style.border = isCorrect ? "2px solid var(--color-success)" : "2px solid var(--color-error)";
+           list.style.background = isCorrect ? "rgba(34,197,94,0.05)" : "rgba(239,68,68,0.05)";
+           if (isCorrect) UI.toast("Correct Sequence!", "success");
+        }
       }
     }
   },
@@ -733,6 +854,7 @@ window.DragDrop = {
   _val: null,
   _src: null,
   startDrag(e) {
+    if (QuestionRenderer.checkLock()) { e.preventDefault(); return; }
     this._val = e.currentTarget.dataset.val;
     this._src = e.currentTarget;
     e.dataTransfer.setData("text/plain", "");
@@ -740,6 +862,7 @@ window.DragDrop = {
   },
   over(e) {
     e.preventDefault();
+    if (QuestionRenderer.checkLock()) return;
     e.currentTarget.style.borderColor = "var(--accent-primary)";
   },
   leave(e) {
@@ -747,30 +870,38 @@ window.DragDrop = {
   },
   drop(e) {
     e.preventDefault();
+    if (QuestionRenderer.checkLock()) return;
     e.currentTarget.style.borderColor = "";
     if (this._src && this._val) {
       const quiz = State.get("quiz");
       const cfg = quiz.config || {};
       const showInstant = (cfg["Instant Answer"] || "Off") === "On";
       const cat = e.currentTarget.dataset.cat;
-      const item = this._val.split("-")[0];
+      const [item] = this._val.split("-");
       const correctVal = ((QuestionRenderer.getCurrentQ() || {})["Correct Answer"] || "");
       const isCorrect = correctVal.includes(`${item}-${cat}`);
 
       const clone = this._src.cloneNode(true);
       clone.draggable = false;
-      clone.style.cursor = "default";
-      clone.style.fontSize = ".8rem";
-      clone.style.padding = "4px 8px";
+      clone.style.cursor = "pointer";
+      clone.title = "Click to remove";
+      clone.onclick = () => DragDrop.removeItem(clone, this._src);
       
       if (showInstant) {
          clone.style.border = isCorrect ? "2px solid var(--color-success)" : "2px solid var(--color-error)";
          clone.style.background = isCorrect ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)";
-         if (isCorrect) UI.toast("Correct Placement!", "success");
+         if (isCorrect) UI.toast("Placement Correct!", "success");
       }
 
       e.currentTarget.appendChild(clone);
-      this._src.style.opacity = ".3";
+      this._src.style.opacity = "0.3";
+      this._src.style.pointerEvents = "none";
     }
   },
+  removeItem(clone, original) {
+    if (QuestionRenderer.checkLock()) return;
+    clone.remove();
+    original.style.opacity = "";
+    original.style.pointerEvents = "";
+  }
 };
