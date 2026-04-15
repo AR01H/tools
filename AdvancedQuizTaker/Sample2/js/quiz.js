@@ -400,7 +400,7 @@ const QuizEngine = (() => {
         updateTotalTimerEl();
         if (_totalSec <= 0) {
           clearInterval(_totalTimer);
-          autoSubmit();
+          submit();
         }
       } else {
         _totalSec++;
@@ -639,9 +639,25 @@ const QuizEngine = (() => {
   function jumpTo(idx) {
     const quiz = State.get("quiz");
     const cfg = quiz.config;
+    
+    // Check Allow Back
+    if ((cfg["Allow Back"] || "On") === "Off" && idx < quiz.currentIdx) {
+      UI.toast("Back navigation is disabled", "warn");
+      return;
+    }
+    
+    // Check Sequential
     if ((cfg["Question Navigation"] || "Free") === "Sequential") {
-      if (idx > quiz.currentIdx + 1) {
-        UI.toast("Sequential navigation: go one by one", "warn");
+      let maxAllowed = 0;
+      for (let i = 0; i < quiz.questions.length; i++) {
+        if (quiz.answers[i]?.userAnswer !== undefined) {
+          maxAllowed = i + 1;
+        } else {
+          break;
+        }
+      }
+      if (idx > quiz.currentIdx && idx > maxAllowed) {
+        UI.toast("Sequential navigation: you must answer previous questions first", "warn");
         return;
       }
     }

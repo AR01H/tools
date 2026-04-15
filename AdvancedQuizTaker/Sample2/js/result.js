@@ -1054,7 +1054,6 @@ const PageResult = (() => {
            </div>
            <div class="review-controls" style="display:flex;gap:var(--sp-sm);flex:1;max-width:500px">
               <div class="review-input-group" style="flex:1">
-                 <span class="search-icon-fixed">🔍</span>
                  <input type="text" id="review-search" class="form-control" placeholder="Search questions..." oninput="PageResult.applyReviewFilters()">
               </div>
               <select id="review-filter" class="form-control" style="width:160px" onchange="PageResult.applyReviewFilters()">

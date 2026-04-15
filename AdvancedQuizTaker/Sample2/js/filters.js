@@ -118,14 +118,13 @@ const PageSetupTopics = (() => {
           0
         )}
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-xl); border-bottom:1px solid var(--border-color); padding-bottom:var(--sp-md)">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-xl); border-bottom:1px solid var(--border-color); padding-bottom:var(--sp-md);flex-wrap:wrap;">
            <div>
               <h1 style="font-size:2.2rem; font-weight:900; letter-spacing:-0.05em; color:var(--text-primary); margin:0">Assessment Domains</h1>
               <p style="color:var(--text-secondary); font-size:0.95rem; margin-top:4px">Select specialized subjects to build your assessment.</p>
            </div>
            <div style="display:flex; gap:16px; align-items:center">
               <div class="review-input-group" style="width:300px">
-                 <span class="search-icon-fixed">🔍</span>
                  <input type="text" id="topic-search" class="form-control" placeholder="Search domains..." oninput="PageSetupTopics.filter(this.value)">
               </div>
               <button class="btn btn-ghost btn-sm" onclick="selectAllTopics()" style="font-weight:700">Select All</button>
@@ -337,9 +336,8 @@ const PageSetupFilters = (() => {
                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px">
                   <div>
                     <span style="font-size:0.65rem; font-weight:900; color:var(--text-muted); text-transform:uppercase">Session Magnitude</span>
-                    <div style="display:flex; align-items:baseline; gap:8px">
+                    <div style="display:none;">
                       <span id="q-count-val" style="font-family:var(--font-mono); font-weight:900; font-size:1.8rem; color:var(--accent-primary)">${setup.questionCount}</span>
-                      <span style="font-size:0.7rem; font-weight:800; opacity:0.6">QS SELECTED</span>
                     </div>
                   </div>
                   <span id="q-preview" class="pool-badge" style="background:var(--accent-primary-transparent); color:var(--accent-primary); border:1px solid var(--accent-primary-transparent)">Calculating pool...</span>
@@ -376,7 +374,7 @@ const PageSetupFilters = (() => {
         @media (max-width: 768px) {
           .setup-container > div:nth-child(2) { flex-direction: column !important; align-items: flex-start !important; gap: 15px; }
           .setup-container > div:nth-child(3) > div:last-child { grid-template-columns: 1fr !important; }
-          .setup-footer-content { flex-direction: column !important; gap: 20px !important; align-items: stretch !important; text-align: left; }
+          .setup-footer-content { flex-direction: column !important; gap: 0px !important; align-items: stretch !important; text-align: left; }
           .setup-footer-content > div { width: 100% !important; }
         }
       </style>`;
