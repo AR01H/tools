@@ -342,6 +342,20 @@ const PageQuiz = (() => {
         /* ── Minimal Mode ── */
         .layout-minimal { max-width:600px; margin:0 auto; display:flex; flex-direction:column; min-height:80vh; }
         .layout-minimal .mcq-option { border-radius:24px !important; padding:16px 20px !important; text-align:center; }
+        /* ── Responsive adjustments ── */
+        @media (max-width: 768px) {
+          .layout-sat, .layout-dsat { flex-direction: column; overflow: visible; height: auto; }
+          .sat-sidebar, .dsat-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+          .sat-q-nav, .dsat-sidebar-nav { grid-template-columns: repeat(6, 1fr) !important; max-height: 120px; width: 100%; overflow-y: auto; }
+          .sat-main, .dsat-main { overflow: visible; }
+          
+          .quizpro-body { flex-direction: column; overflow: visible; }
+          .qp-passage { border-right: none; border-bottom: 1px solid var(--border-color); max-height: 30vh; }
+          .qp-question { overflow: visible; }
+          
+          .ed-body { flex-direction: column-reverse; gap: 20px; }
+          .ed-sidebar { width: 100%; position: static; height: auto; margin-bottom: 20px; }
+        }
       </style>`;
 
     main.innerHTML = stylesHTML + layoutHtml + pauseOverlay;

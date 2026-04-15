@@ -1507,7 +1507,7 @@ select.form-control {
 /* ── Responsive ── */
 @media (max-width: 900px) {
   #main-content {
-    padding: var(--sp-lg) var(--sp-md);
+    padding: 0;
   }
 
   .grid-3,
@@ -1543,6 +1543,32 @@ select.form-control {
 
   .logo span {
     display: none;
+  }
+  
+  .dash-analytics-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .dash-insights {
+    grid-template-columns: 1fr;
+  }
+  
+  .dash-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .dash-hero-stats-new {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 400px) {
+  .dash-analytics-bar {
+    grid-template-columns: 1fr;
   }
 }
 

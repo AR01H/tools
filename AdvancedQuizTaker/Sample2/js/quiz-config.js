@@ -178,6 +178,13 @@ const PageSetupConfig = (() => {
         .config-item { background: var(--bg-surface); padding: 6px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; }
         .config-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
         .config-val { font-size: 1.1rem; font-weight: 900; color: var(--text-primary); }
+        
+        @media (max-width: 768px) {
+           .setup-container > div:nth-child(2) { flex-direction: column; align-items: flex-start !important; gap: 15px; }
+           .config-grid { grid-template-columns: repeat(2, 1fr); }
+           .preset-grid { grid-template-columns: repeat(2, 1fr); }
+           .glass-stage { padding: 15px; }
+        }
       </style>
     `;
 
