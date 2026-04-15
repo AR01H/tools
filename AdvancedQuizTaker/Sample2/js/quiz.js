@@ -15,7 +15,7 @@ const PageQuiz = (() => {
     const cfg = quiz.config;
     const qs = quiz.questions;
     const totalTime = parseInt(cfg["Quiz Time"] || 0);
-    const allowBack = (cfg["Allow Back"] || "On") === "On";
+    const allowBack = (cfg["Allow Back"] || "On") === "On" && !quiz.isAdaptive;
     const canPause = (cfg["Pause / Resume Allowed"] || "On") === "On";
     const showHint = (cfg["Show Hint"] || "On") === "On";
     const markReview = (cfg["Mark for Review"] || "On") === "On";
@@ -448,6 +448,15 @@ const QuizEngine = (() => {
 
   function init() {
     const quiz = State.get("quiz");
+    const currentIdx = quiz.currentIdx || 0;
+    
+    // Adaptive state tracking
+    if (quiz.isAdaptive) {
+       quiz.adaptivePool = [...quiz.questions];
+       quiz.questions = [quiz.adaptivePool[0]]; // Start with one
+       quiz.adaptiveLevel = 1; // 0:Easy, 1:Med, 2:Hard
+    }
+
     State.merge("quiz", { currentIdx: 0 });
     startTotalTimer();
     renderQuestion();
@@ -697,6 +706,32 @@ const QuizEngine = (() => {
         UI.toast("Answer is mandatory before proceeding", "warn");
         return;
       }
+    }
+
+    // Adaptive Mode Progression
+    if (quiz.isAdaptive && quiz.currentIdx === quiz.questions.length - 1) {
+       if (quiz.adaptivePool && quiz.adaptivePool.length > quiz.questions.length) {
+          const lastAns = quiz.answers[quiz.currentIdx];
+          const isCorr = Results.isCorrect(quiz.questions[quiz.currentIdx], lastAns.userAnswer);
+          
+          if (isCorr) quiz.adaptiveLevel = Math.min(2, (quiz.adaptiveLevel || 1) + 1);
+          else quiz.adaptiveLevel = Math.max(0, (quiz.adaptiveLevel || 1) - 1);
+          
+          const levels = ["Easy", "Medium", "Hard"];
+          const target = levels[quiz.adaptiveLevel];
+          
+          const usedIds = quiz.questions.map(q => q.ID || q.Question);
+          let nextQ = quiz.adaptivePool.find(q => !usedIds.includes(q.ID || q.Question) && (q.Difficulty || "Medium") === target);
+          
+          if (!nextQ) {
+             nextQ = quiz.adaptivePool.find(q => !usedIds.includes(q.ID || q.Question));
+          }
+          
+          if (nextQ) {
+             quiz.questions.push(nextQ);
+             UI.toast(`Adaptive: Difficulty set to ${target}`, "info", 1000);
+          }
+       }
     }
 
     if (quiz.currentIdx >= quiz.questions.length - 1) {

@@ -83,11 +83,19 @@ function dispatch(action, params, body, folderId) {
 // ── HELPERS ──────────────────────────────────────────────────
 function getRootFolder(folderId) {
   try {
-    const id = folderId || ROOT_FOLDER_ID;
-    if (!id || id.includes("exampleID")) throw new Error("Invalid Folder ID detected. Please update your env.js with real Google Drive folder IDs.");
+    // Robust check for various "empty" or "invalid" states
+    var id = folderId;
+    if (!id || id === "" || id === "undefined" || id === "null" || id === "[object Object]") {
+      id = ROOT_FOLDER_ID;
+    }
+    
+    if (!id || id.includes("exampleID")) {
+      throw new Error("Invalid Folder ID. Please update your Settings or Code.gs.");
+    }
+    
     return DriveApp.getFolderById(id);
   } catch (e) {
-    throw new Error("Drive Access Error: " + e.message + " (Check if the Folder ID is correct and the script has permission to access it)");
+    throw new Error("Drive Access Error: " + e.message + " (ID: " + folderId + ")");
   }
 }
 

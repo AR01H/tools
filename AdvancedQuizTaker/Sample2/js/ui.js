@@ -71,6 +71,19 @@ const UI = (() => {
     }
   }
 
+  // ── Speech ────────────────────────────────────────────────
+  function speak(text) {
+    if (!window.speechSynthesis) {
+      toast("Speech not supported in this browser", "warn");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+
   // ── Page navigation ───────────────────────────────────────
   function navigate(page, data) {
     State.set("page", page);
@@ -325,6 +338,14 @@ const UI = (() => {
     setTimeout(() => location.reload(), 1000);
   }
 
+  function updateGroupLabel() {
+    const label = document.getElementById('active-group-label');
+    if (!label) return;
+    const activeId = State.get('folderId');
+    const activeGroup = ENV.folders.find(f => f.id === activeId) || ENV.folders[0];
+    if (activeGroup) label.textContent = activeGroup.name;
+  }
+
   // Global click management
   document.addEventListener('click', () => {
     document.getElementById('group-dropdown-menu')?.classList.add('hidden');
@@ -354,6 +375,8 @@ const UI = (() => {
     populateGroupSelect,
     changeGroup,
     toggleGroupMenu,
-    toggleNavMenu
+    toggleNavMenu,
+    updateGroupLabel,
+    speak
   };
 })();

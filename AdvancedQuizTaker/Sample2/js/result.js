@@ -6,19 +6,30 @@
 // ── Scoring Engine ────────────────────────────────────────
 const Results = (() => {
   function getChoices(q) {
+    // Hyper-inclusive regex for choices/options (Choice 1, Option 2, Option: A, etc.)
     return Object.keys(q)
-      .filter((k) => /^(choice|option)\s*\d+$/i.test(k))
+      .filter((k) => /^(choice|option|alt)\s*[:\-_]?\s*[a-z0-9]+$/i.test(k.trim()))
       .sort((a, b) => {
-        const na = parseInt(a.match(/\d+/)[0]) || 0;
-        const nb = parseInt(b.match(/\d+/)[0]) || 0;
-        return na - nb;
+        const na = (a.match(/\d+/) || [0])[0];
+        const nb = (b.match(/\d+/) || [0])[0];
+        if (na !== nb) return parseInt(na) - parseInt(nb);
+        return a.localeCompare(b);
       })
       .map((k) => q[k])
       .filter(Boolean);
   }
+
+  function getInsight(q) {
+    const keys = ["Explanation", "Solution", "Insight", "Rationale", "Feedback"];
+    for (let k of Object.keys(q)) {
+      if (keys.some(v => v.toLowerCase() === k.toLowerCase())) return q[k];
+    }
+    return null;
+  }
   function isCorrect(q, userAnswer) {
     if (!userAnswer && userAnswer !== 0) return false;
-    const correct = (q["Correct Answer"] || "").split("|").map((s) => s.trim());
+    const correctVal = getCorrectAnswer(q);
+    const correct = (correctVal || "").split("|").map((s) => s.trim());
     const type = (q["Question Type"] || "").trim();
 
     if (type === "Sequence") {
@@ -97,6 +108,14 @@ const Results = (() => {
     return correct.includes((ua || "").trim());
   }
 
+  function getCorrectAnswer(q) {
+    const keys = ["Correct Answer", "Correct Key", "Answer", "True Answer", "Solution Key"];
+    for (let k of Object.keys(q)) {
+      if (keys.some(v => v.toLowerCase() === k.toLowerCase())) return q[k];
+    }
+    return q["Correct Answer"] || "";
+  }
+
   function getQuestionScore(q, userAnswer, cfg) {
     const baseScore = parseFloat(q.Score || 1);
     const negScore = parseFloat(q["Negative Score"] || 0);
@@ -173,7 +192,7 @@ const Results = (() => {
     };
   }
 
-  return { isCorrect, getQuestionScore, calculateScore, getChoices };
+  return { isCorrect, getQuestionScore, calculateScore, getChoices, getInsight, getCorrectAnswer };
 })();
 
 // ============================================================
@@ -284,7 +303,7 @@ const PageResult = (() => {
 
         <!-- ── TABS NAVIGATION ── -->
         <div class="dash-nav-with-actions">
-           <div class="dash-tabs" id="result-tabs">
+          <div class="dash-tabs" id="result-tabs">
              ${["overview", "questions", "category", "difficulty", "answer-key", "adaptive"]
                .map(
                  (t, i) => `
@@ -294,17 +313,17 @@ const PageResult = (() => {
                  ${
                    [
                      "📊 Overview",
-                     "📝 Detailed Review",
+                     "📝 Review",
                      "📁 Categories",
                      "⚡ Difficulty",
                      "🔑 Key",
-                     "🧠 Adaptive Analysis"
+                     "🧠 Adaptive"
                    ][i]
                  }
                </button>`
                )
                .join("")}
-           </div>
+          </div>
            <div class="dash-actions">
               <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadPDF()">📥 PDF</button>
               <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadCSV()">📊 CSV</button>
@@ -892,52 +911,30 @@ const PageResult = (() => {
   function renderCategory(result) {
     const cats = result.score.categoryMap;
     return `
-      <div>
-        <div style="margin-bottom:var(--sp-xl);padding:var(--sp-lg);background:var(--bg-elevated);border-radius:var(--radius-lg)">
-          <h4 style="margin-bottom:20px;color:var(--text-secondary);font-size:0.95rem">Category Accuracy</h4>
-          <div style="display:flex;flex-direction:column;gap:16px">
-            ${Object.entries(cats)
-              .map(([cat, d]) => {
+      <div class="animate-up">
+        <div class="dash-metrics-grid" style="grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; margin-bottom:32px">
+            ${Object.entries(cats).map(([cat, d]) => {
                 const pct = d.max ? Math.round((d.score / d.max) * 100) : 0;
+                const state = pct > 80 ? 'success' : pct > 50 ? 'warn' : 'err';
                 return `
-              <div style="display:flex;align-items:center;gap:var(--sp-md)">
-                <div style="width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.85rem;font-weight:600" title="${cat}">${cat}</div>
-                <div style="flex:1;height:24px;background:var(--border-color);border-radius:4px;position:relative;overflow:hidden">
-                  <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:var(--accent-primary);border-radius:4px"></div>
-                </div>
-                <div style="width:40px;text-align:right;font-size:0.85rem;font-weight:bold">${pct}%</div>
-              </div>`;
-              })
-              .join("")}
-          </div>
+                <div class="report-stat-card" style="padding:20px; border-radius:16px; border-left:4px solid var(--color-${state})">
+                   <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px">
+                      <div>
+                         <div class="text-xs font-bold text-muted uppercase tracking-widest" style="margin-bottom:4px">Domain</div>
+                         <div style="font-size:1.1rem; font-weight:800; color:var(--text-primary)">${cat}</div>
+                      </div>
+                      <div style="font-size:1.4rem; font-weight:900; color:var(--color-${state})">${pct}%</div>
+                   </div>
+                   <div class="progress-bar" style="height:6px; background:var(--border-color); margin-bottom:12px">
+                      <div class="progress-fill" style="width:${pct}%; background:var(--color-${state})"></div>
+                   </div>
+                   <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700">
+                      <span class="text-muted">${d.correct} / ${d.total} Items</span>
+                      <span style="color:var(--color-${state})">${d.score.toFixed(1)} Pts</span>
+                   </div>
+                </div>`;
+            }).join("")}
         </div>
-        <table class="data-table">
-          <thead><tr><th>Category</th><th>Correct</th><th>Total</th><th>Score</th><th>Max</th><th>%</th></tr></thead>
-          <tbody>
-            ${Object.entries(cats)
-              .map(
-                ([cat, d]) => `
-              <tr>
-                <td><strong>${cat}</strong></td>
-                <td><span class="badge badge-success">${d.correct}</span></td>
-                <td>${d.total}</td>
-                <td>${d.score.toFixed(1)}</td>
-                <td>${d.max.toFixed(1)}</td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div class="progress-bar" style="width:80px;height:6px">
-                      <div class="progress-fill" style="width:${
-                        d.max ? Math.round((d.score / d.max) * 100) : 0
-                      }%"></div>
-                    </div>
-                    ${d.max ? Math.round((d.score / d.max) * 100) : 0}%
-                  </div>
-                </td>
-              </tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
       </div>`;
   }
 
@@ -945,52 +942,27 @@ const PageResult = (() => {
   function renderDifficulty(result) {
     const diffs = result.score.difficultyMap;
     const colors = {
-      easy: "var(--color-success)",
-      medium: "var(--color-warn)",
-      hard: "var(--color-error)",
+      easy: "#10b981",
+      medium: "#f59e0b",
+      hard: "#ef4444",
       unknown: "var(--text-muted)",
     };
     return `
-      <div>
-        <div style="margin-bottom:var(--sp-xl);padding:var(--sp-lg);background:var(--bg-elevated);border-radius:var(--radius-lg)">
-          <h4 style="margin-bottom:20px;color:var(--text-secondary);font-size:0.95rem">Difficulty Accuracy</h4>
-          <div style="display:flex;flex-direction:column;gap:16px">
-            ${Object.entries(diffs)
-              .map(([d, v]) => {
-                const col = colors[d.toLowerCase()] || colors.unknown;
-                const pct = v.total
-                  ? Math.round((v.correct / v.total) * 100)
-                  : 0;
-                return `
-              <div style="display:flex;align-items:center;gap:var(--sp-md)">
-                <div style="width:100px;text-transform:capitalize;font-size:0.85rem;color:${col};font-weight:600">${d}</div>
-                <div style="flex:1;height:20px;background:var(--border-color);border-radius:10px;position:relative;overflow:hidden">
-                  <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${col};border-radius:10px"></div>
-                </div>
-                <div style="width:40px;text-align:right;font-size:0.85rem;font-weight:bold">${pct}%</div>
-              </div>`;
-              })
-              .join("")}
-          </div>
-        </div>
-        <div class="grid-3">
-          ${Object.entries(diffs)
-            .map(
-              ([d, v]) => `
-            <div class="report-stat-card">
-              <div class="report-stat-num" style="color:${
-                colors[d] || "var(--accent-primary)"
-              }">
-                ${v.total ? Math.round((v.correct / v.total) * 100) : 0}%
-              </div>
-              <div class="report-stat-label">${d} Accuracy</div>
-              <p class="text-xs text-muted mt-sm">${v.correct}/${
-                v.total
-              } correct</p>
-            </div>`
-            )
-            .join("")}
-        </div>
+      <div class="animate-up" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:20px">
+        ${Object.entries(diffs).map(([d, v]) => {
+          const col = colors[d.toLowerCase()] || colors.unknown;
+          const pct = v.total ? Math.round((v.correct / v.total) * 100) : 0;
+          return `
+          <div class="report-stat-card" style="position:relative; overflow:hidden">
+             <div style="position:absolute; top:0; left:0; width:100%; height:4px; background:${col}"></div>
+             <div class="report-stat-num" style="color:${col}; font-size:2.5rem">${pct}%</div>
+             <div class="report-stat-label" style="text-transform:capitalize; letter-spacing:0.1em">${d} Proficiency</div>
+             <div class="progress-bar" style="height:4px; margin:16px 0; background:rgba(var(--text-primary-rgb), 0.05)">
+                <div class="progress-fill" style="width:${pct}%; background:${col}"></div>
+             </div>
+             <div class="text-xs font-bold text-muted">${v.correct} of ${v.total} Questions Resolved</div>
+          </div>`;
+        }).join("")}
       </div>`;
   }
 
@@ -1073,22 +1045,28 @@ const PageResult = (() => {
               const isSkipped = (ans.userAnswer === undefined || ans.userAnswer === "" || (Array.isArray(ans.userAnswer) && ans.userAnswer.length === 0));
               const timeClass = ans.timeTaken > 30 ? "slow" : ans.timeTaken < 10 ? "fast" : "avg";
               const status = isSkipped ? "skipped" : (corr ? "correct" : "wrong");
+              const insight = Results.getInsight(q);
 
               return `
               <div class="report-q-card ${status}" data-status="${status}" data-text="${q.Question.toLowerCase()}">
-                <div class="q-card-side">
+                <div class="q-status-side">
                    <div class="q-status-badge">${status.toUpperCase()}</div>
                    <div class="q-time-badge ${timeClass}">${ans.timeTaken || 0}s</div>
                 </div>
-                <div class="q-card-body">
-                   <div class="q-meta">${q.Category || "General"} • ${q.Difficulty || "Medium"} • ${type}</div>
-                   <p class="q-text"><strong>Q${i + 1}.</strong> ${q.Question}</p>
-                   <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
-                   ${(q.Explanation || q.Solution) ? `
-                   <div class="q-explanation">
-                      <p class="label">EXPLANATION</p>
-                      <p class="text">${q.Explanation || q.Solution}</p>
-                   </div>` : ""}
+                <div class="q-main-content">
+                    <div class="q-meta">${q.Category || "General"} • ${q.Difficulty || "Medium"} • ${type}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px">
+                       <p class="q-text" style="font-size:1.1rem; font-weight:700"><strong>Q${i + 1}.</strong> ${q.Question}</p>
+                       <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:-4px">
+                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
+                       </button>
+                    </div>
+                    <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
+                    ${insight ? `
+                    <div class="q-explanation" style="margin-top:16px; padding:16px; background:rgba(var(--accent-primary-rgb),0.05); border-radius:12px; border-left:4px solid var(--accent-primary)">
+                       <p class="label" style="font-size:0.65rem; font-weight:800; color:var(--accent-primary); margin-bottom:4px">LEARNING INSIGHT</p>
+                       <p class="text" style="font-size:0.9rem; line-height:1.5">${insight}</p>
+                    </div>` : ""}
                 </div>
               </div>`;
             })
@@ -1098,120 +1076,169 @@ const PageResult = (() => {
   }
 
   function applyReviewFilters() {
-     const search = (document.getElementById('review-search')?.value || "").toLowerCase();
-     const filter = document.getElementById('review-filter')?.value || "all";
-     const cards = document.querySelectorAll('.report-q-card');
+    const search = (document.getElementById('review-search')?.value || "").toLowerCase();
+    const filter = document.getElementById('review-filter')?.value || "all";
+    const cards = document.querySelectorAll('.report-q-card');
 
-     cards.forEach(card => {
-        const text = card.getAttribute('data-text');
-        const status = card.getAttribute('data-status');
-        
-        let matchSearch = text.includes(search);
-        let matchFilter = filter === "all" || status === filter;
+    let matchCount = 0;
+    cards.forEach(card => {
+       const text = (card.getAttribute('data-text') || "").toLowerCase();
+       const status = card.getAttribute('data-status') || "all";
+       
+       let matchSearch = text.includes(search);
+       let matchFilter = filter === "all" || status === filter;
 
-        card.style.display = (matchSearch && matchFilter) ? "flex" : "none";
-     });
+       const visible = matchSearch && matchFilter;
+       card.style.display = visible ? "block" : "none";
+       if (visible) matchCount++;
+    });
+
+    const countEl = document.getElementById("review-match-count");
+    if (countEl) {
+       countEl.innerText = `${matchCount} matching questions found`;
+       countEl.style.opacity = search ? "1" : "0.5";
+    }
   }
+  
 
   function renderQuestionTypeReview(q, ua, isCorrect) {
-    const type = (q["Question Type"] || "").trim();
+    const type = (q["Question Type"] || "").trim().toLowerCase();
     const correct = (q["Correct Answer"] || "").split("|").map(s => s.trim());
     const choices = Results.getChoices(q);
 
-    if (type === "Multichoice" || type === "Multichoice Anycorrect" || type === "Multi Multichoice" || type === "Select All") {
-      const userAnswers = Array.isArray(ua) ? ua : (ua || "").split(", ").filter(Boolean);
-      return `<div class="review-choice-list">${choices.map(c => {
-        const isUser = userAnswers.includes(c);
-        const isCorr = correct.includes(c);
-        let state = isUser ? (isCorr ? "match-ok" : "match-err") : (isCorr ? "match-missed" : "");
+    // Modern Robust Match
+    if (type.includes("choice") || type.includes("select") || type.includes("true/false")) {
+      let activeChoices = [...choices];
+      if (activeChoices.length === 0 && type.includes("true/false")) activeChoices = ["True", "False"];
+      
+      const userAnswers = Array.isArray(ua) ? ua.map(s => String(s).trim()) : (ua || "").split(", ").map(s => s.trim()).filter(Boolean);
+      return `<div class="review-choice-list">${activeChoices.map(c => {
+        const cTrim = String(c).trim();
+        const isUser = userAnswers.includes(cTrim);
+        const isCorr = correct.includes(cTrim);
+        
+        let state = "";
+        if (isUser && isCorr) state = "match-ok";
+        else if (isUser && !isCorr) state = "match-err";
+        else if (!isUser && isCorr) state = "match-missed";
+
         return `<div class="review-choice-item ${state}">
            <div class="choice-icon">${isUser ? (isCorr ? '✓' : '✕') : (isCorr ? '•' : '○')}</div>
            <div class="choice-text">${c}</div>
-           ${state === "match-ok" ? '<span class="state-label">Your Correct Choice</span>' : ''}
-           ${state === "match-err" ? '<span class="state-label err">Your Incorrect Choice</span>' : ''}
-           ${state === "match-missed" ? '<span class="state-label miss">Missed Correct Choice</span>' : ''}
+           ${state === "match-ok" ? '<span class="state-label">Correct Pick</span>' : ''}
+           ${state === "match-err" ? '<span class="state-label">Your Mistake</span>' : ''}
+           ${state === "match-missed" ? '<span class="state-label">Missed This</span>' : ''}
         </div>`;
       }).join("")}</div>`;
     }
 
-    if (type === "Matching" || type === "Multi Matching") {
-       const userStr = Array.isArray(ua) ? ua.join(" | ") : (ua || "");
-       const userPairs = userStr.split(" | ").map(p => { 
-          const pts = p.split(": "); 
-          if (pts.length < 2) {
-             const pts2 = p.split("-");
-             return { l: pts2[0], r: pts2[1] };
-          }
-          return { l: pts[0], r: pts[1] }; 
-       }).filter(p => p.l);
-
-       const correctChoices = Results.getChoices(q).map(c => { 
-          const pts = c.split("-"); 
-          return { l: pts[0], r: (pts[1]||"").replace(/\|/g, ", ") }; 
-       });
-
+    if (type.includes("sequence")) {
+       const userSeq = Array.isArray(ua) ? ua : (ua || "").split("|").map(s => s.trim());
        return `
          <div class="q-ans-compare">
-            <div class="ans-box user"><span class="label">YOUR MATCHES</span><div class="review-pairs">${userPairs.map(p => `<div>${p.l} → ${p.r}</div>`).join("") || "No matches selected"}</div></div>
-            <div class="ans-box target"><span class="label">EXPECTED PAIRS</span><div class="review-pairs">${correctChoices.map(p => `<div>${p.l} → ${p.r}</div>`).join("")}</div></div>
+            <div class="ans-box user"><span class="label">YOUR ORDER</span>
+               <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px">
+                  ${userSeq.map((s, i) => `<div style="font-size:0.85rem; padding:6px 10px; background:var(--bg-base); border-radius:6px; display:flex; gap:10px; border:1px solid ${s === (correct[i] || '').trim() ? 'var(--color-success)' : 'var(--color-error)'}">
+                    <span style="opacity:0.5; font-weight:800">${i+1}</span>
+                    <span>${s}</span>
+                    <span style="margin-left:auto">${s === (correct[i] || '').trim() ? '✓' : '✕'}</span>
+                  </div>`).join("")}
+               </div>
+            </div>
+            <div class="ans-box target"><span class="label">CORRECT ORDER</span>
+               <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px">
+                  ${correct.map((s, i) => `<div style="font-size:0.85rem; padding:6px 10px; background:var(--bg-base); border-radius:6px; display:flex; gap:10px; border:1px solid var(--color-success)">
+                    <span style="opacity:0.5; font-weight:800">${i+1}</span>
+                    <span>${s}</span>
+                  </div>`).join("")}
+               </div>
+            </div>
          </div>
        `;
     }
 
+    if (type.includes("multi matching")) {
+        let uaMap = {};
+        try { uaMap = typeof ua === 'string' ? JSON.parse(ua) : (ua || {}); } catch(e){}
+        const choices = Results.getChoices(q);
+        
+        const renderMapping = (mapObj) => {
+            if (!mapObj || Object.keys(mapObj).length === 0) return `<div class="review-pairs"><div class="review-pair-item" style="opacity:0.5; font-style:italic">No mapping data captured</div></div>`;
+            return `<div class="review-pairs">${Object.entries(mapObj).map(([key, vals]) => `
+               <div class="review-pair-item"><strong>${key}</strong> <span>${Array.isArray(vals) ? vals.join(", ") : vals}</span></div>`).join("")}</div>`;
+        };
+
+        const targetMap = {};
+        const correctVal = Results.getCorrectAnswer(q) || "";
+        
+        // Strategy 1: Check if Choice fields are used for mapping
+        if (choices.length > 0 && choices.some(c => c.includes("-") || c.includes(":"))) {
+            choices.forEach(c => { const pts = c.split(/[:\-]/); targetMap[pts[0].trim()] = (pts[1]||"").replace(/\|/g, ", ").trim(); });
+        } 
+        // Strategy 2: Parse robust correct answer string
+        else if (correctVal.includes("|") || correctVal.includes(":")) {
+            correctVal.split("|").forEach(p => { const pts = p.split(/[:\-]/); if(pts.length >= 2) targetMap[pts[0].trim()] = pts[1].trim(); });
+        }
+
+        return `<div class="q-ans-compare">
+            <div class="ans-box user"><span class="label">YOUR SELECTIONS</span>${renderMapping(uaMap)}</div>
+            <div class="ans-box target"><span class="label">EXPECTED MAPPING</span>${renderMapping(targetMap)}</div>
+        </div>`;
+    }
+
+    if (type.includes("match")) {
+       const userStr = Array.isArray(ua) ? ua.join(" | ") : (ua || "");
+       const correctVal = Results.getCorrectAnswer(q);
+       const parse = (str) => {
+          if (!str) return [];
+          return str.split("|").map(p => { 
+             const pts = p.split(/[:\-\u2192]/); 
+             return pts.length >= 2 ? { l: pts[0].trim(), r: pts[1].trim() } : null;
+          }).filter(Boolean);
+       };
+       const userPairs = parse(userStr);
+       const targetPairs = parse(correctVal);
+
+       const renderList = (pairs) => {
+           if (pairs.length === 0) return `<div class="review-pairs"><div class="review-pair-item" style="opacity:0.5; font-style:italic">No pairs documented</div></div>`;
+           return `<div class="review-pairs">${pairs.map(p => `<div class="review-pair-item"><span>${p.l}</span> <span style="opacity:0.5">→</span> <span>${p.r}</span></div>`).join("")}</div>`;
+       };
+
+       return `<div class="q-ans-compare">
+          <div class="ans-box user"><span class="label">YOUR MATCHES</span>${renderList(userPairs)}</div>
+          <div class="ans-box target"><span class="label">EXPECTED PAIRS</span>${renderList(targetPairs)}</div>
+       </div>`;
+    }
+
+    if (type.includes("drag & drop") || type.includes("categorization")) {
+        const userStr = Array.isArray(ua) ? ua.join("|") : (ua || "");
+        const parseDrag = (str) => {
+            if (!str) return [];
+            return str.split("|").map(p => {
+                const pts = p.split(/[:\-\u2192]/);
+                return pts.length >= 2 ? { item: pts[0].trim(), cat: pts[1].trim() } : null;
+            }).filter(Boolean);
+        };
+        const userParts = parseDrag(userStr);
+        const targetParts = parseDrag((q["Correct Answer"] || ""));
+
+        const renderDragList = (parts) => `<div class="review-pairs">${parts.map(p => `<div class="review-pair-item"><span>${p.item}</span> <span style="font-size:0.75rem; color:var(--accent-primary); font-weight:800">IN</span> <span>${p.cat}</span></div>`).join("")}</div>`;
+
+        return `<div class="q-ans-compare">
+            <div class="ans-box user"><span class="label">YOUR PLACEMENT</span>${renderDragList(userParts)}</div>
+            <div class="ans-box target"><span class="label">CORRECT PLACEMENT</span>${renderDragList(targetParts)}</div>
+        </div>`;
+    }
+
     return `
       <div class="q-ans-compare">
-         <div class="ans-box user"><span class="label">YOUR ANSWER</span><span class="val">${ua || "—"}</span></div>
-         <div class="ans-box target"><span class="label">CORRECT KEY</span><span class="val">${correct.join(" | ")}</span></div>
+         <div class="ans-box user"><span class="label">YOUR ANSWER</span><span class="val" style="font-size:1.1rem; font-weight:800; color:var(--text-primary)">${Array.isArray(ua) ? ua.join(" | ") : (ua || "—")}</span></div>
+         <div class="ans-box target"><span class="label">CORRECT KEY</span><span class="val" style="font-size:1.1rem; font-weight:800; color:var(--color-success)">${correct.join(" | ")}</span></div>
       </div>
     `;
   }
 
 
-
-  // ── ANSWER KEY TAB ────────────────────────────────────────
-  function renderAnswerKey(result) {
-    const { quiz } = result;
-    return `
-      <div class="ans-key-container">
-        <table class="data-table ans-key-table">
-          <thead>
-            <tr>
-              <th style="width:50px">#</th>
-              <th>Question</th>
-              <th>Correct Answer</th>
-              <th>Your Selection</th>
-              <th style="width:100px">Verdict</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${quiz.questions.map((q, i) => {
-              const ans = quiz.answers[i] || {};
-              const corr = Results.isCorrect(q, ans.userAnswer);
-              const type = (q["Question Type"] || "").trim();
-              const isMultiMatch = type === "Multi Matching" || type === "Matching";
-              
-              let ua = "";
-              if (isMultiMatch && ans.userAnswer) {
-                ua = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(" | ") : (ans.userAnswer || "—");
-              } else {
-                ua = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : (ans.userAnswer || "—");
-              }
-
-              const correctKey = Results.getChoices(q).join(" | ") || q["Correct Answer"];
-
-              return `
-              <tr>
-                <td class="font-bold">${i + 1}</td>
-                <td><div class="key-q-text">${q.Question}</div></td>
-                <td><div class="key-val success">${correctKey}</div></td>
-                <td><div class="key-val ${corr ? 'success' : 'error'}">${ua}</div></td>
-                <td><span class="badge ${corr ? 'badge-success' : 'badge-danger'}">${corr ? 'PASSED' : 'FAILED'}</span></td>
-              </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>`;
-  }
 
   function downloadCSV() {
     const result = State.get("result");
@@ -1258,13 +1285,13 @@ const PageResult = (() => {
           ? Results.getChoices(q)
               .map((c) => {
                 if (isMultiMatch) {
-                  const pts = c.split("-");
+                  const pts = c.split(/[:\-]/);
                   return `${pts[0]}: ${pts[1] ? pts[1].replace(/\|/g, ", ") : ""}`;
                 }
                 return c;
               })
               .join(" | ")
-          : q["Correct Answer"] || ""
+          : Results.getCorrectAnswer(q)
       ).replace(/"/g, '""');
 
       csv += `${i + 1},"${q.Question.replace(/"/g, '""')}","${
@@ -1412,61 +1439,56 @@ const PageResult = (() => {
               .join("")}
         </div>
 
-        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; page-break-before: always;">Official Itemized Data Transcript</h3>
-        <table style="width:100%; border-collapse: collapse; font-size: 12px; page-break-inside: auto;">
-          <thead>
-             <tr style="background: #0f172a; color: #fff;">
-               <th style="padding: 12px 10px; text-align: left; border-top-left-radius:8px;">#</th>
-               <th style="padding: 12px 10px; text-align: left; width:45%;">Prompt/Question</th>
-               <th style="padding: 12px 10px; text-align: left;">Domain</th>
-               <th style="padding: 12px 10px; text-align: center;">Pacing</th>
-               <th style="padding: 12px 10px; text-align: left;">Candidate Input</th>
-               <th style="padding: 12px 10px; text-align: center; border-top-right-radius:8px;">Status</th>
-             </tr>
-          </thead>
-          <tbody>
-             ${quiz.questions.map((q, i) => {
-                 const ans = quiz.answers[i] || {};
-                 const corr = Results.isCorrect(q, ans.userAnswer);
-                 const time = items[i] ? items[i].timeTaken : (ans.timeTaken || 0);
-                 const type = (q["Question Type"] || "").trim();
-                 const isDrag = type === "Drag & Drop";
-                 const isMultiMatch = type === "Multi Matching";
+         <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; page-break-before: always; padding-top: 15mm;">Official Itemized Data Transcript</h3>
+         <table style="width:100%; border-collapse: collapse; font-size: 11px; page-break-inside: auto;">
+           <thead>
+              <tr style="background: #0f172a; color: #fff;">
+                <th style="padding: 12px 10px; text-align: left; border-top-left-radius:8px;">#</th>
+                <th style="padding: 12px 10px; text-align: left; width:35%;">Prompt/Question Details</th>
+                <th style="padding: 12px 10px; text-align: left;">Options / Targets</th>
+                <th style="padding: 12px 10px; text-align: left;">Domain</th>
+                <th style="padding: 12px 10px; text-align: center;">Pacing</th>
+                <th style="padding: 12px 10px; text-align: left;">Input</th>
+                <th style="padding: 12px 10px; text-align: center; border-top-right-radius:8px;">Status</th>
+              </tr>
+           </thead>
+           <tbody>
+              ${quiz.questions.map((q, i) => {
+                  const ans = quiz.answers[i] || {};
+                  const corr = Results.isCorrect(q, ans.userAnswer);
+                  const time = (ans.timeTaken || 0);
+                  const type = (q["Question Type"] || "").trim().toLowerCase();
+                  const choices = Results.getChoices(q);
+                  const correctVal = Results.getCorrectAnswer(q);
 
-                 let uaStr = "";
-                 if (isMultiMatch && ans.userAnswer) {
-                   try {
-                     const map = JSON.parse(ans.userAnswer);
-                     uaStr = Object.entries(map).map(([k, v]) => `${k}: ${v.join(", ")}`).join("; ");
-                   } catch(e) { uaStr = ans.userAnswer; }
-                 } else {
-                   uaStr = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : ans.userAnswer || "—";
-                 }
+                  let optsHtml = "";
+                  if (type.includes("choice") || type.includes("select")) {
+                     optsHtml = choices.map(c => `• ${c}`).join("<br>");
+                  } else if (type.includes("match") || type.includes("drag")) {
+                     optsHtml = choices.map(c => `• ${c.replace(/\|/g, " / ")}`).join("<br>");
+                  } else {
+                     optsHtml = "N/A (Open-ended)";
+                  }
 
-                 const correctKey = isDrag || isMultiMatch ? Results.getChoices(q).map((c) => {
-                   if (isMultiMatch) {
-                     const pts = c.split("-");
-                     return `${pts[0]}: ${pts[1] ? pts[1].replace(/\|/g, ", ") : ""}`;
-                   }
-                   return c;
-                 }).join(" | ") : q["Correct Answer"];
+                  let uaStr = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : (ans.userAnswer || "—");
 
-                 return `
-                   <tr style="border-bottom: 1px solid #e2e8f0; page-break-inside: avoid; background: ${i%2===0 ? '#fff' : '#f8fafc'}">
-                      <td style="padding: 12px 10px; vertical-align: top; font-weight:800;">${i+1}</td>
-                      <td style="padding: 12px 10px; vertical-align: top;">
-                         <div style="font-weight:700; margin-bottom:8px; line-height:1.4;">${q.Question}</div>
-                         <div style="font-size:10px; color:#10b981; font-weight:600; padding:4px 6px; background:rgba(16,185,129,0.1); border-radius:4px; display:inline-block;">KEY: ${correctKey}</div>
-                      </td>
-                      <td style="padding: 12px 10px; vertical-align: top; font-size:10px; color:#64748b; font-weight:600;">${q.Category || "-"}</td>
-                      <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-family:monospace;">${time}s</td>
-                      <td style="padding: 12px 10px; vertical-align: top; font-weight:600; color: ${corr ? '#0f172a': '#ef4444'}">${uaStr}</td>
-                      <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-weight:800; color: ${corr ? '#10b981': '#ef4444'}">${corr ? 'PASS' : 'FAIL'}</td>
-                   </tr>
-                 `;
-             }).join("")}
-          </tbody>
-        </table>
+                  return `
+                    <tr style="border-bottom: 1px solid #e2e8f0; page-break-inside: avoid; background: ${i%2===0 ? '#fff' : '#f8fafc'}">
+                       <td style="padding: 12px 10px; vertical-align: top; font-weight:800;">${i+1}</td>
+                       <td style="padding: 12px 10px; vertical-align: top;">
+                          <div style="font-weight:700; margin-bottom:8px; line-height:1.4;">${q.Question}</div>
+                          <div style="font-size:9px; color:#10b981; font-weight:800; padding:4px 8px; background:rgba(16,185,129,0.1); border-radius:4px;">KEY: ${correctVal}</div>
+                       </td>
+                       <td style="padding: 12px 10px; vertical-align: top; font-size:9px; color:#64748b; font-style:italic;">${optsHtml}</td>
+                       <td style="padding: 12px 10px; vertical-align: top; font-size:10px; color:#64748b; font-weight:600;">${q.Category || "-"}</td>
+                       <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-family:monospace;">${time}s</td>
+                       <td style="padding: 12px 10px; vertical-align: top; font-weight:600; color: ${corr ? '#0f172a': '#ef4444'}">${uaStr}</td>
+                       <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-weight:800; color: ${corr ? '#10b981': '#ef4444'}">${corr ? 'PASS' : 'FAIL'}</td>
+                    </tr>
+                  `;
+              }).join("")}
+           </tbody>
+         </table>
       </div>
     `;
 
@@ -1732,7 +1754,7 @@ const PageResult = (() => {
     openPrintReport,
     shareResult,
     retakeQuiz,
-    applyReviewFilters,
+    applyReviewFilters
   };
 })();
 
