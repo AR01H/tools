@@ -398,8 +398,6 @@ ol {
 
 select.form-control {
   cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 14px;
@@ -1540,7 +1538,7 @@ select.form-control {
   padding: 6px 12px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs);
   color: var(--text-primary);
   font-size: 0.8rem;
   font-weight: 700;
@@ -2187,3 +2185,71 @@ select.form-control {
 .key-val { display: inline-block; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; }
 .key-val.success { background: rgba(16, 185, 129, 0.15); color: var(--color-success); }
 .key-val.error { background: rgba(239, 68, 68, 0.15); color: var(--color-error); }
+/* -- Global Mobile Responsive Refinements -- */
+@media (max-width: 768px) {
+  :root {
+    --sp-xl: 16px;
+    --sp-2xl: 24px;
+    --radius-lg: 12px;
+  }
+
+  #topbar {
+    padding: 0 12px;
+    height: 48px;
+    justify-content: space-between !important;
+  }
+  .topbar-nav { display: none !important; }
+  .logo span { display: none !important; }
+  .logo-mark { width: 32px; height: 32px; font-size: 0.9rem; }
+  
+  .group-switcher-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    max-width: 160px;
+    margin: 0 auto;
+  }
+  .group-switcher-btn {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .setup-container {
+    padding: 16px !important;
+    max-width: 100% !important;
+  }
+  
+  .dash-hero {
+    padding: 24px 16px !important;
+    flex-direction: column !important;
+    text-align: center;
+  }
+  .dash-title { font-size: 1.8rem !important; }
+  
+  .steps-nav {
+    gap: 4px;
+    margin-bottom: 20px;
+    justify-content: center;
+  }
+  .step-label { display: none !important; }
+  .step-item.active .step-label { display: block !important; font-size: 0.65rem; }
+
+  .p-xl { padding: 16px !important; }
+  .p-lg { padding: 12px !important; }
+}
+
+@media (max-width: 480px) {
+  .welcome-main-title { font-size: 2rem !important; }
+  .identity-glass-card { padding: 20px !important; }
+  .btn-launch-primary { font-size: 0.95rem !important; padding: 14px !important; }
+}

@@ -578,7 +578,7 @@ const PageResult = (() => {
     const pace = score.timeTaken / (result.quiz.questions.length || 1);
     
     return `
-      <div class="dash-metrics-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+      <div class="dash-metrics-grid">
         <div class="metric-card">
           <span class="m-label">Knowledge Accuracy</span>
           <div class="m-value text-success">${score.accuracy}%</div>
@@ -912,7 +912,7 @@ const PageResult = (() => {
     const cats = result.score.categoryMap;
     return `
       <div class="animate-up">
-        <div class="dash-metrics-grid" style="grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; margin-bottom:32px">
+        <div class="dash-metrics-grid">
             ${Object.entries(cats).map(([cat, d]) => {
                 const pct = d.max ? Math.round((d.score / d.max) * 100) : 0;
                 const state = pct > 80 ? 'success' : pct > 50 ? 'warn' : 'err';
@@ -1081,6 +1081,48 @@ const PageResult = (() => {
               }
             })
             .join("")}
+        </div>
+      </div>`;
+  }
+
+  function renderAnswerKey(result) {
+    const { quiz } = result;
+    return `
+      <div class="dash-report-card">
+        <div style="margin-bottom:24px">
+           <h2 style="font-size:1.6rem; font-weight:900; margin:0">Quick Answer Reference</h2>
+           <p class="text-xs text-muted">A high-density map of your responses vs the baseline</p>
+        </div>
+        <div style="border:1px solid var(--border-color); border-radius:12px; overflow:hidden">
+          <div class="answer-row" style="background:var(--bg-elevated); font-weight:800; border-bottom:2px solid var(--border-color); color:var(--text-muted); text-transform:uppercase; font-size:0.65rem; letter-spacing:0.05em">
+            <div class="q-num">ID</div>
+            <div>Question Trace</div>
+            <div>Your Status</div>
+            <div>Target / Key</div>
+            <div style="text-align:right">Latency</div>
+          </div>
+          ${quiz.questions.map((q, i) => {
+            const ans = quiz.answers[i] || {};
+            const corr = Results.isCorrect(q, ans.userAnswer);
+            const isSkipped = (ans.userAnswer === undefined || ans.userAnswer === "" || (Array.isArray(ans.userAnswer) && ans.userAnswer.length === 0));
+            const status = isSkipped ? "Skipped" : (corr ? "Correct" : "Wrong");
+            const statusColor = isSkipped ? "var(--text-muted)" : (corr ? "var(--color-success)" : "var(--color-error)");
+            
+            return `
+              <div class="answer-row">
+                <div class="q-num">${i + 1}</div>
+                <div class="text-xs" style="font-weight:600; color:var(--text-primary)">
+                  ${q.Question.substring(0, 100)}${q.Question.length > 100 ? '...' : ''}
+                </div>
+                <div style="color:${statusColor}; font-weight:800; font-size:0.75rem">
+                  ${status.toUpperCase()}
+                </div>
+                <div class="font-mono text-xs" style="color:var(--accent-primary); font-weight:700">
+                  ${Results.getCorrectAnswer(q)}
+                </div>
+                <div class="font-mono text-xs" style="text-align:right; font-weight:700">${ans.timeTaken || 0}s</div>
+              </div>`;
+          }).join("")}
         </div>
       </div>`;
   }

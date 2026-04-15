@@ -171,31 +171,29 @@ const QuestionRenderer = (() => {
   // ── MCQ ───────────────────────────────────────────────────
   function renderMCQ(choices, saved, multi) {
     const savedArr = saved ? (Array.isArray(saved) ? saved : [saved]) : [];
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    const correctArr = (_currentQ["Correct Answer"] || "").split("|").map(s => s.trim());
+
     return `
       <div id="mcq-options" style="display:flex;flex-direction:column;gap:var(--sp-sm)">
         ${choices
           .map((c, i) => {
-            const labels = ["A", "B", "C", "D"];
+            const labels = ["A", "B", "C", "D", "E", "F"];
             const isSel = savedArr.includes(c);
-            const quiz = State.get("quiz");
-            const cfg = quiz.config;
-            const showInstant = (cfg["Instant Answer"] || "Off") === "On";
-            const correctArr = (
-              quiz.questions[_currentIdx]["Correct Answer"] || ""
-            ).split("|");
             const isCorrect = correctArr.includes(c);
+            
             let extraClass = isSel ? "selected" : "";
-            if (showInstant && isSel)
-              extraClass = isCorrect ? "correct" : "wrong";
+            if (showInstant && isSel) {
+              extraClass += (isCorrect ? " correct" : " wrong");
+            }
+
             return `
             <div class="option-card ${extraClass}" data-val="${c}" onclick="QuestionRenderer.toggleMCQ(this,'${multi}')">
-              <div class="option-label">${labels[i]}</div>
+              <div class="option-label">${labels[i] || "?"}</div>
               <div style="flex:1;line-height:1.5">${c}</div>
-              ${
-                showInstant && isSel
-                  ? `<span>${isCorrect ? "✓" : "✕"}</span>`
-                  : ""
-              }
+              ${showInstant && isSel ? `<span class="instant-feedback">${isCorrect ? "✓" : "✕"}</span>` : ""}
             </div>`;
           })
           .join("")}
@@ -204,17 +202,29 @@ const QuestionRenderer = (() => {
 
   // ── True / False ──────────────────────────────────────────
   function renderTrueFalse(saved) {
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    const correct = (_currentQ["Correct Answer"] || "").trim().toUpperCase();
+
     return `
       <div style="display:flex;gap:var(--sp-md)">
         ${["TRUE", "FALSE"]
           .map(
-            (v) => `
-          <div class="option-card ${
-            saved === v ? "selected" : ""
-          }" style="flex:1;justify-content:center;font-size:1.1rem;font-weight:700"
-               data-val="${v}" onclick="QuestionRenderer.toggleMCQ(this,'false')">
-            ${v === "TRUE" ? "✓ TRUE" : "✕ FALSE"}
-          </div>`
+            (v) => {
+              const isSel = saved === v;
+              const isCorrect = correct === v;
+              let extraClass = isSel ? "selected" : "";
+              if (showInstant && isSel) {
+                extraClass += (isCorrect ? " correct" : " wrong");
+              }
+
+              return `
+              <div class="option-card ${extraClass}" style="flex:1;justify-content:center;font-size:1.1rem;font-weight:700"
+                   data-val="${v}" onclick="QuestionRenderer.toggleMCQ(this,'false')">
+                ${isCorrect && showInstant && isSel ? '✓ ' : (!isCorrect && showInstant && isSel ? '✕ ' : '')}${v}
+              </div>`;
+            }
           )
           .join("")}
       </div>`;
@@ -244,12 +254,21 @@ const QuestionRenderer = (() => {
 
   // ── Fill in Blanks ────────────────────────────────────────
   function renderFillBlanks(q, saved) {
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    const correct = (q["Correct Answer"] || "").toLowerCase().trim();
+    const isMatched = saved && String(saved).toLowerCase().trim() === correct;
+
     return `
       <div class="form-group">
         <label class="form-label">Your Answer</label>
-        <input id="fill-ans" class="form-control" type="text" placeholder="Type answer…" value="${
-          saved || ""
-        }">
+        <div style="position:relative">
+          <input id="fill-ans" class="form-control ${showInstant && saved ? (isMatched ? 'correct' : 'wrong') : ''}" 
+                 type="text" placeholder="Type answer…" value="${saved || ""}" 
+                 onblur="QuestionRenderer.handleFillInstant(this)">
+          ${showInstant && saved ? `<span class="instant-feedback-icon" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-weight:900; color:var(--color-${isMatched ? 'success' : 'error'})">${isMatched ? '✓' : '✕'}</span>` : ''}
+        </div>
       </div>`;
   }
 
@@ -284,24 +303,40 @@ const QuestionRenderer = (() => {
     const savedMap = saved
       ? Object.fromEntries(saved.split("|").map((p) => p.split("-")))
       : {};
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    const correctMap = Object.fromEntries(correctStr.split("|").map(p => p.split(/[:\-\u2192]/).map(s => s.trim())));
+
     return `
-      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:var(--sp-sm);align-items:center">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:var(--sp-sm);align-items:center" id="matching-grid">
         ${lefts
           .map(
-            (l, i) => `
-          <div style="background:var(--bg-elevated);padding:10px var(--sp-md);border-radius:var(--radius-sm);font-weight:600">${l}</div>
-          <span style="color:var(--accent-primary)">→</span>
-          <select class="form-control match-select" data-left="${l}">
-            <option value="">— Select —</option>
-            ${shuffled
-              .map(
-                (r) =>
-                  `<option value="${r}" ${
-                    savedMap[l] === r ? "selected" : ""
-                  }>${r}</option>`
-              )
-              .join("")}
-          </select>`
+            (l, i) => {
+              const val = savedMap[l] || "";
+              const isCorrectFlag = val && correctMap[l] === val;
+              let extraStyle = "";
+              if (showInstant && val) {
+                extraStyle = isCorrectFlag ? "border:2px solid var(--color-success); background:rgba(34,197,94,0.1)" : "border:2px solid var(--color-error); background:rgba(239,68,68,0.1)";
+              }
+
+              return `
+              <div style="background:var(--bg-elevated);padding:10px var(--sp-md);border-radius:var(--radius-sm);font-weight:600; ${extraStyle}">${l}</div>
+              <span style="color:var(--accent-primary)">→</span>
+              <select class="form-control match-select" data-left="${l}" 
+                onchange="QuestionRenderer.handleMatchingChange(this)"
+                style="${extraStyle}">
+                <option value="">— Select —</option>
+                ${shuffled
+                  .map(
+                    (r) =>
+                      `<option value="${r}" ${
+                        val === r ? "selected" : ""
+                      }>${r}</option>`
+                  )
+                  .join("")}
+              </select>`;
+            }
           )
           .join("")}
       </div>`;
@@ -316,7 +351,23 @@ const QuestionRenderer = (() => {
       return { left: parts[0], tags: tags };
     });
     const allTags = [...new Set(rows.flatMap((r) => r.tags))].filter(Boolean);
-    const savedMap = saved ? JSON.parse(saved || "{}") : {};
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    // Build target map for instant checking
+    const targetMap = {};
+    correctStr.split("|").forEach(p => {
+       const pts = p.split(/[:\-\u2192]/);
+       if(pts.length >= 2) {
+          const l = pts[0].trim();
+          const r = pts[1].trim();
+          if(!targetMap[l]) targetMap[l] = [];
+          targetMap[l].push(r);
+       }
+    });
+
+    const savedMap = saved ? (typeof saved === 'string' ? JSON.parse(saved) : saved) : {};
+
     return `
       <div style="overflow-x:auto">
         <table class="data-table">
@@ -331,13 +382,20 @@ const QuestionRenderer = (() => {
                 <td><strong>${r.left}</strong></td>
                 ${allTags
                   .map(
-                    (t) => `
-                  <td style="text-align:center">
-                    <input type="checkbox" class="multi-match-cb" data-left="${
-                      r.left
-                    }" data-tag="${t}"
-                      ${(savedMap[r.left] || []).includes(t) ? "checked" : ""}>
-                  </td>`
+                    (t) => {
+                      const isSel = (savedMap[r.left] || []).includes(t);
+                      const isCorr = (targetMap[r.left] || []).includes(t);
+                      let style = "";
+                      if(showInstant && isSel) {
+                         style = `background:${isCorr ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'}`;
+                      }
+                      return `
+                      <td style="text-align:center; ${style}">
+                        <input type="checkbox" class="multi-match-cb" data-left="${r.left}" data-tag="${t}"
+                          onchange="QuestionRenderer.handleMultiMatchChange(this)"
+                          ${isSel ? "checked" : ""}>
+                      </td>`;
+                    }
                   )
                   .join("")}
               </tr>`
@@ -376,7 +434,7 @@ const QuestionRenderer = (() => {
               <div>
                 <p style="font-size:.8rem;font-weight:700;margin-bottom:4px;color:var(--accent-primary)">${cat}</p>
                 <div class="drag-target" data-cat="${cat}"
-                     ondragover="DragDrop.over(event)" ondrop="DragDrop.drop(event)"
+                     ondragover="DragDrop.over(event)" ondrop="DragDrop.drop(event)" ondragleave="DragDrop.leave(event)"
                      style="min-height:52px;border:2px dashed var(--border-color);border-radius:var(--radius-md);
                             padding:var(--sp-sm);display:flex;flex-wrap:wrap;gap:6px"></div>
               </div>`
@@ -486,16 +544,81 @@ const QuestionRenderer = (() => {
     return null;
   }
 
+  function handleMatchingChange(sel) {
+    const quiz = State.get("quiz");
+    if (quiz.template === "study") return; 
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    if (!showInstant) return;
+
+    const correctStr = _currentQ["Correct Answer"] || "";
+    const correctMap = Object.fromEntries(correctStr.split("|").map(p => p.split(/[:\-\u2192]/).map(s => s.trim())));
+    const l = sel.dataset.left;
+    const r = sel.value;
+    const row = sel.previousElementSibling.previousElementSibling; // The left side box
+
+    if (!r) {
+       sel.style.border = ""; sel.style.background = "";
+       row.style.border = ""; row.style.background = "";
+       return;
+    }
+
+    const isCorrect = correctMap[l] === r;
+    const style = isCorrect ? "2px solid var(--color-success)" : "2px solid var(--color-error)";
+    const bg = isCorrect ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)";
+
+    sel.style.border = style; sel.style.background = bg;
+    row.style.border = style; row.style.background = bg;
+
+    if (isCorrect) UI.toast("Match Correct!", "success");
+  }
+
+  function handleMultiMatchChange(cb) {
+    const quiz = State.get("quiz");
+    if (quiz.template === "study") return;
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    if (!showInstant) return;
+
+    const correctStr = _currentQ["Correct Answer"] || "";
+    const targetMap = {};
+    correctStr.split("|").forEach(p => {
+       const pts = p.split(/[:\-\u2192]/);
+       if(pts.length >= 2) {
+          const l = pts[0].trim();
+          const r = pts[1].trim();
+          if(!targetMap[l]) targetMap[l] = [];
+          targetMap[l].push(r);
+       }
+    });
+
+    const td = cb.parentElement;
+    if (!cb.checked) {
+       td.style.background = "";
+       return;
+    }
+
+    const l = cb.dataset.left;
+    const r = cb.dataset.tag;
+    const isCorrect = (targetMap[l] || []).includes(r);
+    
+    td.style.background = isCorrect ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)";
+    if (isCorrect) UI.toast("Correct!", "success");
+  }
+
   // ── Toggle MCQ ────────────────────────────────────────────
   function toggleMCQ(el, multiStr) {
     const quiz = State.get("quiz");
-    const cfg = quiz.config;
+    if (quiz.template === "study") return; // No interaction in study mode
+    const cfg = quiz.config || {};
     const answered = quiz.answers[_currentIdx];
     const noChange = (cfg["Allow Option Change"] || "On") === "Off";
+    
     if (noChange && answered && answered.userAnswer) {
       UI.toast("Option change not allowed", "warn");
       return;
     }
+
     const multi = multiStr === "true";
     if (!multi) {
       document
@@ -538,6 +661,22 @@ const QuestionRenderer = (() => {
     }
   }
 
+  function handleFillInstant(input) {
+    const quiz = State.get("quiz");
+    const cfg = quiz.config || {};
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    if (!showInstant) return;
+
+    const val = input.value.toLowerCase().trim();
+    const correct = (_currentQ["Correct Answer"] || "").toLowerCase().trim();
+    const isMatched = val === correct;
+
+    input.classList.remove("correct", "wrong");
+    if (val) {
+      input.classList.add(isMatched ? "correct" : "wrong");
+    }
+  }
+
   function speakQuestion() {
     if (!window.speechSynthesis) return UI.toast("Voice not supported in this browser", "error");
     window.speechSynthesis.cancel(); // Stop any currently speaking audio
@@ -557,14 +696,17 @@ const QuestionRenderer = (() => {
     window.speechSynthesis.speak(utter);
   }
 
-  return { render, collectAnswer, toggleMCQ, speakQuestion };
+  function getCurrentQ() { return _currentQ; }
+
+  return { render, collectAnswer, toggleMCQ, handleMatchingChange, handleMultiMatchChange, handleFillInstant, speakQuestion, getChoices, getCurrentQ };
 })();
 
 // ── Drag helpers ──────────────────────────────────────────
-const SeqDrag = {
+window.SeqDrag = {
   _el: null,
   start(e) {
     this._el = e.currentTarget;
+    e.dataTransfer.setData("text/plain", "");
     e.dataTransfer.effectAllowed = "move";
   },
   over(e) {
@@ -587,27 +729,46 @@ const SeqDrag = {
   },
 };
 
-const DragDrop = {
+window.DragDrop = {
   _val: null,
   _src: null,
   startDrag(e) {
     this._val = e.currentTarget.dataset.val;
     this._src = e.currentTarget;
+    e.dataTransfer.setData("text/plain", "");
     e.dataTransfer.effectAllowed = "move";
   },
   over(e) {
     e.preventDefault();
     e.currentTarget.style.borderColor = "var(--accent-primary)";
   },
+  leave(e) {
+    e.currentTarget.style.borderColor = "";
+  },
   drop(e) {
     e.preventDefault();
     e.currentTarget.style.borderColor = "";
     if (this._src && this._val) {
+      const quiz = State.get("quiz");
+      const cfg = quiz.config || {};
+      const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+      const cat = e.currentTarget.dataset.cat;
+      const item = this._val.split("-")[0];
+      const correctVal = ((QuestionRenderer.getCurrentQ() || {})["Correct Answer"] || "");
+      const isCorrect = correctVal.includes(`${item}-${cat}`);
+
       const clone = this._src.cloneNode(true);
       clone.draggable = false;
       clone.style.cursor = "default";
       clone.style.fontSize = ".8rem";
       clone.style.padding = "4px 8px";
+      
+      if (showInstant) {
+         clone.style.border = isCorrect ? "2px solid var(--color-success)" : "2px solid var(--color-error)";
+         clone.style.background = isCorrect ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)";
+         if (isCorrect) UI.toast("Correct Placement!", "success");
+      }
+
       e.currentTarget.appendChild(clone);
       this._src.style.opacity = ".3";
     }

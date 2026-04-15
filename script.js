@@ -232,6 +232,15 @@ const tools = [
     link: "./QuizApp/index.html",
     groupname: ["Quiz Tools"],
   },
+  {
+    icon: "fas fa-file-image",
+    title: "Preparation Executer",
+    description: "Quiz App Tool",
+    tags: ["Practice", "Quiz"],
+    status: "live",
+    link: "./InBuiltQuizPractice/QuizTaker/index.html",
+    groupname: ["Quiz Tools"],
+  }
 ];
 
 // State management

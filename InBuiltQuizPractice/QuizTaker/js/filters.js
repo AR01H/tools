@@ -1,5 +1,5 @@
 // ============================================================
-//  QUIZ APP — filters.js
+//  QUIZ APP – filters.js
 //  Question filtering, shuffling, setup pages
 // ============================================================
 
@@ -92,19 +92,17 @@ const Filters = (() => {
 // ============================================================
 const PageSetupTopics = (() => {
   const ICON_MAP = {
-    docker: "🐳",
-    javascript: "JS",
-    python: "🐍",
-    java: "☕",
-    css: "🎨",
-    html: "🌐",
-    react: "⚛️",
-    node: "🟢",
-    database: "🗄️",
-    cloud: "☁️",
-    security: "🛡️",
-    sample: "🧪",
-    default: "📁",
+    docker: '🐳',
+    javascript: 'JS',
+    python: '🐍',
+    java: '☕',
+    css: '🎨',
+    html: '🌐',
+    react: '⚛️',
+    node: '🟢',
+    database: '💾',
+    cloud: '☁️',
+    default: '📝'
   };
 
   function render(main) {
@@ -118,16 +116,19 @@ const PageSetupTopics = (() => {
           0
         )}
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-xl); border-bottom:1px solid var(--border-color); padding-bottom:var(--sp-md);flex-wrap:wrap;">
-           <div>
-              <h1 style="font-size:2.2rem; font-weight:900; letter-spacing:-0.05em; color:var(--text-primary); margin:0">Assessment Domains</h1>
-              <p style="color:var(--text-secondary); font-size:0.95rem; margin-top:4px">Select specialized subjects to build your assessment.</p>
+        <div class="setup-header-area">
+           <div class="setup-header-text">
+              <h1 class="setup-main-title">Assessment Domains</h1>
+              <p class="setup-sub-title">Select specialized subjects to build your assessment.</p>
            </div>
-           <div style="display:flex; gap:16px; align-items:center">
-              <div class="review-input-group" style="width:300px">
+           <div class="setup-header-actions">
+              <div class="search-wrap">
                  <input type="text" id="topic-search" class="form-control" placeholder="Search domains..." oninput="PageSetupTopics.filter(this.value)">
               </div>
-              <button class="btn btn-ghost btn-sm" onclick="selectAllTopics()" style="font-weight:700">Select All</button>
+              <button class="btn btn-secondary btn-sm" onclick="selectAllTopics()">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                Select All
+              </button>
            </div>
         </div>
 
@@ -142,8 +143,8 @@ const PageSetupTopics = (() => {
                 isSelected ? "selected" : ""
               }" onclick="PageSetupTopics.toggle(this, '${t.name}')">
                 <div class="selected-badge">✓</div>
-                <div class="topic-icon" style="font-size:2rem">${icon}</div>
-                <div class="topic-name" style="font-size:0.95rem">${t.name}</div>
+                <div class="topic-icon">${icon}</div>
+                <div class="topic-name">${t.name}</div>
               </div>
             `;
             })
@@ -152,66 +153,67 @@ const PageSetupTopics = (() => {
 
         <div class="setup-footer">
           <div class="setup-footer-content">
-            <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()" style=" font-size:1.1rem; border-radius:12px">
+            <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()">
               Initialize Question Pool →
             </button>
           </div>
         </div>
       </div>
+
       <style>
+        .setup-header-area { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; gap: 24px; }
+        .setup-main-title { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.05em; color: var(--text-primary); margin: 0; }
+        .setup-sub-title { color: var(--text-secondary); font-size: 1rem; margin-top: 4px; }
+        
+        .setup-header-actions { display: flex; gap: 12px; align-items: center; }
+        .search-wrap { width: 300px; position: relative; }
+        .search-wrap input { width: 100%; padding-left: 16px; border-radius: 12px; }
+
         .topic-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-          gap: 6px;
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 12px;
+          padding-bottom: 100px;
         }
         .topic-card {
-          background: var(--bg-surface);
-          border: 2px solid var(--border-color);
-          border-radius: var(--radius-sm);
-          padding: 4px;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
+          background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 20px; 
+          padding: 24px 16px; text-align: center; cursor: pointer; transition: 0.3s var(--ease);
+          position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px;
         }
-        .topic-card:hover {
-          transform: translateY(-8px);
-          border-color: var(--accent-primary);
-          box-shadow: 0 20px 40px -10px var(--accent-shadow);
-        }
-        .topic-card.selected {
-          border-color: var(--accent-primary);
-          background: var(--accent-muted);
-          transform: scale(1.03);
-          box-shadow: 0 10px 20px -5px var(--accent-shadow);
-        }
-        .topic-card .topic-icon {
-          font-size: 3.2rem;
-          margin-bottom: 8px;
-          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
-          transition: transform 0.3s var(--ease);
-        }
-        .topic-card:hover .topic-icon { transform: scale(1.15) rotate(5deg); }
-        .topic-card .topic-name { font-weight: 800; font-size: 1.1rem; color: var(--text-primary); }
-        .topic-card .topic-meta { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .topic-card .selected-badge {
-          position: absolute; top: 12px; right: 12px;
-          width: 24px; height: 24px; border-radius: 50%;
-          background: var(--accent-primary); color: #fff;
-          display: grid; place-items: center; font-size: 12px; font-weight: 800;
-          opacity: 0; transform: scale(0.5); transition: all 0.3s var(--ease);
-        .topic-card.selected .selected-badge { opacity: 1; transform: scale(1); }
+        .topic-card:hover { transform: translateY(-8px); border-color: var(--accent-primary); box-shadow: 0 15px 30px -5px var(--accent-shadow); }
+        .topic-card.selected { border-color: var(--accent-primary); background: var(--accent-muted); transform: scale(1.02); }
+        .topic-card .topic-icon { font-size: 2.8rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); transition: transform 0.3s; }
+        .topic-card:hover .topic-icon { transform: scale(1.1) rotate(5deg); }
+        .topic-name { font-weight: 800; font-size: 1rem; color: var(--text-primary); line-height: 1.2; }
         
-        @media (max-width: 768px) {
-          .setup-container > div:nth-child(2) { flex-direction: column !important; align-items: stretch !important; gap: 15px; text-align: left; }
-          .setup-container > div:nth-child(2) > div:last-child { flex-direction: column; width: 100%; }
-          .review-input-group { width: 100% !important; }
+        .selected-badge {
+          position: absolute; top: 12px; right: 12px;
+          width: 22px; height: 22px; border-radius: 50%;
+          background: var(--accent-primary); color: #fff;
+          display: grid; place-items: center; font-size: 10px; font-weight: 900;
+          opacity: 0; transform: scale(0.5); transition: 0.3s var(--ease);
         }
-      </style>`;
+        .topic-card.selected .selected-badge { opacity: 1; transform: scale(1); }
+
+        @media (max-width: 900px) {
+           .setup-header-area { flex-direction: column; align-items: stretch; gap: 20px; text-align: center; }
+           .search-wrap { width: 100%; }
+           .setup-header-actions { flex-direction: column-reverse; }
+           .setup-header-actions button { width: 100%; }
+           .setup-main-title { font-size: 2rem; }
+           .topic-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        }
+
+        @media (max-width: 480px) {
+           .topic-grid { grid-template-columns: 1fr; }
+           .topic-card { flex-direction: row; text-align: left; padding: 16px; justify-content: flex-start; }
+           .topic-card .topic-icon { font-size: 2rem; }
+           .selected-badge { right: 16px; top: 50%; transform: translateY(-50%) scale(0.5); }
+           .topic-card.selected .selected-badge { transform: translateY(-50%) scale(1); }
+           .topic-card .topic-name { font-size: 0.9rem; }
+        }
+      </style>
+    `;
   }
 
   function toggle(el, name) {
@@ -310,7 +312,7 @@ const PageSetupFilters = (() => {
            </div>
 
            <!-- Meta Filters -->
-           <div style="display:grid; grid-template-columns: 1fr 1fr 1.5fr; gap:16px;">
+           <div class="meta-filter-grid">
              <div class="setup-compact-section" style="padding:16px">
                <span class="filter-label" style="font-size:0.85rem; margin-bottom:12px">Difficulty Level</span>
                <div id="diff-chips" class="chip-container compact"></div>
@@ -331,21 +333,24 @@ const PageSetupFilters = (() => {
         </div>
 
         <div class="setup-footer">
-          <div class="setup-footer-content" style="display:flex; justify-content:space-between; align-items:center; width:100%; max-width:1100px; gap:40px">
-             <div style="flex:1">
-               <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px">
-                  <div>
-                    <span style="font-size:0.65rem; font-weight:900; color:var(--text-muted); text-transform:uppercase">Session Magnitude</span>
-                    <div style="display:none;">
-                      <span id="q-count-val" style="font-family:var(--font-mono); font-weight:900; font-size:1.8rem; color:var(--accent-primary)">${setup.questionCount}</span>
+          <div class="setup-footer-content">
+             <div class="magnitude-container">
+                <div class="magnitude-header">
+                  <div class="magnitude-titles">
+                    <span class="filter-label-small" style="margin-bottom:4px; color:var(--accent-primary)">Selected</span>
+                    <div style="display:flex; align-items:baseline; gap:12px">
+                       <h2 id="q-count-val" class="magnitude-display">${setup.questionCount}</h2>
+                       <span style="font-size:1.1rem; color:var(--text-muted); font-weight:700">/ <span id="pool-total">0</span> Available</span>
                     </div>
                   </div>
-                  <span id="q-preview" class="pool-badge" style="background:var(--accent-primary-transparent); color:var(--accent-primary); border:1px solid var(--accent-primary-transparent)">Calculating pool...</span>
-               </div>
-               <input type="range" id="q-count" min="1" max="${Math.min(questions.length,200)}" value="${setup.questionCount}" oninput="updateCount(this.value)" class="fancy-slider">
+                  <div id="q-preview" class="pool-badge" style="display:none">Calculating...</div>
+                </div>
+                <div class="slider-wrapper">
+                  <input type="range" id="q-count" min="1" max="${Math.min(questions.length,200)}" value="${setup.questionCount}" oninput="updateCount(this.value)" class="fancy-slider">
+                </div>
              </div>
-             <button class="btn btn-primary btn-lg" onclick="filtersNext()" style="padding:16px 60px; font-size:1.1rem; border-radius:12px">
-                Configure Engine →
+             <button class="btn btn-primary btn-lg launch-btn" onclick="filtersNext()">
+                Continue to Config →
              </button>
           </div>
         </div>
@@ -363,19 +368,38 @@ const PageSetupFilters = (() => {
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; }
         .chip-container.compact { gap: 6px; }
         .scrollable-chips { max-height: 80px; overflow-y: auto; padding-right: 8px; scrollbar-width: thin; }
-        .action-summary-bar { 
-          background: var(--text-primary); color: var(--bg-base); border-radius: var(--radius-lg); padding: 32px; 
-          display: flex; gap: 40px; align-items: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-        }
-        .action-summary-bar .filter-label-small { color: rgba(255,255,255,0.4); }
-        .pool-badge { background: rgba(255,255,255,0.1); color: #fff; font-size: 0.7rem; font-weight: 800; padding: 4px 12px; border-radius: 99px; }
-        .fancy-slider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-primary); cursor: pointer; border: 4px solid var(--text-primary); box-shadow: 0 0 0 2px var(--accent-primary); }
         
-        @media (max-width: 768px) {
-          .setup-container > div:nth-child(2) { flex-direction: column !important; align-items: flex-start !important; gap: 15px; }
-          .setup-container > div:nth-child(3) > div:last-child { grid-template-columns: 1fr !important; }
-          .setup-footer-content { flex-direction: column !important; gap: 0px !important; align-items: stretch !important; text-align: left; }
-          .setup-footer-content > div { width: 100% !important; }
+        /* Magnitude Section */
+        .setup-footer-content { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:1200px; gap:48px; margin: 0 auto; }
+        .magnitude-container { flex:1; }
+        .magnitude-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:0px; }
+        .magnitude-display { font-size: 2.8rem; font-weight: 900; color: var(--accent-primary); line-height: 1; margin: 0; font-family: var(--font-mono); letter-spacing: -2px; }
+        .pool-badge { background: var(--accent-primary-transparent); color: var(--accent-primary); font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 99px; border: 1px solid var(--accent-primary-transparent); }
+        .slider-wrapper { padding: 3px 0; }
+        .launch-btn { padding: 18px 54px; font-size: 1.15rem; font-weight: 800; border-radius: 16px; white-space: nowrap; box-shadow: 0 10px 20px -5px var(--accent-shadow); }
+
+        .fancy-slider { width: 100%; height: 8px; border-radius: 8px; appearance: none; background: var(--bg-elevated); outline: none; transition: 0.2s; }
+        .fancy-slider::-webkit-slider-thumb { 
+          appearance: none; width: 28px; height: 28px; border-radius: 50%; 
+          background: var(--accent-primary); cursor: pointer; border: 6px solid var(--bg-surface); 
+          box-shadow: 0 4px 12px var(--accent-shadow); transition: transform 0.2s;
+        }
+        .fancy-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        
+        .meta-filter-grid { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 16px; }
+        
+        @media (max-width: 850px) {
+          .meta-filter-grid { grid-template-columns: 1fr; }
+          .grid-2 { grid-template-columns: 1fr !important; }
+          .setup-container { padding: 12px !important; }
+        }
+
+        @media (max-width: 600px) {
+          .setup-footer-content { flex-direction: column; gap: 0px; align-items: stretch; }
+          .magnitude-display { font-size: 1.5rem; }
+          .launch-btn { padding: 16px; font-size: 1rem; }
+          .magnitude-header { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 0px;}
+          .magnitude-titles { display: flex; align-items: baseline;}
         }
       </style>`;
 
@@ -442,20 +466,6 @@ const PageSetupFilters = (() => {
     document
       .getElementById("subcat-chips")
       .addEventListener("click", () => setTimeout(updatePreview, 50));
-  }
-
-  function updatePreview() {
-    const questions = State.get("questions");
-    const setup = buildSetup();
-    const filtered = Filters.applyFilters(questions, {
-      ...setup,
-      questionCount: 9999,
-    });
-    const count = parseInt(document.getElementById("q-count").value);
-    const show = Math.min(filtered.length, count);
-    document.getElementById(
-      "q-preview"
-    ).textContent = `${filtered.length} questions match your filters → ${show} will be selected`;
   }
 
   function buildSetup() {
@@ -531,9 +541,15 @@ const PageSetupFilters = (() => {
     const count = parseInt(slider?.value || 0);
     const show = Math.min(filtered.length, count);
     
+    // Update the dual counter
+    const poolTotal = document.getElementById("pool-total");
+    if (poolTotal) poolTotal.textContent = filtered.length;
+    
+    if (countVal) countVal.textContent = show;
+
     const preview = document.getElementById("q-preview");
     if (preview) {
-       preview.innerHTML = `MATCHING: <b style="color:#fff">${filtered.length}</b> • PREPARING: <b style="color:var(--accent-primary)">${show} ITEMS</b>`;
+       preview.innerHTML = `PREPARING: <b style="color:var(--accent-primary)">${show}</b> / ${filtered.length}`;
     }
   }
 

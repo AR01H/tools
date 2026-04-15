@@ -89,7 +89,7 @@ const PageSetupConfig = (() => {
       key: "Instant Answer",
       label: "Instant Answer",
       type: "select",
-      opts: ["On", "Off"],
+      opts: ["Off", "On"],
     },
     {
       key: "Show Hint",
@@ -272,15 +272,21 @@ const PageSetupConfig = (() => {
       return;
     }
 
+    // Section Order (Question Shuffling)
+    const sectionOrder = config["Section Order"] || "Fixed";
+    let finalQs = [...filtered];
+    if (sectionOrder === "Random") {
+      finalQs = Filters.shuffle(finalQs);
+    }
+
     // Shuffle options if configured
     const randomOpts = (config["Random Options"] || "On") === "On";
-    const preparedQs = filtered.map((q) => {
+    const preparedQs = finalQs.map((q) => {
       if (!randomOpts) return q;
-      const choices = ["Choice1", "Choice2", "Choice3", "Choice4"]
-        .map((k) => q[k])
-        .filter(Boolean);
-      const shuffled = Filters.shuffle(choices);
+      const choices = QuestionRenderer.getChoices(q);
+      const shuffled = Filters.shuffle([...choices]);
       const newQ = { ...q };
+      // Map back to Choice1, Choice2, etc. (up to 6)
       shuffled.forEach((c, i) => {
         newQ["Choice" + (i + 1)] = c;
       });
@@ -332,87 +338,143 @@ const PageSetupTemplate = (() => {
   ];
 
   function render(main) {
-    const selected = State.get("setup").template || "default";
+    const setup = State.get("setup");
+    const selected = setup.template || "default";
 
     main.innerHTML = `
-      <div class="animate-up setup-container" style="max-width:1100px; margin:0 auto; padding-top:var(--sp-2xl)">
+      <div class="animate-up setup-container" style="max-width:1200px; margin:0 auto; padding: var(--sp-2xl) var(--sp-lg)">
         ${UI.stepsHtml(
           ["Select Topics", "Filters", "Config", "Quiz Themes"],
           3
         )}
 
-        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-xl)">
-           <div>
-             <h1 style="font-size:2.2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.04em; margin:0">App Interface</h1>
-             <p style="color:var(--text-muted); font-size:0.95rem; margin-top:4px">Select an interaction model for your session</p>
+        <div class="setup-header-simple">
+           <div class="header-text">
+              <h1 class="setup-title">Interface Selection</h1>
+              <p class="setup-subtitle">Calibrate the interaction model for your current assessment</p>
            </div>
-           <div>${UI.backBtn("Config")}</div>
+           <div class="header-actions">${UI.backBtn("Config")}</div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:32px">
-          <div class="card" style="padding:24px; background:var(--bg-elevated); border-radius:16px; border:1px solid var(--border-color); margin-bottom:20px">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
-                <h4 style="font-weight:800; color:var(--text-primary); margin:0; font-size:0.9rem">Quiz Name</h4>
-             </div>
-             <div class="form-group">
-                <input type="text" id="custom-quiz-name" class="form-control" placeholder="Optional: Name your session..." 
-                       style="padding:12px; border-radius:10px; font-weight:700; font-size:1rem; border:1px solid var(--border-color); background:var(--bg-surface)">
-             </div>
-          </div>
-          <div class="theme-gallery">
-            ${TEMPLATES.map(t => `
-              <div class="theme-card ${t.id === selected ? "active" : ""}" 
-                   onclick="PageSetupTemplate.select('${t.id}')">
-                ${t.id === selected ? `<div class="theme-selected-badge">ACTIVE</div>` : ""}
-                <div class="theme-preview-box" style="height:120px">
-                   <div class="theme-icon-large" style="font-size:3rem">${t.icon}</div>
-                </div>
-                <div class="theme-info" style="padding:16px">
-                   <h3 class="theme-title" style="font-size:1.1rem">${t.name}</h3>
-                   <p class="theme-desc" style="font-size:0.8rem">${t.desc}</p>
-                </div>
-              </div>`).join("")}
-          </div>
+        <div class="config-grid-layout">
+           <!-- LEFT: Name & Info -->
+           <div class="config-side-panel">
+              <div class="setup-compact-card">
+                 <div class="card-header">
+                    <span class="dot"></span>
+                    <h3>Sessional Identifier</h3>
+                 </div>
+                 <div class="form-group" style="padding:4px">
+                    <input type="text" id="custom-quiz-name" class="form-control-pro" placeholder="Optional: Session Title..." 
+                           value="${State.get("quiz")?.config?.["Quiz Settings Title"] || ""}">
+                    <p class="input-hint">Enter a custom name to identify this attempt in your history.</p>
+                 </div>
+              </div>
+              
+              <div class="deployment-summary-badge">
+                 <div class="badge-icon">⚡</div>
+                 <div class="badge-content">
+                    <span class="label">READY FOR DEPLOYMENT</span>
+                    <span class="val">${setup.preparedQs.length} Synchronized Items</span>
+                 </div>
+              </div>
+           </div>
+
+           <!-- RIGHT: Theme Gallery -->
+           <div class="config-main-panel">
+              <div class="theme-gallery-grid">
+                ${TEMPLATES.map(t => `
+                  <div class="theme-pro-card ${t.id === selected ? "active" : ""}" 
+                       onclick="PageSetupTemplate.select('${t.id}')">
+                    <div class="card-indicator">${t.id === selected ? "✓ ACTIVE" : ""}</div>
+                    <div class="card-preview">
+                       <span class="icon">${t.icon}</span>
+                    </div>
+                    <div class="card-body">
+                       <h4 class="title">${t.name}</h4>
+                       <p class="desc">${t.desc}</p>
+                    </div>
+                  </div>`).join("")}
+              </div>
+           </div>
         </div>
 
-        <div class="setup-footer">
-          <div class="setup-footer-content" style="gap:var(--sp-md)">
-             <button class="btn btn-secondary btn-lg" onclick="PageSetupTemplate.launchQuiz('study')" style="font-size:1.2rem; border-radius:12px; background:var(--bg-elevated); border:1px solid var(--border-color)">
-               🧠 Study Mode
-             </button>
-             <button class="btn btn-primary btn-lg" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()" style="font-size:1.2rem; border-radius:12px">
-               🚀 Launch Session
-             </button>
-          </div>
+        <!-- NEW FLOATING LAUNCH CARD -->
+        <div class="launch-strip-container">
+           <div class="launch-strip">
+              <div class="strip-details">
+                 <p class="strip-meta">READY TO INITIALIZE</p>
+                 <h3 class="strip-title">Platform Architecture: <span style="color:var(--accent-primary)">${TEMPLATES.find(t=>t.id===selected)?.name || 'Standard'}</span></h3>
+              </div>
+              <div class="strip-actions">
+                 <button class="btn-study-pro" id="study-launch-btn" onclick="PageSetupTemplate.launchQuiz('study')">
+                    🧠 Study Mode
+                 </button>
+                 <button class="btn-launch-pro" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()">
+                    🚀 Launch Session
+                 </button>
+              </div>
+           </div>
         </div>
       </div>
+
       <style>
-        .theme-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 5px; }
-        .theme-card { 
-          background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: var(--radius-lg); 
-          padding: 0; overflow: hidden; cursor: pointer; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          display: flex; flex-direction: column; position: relative;
-        }
-        .theme-card:hover { transform: translateY(-12px); border-color: var(--accent-primary); box-shadow: 0 30px 60px -15px var(--accent-shadow); }
-        .theme-card.active { border-color: var(--accent-primary); box-shadow: 0 20px 40px -10px var(--accent-shadow); }
-        .theme-preview-box { height: 160px; background: var(--bg-elevated); display: grid; place-items: center; position: relative; }
-        .theme-icon-large { font-size: 5rem; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); transition: 0.4s; }
-        .theme-card:hover .theme-icon-large { transform: scale(1.1) rotate(-5deg); }
-        .theme-info { padding: 24px; }
-        .theme-title { font-size: 1.35rem; font-weight: 900; margin-bottom: 8px; color: var(--text-primary); }
-        .theme-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
-        .theme-selected-badge { position: absolute; top: 16px; left: 16px; background: var(--accent-primary); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 10px; font-weight: 900; letter-spacing: 1px; z-index: 10; }
+        .setup-header-simple { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .setup-title { font-size: 2.8rem; font-weight: 900; letter-spacing: -0.05em; color: var(--text-primary); margin: 0; line-height: 1; }
+        .setup-subtitle { color: var(--text-muted); font-size: 1.1rem; margin-top: 8px; font-weight: 500; }
+
+        .config-grid-layout { display: grid; grid-template-columns: 320px 1fr; gap: 40px; margin-bottom: 120px; }
         
-        .final-launch-card { 
-          background: var(--text-primary); color: var(--bg-base); border-radius: 24px; padding: 48px; 
-          display: flex; justify-content: space-between; align-items: center; gap: 40px;
-          box-shadow: 0 40px 80px -20px rgba(0,0,0,0.3);
+        .setup-compact-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-sm); }
+        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .card-header .dot { width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-shadow); }
+        .card-header h3 { font-size: 0.8rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+        
+        .form-control-pro { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; font-size: 1rem; font-weight: 700; color: var(--text-primary); transition: 0.3s var(--ease); }
+        .form-control-pro:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 4px var(--accent-primary-transparent); outline: none; }
+        .input-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; line-height: 1.4; }
+
+        .deployment-summary-badge { margin-top: 24px; display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--accent-primary-transparent); border-radius: 20px; border: 1px solid var(--accent-primary-transparent); }
+        .badge-icon { font-size: 1.8rem; }
+        .badge-content { display: flex; flex-direction: column; }
+        .badge-content .label { font-size: 0.65rem; font-weight: 900; color: var(--accent-primary); letter-spacing: 1px; }
+        .badge-content .val { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); }
+
+        .theme-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .theme-pro-card { background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 4px; padding: 0; cursor: pointer; transition: 0.4s var(--ease); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .theme-pro-card:hover { transform: translateY(-10px); border-color: var(--accent-primary); box-shadow: var(--shadow-lg); }
+        .theme-pro-card.active { border-color: var(--accent-primary); background: var(--bg-elevated); box-shadow: var(--shadow-md); }
+        
+        .card-indicator { position: absolute; top: 12px; left: 12px; font-size: 0.6rem; font-weight: 900; background: var(--accent-primary); color: #fff; padding: 4px 10px; border-radius: 6px; letter-spacing: 1px; opacity: 0; transform: translateY(-10px); transition: 0.3s var(--ease); }
+        .theme-pro-card.active .card-indicator { opacity: 1; transform: translateY(0); }
+        
+        .card-preview { height: 140px; background: var(--bg-elevated); display: grid; place-items: center; transition: 0.4s var(--ease); }
+        .card-preview .icon { font-size: 4rem; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); transition: 0.4s var(--ease); }
+        .theme-pro-card:hover .card-preview .icon { transform: scale(1.15) rotate(-5deg); }
+        .card-body { padding: 10px; }
+        .card-body .title { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
+        .card-body .desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
+
+        .launch-strip-container { position: fixed; bottom: 32px; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; padding: 0 20px; pointer-events: none; }
+        .launch-strip { pointer-events: auto; width: 100%; max-width: 1000px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 24px; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.2); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .strip-meta { font-size: 0.65rem; font-weight: 900; color: var(--accent-primary); letter-spacing: 2px; margin: 0; }
+        .strip-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 4px 0 0 0; }
+        .strip-actions { display: flex; gap: 12px; }
+        
+        .btn-study-pro { background: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary); padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; transition: 0.3s; }
+        .btn-launch-pro { background: var(--accent-primary); border: none; color: #fff; padding: 14px 40px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 10px 20px var(--accent-shadow); transition: 0.3s; }
+        .btn-study-pro:hover, .btn-launch-pro:hover { transform: translateY(-4px); filter: brightness(1.1); }
+        
+        .spinner { border: 3px solid rgba(255,255,255,0.1); border-left-color: #fff; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 900px) {
+           .config-grid-layout { grid-template-columns: 1fr; gap: 24px; }
+           .launch-strip { flex-direction: column; text-align: center; gap: 20px; padding: 24px; }
+           .strip-actions { width: 100%; flex-direction: column; }
+           .btn-study-pro, .btn-launch-pro { width: 100%; }
+           .setup-title { font-size: 2.2rem; }
         }
-        .launch-label { color: var(--accent-primary); font-size: 0.75rem; font-weight: 900; letter-spacing: 2px; }
-        .launch-title { font-size: 2rem; font-weight: 900; margin-top: 8px; margin-bottom: 8px; }
-        .launch-desc { font-size: 1rem; color: rgba(255,255,255,0.5); max-width: 500px; margin: 0; }
-        .launch-button { padding: 20px 60px; font-size: 1.3rem; border-radius: 16px; background: var(--accent-primary); box-shadow: 0 15px 30px rgba(0,0,0,0.2) !important; }
-        .launch-button:hover { transform: scale(1.05) translateY(-2px); }
       </style>
     `;
   }
@@ -430,9 +492,14 @@ const PageSetupTemplate = (() => {
       const user = State.get("user");
 
       const btn = document.getElementById("launch-btn");
-      if (btn && mode !== 'study') {
-        btn.disabled = true;
-        btn.innerHTML = `<div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block"></div> Launching...`;
+      const studyBtn = document.getElementById("study-launch-btn");
+      
+      if (mode === 'study' && studyBtn) {
+         studyBtn.disabled = true;
+         studyBtn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Entering Study Mode...</span>`;
+      } else if (btn) {
+         btn.disabled = true;
+         btn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Launching Engine...</span>`;
       }
 
       const customName = document.getElementById("custom-quiz-name")?.value.trim();

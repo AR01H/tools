@@ -196,63 +196,107 @@ const PageQuiz = (() => {
     // ──────────────────────────────────────────
     else if (tmpl === "study") {
       layoutHtml = `
-        <div class="layout-study">
-          <div class="study-header">
-             <div class="study-progress">
-                <span id="q-idx">1</span> / ${qs.length}
-                <div class="progress-bar" style="width:100px; height:6px; margin-left:12px"><div class="progress-fill" id="quiz-progress"></div></div>
+        <div class="layout-immersive-study">
+          <div class="study-nav-header">
+             <div class="header-left">
+                <span class="study-badge">STUDY MODE — READING ONLY</span>
+                <div class="study-id-capsule">
+                   <span class="label">ENTRY</span>
+                   <span id="q-idx" class="val">1</span>
+                   <span class="total">/ ${qs.length}</span>
+                </div>
              </div>
-             <button class="btn btn-ghost" onclick="QuizEngine.confirmSubmit()">Exit Study</button>
+             <div class="header-center">
+                <div class="study-progress-track">
+                   <div class="fill" id="quiz-progress"></div>
+                </div>
+             </div>
+             <div class="header-right">
+                <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--text-muted); border-radius:8px; padding:8px 16px">CLOSE STUDY ×</button>
+             </div>
           </div>
           
-          <div class="study-main">
-             <div class="flashcard-container" id="flashcard" onclick="this.classList.toggle('flipped')">
-                <div class="flashcard-inner">
-                   <div class="flashcard-front">
-                      <div id="question-panel" class="study-question-box"></div>
-                      <div class="study-hint">Click to flip and see answer</div>
+          <div class="study-viewport">
+             <div class="study-content-stack">
+                <div class="study-block question-block">
+                   <div class="block-label">PROBLEM STATEMENT</div>
+                   <div id="question-panel"></div>
+                </div>
+                
+                <div class="study-block answer-block">
+                   <div class="block-header">
+                      <div class="block-label">TARGET SOLUTION</div>
+                      <div class="status-marker">VALIDATED</div>
                    </div>
-                   <div class="flashcard-back">
-                      <div class="study-answer-content">
-                         <h3 style="color:var(--color-success); margin-bottom:12px">Correct Answer</h3>
-                         <div id="study-answer-text" class="study-val"></div>
-                         <hr style="margin:20px 0; border:none; border-top:1px solid var(--border-color); opacity:0.5">
-                         <h4 style="color:var(--text-muted); font-size:0.8rem; margin-bottom:8px">EXPLANATION</h4>
-                         <div id="study-explanation-text" class="study-desc"></div>
-                      </div>
-                      <div class="study-hint">Click to flip back</div>
+                   <div class="answer-payload">
+                      <div id="study-answer-text" class="study-val"></div>
                    </div>
+                </div>
+
+                <div class="study-block explanation-block">
+                   <div class="block-label">COGNITIVE INSIGHT & EXPLANATION</div>
+                   <div id="study-explanation-text" class="study-desc"></div>
                 </div>
              </div>
           </div>
           
-          <div class="study-footer">
-             <button class="btn btn-ghost" id="btn-prev" onclick="event.stopPropagation(); QuizEngine.prev()">PREVIOUS</button>
-             <div id="q-nav" style="display:none"></div>
-             <button class="btn btn-primary btn-lg" id="btn-next" onclick="event.stopPropagation(); QuizEngine.next()">NEXT CARD</button>
+          <div class="study-persistent-footer">
+             <div class="footer-inner">
+                <button class="btn btn-secondary btn-lg" id="btn-prev" onclick="QuizEngine.prev()" style="min-width:180px">
+                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19L5 12L12 5"/></svg>
+                   PREVIOUS ENTRY
+                </button>
+                <div id="q-nav" style="display:none"></div>
+                <button class="btn btn-primary btn-lg next-study-pro" id="btn-next" onclick="QuizEngine.next()">
+                   <span class="btn-inner">
+                      <span id="btn-next-text">NEXT LEARNING ITEM</span>
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 12H19M12 5L19 12L12 19"/></svg>
+                   </span>
+                </button>
+             </div>
           </div>
         </div>
         <style>
-          .layout-study { height:100vh; display:flex; flex-direction:column; background:var(--bg-base); }
-          .study-header { padding:20px; display:flex; justify-content:space-between; align-items:center; }
-          .study-progress { display:flex; align-items:center; font-weight:800; color:var(--text-secondary); }
-          .study-main { flex:1; display:grid; place-items:center; padding:20px; perspective: 1000px; }
-          .flashcard-container { width:100%; max-width:800px; height:500px; cursor:pointer; }
-          .flashcard-inner { position:relative; width:100%; height:100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-          .flashcard-container.flipped .flashcard-inner { transform: rotateY(180deg); }
-          .flashcard-front, .flashcard-back { 
-            position:absolute; width:100%; height:100%; backface-visibility: hidden; 
-            background:var(--bg-surface); border-radius:24px; border:1px solid var(--border-color);
-            padding:40px; box-shadow:0 20px 50px rgba(0,0,0,0.1); display:flex; flex-direction:column;
-          }
-          .flashcard-back { transform: rotateY(180deg); }
-          .study-hint { margin-top:auto; font-size:0.75rem; text-align:center; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.5; }
-          .study-val { font-size:1.5rem; font-weight:900; color:var(--text-primary); }
-          .study-desc { font-size:1.1rem; color:var(--text-secondary); line-height:1.6; max-height:250px; overflow-y:auto; }
-          .study-footer { padding:30px; display:flex; justify-content:center; gap:20px; align-items:center; }
-          @media (max-width: 600px) {
-            .flashcard-container { height:400px; }
-            .flashcard-front, .flashcard-back { padding:20px; }
+          .layout-immersive-study { height:100vh; overflow:hidden; display:flex; flex-direction:column; background:var(--bg-base); color:var(--text-primary); }
+          
+          .study-nav-header { height:64px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; padding:0 32px; background:var(--bg-surface); z-index:10; }
+          .study-badge { font-size:0.65rem; font-weight:900; color:var(--accent-primary); background:var(--accent-primary-transparent); padding:4px 10px; border-radius:99px; letter-spacing:0.05em; }
+          .study-id-capsule { display:flex; align-items:baseline; gap:6px; font-weight:900; }
+          .study-id-capsule .label { font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-right:4px; }
+          .study-id-capsule .val { font-size:1.4rem; color:var(--accent-primary); }
+          .study-id-capsule .total { font-size:0.9rem; color:var(--text-muted); opacity:0.5; }
+          
+          .study-progress-track { width:240px; height:6px; background:var(--bg-elevated); border-radius:3px; overflow:hidden; }
+          .study-progress-track .fill { height:100%; width:0%; background:var(--accent-primary); transition: width 0.4s var(--ease); box-shadow:0 0 10px var(--accent-shadow); }
+
+          .study-viewport { flex:1; overflow-y:auto; padding:40px 0; background:radial-gradient(circle at 50% 0%, var(--bg-elevated) 0%, var(--bg-base) 100%); }
+          .study-content-stack { width:100%; max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:24px; padding:0 32px; }
+          
+          .study-block { background:var(--bg-surface); border:1px solid var(--border-color); border-radius:4px; padding:6px; box-shadow:0 10px 30px rgba(0,0,0,0.05); }
+          .block-label { font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+          .block-label::before { content:''; width:8px; height:8px; background:var(--accent-primary); border-radius:50%; }
+          
+          .question-block { border-left:6px solid var(--accent-primary); }
+          .answer-block { border-left:6px solid var(--color-success); background:rgba(34,197,94,0.03); }
+          .answer-block .block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+          .answer-block .status-marker { font-size:0.6rem; font-weight:900; color:var(--color-success); border:1px solid var(--color-success); padding:2px 8px; border-radius:4px; }
+          .answer-payload { font-size:1.3rem; font-weight:900; color:var(--text-primary); line-height:1.4; }
+          
+          .explanation-block { border-left:6px solid var(--text-muted); }
+          .study-desc { font-size:1.05rem; line-height:1.8; color:var(--text-secondary); white-space:pre-line; }
+          
+          .study-persistent-footer { height:96px; border-top:1px solid var(--border-color); background:var(--bg-surface); display:flex; align-items:center; justify-content:center; }
+          .footer-inner { width:100%; max-width:900px; display:flex; justify-content:space-between; padding:0 32px; gap:20px; }
+          
+          .next-study-pro { min-width:240px; border-radius:4px; background:var(--accent-primary); box-shadow:0 10px 25px var(--accent-shadow); }
+          .next-study-pro .btn-inner { display:flex; align-items:center; gap:12px; font-weight:900; letter-spacing:0.02em; }
+          .next-study-pro:hover { transform: translateY(-3px) scale(1.02); }
+            .study-nav-header { padding:0 16px; }
+            .header-center { display:none; }
+            .study-content-stack { padding:0 16px; }
+            .study-viewport { padding:24px 0; }
+            .footer-inner { padding:0 16px; }
+            .footer-inner button { flex:1; min-width:0 !important; }
           }
         </style>
       `;
@@ -614,14 +658,13 @@ const QuizEngine = (() => {
     const isLast = quiz.currentIdx === quiz.questions.length - 1;
     
     if (quiz.template === 'study') {
-      const card = document.getElementById('flashcard');
-      if (card) card.classList.remove('flipped');
-      
       const ansText = document.getElementById('study-answer-text');
       const expText = document.getElementById('study-explanation-text');
-      if (ansText) ansText.innerHTML = q["Correct Answer"] || "N/A";
-      if (expText) expText.innerHTML = q.Explanation || q.Solution || "No explanation provided.";
-      if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish Session" : "Next Card →";
+      if (ansText) ansText.innerHTML = Results.getCorrectAnswer(q);
+      if (expText) expText.innerHTML = q.Explanation || q.Solution || "No learning insight provided for this entry.";
+      
+      const nextBtnText = document.getElementById('btn-next-text');
+      if (nextBtnText) nextBtnText.textContent = isLast ? "FINISH STUDY SESSION" : "NEXT LEARNING ITEM";
     } else {
       if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish" : "Next →";
     }
