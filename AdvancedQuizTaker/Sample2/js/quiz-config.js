@@ -154,7 +154,7 @@ const PageSetupConfig = (() => {
 
         <div class="setup-footer">
           <div class="setup-footer-content">
-            <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style="padding:16px 80px; font-size:1.1rem; border-radius:12px">
+            <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style=" font-size:1.1rem; border-radius:12px">
               Initialize Assessment Engine →
             </button>
           </div>
@@ -374,7 +374,7 @@ const PageSetupTemplate = (() => {
 
         <div class="setup-footer">
           <div class="setup-footer-content">
-             <button class="btn btn-primary btn-lg" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()" style="padding:16px 100px; font-size:1.2rem; border-radius:12px">
+             <button class="btn btn-primary btn-lg" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()" style="font-size:1.2rem; border-radius:12px">
                🚀 Launch Session
              </button>
           </div>

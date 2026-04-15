@@ -153,7 +153,7 @@ const PageSetupTopics = (() => {
 
         <div class="setup-footer">
           <div class="setup-footer-content">
-            <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()" style="padding:16px 80px; font-size:1.1rem; border-radius:12px">
+            <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()" style=" font-size:1.1rem; border-radius:12px">
               Initialize Question Pool →
             </button>
           </div>

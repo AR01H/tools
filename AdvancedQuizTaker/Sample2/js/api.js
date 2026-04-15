@@ -69,6 +69,20 @@ const API = (() => {
     return call('getHistory', { identifier });
   }
 
+  async function adminLogin(username, password) {
+    return call('adminLogin', { username, password });
+  }
+
+  async function adminStats() {
+    const token = sessionStorage.getItem('adminToken') || '';
+    return call('adminStats', { auth: token });
+  }
+
+  async function adminClearHistory() {
+    const token = sessionStorage.getItem('adminToken') || '';
+    return call('adminClearHistory', { auth: token });
+  }
+
   // ── Test connection ───────────────────────────────────────
   async function testConnection(scriptUrl, folderId) {
     const qs = new URLSearchParams({ action: 'getTopics', folderId });
@@ -78,5 +92,5 @@ const API = (() => {
     return true;
   }
 
-  return { getTopics, getQuestions, getQuizConfigs, startAttempt, endAttempt, saveAttemptDetail, getAttempt, getHistory, testConnection };
+  return { getTopics, getQuestions, getQuizConfigs, startAttempt, endAttempt, saveAttemptDetail, getAttempt, getHistory, testConnection, adminLogin, adminStats, adminClearHistory };
 })();

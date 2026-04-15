@@ -85,10 +85,16 @@
         </svg>
         <span>History</span>
       </button>
+
+      <button class="nav-item" data-page="admin" onclick="UI.navigate('admin')">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span>Admin</span>
+      </button>
     </nav>
 
     <div class="topbar-right">
-      <div id="topbar-breadcrumb" class="breadcrumb"></div>
 
       <!-- Share button -->
       <button class="icon-btn" data-tip="Share" onclick="navigator.share && navigator.share({title:'Preparation Executer',url:location.href})">
@@ -135,6 +141,7 @@
 <script src="components/question-types.js"></script>
 <script src="js/quiz.js"></script>
 <script src="js/result.js"></script>
+<script src="js/admin.js"></script>
 <script src="js/dashboard.js"></script>
 
 <script>
@@ -158,7 +165,6 @@
 
   // Start at welcome
   UI.pushPage('welcome');
-  updateBreadcrumb('Home');
 
   // Breadcrumb update on page changes
   State.on('page', (page) => {
@@ -172,14 +178,9 @@
       'result':         'Results',
       'history':        'History',
     };
-    updateBreadcrumb(labels[page] || page);
   });
 })();
 
-function updateBreadcrumb(label) {
-  const el = document.getElementById('topbar-breadcrumb');
-  if (el) el.textContent = '/ ' + label;
-}
 </script>
 </body>
 </html>

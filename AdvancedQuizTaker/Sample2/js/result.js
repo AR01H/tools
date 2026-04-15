@@ -271,7 +271,7 @@ const PageResult = (() => {
            <div class="insight-card strengths">
               <span class="insight-tag">✨ KEY STRENGTHS</span>
               <div class="insight-list">
-                 ${getInsights(score, "strengths").map(s => `<div class="tag-pill"><strong>${s.group}:</strong> ${s.name} <span class="text-xs">(${Math.round(s.acc)}%)</span></div>`).join("") || '<span class="opacity-50">Continue testing to surface strengths</span>'}
+                 ${getInsights(score, "strengths").map(s => `<div class="tag-pill"><strong>${s.group}:</strong> ${s.name} <span class="text-xs">(${Math.round(s.acc)}%)</span></div>`).join("") || '<span class="opacity-50">Continue Learning to surface Strengths</span>'}
               </div>
            </div>
            <div class="insight-card weaknesses">
@@ -1745,7 +1745,6 @@ const PageHistory = (() => {
         <h1 class="section-title" style="margin-bottom:var(--sp-lg)">📜 Attempt History</h1>
         <div class="card">
           <p class="text-muted text-sm" style="text-align:center;padding:var(--sp-xl)">
-            History is stored in Google Drive Result_Data.csv.<br>
             <button class="btn btn-primary btn-sm" style="margin-top:var(--sp-md)" onclick="PageHistory.load()">Load History</button>
           </p>
           <div id="history-body"></div>

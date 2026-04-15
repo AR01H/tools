@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepExecuter | System Administration</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <nav>
+        <div class="brand">PrepExecuter | ADMIN</div>
+        <div id="nav-actions" style="display: none;">
+            <button class="btn btn-ghost" style="padding: 8px 16px; font-size: 0.9rem;" onclick="AdminApp.logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <!-- LOGIN VIEW -->
+        <div id="login-view" class="card">
+            <h2 style="margin-bottom: 24px; font-family: 'Outfit'; font-weight: 800;">Admin Authentication</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Script URL Configuration</label>
+                <input type="text" id="api-url" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="admin">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••">
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top:10px;" onclick="AdminApp.login()">
+                <div class="spinner" id="login-spinner"></div>
+                <span id="login-text">Authenticate Access</span>
+            </button>
+        </div>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard-view" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                <div>
+                    <h1 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem;">System Overview</h1>
+                    <div style="color: var(--text-secondary); margin-top: 4px;">Manage database records and user attempts</div>
+                </div>
+                <button class="btn btn-primary" onclick="AdminApp.loadDashboard()"><span style="font-size:1.2rem">⟳</span> Refresh Data</button>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="m-label">Total Attempt Records</div>
+                    <div class="m-value" id="metric-attempts">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="m-label">Registered Unique Users</div>
+                    <div class="m-value" id="metric-users">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="m-label">System Storage Status</div>
+                    <div class="m-value" id="metric-status" style="color: var(--success);">ONLINE</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 40px; border-color: rgba(239, 68, 68, 0.3);">
+                <h3 style="color: var(--error); margin-bottom: 16px;">Danger Zone</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px;">IRREVERSIBLE ACTIONS. Deleting history will wipe all student assessment records permanently from the Google Drive database.</p>
+                <div style="display: flex; gap: 16px;">
+                    <button class="btn btn-danger" onclick="AdminApp.clearHistoryPrompt()">⚠️ Clear All Assessment History</button>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 16px; font-family: 'Outfit'; font-weight: 800;">Recent Global Attempts</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TStamp (UTC)</th>
+                            <th>Candidate ID</th>
+                            <th>Quiz Reference</th>
+                            <th>Score</th>
+                            <th>File ID</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        <tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 32px;">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast">Message</div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

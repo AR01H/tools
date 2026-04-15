@@ -264,7 +264,8 @@ const PageQuiz = (() => {
         .sat-sidebar-header { padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .sat-sidebar-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
         .sat-q-nav { padding: 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; overflow-y: auto; }
-        .sat-sidebar-legend { padding: 10px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; font-size: 0.6rem; color: var(--text-secondary); }
+        .sat-sidebar-legend { padding: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; gap: 4px; font-size: 0.6rem; color: var(--text-secondary); }
+        .section-stats { display: flex; font-size: x-small; flex-wrap: wrap; gap: 11px; justify-content: center; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .dot { width: 6px; height: 6px; border-radius: 2px; border: 1px solid var(--border-color); }
         .dot.active { background: var(--accent-primary); border-color: var(--accent-primary); }
