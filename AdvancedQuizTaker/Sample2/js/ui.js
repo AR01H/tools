@@ -142,13 +142,15 @@ const UI = (() => {
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Google Apps Script URL</label>
-          <input id="s-url" class="form-control" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${s}">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Root Folder ID</label>
-          <input id="s-fid" class="form-control" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs…" value="${f}">
+        <div style="display:none" id="hidden-config-fields">
+          <div class="form-group">
+            <label class="form-label">Google Apps Script URL</label>
+            <input id="s-url" class="form-control" type="url" placeholder="https://script.google.com/macros/s/…/exec" value="${s}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Root Folder ID</label>
+            <input id="s-fid" class="form-control" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs…" value="${f}">
+          </div>
         </div>
 
         <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap">
@@ -289,6 +291,18 @@ const UI = (() => {
       </div>`;
   }
 
+  function populateGroupSelect() {
+    const sel = document.getElementById('group-select');
+    if (!sel) return;
+    sel.innerHTML = ENV.folders.map(f => `<option value="${f.id}" ${f.id === State.get('folderId') ? 'selected' : ''}>${f.name}</option>`).join('');
+  }
+
+  function changeGroup(folderId) {
+    State.set('folderId', folderId);
+    toast('Group changed! Reloading context...', 'info', 1500);
+    setTimeout(() => location.reload(), 1500);
+  }
+
   return {
     toast,
     modal,
@@ -309,6 +323,8 @@ const UI = (() => {
     goBack,
     backBtn,
     stepsHtml,
+    populateGroupSelect,
+    changeGroup,
     _history,
   };
 })();

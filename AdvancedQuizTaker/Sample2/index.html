@@ -95,6 +95,10 @@
     </nav>
 
     <div class="topbar-right">
+      
+      <!-- Group Select -->
+      <select id="group-select" class="form-control" style="font-size:0.8rem; padding:4px 28px 4px 8px; border-radius:12px; height: 32px; font-weight:600; cursor:pointer;" onchange="UI.changeGroup(this.value)">
+      </select>
 
       <!-- Share button -->
       <button class="icon-btn" data-tip="Share" onclick="navigator.share && navigator.share({title:'Preparation Executer',url:location.href})">
@@ -133,6 +137,7 @@
 <div id="toast-container"></div>
 
 <!-- ── Scripts — order matters ── -->
+<script src="js/env.js"></script>
 <script src="js/state.js"></script>
 <script src="js/api.js"></script>
 <script src="js/ui.js"></script>
@@ -150,6 +155,9 @@
   // Apply saved theme
   const theme = State.get('theme') || 'dark';
   document.documentElement.setAttribute('data-theme', theme);
+  
+  // Populate the topbar group selection
+  UI.populateGroupSelect();
 
   // Handle back button via browser history
   window.addEventListener('popstate', () => {

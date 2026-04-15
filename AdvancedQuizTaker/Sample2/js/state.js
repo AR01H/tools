@@ -6,8 +6,8 @@
 const State = (() => {
   const _state = {
     // ── Config ─────────────────────────
-    scriptUrl: localStorage.getItem('quiz_scriptUrl') || '',
-    folderId:  localStorage.getItem('quiz_folderId')  || '',
+    scriptUrl: localStorage.getItem('quiz_scriptUrl') || ENV.scriptUrl,
+    folderId:  localStorage.getItem('quiz_folderId')  || ENV.folders[0].id,
     theme:     localStorage.getItem('quiz_theme')     || 'dark',
     personalFields: JSON.parse(localStorage.getItem('quiz_personalFields') || '["name","dob","email"]'),
 
