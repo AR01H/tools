@@ -401,7 +401,7 @@ const PageResult = (() => {
 
   function renderAdaptive(result) {
     return `
-      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(500px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(600px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
         <div class="chart-card"><h3 class="chart-label">Performance by Difficulty Tier</h3><div class="chart-box"><canvas id="chart-adaptive-difficulty"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Endurance & Cognitive Fatigue</h3><div class="chart-box"><canvas id="chart-adaptive-fatigue"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Pacing vs Precision Map</h3><div class="chart-box"><canvas id="chart-adaptive-pacing"></canvas></div></div>
@@ -1044,31 +1044,41 @@ const PageResult = (() => {
               const type = (q["Question Type"] || "").trim();
               const isSkipped = (ans.userAnswer === undefined || ans.userAnswer === "" || (Array.isArray(ans.userAnswer) && ans.userAnswer.length === 0));
               const timeClass = ans.timeTaken > 30 ? "slow" : ans.timeTaken < 10 ? "fast" : "avg";
-              const status = isSkipped ? "skipped" : (corr ? "correct" : "wrong");
-              const insight = Results.getInsight(q);
+              try {
+                const status = isSkipped ? "skipped" : (corr ? "correct" : "wrong");
+                const insight = Results.getInsight(q);
 
-              return `
-              <div class="report-q-card ${status}" data-status="${status}" data-text="${q.Question.toLowerCase()}">
-                <div class="q-status-side">
-                   <div class="q-status-badge">${status.toUpperCase()}</div>
-                   <div class="q-time-badge ${timeClass}">${ans.timeTaken || 0}s</div>
-                </div>
-                <div class="q-main-content">
-                    <div class="q-meta">${q.Category || "General"} • ${q.Difficulty || "Medium"} • ${type}</div>
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px">
-                       <p class="q-text" style="font-size:1.1rem; font-weight:700"><strong>Q${i + 1}.</strong> ${q.Question}</p>
-                       <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:-4px">
-                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
-                       </button>
-                    </div>
-                    <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
-                    ${insight ? `
-                    <div class="q-explanation" style="margin-top:16px; padding:16px; background:rgba(var(--accent-primary-rgb),0.05); border-radius:12px; border-left:4px solid var(--accent-primary)">
-                       <p class="label" style="font-size:0.65rem; font-weight:800; color:var(--accent-primary); margin-bottom:4px">LEARNING INSIGHT</p>
-                       <p class="text" style="font-size:0.9rem; line-height:1.5">${insight}</p>
-                    </div>` : ""}
-                </div>
-              </div>`;
+                return `
+                <div class="report-q-card ${status}" data-status="${status}" data-text="${q.Question.toLowerCase()}">
+                  <div class="q-status-side">
+                     <div class="q-status-badge">${status.toUpperCase()}</div>
+                     <div class="q-time-badge ${timeClass}">${ans.timeTaken || 0}s</div>
+                  </div>
+                  <div class="q-main-content">
+                      <div class="q-meta">${q.Category || "General"} • ${q.Difficulty || "Medium"} • ${type}</div>
+                      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px">
+                         <p class="q-text" style="font-size:1.1rem; font-weight:700"><strong>Q${i + 1}.</strong> ${q.Question}</p>
+                         <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:-4px">
+                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
+                         </button>
+                      </div>
+                      <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
+                      ${insight ? `
+                      <div class="q-explanation" style="margin-top:16px; padding:16px; background:rgba(var(--accent-primary-rgb),0.05); border-radius:12px; border-left:4px solid var(--accent-primary)">
+                         <p class="label" style="font-size:0.65rem; font-weight:800; color:var(--accent-primary); margin-bottom:4px">LEARNING INSIGHT</p>
+                         <p class="text" style="font-size:0.9rem; line-height:1.5">${insight}</p>
+                      </div>` : ""}
+                  </div>
+                </div>`;
+              } catch (err) {
+                console.error("Render fail:", err);
+                return `<div class="report-q-card error">
+                  <div class="q-status-side"><div class="q-status-badge">ERROR</div></div>
+                  <div class="q-main-content">
+                    <p class="q-text"><strong>Q${i+1}.</strong> Unable to render this question component due to content syntax errors.</p>
+                  </div>
+                </div>`;
+              }
             })
             .join("")}
         </div>

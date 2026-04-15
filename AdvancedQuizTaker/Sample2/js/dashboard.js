@@ -98,16 +98,6 @@ const PageWelcome = (() => {
           </div>
 
          </div>
-
-         <!-- Mistake Mastery Quick Action -->
-         <div class="card-elevated animate-up" style="margin-top:24px; padding:24px; border:1px solid var(--accent-secondary-transparent); background:rgba(168,85,247,0.03); display:flex; align-items:center; gap:20px; border-radius:16px">
-            <div style="width:52px; height:52px; background:var(--accent-secondary); color:#fff; border-radius:12px; display:grid; place-items:center; font-size:1.5rem">🧠</div>
-            <div style="flex:1">
-               <h4 style="font-weight:800; margin:0 0 4px 0">Mistake Mastery</h4>
-               <p class="text-xs text-muted" style="margin:0">Launch a smart session focusing only on questions you've failed before.</p>
-            </div>
-            <button class="btn btn-primary" onclick="Dashboard.startMistakeMastery()" style="background:var(--accent-secondary); border:none; padding:10px 24px">Launch Mode</button>
-         </div>
        </div>
 
       <style>
@@ -291,77 +281,11 @@ const Dashboard = (() => {
     }
   }
 
-  async function startMistakeMastery() {
-    const user = State.get("user");
-    if (!user || !user.identifier) {
-      UI.toast("Please log in to use Mistake Mastery", "warn");
-      return;
-    }
-
-    UI.setLoading(true, "Analyzing your past mistakes...");
-    try {
-      const history = await API.getHistory(user.identifier);
-      if (!history || history.length === 0) {
-        UI.setLoading(false);
-        UI.toast("No history found to analyze mistakes.", "info");
-        return;
-      }
-
-      // 1. Find all unique failed questions from history
-      // Note: This assumes the history contains enough data to identify the question
-      const mistakes = history.filter(r => (r.IsCorrect || "").toLowerCase() === "false");
-      if (mistakes.length === 0) {
-        UI.setLoading(false);
-        UI.toast("Great job! You have no recorded mistakes.", "success");
-        return;
-      }
-
-      // 2. Identify the last quiz taken that had mistakes to find the source file
-      const lastMistake = mistakes[mistakes.length - 1];
-      const filepath = lastMistake.Filepath || lastMistake.filepath || "";
-      
-      if (!filepath) {
-        UI.setLoading(false);
-        UI.toast("Could not locate original source for mistakes.", "warn");
-        return;
-      }
-
-      // 3. Fetch original quiz questions
-      const allQuestions = await API.getQuizData(filepath);
-      
-      // 4. Filter original questions to only those failed in mistakes list
-      // We fuzzy match by question text
-      const failedTexts = [...new Set(mistakes.map(m => m.QuestionText || m.Question))];
-      const mistakesOnly = allQuestions.filter(q => failedTexts.includes(q.Question));
-
-      if (mistakesOnly.length === 0) {
-        UI.setLoading(false);
-        UI.toast("Could not match mistakes with current question database.", "warn");
-        return;
-      }
-
-      // 5. Start Quiz
-      State.set("quiz", {
-         questions: mistakesOnly,
-         config: { "Quiz Settings Title": "Mistake Mastery Session" },
-         filepath: filepath
-      });
-      UI.setLoading(false);
-      UI.navigate("quiz");
-      UI.toast(`Mistake Mastery: ${mistakesOnly.length} questions loaded.`, "success");
-
-    } catch (e) {
-      UI.setLoading(false);
-      UI.toast("Error launching Mistake Mastery: " + e.message, "error");
-    }
-  }
-
   return { 
     handleWelcomeAction, 
     startQuiz, 
     viewLatestResult, 
     loadUserInsights, 
-    startMistakeMastery,
     changeUser, 
     resetUser 
   };

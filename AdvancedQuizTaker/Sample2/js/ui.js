@@ -104,7 +104,6 @@ const UI = (() => {
       quiz: PageQuiz.render,
       result: PageResult.render,
       history: PageHistory.render,
-      admin: PageAdmin.render,
     };
     if (pages[page]) pages[page](main, data);
     else main.innerHTML = `<p class="text-muted">Page not found: ${page}</p>`;
