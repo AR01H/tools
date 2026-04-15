@@ -175,7 +175,7 @@ const PageSetupConfig = (() => {
         .section-label { font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
         .glass-stage { background: var(--bg-elevated); padding: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); }
         .config-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; opacity: 0; animation: fadeIn 0.5s forwards; }
-        .config-item { background: var(--bg-surface); padding: 6px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; }
+        .config-item { background: var(--bg-surface); padding: 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; }
         .config-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
         .config-val { font-size: 1.1rem; font-weight: 900; color: var(--text-primary); }
         
@@ -218,12 +218,10 @@ const PageSetupConfig = (() => {
               <label class="config-label">${f.label}</label>
               ${
                 f.type === "select"
-                  ? `<select id="cfg-${
-                      f.key
-                    }" class="form-control" style="background:none; border:none; padding:0; font-weight:900; font-size:1.1rem">
+                  ? `<select id="cfg-${f.key.replace(/\s+/g, '')}" class="form-control" style="background:none; border:none; padding:0; font-weight:900; font-size:1.1rem">
                      ${f.opts.map((o) => `<option>${o}</option>`).join("")}
                    </select>`
-                  : `<input id="cfg-${f.key}" class="form-control" type="${f.type}" value="0" style="background:none; border:none; padding:0; font-weight:900; font-size:1.1rem">`
+                  : `<input id="cfg-${f.key.replace(/\s+/g, '')}" class="form-control" type="${f.type}" value="0" style="background:none; border:none; padding:0; font-weight:900; font-size:1.1rem">`
               }
             </div>`
           ).join("")}
@@ -254,7 +252,7 @@ const PageSetupConfig = (() => {
     if (name === "custom") {
       const cfg = {};
       PRESET_FIELDS.forEach((f) => {
-        const el = document.getElementById("cfg-" + f.key);
+        const el = document.getElementById("cfg-" + f.key.replace(/\s+/g, ''));
         if (el) cfg[f.key] = el.value;
       });
       return cfg;
@@ -352,6 +350,15 @@ const PageSetupTemplate = (() => {
         </div>
 
         <div style="display:flex; flex-direction:column; gap:32px">
+          <div class="card" style="padding:24px; background:var(--bg-elevated); border-radius:16px; border:1px solid var(--border-color); margin-bottom:20px">
+             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+                <h4 style="font-weight:800; color:var(--text-primary); margin:0; font-size:0.9rem">Quiz Name</h4>
+             </div>
+             <div class="form-group">
+                <input type="text" id="custom-quiz-name" class="form-control" placeholder="Optional: Name your session..." 
+                       style="padding:12px; border-radius:10px; font-weight:700; font-size:1rem; border:1px solid var(--border-color); background:var(--bg-surface)">
+             </div>
+          </div>
           <div class="theme-gallery">
             ${TEMPLATES.map(t => `
               <div class="theme-card ${t.id === selected ? "active" : ""}" 
@@ -366,21 +373,13 @@ const PageSetupTemplate = (() => {
                 </div>
               </div>`).join("")}
           </div>
-
-          <div class="card" style="padding:24px; background:var(--bg-elevated); border-radius:16px; border:1px solid var(--border-color); margin-bottom:20px">
-             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
-                <h4 style="font-weight:800; color:var(--text-primary); margin:0; font-size:0.9rem">Session Identification</h4>
-                <div class="launch-label" style="opacity:0.6; font-size:0.6rem">DB KEY</div>
-             </div>
-             <div class="form-group">
-                <input type="text" id="custom-quiz-name" class="form-control" placeholder="Optional: Name your session..." 
-                       style="padding:12px; border-radius:10px; font-weight:700; font-size:1rem; border:1px solid var(--border-color); background:var(--bg-surface)">
-             </div>
-          </div>
         </div>
 
         <div class="setup-footer">
-          <div class="setup-footer-content">
+          <div class="setup-footer-content" style="gap:var(--sp-md)">
+             <button class="btn btn-secondary btn-lg" onclick="PageSetupTemplate.launchQuiz('study')" style="font-size:1.2rem; border-radius:12px; background:var(--bg-elevated); border:1px solid var(--border-color)">
+               🧠 Study Mode
+             </button>
              <button class="btn btn-primary btn-lg" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()" style="font-size:1.2rem; border-radius:12px">
                🚀 Launch Session
              </button>
@@ -424,14 +423,14 @@ const PageSetupTemplate = (() => {
       State.merge("setup", { template: id });
       render(document.getElementById("main-content"));
     },
-    launchQuiz: async () => {
+    launchQuiz: async (mode) => {
       const setup = State.get("setup");
       const preparedQs = setup.preparedQs;
       const config = setup.finalConfig;
       const user = State.get("user");
 
       const btn = document.getElementById("launch-btn");
-      if (btn) {
+      if (btn && mode !== 'study') {
         btn.disabled = true;
         btn.innerHTML = `<div class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block"></div> Launching...`;
       }
@@ -474,7 +473,7 @@ const PageSetupTemplate = (() => {
         fileId,
         resultFileId,
         config,
-        template: setup.template || "default",
+        template: mode === 'study' ? 'study' : (setup.template || "default"),
       });
 
       UI.pushPage("quiz");

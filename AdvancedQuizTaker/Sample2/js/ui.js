@@ -292,16 +292,44 @@ const UI = (() => {
   }
 
   function populateGroupSelect() {
-    const sel = document.getElementById('group-select');
-    if (!sel) return;
-    sel.innerHTML = ENV.folders.map(f => `<option value="${f.id}" ${f.id === State.get('folderId') ? 'selected' : ''}>${f.name}</option>`).join('');
+    const menu = document.getElementById('group-dropdown-menu');
+    const label = document.getElementById('active-group-label');
+    if (!menu) return;
+    
+    const activeId = State.get('folderId');
+    const activeGroup = ENV.folders.find(f => f.id === activeId) || ENV.folders[0];
+    if (label) label.textContent = activeGroup.name;
+
+    menu.innerHTML = ENV.folders.map(f => `
+      <div class="menu-item ${f.id === activeId ? 'active' : ''}" onclick="UI.changeGroup('${f.id}')">
+        ${f.name}
+      </div>
+    `).join('');
+  }
+
+  function toggleGroupMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('group-dropdown-menu');
+    if (menu) menu.classList.toggle('hidden');
+  }
+
+  function toggleNavMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('nav-dropdown-menu');
+    if (menu) menu.classList.toggle('hidden');
   }
 
   function changeGroup(folderId) {
     State.set('folderId', folderId);
-    toast('Group changed! Reloading context...', 'info', 1500);
-    setTimeout(() => location.reload(), 1500);
+    toast('Group switched! Syncing...', 'info', 1000);
+    setTimeout(() => location.reload(), 1000);
   }
+
+  // Global click management
+  document.addEventListener('click', () => {
+    document.getElementById('group-dropdown-menu')?.classList.add('hidden');
+    document.getElementById('nav-dropdown-menu')?.classList.add('hidden');
+  });
 
   return {
     toast,
@@ -325,6 +353,7 @@ const UI = (() => {
     stepsHtml,
     populateGroupSelect,
     changeGroup,
-    _history,
+    toggleGroupMenu,
+    toggleNavMenu
   };
 })();

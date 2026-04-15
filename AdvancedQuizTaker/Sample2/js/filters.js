@@ -167,8 +167,8 @@ const PageSetupTopics = (() => {
         .topic-card {
           background: var(--bg-surface);
           border: 2px solid var(--border-color);
-          border-radius: var(--radius-lg);
-          padding: 32px 24px;
+          border-radius: var(--radius-sm);
+          padding: 4px;
           text-align: center;
           cursor: pointer;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);

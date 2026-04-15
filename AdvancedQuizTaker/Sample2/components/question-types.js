@@ -88,9 +88,10 @@ const QuestionRenderer = (() => {
               ? `<span class="badge badge-error">-${q["Negative Score"]}</span>`
               : ""
           }
-          <span style="margin-left:auto;font-size:.75rem;color:var(--text-muted)">#${
-            idx + 1
-          }</span>
+          <span style="margin-left:auto; display:flex; align-items:center; gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="QuestionRenderer.speakQuestion()" style="padding:4px; font-size:1.1rem" title="Read Aloud">🔊</button>
+            <span style="font-size:.75rem;color:var(--text-muted)">#${idx + 1}</span>
+          </span>
         </div>
 
         <!-- Question text -->
@@ -537,7 +538,26 @@ const QuestionRenderer = (() => {
     }
   }
 
-  return { render, collectAnswer, toggleMCQ };
+  function speakQuestion() {
+    if (!window.speechSynthesis) return UI.toast("Voice not supported in this browser", "error");
+    window.speechSynthesis.cancel(); // Stop any currently speaking audio
+    let text = (_currentQ.Question || "").replace(/<[^>]*>?/gm, ''); // strip HTML
+    if (_currentQ.Passage) {
+       text = "Passage:. " + _currentQ.Passage.replace(/<[^>]*>?/gm, '') + ". Question:. " + text;
+    }
+    
+    // Add options
+    const choices = getChoices(_currentQ);
+    if (choices.length) {
+       text += ". Options are: . " + choices.map((c, i) => ["A", "B", "C", "D", "E"][i] + ". " + c.replace(/<[^>]*>?/gm, '')).join(". ");
+    }
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.95;
+    window.speechSynthesis.speak(utter);
+  }
+
+  return { render, collectAnswer, toggleMCQ, speakQuestion };
 })();
 
 // ── Drag helpers ──────────────────────────────────────────

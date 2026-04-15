@@ -147,6 +147,9 @@ const PageQuiz = (() => {
     // ──────────────────────────────────────────────────────────
     // 3. MODERN EDITORIAL (Image 3) — Right sidebar list
     // ──────────────────────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────
+    // 3. MODERN EDITORIAL (Image 3) — Right sidebar list
+    // ──────────────────────────────────────────────────────────
     else if (tmpl === "editorial") {
       layoutHtml = `
         <div class="layout-editorial">
@@ -189,9 +192,74 @@ const PageQuiz = (() => {
         </div>`;
     }
     // ──────────────────────────────────────────
+    // 4. STUDY MODE (Flashcard)
+    // ──────────────────────────────────────────
+    else if (tmpl === "study") {
+      layoutHtml = `
+        <div class="layout-study">
+          <div class="study-header">
+             <div class="study-progress">
+                <span id="q-idx">1</span> / ${qs.length}
+                <div class="progress-bar" style="width:100px; height:6px; margin-left:12px"><div class="progress-fill" id="quiz-progress"></div></div>
+             </div>
+             <button class="btn btn-ghost" onclick="QuizEngine.confirmSubmit()">Exit Study</button>
+          </div>
+          
+          <div class="study-main">
+             <div class="flashcard-container" id="flashcard" onclick="this.classList.toggle('flipped')">
+                <div class="flashcard-inner">
+                   <div class="flashcard-front">
+                      <div id="question-panel" class="study-question-box"></div>
+                      <div class="study-hint">Click to flip and see answer</div>
+                   </div>
+                   <div class="flashcard-back">
+                      <div class="study-answer-content">
+                         <h3 style="color:var(--color-success); margin-bottom:12px">Correct Answer</h3>
+                         <div id="study-answer-text" class="study-val"></div>
+                         <hr style="margin:20px 0; border:none; border-top:1px solid var(--border-color); opacity:0.5">
+                         <h4 style="color:var(--text-muted); font-size:0.8rem; margin-bottom:8px">EXPLANATION</h4>
+                         <div id="study-explanation-text" class="study-desc"></div>
+                      </div>
+                      <div class="study-hint">Click to flip back</div>
+                   </div>
+                </div>
+             </div>
+          </div>
+          
+          <div class="study-footer">
+             <button class="btn btn-ghost" id="btn-prev" onclick="event.stopPropagation(); QuizEngine.prev()">PREVIOUS</button>
+             <div id="q-nav" style="display:none"></div>
+             <button class="btn btn-primary btn-lg" id="btn-next" onclick="event.stopPropagation(); QuizEngine.next()">NEXT CARD</button>
+          </div>
+        </div>
+        <style>
+          .layout-study { height:100vh; display:flex; flex-direction:column; background:var(--bg-base); }
+          .study-header { padding:20px; display:flex; justify-content:space-between; align-items:center; }
+          .study-progress { display:flex; align-items:center; font-weight:800; color:var(--text-secondary); }
+          .study-main { flex:1; display:grid; place-items:center; padding:20px; perspective: 1000px; }
+          .flashcard-container { width:100%; max-width:800px; height:500px; cursor:pointer; }
+          .flashcard-inner { position:relative; width:100%; height:100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+          .flashcard-container.flipped .flashcard-inner { transform: rotateY(180deg); }
+          .flashcard-front, .flashcard-back { 
+            position:absolute; width:100%; height:100%; backface-visibility: hidden; 
+            background:var(--bg-surface); border-radius:24px; border:1px solid var(--border-color);
+            padding:40px; box-shadow:0 20px 50px rgba(0,0,0,0.1); display:flex; flex-direction:column;
+          }
+          .flashcard-back { transform: rotateY(180deg); }
+          .study-hint { margin-top:auto; font-size:0.75rem; text-align:center; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:1px; opacity:0.5; }
+          .study-val { font-size:1.5rem; font-weight:900; color:var(--text-primary); }
+          .study-desc { font-size:1.1rem; color:var(--text-secondary); line-height:1.6; max-height:250px; overflow-y:auto; }
+          .study-footer { padding:30px; display:flex; justify-content:center; gap:20px; align-items:center; }
+          @media (max-width: 600px) {
+            .flashcard-container { height:400px; }
+            .flashcard-front, .flashcard-back { padding:20px; }
+          }
+        </style>
+      `;
+    // ──────────────────────────────────────────
     // 4. VIBRANT (Image 4) — Gamified
     // ──────────────────────────────────────────
-    else if (tmpl === "vibrant") {
+    }else if (tmpl === "vibrant") {
       layoutHtml = `
         <div class="layout-vibrant">
           <div class="vib-header">
@@ -271,7 +339,7 @@ const PageQuiz = (() => {
         .dot.active { background: var(--accent-primary); border-color: var(--accent-primary); }
         .dot.done { background: var(--color-success); border-color: var(--color-success); }
         .dot.flagged { background: var(--color-warn); border-color: var(--color-warn); }
-        .sat-sidebar-footer { padding: 10px; background: var(--bg-elevated); border-top: 1px solid var(--border-color); font-size: 0.65rem; }
+        .sat-sidebar-footer { padding: 10px; background: var(--bg-elevated); border-top: 1px solid var(--border-color); font-size: 0.65rem;width:100%; }
         .sat-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
         .sat-header { padding: 6px 16px; height: 44px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); flex-wrap: wrap; }
         .sat-badge { background: var(--text-primary); color: var(--bg-surface); padding: 2px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 800; }
@@ -346,7 +414,7 @@ const PageQuiz = (() => {
         @media (max-width: 768px) {
           .layout-sat, .layout-dsat { flex-direction: column; overflow: visible; height: auto; }
           .sat-sidebar, .dsat-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-          .sat-q-nav, .dsat-sidebar-nav { grid-template-columns: repeat(6, 1fr) !important; max-height: 120px; width: 100%; overflow-y: auto; }
+          .sat-q-nav, .dsat-sidebar-nav { grid-template-columns: repeat(12, 1fr) !important; max-height: 120px; width: 100%; overflow-y: auto; }
           .sat-main, .dsat-main { overflow: visible; }
           
           .quizpro-body { flex-direction: column; overflow: visible; }
@@ -535,7 +603,19 @@ const QuizEngine = (() => {
     const nextBtn = document.getElementById("btn-next");
     if (prevBtn) prevBtn.disabled = !allowBack || quiz.currentIdx === 0;
     const isLast = quiz.currentIdx === quiz.questions.length - 1;
-    if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish" : "Next →";
+    
+    if (quiz.template === 'study') {
+      const card = document.getElementById('flashcard');
+      if (card) card.classList.remove('flipped');
+      
+      const ansText = document.getElementById('study-answer-text');
+      const expText = document.getElementById('study-explanation-text');
+      if (ansText) ansText.innerHTML = q["Correct Answer"] || "N/A";
+      if (expText) expText.innerHTML = q.Explanation || q.Solution || "No explanation provided.";
+      if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish Session" : "Next Card →";
+    } else {
+      if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish" : "Next →";
+    }
   }
 
   function renderQNav() {
