@@ -101,7 +101,7 @@ const PageSetupConfig = (() => {
       key: "Final Result",
       label: "Show Final Result",
       type: "select",
-      opts: ["On", "Off"],
+      opts: ["On"],
     },
     {
       key: "Question Wise Result",
