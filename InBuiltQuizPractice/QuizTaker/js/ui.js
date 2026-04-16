@@ -165,7 +165,7 @@ const UI = (() => {
           </div>
         </div>
 
-        <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap">
+        <div style="display:none;gap:var(--sp-sm);flex-wrap:wrap">
           <button class="btn btn-secondary btn-sm" onclick="UI.testConn()">🔗 Test Connection</button>
           <button class="btn btn-danger btn-sm" onclick="UI.clearConfig()">🗑 Remove Config</button>
         </div>

@@ -111,6 +111,7 @@ const PageQuiz = (() => {
     // 2. QUIZPRO DARK (Image 2) — Split view with passage
     // ──────────────────────────────────────────────────────────
     else if (tmpl === "quizpro-dark") {
+      debugger
       layoutHtml = `
         <div class="layout-quizpro">
           <div class="quizpro-topbar">
@@ -199,7 +200,7 @@ const PageQuiz = (() => {
         <div class="layout-immersive-study">
           <div class="study-nav-header">
              <div class="header-left">
-                <span class="study-badge">STUDY MODE — READING ONLY</span>
+                <span class="study-badge">STUDY MODE</span>
                 <div class="study-id-capsule">
                    <span class="label">${quiz.config.title || "Test"}</span>
                    <span id="q-idx" class="val">1</span>
@@ -212,7 +213,7 @@ const PageQuiz = (() => {
                 </div>
              </div>
              <div class="header-right">
-                <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--text-muted); border-radius:8px; padding:8px 16px">CLOSE STUDY ×</button>
+                <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--text-muted); border-radius:8px; padding:8px 16px">CLOSE ×</button>
              </div>
           </div>
           
@@ -244,12 +245,12 @@ const PageQuiz = (() => {
              <div class="footer-inner">
                 <button class="btn btn-secondary btn-lg" id="btn-prev" onclick="QuizEngine.prev()" style="min-width:180px">
                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19L5 12L12 5"/></svg>
-                   PREVIOUS ENTRY
+                   PREVIOUS
                 </button>
                 <div id="q-nav" style="display:none"></div>
                 <button class="btn btn-primary btn-lg next-study-pro" id="btn-next" onclick="QuizEngine.next()">
                    <span class="btn-inner">
-                      <span id="btn-next-text">NEXT LEARNING ITEM</span>
+                      <span id="btn-next-text">NEXT</span>
                       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 12H19M12 5L19 12L12 19"/></svg>
                    </span>
                 </button>
@@ -263,7 +264,7 @@ const PageQuiz = (() => {
           .study-badge { font-size:0.65rem; font-weight:900; color:var(--accent-primary); background:var(--accent-primary-transparent); padding:4px 10px; border-radius:99px; letter-spacing:0.05em; }
           .study-id-capsule { display:flex; align-items:baseline; gap:6px; font-weight:900; }
           .study-id-capsule .label { font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-right:4px; }
-          .study-id-capsule .val { font-size:1.4rem; color:var(--accent-primary); }
+          .study-id-capsule .val {color:var(--accent-primary); }
           .study-id-capsule .total { font-size:0.9rem; color:var(--text-muted); opacity:0.5; }
           
           .study-progress-track { width:240px; height:6px; background:var(--bg-elevated); border-radius:3px; overflow:hidden; }
@@ -285,13 +286,21 @@ const PageQuiz = (() => {
           .explanation-block { border-left:6px solid var(--text-muted); }
           .study-desc { font-size:1.05rem; line-height:1.8; color:var(--text-secondary); white-space:pre-line; }
           
-          .study-persistent-footer { height:96px; border-top:1px solid var(--border-color); background:var(--bg-surface); display:flex; align-items:center; justify-content:center; }
+          .study-persistent-footer { height:56px; border-top:1px solid var(--border-color); background:var(--bg-surface); display:flex; align-items:center; justify-content:center; }
           .footer-inner { width:100%; max-width:900px; display:flex; justify-content:space-between; padding:0 32px; gap:20px; }
           
           .next-study-pro { min-width:240px; border-radius:4px; background:var(--accent-primary); box-shadow:0 10px 25px var(--accent-shadow); }
           .next-study-pro .btn-inner { display:flex; align-items:center; gap:12px; font-weight:900; letter-spacing:0.02em; }
           .next-study-pro:hover { transform: translateY(-3px) scale(1.02); }
             .study-nav-header { padding:0 16px; }
+            .header-center { display:none; }
+            .study-content-stack { padding:0 16px; }
+            .study-viewport { padding:24px 0; }
+            .footer-inner { padding:0 16px; }
+            .footer-inner button { flex:1; min-width:0 !important; }
+          }
+          @media (max-width: 768px) {
+            .study-nav-header { height:30px; padding:0 16px; }
             .header-center { display:none; }
             .study-content-stack { padding:0 16px; }
             .study-viewport { padding:24px 0; }
@@ -308,7 +317,7 @@ const PageQuiz = (() => {
         <div class="layout-vibrant">
           <div class="vib-header">
              <button class="vib-back" onclick="QuizEngine.confirmSubmit()">←</button>
-             <div class="vib-topic-badge">Science • Biology</div>
+             <div class="vib-topic-badge">${setup.topics.join(", ")}</div>
              <div class="vib-timer" id="total-timer-vib">00:00</div>
           </div>
           <div class="vib-progress-wrap">
@@ -343,11 +352,11 @@ const PageQuiz = (() => {
             ${timerHTML}${pauseHTML}${submitHTML}
           </div>
           <div class="card" id="question-panel" style="padding:var(--sp-lg)"></div>
+          <div id="q-nav" style="display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;flex:1;margin:0 var(--sp-md);scrollbar-width:none"></div>
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-sm);padding:var(--sp-sm) 0;border-top:1px solid var(--border-color)">
             <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${
               !allowBack ? "disabled" : ""
             }>← Back</button>
-            <div id="q-nav" style="display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;flex:1;margin:0 var(--sp-md);scrollbar-width:none"></div>
             <div style="display:flex;gap:var(--sp-sm)">${actionsHTML}<button class="btn btn-primary btn-sm" id="btn-next" onclick="QuizEngine.next()">Next →</button></div>
           </div>
         </div>`;
@@ -390,7 +399,7 @@ const PageQuiz = (() => {
         .sat-q-counter { font-size: 0.75rem; font-weight: 700; color: var(--text-primary); }
         .sat-progress-wrap { flex: 1; max-width: 280px; margin: 0 20px; }
         .sat-content { flex: 1; overflow-y: auto; padding: 15px 6%; display: flex; flex-direction: column; }
-        .sat-actions { display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: 20px; }
+        .sat-actions { display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); margin-top: 20px; }
 
         /* ── QuizPro Dark ── */
         .layout-quizpro { display:flex; flex-direction:column; height:calc(100vh - 52px); background:var(--bg-base); color:var(--text-primary); }
@@ -403,9 +412,9 @@ const PageQuiz = (() => {
         .qp-passage { flex: 1; border-right: 1px solid var(--border-color); padding: 16px; overflow-y: auto; background: var(--bg-surface); }
         .qp-passage-header { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 10px; }
         .qp-passage-content { font-size: 0.95rem; line-height: 1.5; opacity: 0.9; }
-        .qp-question { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; }
+        .qp-question { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; }
         .qp-q-header { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; }
-        .qp-mini-nav { display: flex; gap: 3px; flex-wrap: wrap; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); }
+        .qp-mini-nav { display: flex; gap: 3px; overflow-x:auto; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); }
         .quizpro-footer { height: 52px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--bg-surface); }
 
         /* ── Editorial ── */
@@ -440,8 +449,8 @@ const PageQuiz = (() => {
         .vib-tag { background: var(--bg-elevated); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; color: var(--text-secondary); border: 1px solid var(--border-color); }
         .vib-score-tag { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }
         .vib-q-nav { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
-        .vib-footer { padding: 15px; display: flex; gap: 12px; background: var(--bg-surface); }
-        .vib-action-btn { flex: 1; height: 48px; border-radius: 14px; font-weight: 800; font-size: 0.9rem; transition: 0.2s; }
+        .vib-footer { display: flex; gap: 12px; background: var(--bg-surface); }
+        .vib-action-btn { flex: 1; height: 48px; border-radius: 4px; font-weight: 800; font-size: 0.9rem; transition: 0.2s; }
         .vib-action-btn.skip { background: var(--bg-base); color: var(--text-primary); }
         .vib-action-btn.next { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; box-shadow: 0 10px 20px rgba(234,88,12,0.3); }
 
@@ -459,7 +468,7 @@ const PageQuiz = (() => {
         @media (max-width: 768px) {
           .layout-sat, .layout-dsat { flex-direction: column; overflow: visible; height: auto; }
           .sat-sidebar, .dsat-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-          .sat-q-nav, .dsat-sidebar-nav { grid-template-columns: repeat(12, 1fr) !important; max-height: 120px; width: 100%; overflow-y: auto; }
+          .sat-q-nav, .dsat-sidebar-nav { grid-template-columns: repeat(12, 1fr) !important; max-height: 120px; width: 100%; overflow-y: auto;display:flex; }
           .sat-main, .dsat-main { overflow: visible; }
           
           .quizpro-body { flex-direction: column; overflow: visible; }
@@ -665,7 +674,7 @@ const QuizEngine = (() => {
       if (expText) expText.innerHTML = q.Explanation || q.Solution || "No learning insight provided for this entry.";
       
       const nextBtnText = document.getElementById('btn-next-text');
-      if (nextBtnText) nextBtnText.textContent = isLast ? "FINISH STUDY SESSION" : "NEXT LEARNING ITEM";
+      if (nextBtnText) nextBtnText.textContent = isLast ? "FINISH" : "NEXT";
     } else {
       if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish" : "Next →";
     }

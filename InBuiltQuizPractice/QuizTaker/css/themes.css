@@ -196,9 +196,9 @@
 /* Dark: subtle grid */
 [data-theme="dark"] body::before {
   content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
-  background-image:
+  /* background-image:
     linear-gradient(var(--border-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+    linear-gradient(90deg, var(--border-color) 1px, transparent 1px); */
   background-size: 40px 40px; opacity:.3;
 }
 

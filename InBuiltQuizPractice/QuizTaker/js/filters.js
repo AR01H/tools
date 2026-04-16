@@ -292,7 +292,7 @@ const PageSetupFilters = (() => {
            <div class="grid-2" style="gap:20px">
               <!-- Category Filter -->
               <div class="setup-compact-section" style="padding:16px">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
                   <span class="filter-label" style="font-size:0.85rem">Categories</span>
                   <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('cat-chips', this.value)">
                   <button class="btn btn-ghost btn-sm" onclick="selectAllChips('cat-chips')" style="font-size:10px">Select All</button>
@@ -302,7 +302,7 @@ const PageSetupFilters = (() => {
   
               <!-- Sub-category Filter -->
               <div class="setup-compact-section" style="padding:16px">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
                   <span class="filter-label" style="font-size:0.85rem">Specializations</span>
                   <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('subcat-chips', this.value)">
                   <button class="btn btn-ghost btn-sm" onclick="selectAllChips('subcat-chips')" style="font-size:10px">Select All</button>
@@ -322,7 +322,7 @@ const PageSetupFilters = (() => {
                <div id="type-chips" class="chip-container compact"></div>
              </div>
              <div class="setup-compact-section" style="padding:16px">
-               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px">
+               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px;flex-wrap:wrap">
                   <span class="filter-label" style="font-size:0.85rem">Advanced Tags</span>
                   <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('tag-chips', this.value)">
                   <button class="btn btn-ghost btn-sm" onclick="clearAllChips('tag-chips')" style="font-size:10px">Clear</button>

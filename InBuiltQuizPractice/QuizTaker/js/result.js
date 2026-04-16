@@ -659,29 +659,6 @@ const PageResult = (() => {
     const pace = score.timeTaken / (result.quiz.questions.length || 1);
     
     return `
-      <div class="dash-metrics-grid">
-        <div class="metric-card">
-          <span class="m-label">Knowledge Accuracy</span>
-          <div class="m-value text-success">${score.accuracy}%</div>
-          <div class="m-sub">${score.correct} of ${result.quiz.questions.length} Correct</div>
-        </div>
-        <div class="metric-card">
-          <span class="m-label">Average Pace</span>
-          <div class="m-value text-accent">${pace.toFixed(1)}s</div>
-          <div class="m-sub">Seconds per question</div>
-        </div>
-        <div class="metric-card">
-          <span class="m-label">Points Earned</span>
-          <div class="m-value">${score.total.toFixed(1)}</div>
-          <div class="m-sub">Out of ${score.maxTotal} Max</div>
-        </div>
-        <div class="metric-card">
-          <span class="m-label">Completion Status</span>
-          <div class="m-value" style="color:var(--color-warn)">${Math.round(((score.correct + score.wrong)/result.quiz.questions.length)*100)}%</div>
-          <div class="m-sub">${score.skipped} questions skipped</div>
-        </div>
-      </div>
-
       <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(600px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
         <div class="chart-card"><h3 class="chart-label">Success Profile</h3><div class="chart-box"><canvas id="chart-answers"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Topic Mastery</h3><div class="chart-box"><canvas id="chart-categories"></canvas></div></div>
@@ -1107,7 +1084,7 @@ const PageResult = (() => {
               <h2 style="font-size:1.6rem;font-weight:900;letter-spacing:-0.02em;margin:0">Performance Detail</h2>
               <p class="text-xs text-muted">Deep-dive into individual responses and explanations</p>
            </div>
-           <div class="review-controls" style="display:flex;gap:var(--sp-sm);flex:1;max-width:500px">
+           <div class="review-controls" style="display:flex;gap:var(--sp-sm);flex:1;max-width:500px;flex-wrap:wrap">
               <div class="review-input-group" style="flex:1">
                  <input type="text" id="review-search" class="form-control" placeholder="Search questions..." oninput="PageResult.applyReviewFilters()">
               </div>
@@ -1134,19 +1111,23 @@ const PageResult = (() => {
                 return `
                 <div class="report-q-card ${status}" data-status="${status}" data-text="${q.Question.toLowerCase()}">
                   <div class="q-status-side">
+                    <div class="q-num">Q ${i + 1}</div>
                      <div class="q-status-badge">${status.toUpperCase()}</div>
                      <div class="q-time-badge ${timeClass}">${ans.timeTaken || 0}s</div>
+                      <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px 10px; border-radius:12px; height:28px; display:flex; align-items:center; gap:6px; background:var(--bg-elevated); border:1px solid var(--border-color); font-size:0.7rem; font-weight:700">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
+                      </button>
                   </div>
                   <div class="q-main-content">
-                      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:12px">
-                         <p class="q-text" style="font-size:1.1rem; font-weight:700; flex:1"><strong>Q${i + 1}.</strong> <div>${q.Question}</div></p>
-                         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0">
-                            <div class="q-meta" style="margin:0; font-size:0.65rem; color:var(--text-muted); font-weight:800; letter-spacing:0.04em">${q.Category || "General"} • ${(q.Difficulty || "Medium").toUpperCase()} • ${type.toUpperCase()}</div>
-                            <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px 10px; border-radius:12px; height:28px; display:flex; align-items:center; gap:6px; background:var(--bg-elevated); border:1px solid var(--border-color); font-size:0.7rem; font-weight:700">
-                               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
-                               LISTEN
-                            </button>
-                         </div>
+                      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
+                        <div style="display:grid;">
+                          <div style="display:flex; flex-direction:column; gap:8px;">
+                              <div class="q-meta" style="margin:0; font-size:0.65rem; color:var(--text-muted); font-weight:800; letter-spacing:0.04em">${q.Category || "General"} • ${(q.Difficulty || "Medium").toUpperCase()} • ${type.toUpperCase()}</div>
+                          </div>
+                          <div>
+                              <div>${q.Question}</div>
+                          </div>
+                        </div>
                       </div>
                       <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
                       ${insight ? `
@@ -1227,7 +1208,7 @@ const PageResult = (() => {
        let matchFilter = filter === "all" || status === filter;
 
        const visible = matchSearch && matchFilter;
-       card.style.display = visible ? "block" : "none";
+       card.style.display = visible ? "grid" : "none";
        if (visible) matchCount++;
     });
 
@@ -1267,8 +1248,8 @@ const PageResult = (() => {
            <div class="choice-icon">${isUser ? (isCorr ? '✓' : '✕') : (isCorr ? '•' : '○')}</div>
            <div class="choice-text">${c}</div>
            ${state === "match-ok" ? '<span class="state-label">Correct Pick</span>' : ''}
-           ${state === "match-err" ? '<span class="state-label">Your Mistake</span>' : ''}
-           ${state === "match-missed" ? '<span class="state-label">The Right Answer</span>' : ''}
+           ${state === "match-err" ? '<span class="state-label">Wrong</span>' : ''}
+           ${state === "match-missed" ? '<span class="state-label">Correct</span>' : ''}
         </div>`;
       }).join("")}</div>`;
     }

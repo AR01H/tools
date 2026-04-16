@@ -21,7 +21,7 @@ const PageWelcome = (() => {
           <!-- LEFT: Registration & Stats -->
           <div class="registration-panel">
             <div id="daily-insights-widget" class="daily-stats-widget">
-               <div class="skeleton" style="height:80px; border-radius:18px"></div>
+               <div class="skeleton" style="height:80px;"></div>
             </div>
 
             <div class="identity-glass-card">
@@ -62,7 +62,7 @@ const PageWelcome = (() => {
                     <div class="session-management">
                       <button class="btn-sync" onclick="Dashboard.viewLatestResult()">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Sync Latest Result
+                        View Latest Result
                       </button>
                       <button class="btn-switch" onclick="Dashboard.changeUser()">Switch Account</button>
                     </div>
@@ -115,7 +115,7 @@ const PageWelcome = (() => {
       <style>
         .welcome-hero-container { max-width: 1100px; margin: 0 auto; padding: 60px 24px; }
         
-        .welcome-header { text-align: center; margin-bottom: 64px; }
+        .welcome-header { text-align: center; margin-bottom: 24px; }
         .welcome-super-title { font-size: 0.75rem; font-weight: 900; letter-spacing: 0.2em; color: var(--accent-primary); margin-bottom: 12px; }
         .welcome-main-title { font-size: 3.5rem; font-weight: 900; letter-spacing: -0.05em; line-height: 1; margin: 0; }
         .welcome-lead { font-size: 1.15rem; color: var(--text-muted); margin: 16px auto 0; max-width: 600px; line-height: 1.6; }
@@ -123,7 +123,7 @@ const PageWelcome = (() => {
         .welcome-layout { display: grid; grid-template-columns: 1fr 400px; gap: 64px; align-items: start; }
         
         /* Identity Card */
-        .identity-glass-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 32px; padding: 40px; position: relative; overflow: hidden; box-shadow: var(--shadow-xl); }
+        .identity-glass-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; position: relative; overflow: hidden; box-shadow: var(--shadow-xl); }
         .card-glow { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--accent-primary-transparent); filter: blur(40px); border-radius: 50%; pointer-events: none; }
         
         .identity-header { display: flex; align-items: center; gap: 20px; margin-bottom: 40px; }
@@ -134,12 +134,12 @@ const PageWelcome = (() => {
         .registration-form { display: flex; flex-direction: column; gap: 24px; }
         .pro-label { font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 8px; display: block; }
         .input-wrapper { position: relative; }
-        .pro-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 16px; font-size: 1rem; font-weight: 700; color: var(--text-primary); transition: 0.3s var(--ease); }
+        .pro-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 4px; font-size: 1rem; font-weight: 700; color: var(--text-primary); transition: 0.3s var(--ease); }
         .pro-input:focus { border-color: var(--accent-primary); outline: none; }
         .input-focus-ring { position: absolute; inset: -4px; border-radius: 20px; border: 2px solid var(--accent-primary); opacity: 0; pointer-events: none; transition: 0.3s; }
         .pro-input:focus + .input-focus-ring { opacity: 0.15; transform: scale(1); }
         
-        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 12px 24px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; }
+        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 12px 24px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; width: 100%; }
         .btn-launch-primary:hover { transform: translateY(-4px); filter: brightness(1.1); box-shadow: 0 16px 32px var(--accent-shadow); }
         
         .session-management { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
@@ -163,18 +163,18 @@ const PageWelcome = (() => {
         .integration-notice button { margin-left: auto; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 0.75rem; color: var(--color-warn); }
 
         @media (max-width: 1000px) {
-           .welcome-hero-container { padding: 40px 16px; }
+           .welcome-hero-container { padding: 16px; }
            .welcome-header { margin-bottom: 10px; }
            .welcome-layout { grid-template-columns: 1fr; gap: 32px; }
            .welcome-main-title { font-size: 2.4rem; letter-spacing: -1px; }
            .welcome-lead { font-size: 1rem; }
            
-           .identity-glass-card { padding: 24px; border-radius: 4px; }
+           .identity-glass-card { padding: 10px; border-radius: 4px; }
            .identity-header { margin-bottom: 24px; }
            .identity-icon { width: 40px; height: 40px; border-radius: 10px; }
            .identity-header h3 { font-size: 1.25rem; }
            
-           .pro-input { padding: 14px 16px; border-radius: 12px; }
+           .pro-input { padding: 14px 16px; border-radius: 4px; }
            .btn-launch-primary { padding: 8px; font-size: 1rem; }
            
            .process-steps { gap: 12px; }
@@ -289,7 +289,7 @@ const Dashboard = (() => {
           </div>
         </div>
         <style>
-          .insight-bar { background: var(--bg-surface); border: 1px solid var(--border-color); padding: 12px 18px; border-radius: 16px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-sm); margin-bottom: 24px; position:relative; overflow:hidden; flex-wrap: wrap; }
+          .insight-bar { background: var(--bg-surface); border: 1px solid var(--border-color); padding: 12px 18px; border-radius: 4px; display: flex; align-items: center; gap: 16px; box-shadow: var(--shadow-sm); margin-bottom: 24px; position:relative; overflow:hidden; flex-wrap: wrap; }
           .insight-bar::after { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background: var(--accent-primary); }
           
           .insight-status { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 70px; }
@@ -306,7 +306,6 @@ const Dashboard = (() => {
           .streak-val { font-size: 0.7rem; font-weight: 900; color: var(--accent-primary); white-space: nowrap; }
 
           @media (max-width: 600px) {
-            .insight-bar { padding: 12px 16px; gap: 12px; border-radius: 14px; }
             .insight-status { min-width: auto; background: var(--bg-elevated); padding: 4px 8px; border-radius: 6px; flex-direction: row; }
             .insight-streak { padding: 4px 10px; }
           }

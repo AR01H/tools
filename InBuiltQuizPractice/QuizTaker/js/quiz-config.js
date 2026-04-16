@@ -154,7 +154,7 @@ const PageSetupConfig = (() => {
 
         <div class="setup-footer">
           <div class="setup-footer-content">
-            <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style=" font-size:1.1rem; border-radius:12px">
+            <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style=" font-size:1.1rem; border-radius:4px">
               Initialize Assessment Engine →
             </button>
           </div>
@@ -362,10 +362,10 @@ const PageSetupTemplate = (() => {
               <div class="setup-compact-card">
                  <div class="card-header">
                     <span class="dot"></span>
-                    <h3>Sessional Identifier</h3>
+                    <h3>Quiz Title</h3>
                  </div>
                  <div class="form-group" style="padding:4px">
-                    <input type="text" id="custom-quiz-name" class="form-control-pro" placeholder="Optional: Session Title..." 
+                    <input type="text" id="custom-quiz-name" class="form-control-pro" placeholder="Optional: Quiz Title..." 
                            value="${State.get("quiz")?.config?.["Quiz Settings Title"] || ""}">
                     <p class="input-hint">Enter a custom name to identify this attempt in your history.</p>
                  </div>
@@ -375,7 +375,7 @@ const PageSetupTemplate = (() => {
                  <div class="badge-icon">⚡</div>
                  <div class="badge-content">
                     <span class="label">READY FOR DEPLOYMENT</span>
-                    <span class="val">${setup.preparedQs.length} Synchronized Items</span>
+                    <span class="val">${setup.preparedQs.length} Questions</span>
                  </div>
               </div>
            </div>
@@ -455,8 +455,8 @@ const PageSetupTemplate = (() => {
         .card-body .title { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
         .card-body .desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
 
-        .launch-strip-container { position: fixed; bottom: 32px; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; padding: 0 20px; pointer-events: none; }
-        .launch-strip { pointer-events: auto; width: 100%; max-width: 1000px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 24px; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.2); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .launch-strip-container { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; padding: 0; pointer-events: none; }
+        .launch-strip { pointer-events: auto; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.2); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .strip-meta { font-size: 0.65rem; font-weight: 900; color: var(--accent-primary); letter-spacing: 2px; margin: 0; }
         .strip-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 4px 0 0 0; }
         .strip-actions { display: flex; gap: 12px; }
@@ -470,7 +470,7 @@ const PageSetupTemplate = (() => {
 
         @media (max-width: 900px) {
            .config-grid-layout { grid-template-columns: 1fr; gap: 24px; }
-           .launch-strip { flex-direction: column; text-align: center; gap: 20px; padding: 24px; }
+           .launch-strip { flex-direction: column; text-align: center; gap: 5px; padding: 4px; }
            .strip-actions { width: 100%; flex-direction: column; }
            .btn-study-pro, .btn-launch-pro { width: 100%; }
            .setup-title { font-size: 2.2rem; }
