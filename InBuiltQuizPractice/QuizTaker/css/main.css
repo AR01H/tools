@@ -1055,7 +1055,8 @@ select.form-control {
   border-left: 6px solid #10b981;
 }
 
-.report-q-card.incorrect {
+.report-q-card.incorrect,
+.report-q-card.wrong {
   border-left: 6px solid #ef4444;
 }
 
@@ -1071,7 +1072,8 @@ select.form-control {
   color: #000;
 }
 
-.incorrect .q-status-badge {
+.incorrect .q-status-badge,
+.wrong .q-status-badge {
   background: #ef4444;
   color: #fff;
 }
@@ -1824,8 +1826,8 @@ select.form-control {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 18px;
-  border-radius: 12px;
+  padding: 7px 9px;
+  border-radius: 4px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
   font-size: 0.95rem;

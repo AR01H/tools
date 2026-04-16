@@ -1150,7 +1150,7 @@ const PageResult = (() => {
                       </div>
                       <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
                       ${insight ? `
-                      <div class="q-explanation" style="margin-top:16px; padding:16px; background:rgba(var(--accent-primary-rgb),0.05); border-radius:12px; border-left:4px solid var(--accent-primary)">
+                      <div class="q-explanation" style="margin-top:16px; padding:16px; background:rgba(var(--accent-primary-rgb),0.05); border-radius:4px; border-left:2px solid var(--accent-primary)">
                          <p class="label" style="font-size:0.65rem; font-weight:800; color:var(--accent-primary); margin-bottom:4px">LEARNING INSIGHT</p>
                          <p class="text" style="font-size:0.9rem; line-height:1.5">${insight}</p>
                       </div>` : ""}
