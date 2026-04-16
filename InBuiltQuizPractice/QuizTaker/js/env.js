@@ -4,5 +4,6 @@ const ENV = {
   folders: [
     { name: "Programming", id: "1qKJihERrxvmtYOYr1umKUsZC6nqRJFep" },
     { name: "Question Types", id: "1pWxAQt3eGx940lEfqZ4UNX_C3DGy600T" },
+    { name: "Communication", id: "17YCojdsuzn9aq9J2aoCEAi5VJaXnqDpQ" },
   ]
 };

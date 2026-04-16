@@ -62,7 +62,7 @@ const PageQuiz = (() => {
         <div class="layout-sat">
           <div class="sat-sidebar">
             <div class="sat-sidebar-header">
-              <span class="sat-sidebar-title">Question Map</span>
+              <span class="sat-sidebar-title">${quiz.config.title || "Test"} Map</span>
               <span class="sat-sidebar-stats" id="sat-answered-count">0/${
                 qs.length
               }</span>
@@ -114,7 +114,7 @@ const PageQuiz = (() => {
       layoutHtml = `
         <div class="layout-quizpro">
           <div class="quizpro-topbar">
-            <div class="qp-logo"><span>QUIZPRO</span><p class="text-xs opacity-50">SECTION 1</p></div>
+            <div class="qp-logo"><span>${quiz.config.title || "Test"}</span><p class="text-xs opacity-50">${quiz.config.category || ""} • ${quiz.config.subCategory || ""}</p></div>
             <div class="qp-segmented-progress" id="quiz-segmented-progress"></div>
             <div class="qp-timer-wrap">
                <div class="font-mono text-xl" id="total-timer-qp">00:00</div>
@@ -155,8 +155,8 @@ const PageQuiz = (() => {
         <div class="layout-editorial">
           <div class="ed-header">
              <div>
-                <p class="ed-meta">MATHEMATICS • ALGEBRA</p>
-                <h1 class="ed-title">Test Session</h1>
+                <p class="ed-meta">${quiz.config.category || ""} • ${quiz.config.subCategory || ""}</p>
+                <h1 class="ed-title">${quiz.config.title || "Test Session"}</h1>
              </div>
              <div class="ed-time-wrap">
                 <div class="ed-time" id="total-timer-ed">00:00</div>
@@ -201,7 +201,7 @@ const PageQuiz = (() => {
              <div class="header-left">
                 <span class="study-badge">STUDY MODE — READING ONLY</span>
                 <div class="study-id-capsule">
-                   <span class="label">ENTRY</span>
+                   <span class="label">${quiz.config.title || "Test"}</span>
                    <span id="q-idx" class="val">1</span>
                    <span class="total">/ ${qs.length}</span>
                 </div>

@@ -2422,6 +2422,72 @@ select.form-control {
 }
 .heatmap-dot { width: 12px; height: 12px; border-radius: 3px; }
 
+/* ── Review Tab System Styles ── */
+.review-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.review-choice-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  transition: all 0.2s;
+  position: relative;
+}
+.review-choice-item.match-ok { border-color: var(--color-success); background: rgba(16, 185, 129, 0.05); }
+.review-choice-item.match-err { border-color: var(--color-error); background: rgba(239, 68, 68, 0.05); }
+.review-choice-item.match-missed { border-color: var(--accent-primary); border-style: dashed; background: rgba(var(--accent-primary-rgb), 0.03); }
+
+.choice-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 900;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+.match-ok .choice-icon { border-color: var(--color-success); color: var(--color-success); }
+.match-err .choice-icon { border-color: var(--color-error); color: var(--color-error); }
+.match-missed .choice-icon { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+.choice-text { flex: 1; font-weight: 600; font-size: 0.95rem; }
+.state-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.match-ok .state-label { background: var(--color-success); color: #000; }
+.match-err .state-label { background: var(--color-error); color: #fff; }
+.match-missed .state-label { background: var(--accent-primary); color: #000; }
+
+.review-pairs { display: flex; flex-direction: column; gap: 6px; }
+.review-pair-item {
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 canvas#confetti-canvas {
   position: fixed;
   top: 0;

@@ -31,6 +31,7 @@ const Results = (() => {
     const correctVal = getCorrectAnswer(q);
     const correct = (correctVal || "").split("|").map((s) => s.trim());
     const type = (q["Question Type"] || "").trim();
+    const choices = getChoices(q);
 
     if (type === "Sequence") {
       const ua = Array.isArray(userAnswer) ? userAnswer : userAnswer.split("|");
@@ -66,56 +67,36 @@ const Results = (() => {
         (c, i) => c.toLowerCase().trim() === (ua[i] || "").toLowerCase().trim()
       );
     }
-    if (type === "Matching") {
-      if (!userAnswer || userAnswer === "") return false;
-      // Use choices as ground truth — each choice is "Left-Right"
-      const choices = getChoices(q);
-      const correctMap = {};
-      choices.forEach(c => {
-        const parts = c.split(/[-:→]/).map(s => s.trim());
-        if (parts.length >= 2) correctMap[parts[0].toLowerCase()] = parts[1].toLowerCase();
-      });
-      // Parse user answer pairs (format: "Left-Right|Left-Right|...")
-      const userMap = {};
-      userAnswer.split("|").forEach(p => {
-        const parts = p.split(/[-:→]/).map(s => s.trim());
-        if (parts.length >= 2) userMap[parts[0].toLowerCase()] = parts[1].toLowerCase();
-      });
-      // Compare: every correct pair must match
-      const correctKeys = Object.keys(correctMap);
-      if (correctKeys.length === 0) return false;
-      return correctKeys.every(k => correctMap[k] === userMap[k]);
-    }
     if (type === "Multi Matching") {
       if (!userAnswer || userAnswer === "" || userAnswer === "{}") return false;
       try {
-        const uaMap = JSON.parse(userAnswer);
-        const choices = getChoices(q);
-
-        return choices.every((c) => {
-          const parts = c.split("-");
-          const left = parts[0].trim();
-          const expectedTags = (parts[1] || "")
-            .split("|")
-            .map((t) => t.trim())
-            .filter(Boolean);
-          const userTags = (uaMap[left] || []).map(t => t.trim());
-
-          if (expectedTags.length !== userTags.length) return false;
-          return expectedTags.every((t) => userTags.includes(t));
+        const uaMap = typeof userAnswer === 'string' ? JSON.parse(userAnswer) : userAnswer;
+        return choices.every(c => {
+          const m = c.match(/^(.+?)(?:\s*[:\-\u2192]\s*)(.+)$/);
+          if (!m) return true;
+          const left = m[1].trim();
+          const expected = m[2].split("|").map(t => t.trim().toLowerCase()).filter(Boolean);
+          const user = (uaMap[left] || []).map(t => String(t).trim().toLowerCase());
+          return expected.length === user.length && expected.every(t => user.includes(t));
         });
-      } catch (e) {
-        return false;
-      }
+      } catch(e) { return false; }
     }
-    if (type === "Drag & Drop") {
-      if (!userAnswer || userAnswer === "") return false;
-      // Use choices as ground truth — each choice is "Item-Category"
-      const choices = getChoices(q);
-      const correctSet = new Set(choices.map(c => c.trim().toLowerCase()));
-      // Parse user answer pairs
-      const userSet = new Set(userAnswer.split("|").map(p => p.trim().toLowerCase()));
-      // All correct pairs must exist in user answer and no extras
+
+    if (type === "Matching" || type === "Drag & Drop" || type === "Categorization") {
+      if (!userAnswer) return false;
+      const parse = (str) => {
+        if (!str) return [];
+        return (typeof str === 'string' ? str : "").split("|").map(p => {
+          const m = p.match(/^(.+?)(?:\s*[:\-\u2192]\s*)(.+)$/);
+          return m ? `${m[1].trim().toLowerCase()}|${m[2].trim().toLowerCase()}` : null;
+        }).filter(Boolean);
+      };
+
+      const correctSet = new Set(parse(correctVal || choices.join("|")));
+      const userStr = Array.isArray(userAnswer) ? userAnswer.join("|") : userAnswer;
+      const userSet = new Set(parse(userStr));
+
+      if (correctSet.size === 0) return false;
       if (correctSet.size !== userSet.size) return false;
       for (const c of correctSet) {
         if (!userSet.has(c)) return false;
@@ -1157,12 +1138,15 @@ const PageResult = (() => {
                      <div class="q-time-badge ${timeClass}">${ans.timeTaken || 0}s</div>
                   </div>
                   <div class="q-main-content">
-                      <div class="q-meta">${q.Category || "General"} • ${q.Difficulty || "Medium"} • ${type}</div>
-                      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px">
-                         <p class="q-text" style="font-size:1.1rem; font-weight:700"><strong>Q${i + 1}.</strong> ${q.Question}</p>
-                         <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:-4px">
-                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
-                         </button>
+                      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:12px">
+                         <p class="q-text" style="font-size:1.1rem; font-weight:700; flex:1"><strong>Q${i + 1}.</strong> ${q.Question}</p>
+                         <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0">
+                            <div class="q-meta" style="margin:0; font-size:0.65rem; color:var(--text-muted); font-weight:800; letter-spacing:0.04em">${q.Category || "General"} • ${(q.Difficulty || "Medium").toUpperCase()} • ${type.toUpperCase()}</div>
+                            <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px 10px; border-radius:12px; height:28px; display:flex; align-items:center; gap:6px; background:var(--bg-elevated); border:1px solid var(--border-color); font-size:0.7rem; font-weight:700">
+                               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
+                               LISTEN
+                            </button>
+                         </div>
                       </div>
                       <div class="q-ans-details">${renderQuestionTypeReview(q, ans.userAnswer, corr)}</div>
                       ${insight ? `
@@ -1253,141 +1237,106 @@ const PageResult = (() => {
        countEl.style.opacity = search ? "1" : "0.5";
     }
   }
-  
 
   function renderQuestionTypeReview(q, ua, isCorrect) {
     const type = (q["Question Type"] || "").trim().toLowerCase();
-    const correct = (q["Correct Answer"] || "").split("|").map(s => s.trim());
+    const correctVal = Results.getCorrectAnswer(q);
+    const correct = (correctVal || "").split("|").map(s => s.trim());
     const choices = Results.getChoices(q);
 
-    // Modern Robust Match
+    // Robust relation parser
+    const parseRelation = (str) => {
+        if (!str) return [];
+        return str.split("|").map(p => {
+            const match = p.match(/^(.+?)(?:\s*[:\-\u2192]\s*)(.+)$/);
+            return match ? { l: match[1].trim(), r: match[2].trim() } : null;
+        }).filter(Boolean);
+    };
+
     if (type.includes("choice") || type.includes("select") || type.includes("true/false")) {
-      let activeChoices = [...choices];
-      if (activeChoices.length === 0 && type.includes("true/false")) activeChoices = ["True", "False"];
-      
-      const userAnswers = Array.isArray(ua) ? ua.map(s => String(s).trim()) : (ua || "").split(", ").map(s => s.trim()).filter(Boolean);
+      const activeChoices = choices.length > 0 ? choices : (type.includes("true/false") ? ["True", "False"] : []);
+      const userAnswers = Array.isArray(ua) ? ua.map(String) : (ua || "").split(", ").map(s => s.trim()).filter(Boolean);
       return `<div class="review-choice-list">${activeChoices.map(c => {
-        const cTrim = String(c).trim();
-        const isUser = userAnswers.includes(cTrim);
-        const isCorr = correct.includes(cTrim);
-        
+        const isUser = userAnswers.includes(String(c).trim());
+        const isCorr = correct.includes(String(c).trim());
         let state = "";
         if (isUser && isCorr) state = "match-ok";
         else if (isUser && !isCorr) state = "match-err";
         else if (!isUser && isCorr) state = "match-missed";
-
         return `<div class="review-choice-item ${state}">
            <div class="choice-icon">${isUser ? (isCorr ? '✓' : '✕') : (isCorr ? '•' : '○')}</div>
            <div class="choice-text">${c}</div>
            ${state === "match-ok" ? '<span class="state-label">Correct Pick</span>' : ''}
            ${state === "match-err" ? '<span class="state-label">Your Mistake</span>' : ''}
-           ${state === "match-missed" ? '<span class="state-label">Missed This</span>' : ''}
+           ${state === "match-missed" ? '<span class="state-label">The Right Answer</span>' : ''}
         </div>`;
       }).join("")}</div>`;
     }
 
     if (type.includes("sequence")) {
        const userSeq = Array.isArray(ua) ? ua : (ua || "").split("|").map(s => s.trim());
-       return `
-         <div class="q-ans-compare">
-            <div class="ans-box user"><span class="label">YOUR ORDER</span>
-               <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px">
-                  ${userSeq.map((s, i) => `<div style="font-size:0.85rem; padding:6px 10px; background:var(--bg-base); border-radius:6px; display:flex; gap:10px; border:1px solid ${s === (correct[i] || '').trim() ? 'var(--color-success)' : 'var(--color-error)'}">
-                    <span style="opacity:0.5; font-weight:800">${i+1}</span>
-                    <span>${s}</span>
-                    <span style="margin-left:auto">${s === (correct[i] || '').trim() ? '✓' : '✕'}</span>
-                  </div>`).join("")}
-               </div>
-            </div>
-            <div class="ans-box target"><span class="label">CORRECT ORDER</span>
-               <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px">
-                  ${correct.map((s, i) => `<div style="font-size:0.85rem; padding:6px 10px; background:var(--bg-base); border-radius:6px; display:flex; gap:10px; border:1px solid var(--color-success)">
-                    <span style="opacity:0.5; font-weight:800">${i+1}</span>
-                    <span>${s}</span>
-                  </div>`).join("")}
-               </div>
-            </div>
-         </div>
-       `;
-    }
-
-    if (type.includes("multi matching")) {
-        let uaMap = {};
-        try { uaMap = typeof ua === 'string' ? JSON.parse(ua) : (ua || {}); } catch(e){}
-        const choices = Results.getChoices(q);
-        
-        const renderMapping = (mapObj) => {
-            if (!mapObj || Object.keys(mapObj).length === 0) return `<div class="review-pairs"><div class="review-pair-item" style="opacity:0.5; font-style:italic">No mapping data captured</div></div>`;
-            return `<div class="review-pairs">${Object.entries(mapObj).map(([key, vals]) => `
-               <div class="review-pair-item"><strong>${key}</strong> <span>${Array.isArray(vals) ? vals.join(", ") : vals}</span></div>`).join("")}</div>`;
-        };
-
-        const targetMap = {};
-        const correctVal = Results.getCorrectAnswer(q) || "";
-        
-        // Strategy 1: Check if Choice fields are used for mapping
-        if (choices.length > 0 && choices.some(c => c.includes("-") || c.includes(":"))) {
-            choices.forEach(c => { const pts = c.split(/[:\-]/); targetMap[pts[0].trim()] = (pts[1]||"").replace(/\|/g, ", ").trim(); });
-        } 
-        // Strategy 2: Parse robust correct answer string
-        else if (correctVal.includes("|") || correctVal.includes(":")) {
-            correctVal.split("|").forEach(p => { const pts = p.split(/[:\-]/); if(pts.length >= 2) targetMap[pts[0].trim()] = pts[1].trim(); });
-        }
-
-        return `<div class="q-ans-compare">
-            <div class="ans-box user"><span class="label">YOUR SELECTIONS</span>${renderMapping(uaMap)}</div>
-            <div class="ans-box target"><span class="label">EXPECTED MAPPING</span>${renderMapping(targetMap)}</div>
-        </div>`;
-    }
-
-    if (type.includes("match")) {
-       const userStr = Array.isArray(ua) ? ua.join(" | ") : (ua || "");
-       const correctVal = Results.getCorrectAnswer(q);
-       const parse = (str) => {
-          if (!str) return [];
-          return str.split("|").map(p => { 
-             const pts = p.split(/[:\-\u2192]/); 
-             return pts.length >= 2 ? { l: pts[0].trim(), r: pts[1].trim() } : null;
-          }).filter(Boolean);
-       };
-       const userPairs = parse(userStr);
-       const targetPairs = parse(correctVal);
-
-       const renderList = (pairs) => {
-           if (pairs.length === 0) return `<div class="review-pairs"><div class="review-pair-item" style="opacity:0.5; font-style:italic">No pairs documented</div></div>`;
-           return `<div class="review-pairs">${pairs.map(p => `<div class="review-pair-item"><span>${p.l}</span> <span style="opacity:0.5">→</span> <span>${p.r}</span></div>`).join("")}</div>`;
-       };
-
+       const rSeq = (seq, isT) => seq.map((s, idx) => `
+         <div style="font-size:0.85rem; padding:6px 10px; background:var(--bg-base); border-radius:6px; display:flex; gap:10px; border:1px solid ${!isT && s !== (correct[idx] || '').trim() ? 'var(--color-error)' : 'var(--border-color)'}">
+            <span style="opacity:0.5; font-weight:800">${idx+1}</span>
+            <span>${s}</span>
+            ${!isT ? `<span style="margin-left:auto">${s === (correct[idx] || '').trim() ? '✓' : '✕'}</span>` : ''}
+         </div>`).join("");
        return `<div class="q-ans-compare">
-          <div class="ans-box user"><span class="label">YOUR MATCHES</span>${renderList(userPairs)}</div>
-          <div class="ans-box target"><span class="label">EXPECTED PAIRS</span>${renderList(targetPairs)}</div>
+            <div class="ans-box user"><span class="label">YOUR ORDER</span><div style="display:flex; flex-direction:column; gap:4px; margin-top:8px">${rSeq(userSeq, false)}</div></div>
+            <div class="ans-box target"><span class="label">CORRECT ORDER</span><div style="display:flex; flex-direction:column; gap:4px; margin-top:8px">${rSeq(correct, true)}</div></div>
        </div>`;
     }
 
-    if (type.includes("drag & drop") || type.includes("categorization")) {
+    if (type.includes("match") || type.includes("drag & drop") || type.includes("categorization")) {
+        const isDD = type.includes("drag") || type.includes("categorization");
         const userStr = Array.isArray(ua) ? ua.join("|") : (ua || "");
-        const parseDrag = (str) => {
-            if (!str) return [];
-            return str.split("|").map(p => {
-                const pts = p.split(/[:\-\u2192]/);
-                return pts.length >= 2 ? { item: pts[0].trim(), cat: pts[1].trim() } : null;
-            }).filter(Boolean);
-        };
-        const userParts = parseDrag(userStr);
-        const targetParts = parseDrag((q["Correct Answer"] || ""));
+        const userParts = parseRelation(userStr).sort((a,b) => a.l.localeCompare(b.l));
+        
+        let targetParts = parseRelation(correctVal);
+        if (targetParts.length === 0) targetParts = parseRelation(choices.join("|"));
+        targetParts.sort((a,b) => a.l.localeCompare(b.l));
 
-        const renderDragList = (parts) => `<div class="review-pairs">${parts.map(p => `<div class="review-pair-item"><span>${p.item}</span> <span style="font-size:0.75rem; color:var(--accent-primary); font-weight:800">IN</span> <span>${p.cat}</span></div>`).join("")}</div>`;
+        const rList = (pts) => {
+            if (pts.length === 0) return `<div style="opacity:0.5; font-style:italic; padding:12px; text-align:center">No documentation found</div>`;
+            return `<div class="review-pairs">${pts.map(p => `
+            <div class="review-pair-item"><span>${p.l}</span> <span style="font-size:0.7rem; font-weight:800; opacity:0.6">${isDD ? 'IN' : '→'}</span> <span>${p.r}</span></div>`).join("")}</div>`;
+        };
+        return `<div class="q-ans-compare">
+            <div class="ans-box user"><span class="label">YOUR ${isDD ? 'PLACEMENT' : 'MATCHES'}</span>${rList(userParts)}</div>
+            <div class="ans-box target"><span class="label">EXPECTED ${isDD ? 'PLACEMENT' : 'PAIRS'}</span>${rList(targetParts)}</div>
+        </div>`;
+    }
+
+    if (type.includes("multi matching")) {
+        let uaM = {}; 
+        try { 
+            uaM = typeof ua === 'string' ? JSON.parse(ua) : (ua || {}); 
+        } catch(e){
+            parseRelation(ua || "").forEach(p => { if(!uaM[p.l]) uaM[p.l]=[]; uaM[p.l].push(p.r); });
+        }
+
+        const rM = (m) => {
+           const entries = Object.entries(m);
+           if (entries.length === 0) return `<div style="opacity:0.5; font-style:italic; padding:12px; text-align:center">No selections made</div>`;
+           return `<div class="review-pairs">${entries.map(([k, v]) => `
+             <div class="review-pair-item"><strong>${k}</strong> <span>${Array.isArray(v) ? v.join(", ") : v}</span></div>`).join("")}</div>`;
+        };
+
+        let tM = {}; 
+        let targetParts = parseRelation(correctVal);
+        if (targetParts.length === 0) targetParts = parseRelation(choices.join("|"));
+        targetParts.forEach(p => { if(!tM[p.l]) tM[p.l]=[]; tM[p.l].push(p.r); });
 
         return `<div class="q-ans-compare">
-            <div class="ans-box user"><span class="label">YOUR PLACEMENT</span>${renderDragList(userParts)}</div>
-            <div class="ans-box target"><span class="label">CORRECT PLACEMENT</span>${renderDragList(targetParts)}</div>
+            <div class="ans-box user"><span class="label">YOUR SELECTIONS</span>${rM(uaM)}</div>
+            <div class="ans-box target"><span class="label">EXPECTED MAPPING</span>${rM(tM)}</div>
         </div>`;
     }
 
     return `
       <div class="q-ans-compare">
-         <div class="ans-box user"><span class="label">YOUR ANSWER</span><span class="val" style="font-size:1.1rem; font-weight:800; color:var(--text-primary)">${Array.isArray(ua) ? ua.join(" | ") : (ua || "—")}</span></div>
-         <div class="ans-box target"><span class="label">CORRECT KEY</span><span class="val" style="font-size:1.1rem; font-weight:800; color:var(--color-success)">${correct.join(" | ")}</span></div>
+         <div class="ans-box user"><span class="label">YOUR ANSWER</span><span class="val">${Array.isArray(ua) ? ua.join(" | ") : (ua || "—")}</span></div>
+         <div class="ans-box target"><span class="label">CORRECT KEY</span><span class="val" style="color:var(--color-success)">${correct.join(" | ")}</span></div>
       </div>
     `;
   }
