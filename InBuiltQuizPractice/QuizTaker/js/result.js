@@ -1139,7 +1139,7 @@ const PageResult = (() => {
                   </div>
                   <div class="q-main-content">
                       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:12px">
-                         <p class="q-text" style="font-size:1.1rem; font-weight:700; flex:1"><strong>Q${i + 1}.</strong> ${q.Question}</p>
+                         <p class="q-text" style="font-size:1.1rem; font-weight:700; flex:1"><strong>Q${i + 1}.</strong> <div>${q.Question}</div></p>
                          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0">
                             <div class="q-meta" style="margin:0; font-size:0.65rem; color:var(--text-muted); font-weight:800; letter-spacing:0.04em">${q.Category || "General"} • ${(q.Difficulty || "Medium").toUpperCase()} • ${type.toUpperCase()}</div>
                             <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px 10px; border-radius:12px; height:28px; display:flex; align-items:center; gap:6px; background:var(--bg-elevated); border:1px solid var(--border-color); font-size:0.7rem; font-weight:700">
@@ -1781,7 +1781,7 @@ const PageResult = (() => {
                           corr ? "var(--success)" : "var(--error)"
                         }">${corr ? "PASS" : "FAIL"}</span>
                     </div>
-                    <div class="q-text">${q.Question}</div>
+                    <div class="q-text"><div>${q.Question}</div></div>
                     <div class="ans-layout">
                         <div class="ans-pill">
                             <div class="ans-l">CANDIDATE RESPONSE</div>

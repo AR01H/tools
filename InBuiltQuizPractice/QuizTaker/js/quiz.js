@@ -257,7 +257,7 @@ const PageQuiz = (() => {
           </div>
         </div>
         <style>
-          .layout-immersive-study { height:100vh; overflow:hidden; display:flex; flex-direction:column; background:var(--bg-base); color:var(--text-primary); }
+          .layout-immersive-study { height:92vh; overflow:hidden; display:flex; flex-direction:column; background:var(--bg-base); color:var(--text-primary); }
           
           .study-nav-header { height:64px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; padding:0 32px; background:var(--bg-surface); z-index:10; }
           .study-badge { font-size:0.65rem; font-weight:900; color:var(--accent-primary); background:var(--accent-primary-transparent); padding:4px 10px; border-radius:99px; letter-spacing:0.05em; }
@@ -278,7 +278,7 @@ const PageQuiz = (() => {
           
           .question-block { border-left:6px solid var(--accent-primary); }
           .answer-block { border-left:6px solid var(--color-success); background:rgba(34,197,94,0.03); }
-          .answer-block .block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+          .answer-block .block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
           .answer-block .status-marker { font-size:0.6rem; font-weight:900; color:var(--color-success); border:1px solid var(--color-success); padding:2px 8px; border-radius:4px; }
           .answer-payload { font-size:1.3rem; font-weight:900; color:var(--text-primary); line-height:1.4; }
           
