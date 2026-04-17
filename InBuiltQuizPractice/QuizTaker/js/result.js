@@ -464,7 +464,7 @@ const PageResult = (() => {
         body.innerHTML = renderDifficulty(result);
         break;
       case "questions":
-        body.innerHTML = renderQuestions(result);
+      body.innerHTML = renderQuestions(result);
         break;
       case "answer-key":
         body.innerHTML = renderAnswerKey(result);
@@ -478,15 +478,51 @@ const PageResult = (() => {
 
   function renderAdaptive(result) {
     return `
-      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(600px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
-        <div class="chart-card"><h3 class="chart-label">Performance by Difficulty Tier</h3><div class="chart-box"><canvas id="chart-adaptive-difficulty"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Endurance & Cognitive Fatigue</h3><div class="chart-box"><canvas id="chart-adaptive-fatigue"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Pacing vs Precision Map</h3><div class="chart-box"><canvas id="chart-adaptive-pacing"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Topic Resource Time Allocation</h3><div class="chart-box"><canvas id="chart-adaptive-time-allocation"></canvas></div></div>
+      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(480px, 1fr));gap:var(--sp-lg);margin-bottom:var(--sp-xl)">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-label">Domain Mastery Analysis</h3>
+            <p class="chart-sub">Your relative proficiency across quiz topics</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-domain-mastery"></canvas></div>
+        </div>
+        
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-label">Format Proficiency</h3>
+            <p class="chart-sub">Success rates by question type</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-format-success"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-label">Pacing Efficiency</h3>
+            <p class="chart-sub">Average time spent: Correct vs. Incorrect</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-pacing-efficiency"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3 class="chart-label">Performance Momentum</h3>
+            <p class="chart-sub">Success rate trend (5-question moving window)</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-momentum"></canvas></div>
+        </div>
       </div>
-      <div class="card" style="padding:var(--sp-lg); background:var(--bg-elevated); border-radius:16px; margin-bottom:var(--sp-lg); border:1px solid var(--border-color)">
-        <h3 class="chart-label" style="font-size:1.1rem;margin-bottom:16px;">Diagnostic Intelligence (Current Session)</h3>
-        <ul id="adaptive-next-steps" style="line-height:2.0; color:var(--text-secondary); font-weight:700; padding-left:20px;"></ul>
+      
+      <style>
+        .chart-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: var(--shadow-sm); }
+        .chart-header { border-left: 4px solid var(--accent-primary); padding-left: 16px; }
+        .chart-label { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+        .chart-sub { font-size: 0.8rem; color: var(--text-muted); margin: 4px 0 0 0; }
+        .chart-box { height: 300px; width: 100%; position: relative; }
+      </style>
+
+      <div class="card" style="padding:var(--sp-xl); background:var(--bg-elevated); border-radius:16px; margin-bottom:var(--sp-lg); border:1px solid var(--border-color)">
+        <h3 class="chart-label" style="font-size:1.4rem;margin-bottom:16px; color:var(--accent-primary)">Smart Study Recommendations</h3>
+        <ul id="adaptive-next-steps" style="line-height:2.2; color:var(--text-secondary); font-weight:700; padding-left:20px; font-size:1.05rem"></ul>
       </div>
     `;
   }
@@ -499,155 +535,134 @@ const PageResult = (() => {
     const isDark = document.documentElement.getAttribute("data-theme") === "dark";
     const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
     Chart.defaults.color = isDark ? "#94a3b8" : "#64748b";
+    Chart.defaults.font.family = "'Inter', sans-serif";
     
     const { score, quiz } = result;
+    const items = score.details;
 
     const createChart = (id, cfg) => {
       const el = document.getElementById(id);
       if (el) _activeCharts.push(new Chart(el, cfg));
     };
 
-    const qCount = quiz.questions.length || 1;
-    const items = score.details;
-
-    // 1. Difficulty Tier Performance
-    const diffKeys = Object.keys(score.difficultyMap);
-    if (!diffKeys.includes("Easy") && !diffKeys.includes("Medium")) {
-       diffKeys.push("General");
-    }
-    const diffData = diffKeys.map(k => {
-       const m = score.difficultyMap[k] || { correct: score.correct, total: qCount };
-       return (m.correct / (m.total || 1)) * 100;
+    // 1. Radar - Domain Mastery
+    const categories = Object.keys(score.categoryMap);
+    const catAccuracy = categories.map(c => {
+       const m = score.categoryMap[c];
+       return Math.round((m.correct / (m.total || 1)) * 100);
     });
 
-    createChart("chart-adaptive-difficulty", {
+    createChart("chart-domain-mastery", {
+      type: "radar",
+      data: {
+        labels: categories,
+        datasets: [{
+          label: "Mastery %",
+          data: catAccuracy,
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          borderColor: "rgb(59, 130, 246)",
+          pointBackgroundColor: "rgb(59, 130, 246)",
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { r: { beginAtZero: true, max: 100, grid: { color: gridColor }, angleLines: { color: gridColor }, ticks: { display: false } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // 2. PolarArea - Format Success
+    const formats = {};
+    quiz.questions.forEach((q, i) => {
+       const type = q["Question Type"] || "Multichoice";
+       if (!formats[type]) formats[type] = { correct: 0, total: 0 };
+       formats[type].total++;
+       if (items[i] && items[i].isCorrect) formats[type].correct++;
+    });
+
+    const formatLabels = Object.keys(formats);
+    const formatData = formatLabels.map(l => Math.round((formats[l].correct / formats[l].total) * 100));
+
+    createChart("chart-format-success", {
+      type: "polarArea",
+      data: {
+        labels: formatLabels,
+        datasets: [{
+          data: formatData,
+          backgroundColor: ["rgba(59, 130, 246, 0.6)", "rgba(16, 185, 129, 0.6)", "rgba(245, 158, 11, 0.6)", "rgba(239, 68, 68, 0.6)"]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { r: { grid: { color: gridColor }, ticks: { display: false } } }
+      }
+    });
+
+    // 3. Bar - Pacing Efficiency
+    const correctTimes = items.filter(q => q.isCorrect).map(q => q.timeTaken);
+    const wrongTimes = items.filter(q => !q.isCorrect).map(q => q.timeTaken);
+    const avgCorrect = correctTimes.length ? (correctTimes.reduce((a,b) => a+b,0) / correctTimes.length).toFixed(1) : 0;
+    const avgWrong = wrongTimes.length ? (wrongTimes.reduce((a,b) => a+b,0) / wrongTimes.length).toFixed(1) : 0;
+
+    createChart("chart-pacing-efficiency", {
       type: "bar",
       data: {
-        labels: diffKeys,
+        labels: ["Correct", "Incorrect"],
         datasets: [{
-          label: "Accuracy %",
-          data: diffData,
-          backgroundColor: diffData.map(acc => acc > 75 ? "rgba(16, 185, 129, 0.7)" : acc > 50 ? "rgba(245, 158, 11, 0.7)" : "rgba(239, 68, 68, 0.7)"),
-          borderRadius: 6
+          data: [avgCorrect, avgWrong],
+          backgroundColor: ["rgba(16, 185, 129, 0.6)", "rgba(239, 68, 68, 0.6)"],
+          borderRadius: 8
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor } }, y: { beginAtZero: true, max: 100, grid: { color: gridColor } } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, grid: { color: gridColor } }, y: { grid: { display: false } } }
+      }
     });
 
-    // 2. Endurance & Cognitive Fatigue
-    const usePhases = qCount >= 4;
-    let fatigueLabels, fatigueData;
-    if (usePhases) {
-       fatigueLabels = ["Phase 1 (Start)", "Phase 2", "Phase 3", "Phase 4 (End)"];
-       fatigueData = fatigueLabels.map((_, i) => {
-          const start = Math.floor((i * qCount) / 4);
-          const end = Math.floor(((i + 1) * qCount) / 4);
-          const qs = items.slice(start, end);
-          return qs.length ? (qs.filter(q => q.isCorrect).length / qs.length) * 100 : 0;
-       });
-    } else {
-       fatigueLabels = items.map((_, i) => "Q" + (i + 1));
-       fatigueData = items.map(q => q.isCorrect ? 100 : 0);
-    }
+    // 4. Line - Momentum
+    const windowSize = Math.min(5, items.length);
+    const momentumData = items.map((_, i) => {
+       const slice = items.slice(Math.max(0, i - windowSize + 1), i + 1);
+       const correct = slice.filter(q => q.isCorrect).length;
+       return Math.round((correct / slice.length) * 100);
+    });
 
-    createChart("chart-adaptive-fatigue", {
+    createChart("chart-momentum", {
       type: "line",
       data: {
-        labels: fatigueLabels,
+        labels: items.map((_, i) => `Q${i+1}`),
         datasets: [{
-          label: "Accuracy Trajectory",
-          data: fatigueData,
-          borderColor: "#ec4899",
-          backgroundColor: "rgba(236,72,153,0.1)",
+          label: "Momentum %",
+          data: momentumData,
+          borderColor: "rgba(139, 92, 246, 0.8)",
+          backgroundColor: "rgba(139, 92, 246, 0.1)",
           fill: true,
-          tension: 0.3
+          tension: 0.4
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor } }, y: { beginAtZero: true, max: 100, grid: { color: gridColor } } } }
-    });
-
-    // 3. Pacing vs Precision Taget Map
-    createChart("chart-adaptive-pacing", {
-      type: "scatter",
-      data: {
-        datasets: [
-          {
-             label: "Correct Validation",
-             data: items.filter(q => q.isCorrect).map(q => ({ x: q.timeTaken, y: q.score })),
-             backgroundColor: "rgba(16, 185, 129, 0.7)",
-             pointRadius: 6
-          },
-          {
-             label: "Incorrect Validation",
-             data: items.filter(q => !q.isCorrect).map(q => ({ x: q.timeTaken, y: q.score })),
-             backgroundColor: "rgba(239, 68, 68, 0.7)",
-             pointRadius: 6
-          }
-        ]
-      },
-      options: { 
-        responsive: true, maintainAspectRatio: false,
-        scales: { 
-           x: { title: { display: true, text: 'Time Expended (Seconds)' }, grid: { color: gridColor }, beginAtZero: true },
-           y: { title: { display: true, text: 'Points Earned' }, grid: { color: gridColor } }
-        }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { x: { display: false }, y: { beginAtZero: true, max: 100, grid: { color: gridColor } } },
+        plugins: { legend: { display: false } }
       }
     });
 
-    // 4. Topic Resource Allocation
-    const catKeys = Object.keys(score.categoryMap);
-    const catTimes = catKeys.map(k => {
-        const arr = items.filter((_,i) => (quiz.questions[i].Category || "General") === k);
-        return arr.reduce((a,b) => a+b.timeTaken, 0);
-    });
-
-    createChart("chart-adaptive-time-allocation", {
-      type: "doughnut",
-      data: {
-        labels: catKeys,
-        datasets: [
-          {
-             label: "Total Seconds Allocated",
-             data: catTimes,
-             backgroundColor: ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#ef4444", "#14b8a6", "#f97316"],
-             borderWidth: 0
-          }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: "60%" }
-    });
-    
-    // 5. Diagnostic Intelligence AI Text
+    // Suggestions
     const stepsEl = document.getElementById("adaptive-next-steps");
     if (stepsEl) {
-      const html = [];
-      const weakDiff = diffKeys.find(k => {
-         const m = score.difficultyMap[k];
-         return m && m.total >= 1 && (m.correct / m.total) < 0.5;
-      });
-      if (weakDiff) {
-         html.push(`Your accuracy on <b>${weakDiff}</b> questions dropped below 50%. Focus your practice on this specific difficulty magnitude.`);
-      }
-
-      if (score.timeTaken > 0) {
-          if (usePhases && fatigueData[3] < fatigueData[0] - 20) {
-             html.push(`You suffered a <b>${Math.round(fatigueData[0] - fatigueData[3])}%</b> accuracy drop towards the end of the session, indicating <b>test fatigue</b>. Simulate longer active exam conditions.`);
-          }
-
-          const avgTime = Math.max(score.timeTaken / qCount, 1);
-          const rushedErrors = items.filter(i => !i.isCorrect && i.timeTaken < (avgTime * 0.4)).length;
-          if (rushedErrors > 1) {
-             html.push(`You incorrectly validated <b>${rushedErrors}</b> questions abnormally fast (<${Math.round(avgTime * 0.4)}s). Guard against skipping critical prompt subtext.`);
-          }
-
-          const maxCatTimeIdx = catTimes.indexOf(Math.max(...catTimes));
-          if (maxCatTimeIdx >= 0 && score.timeTaken > 0) {
-             html.push(`You invested a massive <b>${Math.round((catTimes[maxCatTimeIdx] / score.timeTaken) * 100)}%</b> of your total session time purely analyzing the <b>${catKeys[maxCatTimeIdx]}</b> domain.`);
-          }
-      }
-
-      if (!html.length) html.push("Overall pacing and precision execution are steady. Ensure consistent interval reviews to maintain these strong diagnostics.");
-      stepsEl.innerHTML = html.map(h => `<li>${h}</li>`).join("");
+      const suggestions = [];
+      const worstCat = categories.sort((a,b) => score.categoryMap[a].correct/score.categoryMap[a].total - score.categoryMap[b].correct/score.categoryMap[b].total)[0];
+      if (worstCat) suggestions.push(`🎯 Focus more on <b>${worstCat}</b>.`);
+      if (parseFloat(avgWrong) > parseFloat(avgCorrect) * 1.5) suggestions.push(`⏱️ Don't over-invest in difficult questions; learn to skip.`);
+      stepsEl.innerHTML = suggestions.map(s => `<li>${s}</li>`).join("");
     }
   }
 
@@ -1399,7 +1414,7 @@ const PageResult = (() => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `PrepExecuter_Report_${new Date().getTime()}.csv`);
+    link.setAttribute("download", `PrepQuick_Report_${new Date().getTime()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1457,20 +1472,20 @@ const PageResult = (() => {
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="width: 44px; height: 44px; background: #0f172a; color: #fff; display: grid; place-items: center; border-radius: 8px; font-weight: 800; font-size: 20px;">Q</div>
                 <div>
-                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Official Quiz Transcript</h1>
-                    <div style="font-size: 14px; color: #64748b; font-weight: 600;">Secure Quiz Engine Diagnostics</div>
+                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Performance Report</h1>
+                    <div style="font-size: 14px; color: #64748b; font-weight: 600;">PrepQuick Professional Certification Series</div>
                 </div>
             </div>
             <div style="text-align: right">
                 <div style="font-size: 14px; font-weight: 800;">${
-                  quiz.config["Quiz Settings Title"] || "Quiz Report"
+                  quiz.config["Quiz Settings Title"] || "Quiz Results"
                 }</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">UID: ${endTime.slice(0,10)}</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">ID: ${endTime.slice(0,10)}</div>
             </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px;">
-            <div style="border-left: 3px solid #e2e8f0; padding-left: 12px;"><div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">CANDIDATE</div><div style="font-size: 14px; font-weight: 700;">${
+            <div style="border-left: 3px solid #e2e8f0; padding-left: 12px;"><div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">USER</div><div style="font-size: 14px; font-weight: 700;">${
               user.name
             }</div></div>
             <div style="border-left: 3px solid #e2e8f0; padding-left: 12px;"><div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">DATE</div><div style="font-size: 14px; font-weight: 700;">${new Date(
@@ -1498,7 +1513,7 @@ const PageResult = (() => {
             </div>
         </div>
 
-        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Intelligence Analytics</h3>
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Performance Breakdown</h3>
         <div style="display: flex; gap: 20px; margin-bottom: 40px; page-break-inside: avoid;">
             <div style="flex:1">
                <div style="font-size:12px; font-weight:700; background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:8px; border:1px solid #e2e8f0;">Difficulty Distribution</div>
@@ -1508,9 +1523,9 @@ const PageResult = (() => {
                </table>
             </div>
             <div style="flex:1">
-               <div style="font-size:12px; font-weight:700; background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:8px; border:1px solid #e2e8f0;">Endurance & Cognitive Fatigue</div>
+               <div style="font-size:12px; font-weight:700; background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:8px; border:1px solid #e2e8f0;">Consistency Analysis</div>
                <table style="width:100%; border-collapse: collapse;">
-                  <thead><tr><th style="text-align:left; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">QUARTER</th><th style="text-align:right; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">ACCURACY</th></tr></thead>
+                  <thead><tr><th style="text-align:left; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">PHASE</th><th style="text-align:right; font-size:10px; color:#64748b; padding-bottom:4px; border-bottom:2px solid #e2e8f0;">ACCURACY</th></tr></thead>
                   <tbody>${fatigueHtml}</tbody>
                </table>
             </div>
@@ -1533,17 +1548,17 @@ const PageResult = (() => {
               .join("")}
         </div>
 
-         <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; page-break-before: always; padding-top: 15mm;">Official Itemized Data Transcript</h3>
-         <table style="width:100%; border-collapse: collapse; font-size: 11px; page-break-inside: auto;">
+         <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; page-break-before: always; padding-top: 15mm;">Detailed Answer Review</h3>
+         <table style="width:100%; border-collapse: collapse; font-size: 10px; page-break-inside: auto;">
            <thead>
               <tr style="background: #0f172a; color: #fff;">
-                <th style="padding: 12px 10px; text-align: left; border-top-left-radius:8px;">#</th>
-                <th style="padding: 12px 10px; text-align: left; width:35%;">Prompt/Question Details</th>
-                <th style="padding: 12px 10px; text-align: left;">Options / Targets</th>
-                <th style="padding: 12px 10px; text-align: left;">Domain</th>
-                <th style="padding: 12px 10px; text-align: center;">Pacing</th>
-                <th style="padding: 12px 10px; text-align: left;">Input</th>
-                <th style="padding: 12px 10px; text-align: center; border-top-right-radius:8px;">Status</th>
+                <th style="padding: 10px 8px; text-align: left; border-top-left-radius:8px; width:30px">#</th>
+                <th style="padding: 10px 8px; text-align: left; width:30%;">Question & Explanation</th>
+                <th style="padding: 10px 8px; text-align: left; width:15%;">Format</th>
+                <th style="padding: 10px 8px; text-align: left; width:20%;">Options / Choices</th>
+                <th style="padding: 10px 8px; text-align: center; width:50px">Time</th>
+                <th style="padding: 10px 8px; text-align: left; width:15%;">Your Answer</th>
+                <th style="padding: 10px 8px; text-align: center; border-top-right-radius:8px; width:60px">Result</th>
               </tr>
            </thead>
            <tbody>
@@ -1551,33 +1566,41 @@ const PageResult = (() => {
                   const ans = quiz.answers[i] || {};
                   const corr = Results.isCorrect(q, ans.userAnswer);
                   const time = (ans.timeTaken || 0);
-                  const type = (q["Question Type"] || "").trim().toLowerCase();
+                  const qType = (q["Question Type"] || "Multichoice").trim();
+                  const typeLower = qType.toLowerCase();
                   const choices = Results.getChoices(q);
                   const correctVal = Results.getCorrectAnswer(q);
+                  const expl = q.Explanation || q.Solution || "";
 
                   let optsHtml = "";
-                  if (type.includes("choice") || type.includes("select")) {
-                     optsHtml = choices.map(c => `• ${c}`).join("<br>");
-                  } else if (type.includes("match") || type.includes("drag")) {
+                  if (typeLower.includes("choice") || typeLower.includes("select") || typeLower.includes("true")) {
+                     optsHtml = choices.length ? choices.map(c => `• ${c}`).join("<br>") : (typeLower.includes("true") ? "• TRUE<br>• FALSE" : "N/A");
+                  } else if (typeLower.includes("match") || typeLower.includes("drag") || typeLower.includes("sequence")) {
                      optsHtml = choices.map(c => `• ${c.replace(/\|/g, " / ")}`).join("<br>");
                   } else {
-                     optsHtml = "N/A (Open-ended)";
+                     optsHtml = "<em>Dynamic / Open Input</em>";
                   }
 
-                  let uaStr = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : (ans.userAnswer || "—");
+                  let uaStr = "—";
+                  if (ans.userAnswer !== undefined && ans.userAnswer !== null) {
+                    uaStr = Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : String(ans.userAnswer);
+                  }
 
                   return `
                     <tr style="border-bottom: 1px solid #e2e8f0; page-break-inside: avoid; background: ${i%2===0 ? '#fff' : '#f8fafc'}">
-                       <td style="padding: 12px 10px; vertical-align: top; font-weight:800;">${i+1}</td>
-                       <td style="padding: 12px 10px; vertical-align: top;">
-                          <div style="font-weight:700; margin-bottom:8px; line-height:1.4;">${q.Question}</div>
-                          <div style="font-size:9px; color:#10b981; font-weight:800; padding:4px 8px; background:rgba(16,185,129,0.1); border-radius:4px;">KEY: ${correctVal}</div>
+                       <td style="padding: 10px 8px; vertical-align: top; font-weight:800;">${i+1}</td>
+                       <td style="padding: 10px 8px; vertical-align: top;">
+                          <div style="font-weight:700; margin-bottom:6px; line-height:1.4; color:#0f172a;">${q.Question}</div>
+                          <div style="font-size:8px; color:#10b981; font-weight:800; padding:3px 6px; background:rgba(16,185,129,0.1); border-radius:4px; margin-bottom:4px; border:1px solid rgba(16,185,129,0.2)">KEY: ${correctVal}</div>
+                          ${expl ? `<div style="font-size:8px; color:#64748b; font-style:italic; line-height:1.3; background:rgba(100,116,139,0.05); padding:4px; border-radius:4px;"><strong>Rationale:</strong> ${expl}</div>` : ""}
                        </td>
-                       <td style="padding: 12px 10px; vertical-align: top; font-size:9px; color:#64748b; font-style:italic;">${optsHtml}</td>
-                       <td style="padding: 12px 10px; vertical-align: top; font-size:10px; color:#64748b; font-weight:600;">${q.Category || "-"}</td>
-                       <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-family:monospace;">${time}s</td>
-                       <td style="padding: 12px 10px; vertical-align: top; font-weight:600; color: ${corr ? '#0f172a': '#ef4444'}">${uaStr}</td>
-                       <td style="padding: 12px 10px; vertical-align: top; text-align:center; font-weight:800; color: ${corr ? '#10b981': '#ef4444'}">${corr ? 'PASS' : 'FAIL'}</td>
+                       <td style="padding: 10px 8px; vertical-align: top; color:#475569; font-weight:600;">${qType}</td>
+                       <td style="padding: 10px 8px; vertical-align: top; font-size:8px; color:#64748b;">${optsHtml}</td>
+                       <td style="padding: 10px 8px; vertical-align: top; text-align:center; font-family:monospace; font-weight:700;">${time}s</td>
+                       <td style="padding: 10px 8px; vertical-align: top; font-weight:700; color: ${corr ? '#0f172a': '#ef4444'}">${uaStr}</td>
+                       <td style="padding: 10px 8px; vertical-align: top; text-align:center;">
+                          <div style="padding:4px; border-radius:4px; font-weight:900; font-size:10px; background:${corr ? '#10b981' : '#ef4444'}; color:#fff;">${corr ? 'PASS' : 'FAIL'}</div>
+                       </td>
                     </tr>
                   `;
               }).join("")}
@@ -1588,7 +1611,7 @@ const PageResult = (() => {
 
     const opt = {
       margin: 0,
-      filename: `PrepExecuter_Report_${user.name.replace(/\s+/g, "_")}.pdf`,
+      filename: `PrepQuick_Report_${user.name.replace(/\s+/g, "_")}.pdf`,
       image: { type: "jpeg", quality: 1 },
       html2canvas: {
         scale: 2,
@@ -1757,20 +1780,21 @@ const PageResult = (() => {
               .map((q, i) => {
                 const ans = quiz.answers[i] || {};
                 const corr = Results.isCorrect(q, ans.userAnswer);
-                const uaStr = Array.isArray(ans.userAnswer)
-                  ? ans.userAnswer.join(", ")
-                  : ans.userAnswer || "—";
+                const uaStr = (ans.userAnswer !== undefined && ans.userAnswer !== null) 
+                  ? (Array.isArray(ans.userAnswer) ? ans.userAnswer.join(", ") : String(ans.userAnswer)) 
+                  : "—";
                 const expl = q.Explanation || q.Solution || "";
+                const qType = (q["Question Type"] || "Multichoice").toUpperCase();
 
                 return `
                 <div class="q-item">
                     <div class="q-header">
-                        <span>QUESTION ${i + 1} • ${
+                        <span>QUESTION ${i + 1} • <span style="color:var(--primary)">${qType}</span> • ${
                   q.Category || "GENERAL"
                 }</span>
                         <span style="color: ${
                           corr ? "var(--success)" : "var(--error)"
-                        }">${corr ? "PASS" : "FAIL"}</span>
+                        }; font-weight:900">${corr ? "✓ PASS" : "✕ FAIL"}</span>
                     </div>
                     <div class="q-text"><div>${q.Question}</div></div>
                     <div class="ans-layout">
@@ -2152,7 +2176,7 @@ const PageHistory = (() => {
         Score: parseFloat(r.Score) || 1,
         "Question Type": (r.QuestionType || "Multichoice").trim(),
         "Correct Answer": r.CorrectAnswer || "",
-        Category: r.Category || "Uncategorised",
+        Category: r.Category || "Uncategorized",
         "Sub Category": r.SubCategory || "",
         Difficulty: r.Difficulty || "Medium",
       }));

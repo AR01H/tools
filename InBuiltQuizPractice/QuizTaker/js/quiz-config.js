@@ -12,14 +12,14 @@ const PageSetupConfig = (() => {
       label: "Section Order",
       type: "select",
       opts: ["Fixed", "Random"],
-      classnanme: "hidden"
+      className: "hidden"
     },
     {
       key: "Adaptive Mode",
       label: "Adaptive Mode",
       type: "select",
       opts: ["On", "Off"],
-      classnanme: "hidden"
+      className: "hidden"
 
     },
     {
@@ -45,7 +45,7 @@ const PageSetupConfig = (() => {
       label: "Partial Scoring",
       type: "select",
       opts: ["On", "Off"],
-      classnanme: "hidden"
+      className: "hidden"
     },
     {
       key: "Question Navigation",
@@ -293,7 +293,7 @@ const PageSetupTemplate = (() => {
   const TEMPLATES = [
     {
       id: "sat",
-      name: "SAT Style",
+      name: "Standard Design",
       desc: "Clean academic layout with left question map and purple accents.",
       icon: "🎓",
     },

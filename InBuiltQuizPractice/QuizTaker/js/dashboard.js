@@ -8,14 +8,31 @@ const PageWelcome = (() => {
     const user = State.get("user");
     const scriptConfigured = !!State.get("scriptUrl");
 
+    const hour = new Date().getHours();
+    const greetings = {
+      morning: ["Good Morning", "Rise and Shine", "Morning Fuel"],
+      afternoon: ["Good Afternoon", "Stay Focused", "Afternoon Push"],
+      evening: ["Good Evening", "Night Owl Session", "Evening Review"]
+    };
+    
+    let timeGroup = "evening";
+    if (hour < 12) timeGroup = "morning";
+    else if (hour < 17) timeGroup = "afternoon";
+    
+    const randomGreet = greetings[timeGroup][Math.floor(Math.random() * greetings[timeGroup].length)];
+    const superTitle = user?.name ? `WELCOME BACK • ${timeGroup.toUpperCase()}` : "GET STARTED • JOIN US";
+    const headerTitle = user?.name ? `${randomGreet}, <span class="text-gradient">${user.name.split(' ')[0]}</span>!` : `Welcome to <span class="text-gradient">PrepQuick</span>`;
+    const headerSub = user?.name 
+      ? "It's great to see you again. Ready to crush your goals today?" 
+      : "Launch high-yield practice simulations and master your knowledge.";
+
     main.innerHTML = `
       <div class="animate-up welcome-hero-container">
-        
         <div class="welcome-header">
-           <h4 class="welcome-super-title">PLATFORM INITIALIZATION</h4>
-           <h1 class="welcome-main-title">Master Your <span class="text-gradient">Knowledge</span></h1>
-           <p class="welcome-lead">Launch high-yield simulations powered by real-time analytics. Your progress is synchronized to your professional profile.</p>
-        </div>
+           <h4 class="welcome-super-title">${superTitle}</h4>
+           <h1 class="welcome-main-title">${headerTitle}</h1>
+           <p class="welcome-lead">${headerSub}</p>
+         </div>
 
         <div class="welcome-layout">
           <!-- LEFT: Registration & Stats -->
@@ -31,40 +48,41 @@ const PageWelcome = (() => {
                   <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 11c2.209 0 4-1.791 4-4s-1.791-4-4-4-4 1.791-4 4 1.791 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 </div>
                 <div class="header-text">
-                  <h3>Let's Get Started</h3>
+                  <h3>Get Started</h3>
+                  <p>Enter your details to sync progress</p>
                 </div>
               </div>
 
               <div class="registration-form">
 
                 <div class="form-group">
-                  <label class="pro-label">User ID (Email - Recommended)</label>
+                  <label class="pro-label">EMAIL ADDRESS</label>
                   <div class="input-wrapper">
-                    <input type="text" id="reg-identifier" class="pro-input" placeholder="id@domain.com" value="${user?.identifier || ''}">
+                    <input type="text" id="reg-identifier" class="pro-input" placeholder="you@example.com" value="${user?.identifier || ''}">
                     <div class="input-focus-ring"></div>
                   </div>
                 </div>
 
                 <div class="form-group">
-                  <label class="pro-label">YOUR NAME</label>
+                  <label class="pro-label">FULL NAME</label>
                   <div class="input-wrapper">
-                    <input type="text" id="reg-name" class="pro-input" placeholder="Type name..." value="${user?.name || ''}">
+                    <input type="text" id="reg-name" class="pro-input" placeholder="Enter your name" value="${user?.name || ''}">
                     <div class="input-focus-ring"></div>
                   </div>
                 </div>
 
                 <div class="action-stack">
                   <button class="btn-launch-primary" onclick="Dashboard.handleWelcomeAction()">
-                    <span>${user?.name ? 'Take Quiz' : 'Login / Signup'}</span>
+                    <span>${user?.name ? 'Start Mock Test' : 'Sign In / Register'}</span>
                   </button>
                   
                   ${user?.name ? `
                     <div class="session-management">
                       <button class="btn-sync" onclick="Dashboard.viewLatestResult()">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        View Last Result
+                        Last Performance
                       </button>
-                      <button class="btn-switch" onclick="Dashboard.changeUser()">Switch Account</button>
+                      <button class="btn-switch" onclick="Dashboard.changeUser()">Switch User</button>
                     </div>
                   ` : ''}
                 </div>
@@ -81,8 +99,8 @@ const PageWelcome = (() => {
                     <div class="hex-bg"></div>
                   </div>
                   <div class="step-content">
-                    <h4>Identify</h4>
-                    <p>Register sessional metadata for persistence.</p>
+                    <h4>Profile</h4>
+                    <p>Register your session for historical tracking.</p>
                   </div>
                </div>
                
@@ -92,8 +110,8 @@ const PageWelcome = (() => {
                     <div class="hex-bg"></div>
                   </div>
                   <div class="step-content">
-                    <h4>Simulate</h4>
-                    <p>Filter questions by domain and complexity.</p>
+                    <h4>Practice</h4>
+                    <p>Select your domain and difficulty tier.</p>
                   </div>
                </div>
             </div>
@@ -102,10 +120,10 @@ const PageWelcome = (() => {
               <div class="integration-notice">
                 <div class="notice-icon">⚠️</div>
                 <div class="notice-text">
-                  <h5>Cloud Sync Disabled</h5>
-                  <p>Database connection required for history.</p>
+                  <h5>Cloud Storage Off</h5>
+                  <p>Enable Google Script for history sync.</p>
                 </div>
-                <button onclick="UI.openSettings()">Integrate</button>
+                <button onclick="UI.openSettings()">Connect</button>
               </div>
             ` : ''}
           </div>
@@ -123,23 +141,23 @@ const PageWelcome = (() => {
         .welcome-layout { display: grid; grid-template-columns: 1fr 400px; gap: 64px; align-items: start; }
         
         /* Identity Card */
-        .identity-glass-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; position: relative; overflow: hidden; box-shadow: var(--shadow-xl); }
+        .identity-glass-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; position: relative; overflow: hidden; box-shadow: var(--shadow-xl); }
         .card-glow { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--accent-primary-transparent); filter: blur(40px); border-radius: 50%; pointer-events: none; }
         
-        .identity-header { display: flex; align-items: center; gap: 20px; margin-bottom: 40px; }
-        .identity-icon { width: 48px; height: 48px; background: var(--accent-primary); color: #fff; border-radius: 14px; display: grid; place-items: center; box-shadow: 0 8px 16px var(--accent-shadow); }
+        .identity-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
+        .identity-icon { width: 48px; height: 48px; background: var(--accent-primary); color: #fff; border-radius: var(--radius-md); display: grid; place-items: center; box-shadow: 0 8px 16px var(--accent-shadow); }
         .identity-header h3 { font-size: 1.5rem; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
-        .identity-header p { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+        .identity-header p { font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0 0; }
         
         .registration-form { display: flex; flex-direction: column; gap: 24px; }
         .pro-label { font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 8px; display: block; }
         .input-wrapper { position: relative; }
-        .pro-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: 4px; font-size: 1rem; font-weight: 700; color: var(--text-primary); transition: 0.3s var(--ease); }
+        .pro-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: var(--radius-md); font-size: 1rem; font-weight: 700; color: var(--text-primary); transition: 0.3s var(--ease); }
         .pro-input:focus { border-color: var(--accent-primary); outline: none; }
-        .input-focus-ring { position: absolute; inset: -4px; border-radius: 20px; border: 2px solid var(--accent-primary); opacity: 0; pointer-events: none; transition: 0.3s; }
+        .input-focus-ring { position: absolute; inset: -4px; border-radius: var(--radius-lg); border: 2px solid var(--accent-primary); opacity: 0; pointer-events: none; transition: 0.3s; }
         .pro-input:focus + .input-focus-ring { opacity: 0.15; transform: scale(1); }
         
-        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 0px 16px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; width: 100%; }
+        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 18px; border-radius: var(--radius-md); font-weight: 900; font-size: 1.1rem; box-shadow: 0 8px 16px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; width: 100%; }00%; }
         .btn-launch-primary:hover { transform: translateY(-4px); filter: brightness(1.1); box-shadow: 0 16px 32px var(--accent-shadow); }
         
         .session-management { display: flex; justify-content: space-between; align-items: center; margin-top: 12px;padding-top:6px; }

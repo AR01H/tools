@@ -55,7 +55,7 @@ const PageQuiz = (() => {
       : "";
 
     let layout; // ─────────────────────────────────────────────────────────
-    // 1. SAT STYLE (Image 1)
+    // 1. Standard Design (Image 1)
     // ─────────────────────────────────────────────────────────
     if (tmpl === "sat") {
       layoutHtml = `
@@ -111,7 +111,6 @@ const PageQuiz = (() => {
     // 2. QUIZPRO DARK (Image 2) — Split view with passage
     // ──────────────────────────────────────────────────────────
     else if (tmpl === "quizpro-dark") {
-      debugger
       layoutHtml = `
         <div class="layout-quizpro">
           <div class="quizpro-topbar">
@@ -188,7 +187,7 @@ const PageQuiz = (() => {
                 </div>
 
                 <div class="study-block explanation-block">
-                   <div class="block-label">COGNITIVE INSIGHT & EXPLANATION</div>
+                   <div class="block-label">DETAILED EXPLANATION & RATIONALE</div>
                    <div id="study-explanation-text" class="study-desc"></div>
                 </div>
              </div>
@@ -302,7 +301,7 @@ const PageQuiz = (() => {
         [data-theme="editorial"] .mcq-option { border: none !important; border-bottom: 1px solid var(--border-color) !important; border-radius: 0 !important; padding: 10px 0 !important; background: transparent !important; }
         [data-theme="quizpro-dark"] .mcq-option { border-radius: 6px !important; border-width: 1px !important; background: var(--bg-elevated) !important; padding: 10px 14px !important; margin-bottom: 8px; }
 
-        /* ── SAT Style ── */
+        /* ── Standard Design ── */
         .layout-sat { display:flex; height:calc(100vh - 52px); overflow:hidden; background:var(--bg-base); }
         .sat-sidebar { width:200px; display:flex; flex-direction:column; border-right:1px solid var(--border-color); background:var(--bg-surface); }
         .sat-sidebar-header { padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
