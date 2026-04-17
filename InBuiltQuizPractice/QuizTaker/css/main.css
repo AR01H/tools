@@ -492,7 +492,7 @@ select.form-control {
   background: var(--border-color);
   margin: var(--sp-md) 0;
 }
-.history-body{
+#history-body{
   text-align: center;
 }
 
