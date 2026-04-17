@@ -91,19 +91,28 @@ const Filters = (() => {
 //  Page: Setup Topics
 // ============================================================
 const PageSetupTopics = (() => {
-  const ICON_MAP = {
-    docker: '🐳',
-    javascript: 'JS',
-    python: '🐍',
-    java: '☕',
-    css: '🎨',
-    html: '🌐',
-    react: '⚛️',
-    node: '🟢',
-    database: '💾',
-    cloud: '☁️',
-    default: '📝'
-  };
+const ICON_MAP = {
+  // ── Existing ──
+  docker: '🐳',javascript: 'JS',python: '🐍',java: '☕',css: '🎨',html: '🌐',react: '⚛️',node: '🟢',sql: '💾',cloud: '☁️',
+  // ── Programming / Tech ──
+  c: '💻',cpp: '⚙️',csharp: '🎯',go: '🐹',rust: '🦀',typescript: 'TS',php: '🐘',ruby: '💎',swift: '🕊️',kotlin: '📱',
+  // ── Web / Frontend ──
+  angular: '🅰️',vue: '🟩',nextjs: '⏭️',uiux: '🖌️',frontend: '🧩',backend: '🛠️',fullstack: '🔁',
+  // ── Data / AI ──
+  dsa: '🧠',algorithms: '📊',ai: '🤖',machinelearning: '📈',deeplearning: '🧬',datascience: '🔬',analytics: '📉',
+  // ── DevOps / Infra ──
+  kubernetes: '☸️',devops: '⚙️',aws: '🟠',azure: '🔷',gcp: '🟥',linux: '🐧',networking: '🌐',
+  // ── Testing / Security ──
+  testing: '🧪', unittesting: '🧫', automation: '🤖', security: '🔐', cybersecurity: '🛡️',
+  // ── Core Subjects ──
+  os: '🖥️', dbms: '🗄️', cn: '📡', oops: '📦',
+  // ── Aptitude / Reasoning ──
+  aptitude: '🧮',quantitative: '📐',logicalreasoning: '🔍',verbal: '📝',puzzles: '🧩',problemsolving: '💡',
+  // ── Soft Skills ─
+  communication: '💬',teamwork: '🤝',leadership: '👑',presentation: '📢',criticalthinking: '🧠',timemanagement: '⏱️',decisionmaking: '⚖️',
+  // ── Misc / General ──
+  interview: '🎤',resume: '📄',career: '🚀',general: '📚',sample: '📝'
+};
 
   function render(main) {
     const topics = State.get("topics");
@@ -118,15 +127,14 @@ const PageSetupTopics = (() => {
         
         <div class="setup-header-area">
            <div class="setup-header-text">
-              <h1 class="setup-main-title">Assessment Domains</h1>
-              <p class="setup-sub-title">Select specialized subjects to build your assessment.</p>
+              <h1 class="setup-main-title">Quiz Domains</h1>
+              <p class="setup-sub-title">Select specialized subjects to build your quiz.</p>
            </div>
            <div class="setup-header-actions">
               <div class="search-wrap">
                  <input type="text" id="topic-search" class="form-control" placeholder="Search domains..." oninput="PageSetupTopics.filter(this.value)">
               </div>
               <button class="btn btn-secondary btn-sm" onclick="selectAllTopics()">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
                 Select All
               </button>
            </div>
@@ -137,7 +145,7 @@ const PageSetupTopics = (() => {
             .map((t) => {
               const isSelected = sel.includes(t.name);
               const icon =
-                ICON_MAP[t.name.toLowerCase()] || ICON_MAP["default"];
+                ICON_MAP[t.name.toLowerCase()] || t.name.charAt(0).toUpperCase();
               return `
               <div class="topic-card ${
                 isSelected ? "selected" : ""
@@ -182,7 +190,7 @@ const PageSetupTopics = (() => {
         }
         .topic-card:hover { transform: translateY(-8px); border-color: var(--accent-primary); box-shadow: 0 15px 30px -5px var(--accent-shadow); }
         .topic-card.selected { border-color: var(--accent-primary); background: var(--accent-muted); transform: scale(1.02); }
-        .topic-card .topic-icon { font-size: 2.8rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); transition: transform 0.3s; }
+        .topic-card .topic-icon { font-size: 2.8rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); transition: transform 0.3s;    background: var(--bg-elevated); border-radius: 50%; display: grid; place-items: center; padding: 0px 20px;}
         .topic-card:hover .topic-icon { transform: scale(1.1) rotate(5deg); }
         .topic-name { font-weight: 800; font-size: 1rem; color: var(--text-primary); line-height: 1.2; }
         
@@ -221,9 +229,19 @@ const PageSetupTopics = (() => {
   }
 
   window.selectAllTopics = () => {
-    document
-      .querySelectorAll(".topic-card")
-      .forEach((c) => c.classList.add("selected"));
+    const cards = document.querySelectorAll(".topic-card");
+
+    const allSelected = [...cards].every(c =>
+      c.classList.contains("selected")
+    );
+
+    cards.forEach(c => {
+      if (allSelected) {
+        c.classList.remove("selected");
+      } else {
+        c.classList.add("selected");
+      }
+    });
   };
 
   window.topicsNext = async () => {
@@ -236,7 +254,7 @@ const PageSetupTopics = (() => {
     }
     State.merge("setup", { selectedTopics: sel });
 
-    UI.setLoading(true, "Initializing questions pool...");
+    UI.setLoading(true, "Please wait, loading questions data...");
     try {
       const questions = await API.getQuestions(sel);
       State.set("questions", questions);
@@ -280,9 +298,8 @@ const PageSetupFilters = (() => {
         
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-xl)">
            <div>
-              <h4 style="font-size:0.7rem; font-weight:900; color:var(--accent-primary); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">Granular Control</h4>
-              <h1 style="font-size:2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Precision Refinement</h1>
-              <p style="color:var(--text-muted); font-size:0.9rem; margin-top:4px">Calibrate the question pool parameters</p>
+              <h1 style="font-size:2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Filter Questions</h1>
+              <p style="color:var(--text-muted); font-size:0.9rem; margin-top:4px">Filter questions based on parameters</p>
            </div>
            <div>${UI.backBtn("Topics")}</div>
         </div>

@@ -292,7 +292,7 @@ const PageResult = (() => {
            <div class="dash-hero">
            <div class="dash-hero-info">
               <span class="dash-badge">${
-                quiz.config["Quiz Settings Title"] || "ASSESSMENT REPORT"
+                quiz.config["Quiz Settings Title"] || "Quiz REPORT"
               }</span>
               <p class="dash-subtitle">${new Date(endTime).toLocaleDateString(
                 undefined,
@@ -389,7 +389,7 @@ const PageResult = (() => {
                   { id: "category", label: "📁 Categories" },
                   { id: "difficulty", label: "⚡ Difficulty" },
                   { id: "answer-key", label: "🔑 Key" },
-                  { id: "adaptive", label: "🧠 Adaptive" }
+                  { id: "adaptive", label: "🧠 Analysis" }
                 ];
                 return allTabs
                   .filter(t => qWise || (t.id !== "questions" && t.id !== "answer-key"))
@@ -403,8 +403,6 @@ const PageResult = (() => {
            <div class="dash-actions">
               <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadPDF()">📥 PDF</button>
               <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadCSV()">📊 CSV</button>
-              <button class="btn btn-secondary btn-sm" onclick="PageResult.retakeQuiz()">🔁 Retake</button>
-              <button class="btn btn-secondary btn-sm" onclick="UI.navigate('welcome')">🏠 Home</button>
            </div>
         </div>
 
@@ -484,7 +482,7 @@ const PageResult = (() => {
         <div class="chart-card"><h3 class="chart-label">Performance by Difficulty Tier</h3><div class="chart-box"><canvas id="chart-adaptive-difficulty"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Endurance & Cognitive Fatigue</h3><div class="chart-box"><canvas id="chart-adaptive-fatigue"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Pacing vs Precision Map</h3><div class="chart-box"><canvas id="chart-adaptive-pacing"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Domain Resource Allocation</h3><div class="chart-box"><canvas id="chart-adaptive-time-allocation"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Topic Resource Time Allocation</h3><div class="chart-box"><canvas id="chart-adaptive-time-allocation"></canvas></div></div>
       </div>
       <div class="card" style="padding:var(--sp-lg); background:var(--bg-elevated); border-radius:16px; margin-bottom:var(--sp-lg); border:1px solid var(--border-color)">
         <h3 class="chart-label" style="font-size:1.1rem;margin-bottom:16px;">Diagnostic Intelligence (Current Session)</h3>
@@ -1342,7 +1340,7 @@ const PageResult = (() => {
     const user = State.get("user") || { name: "Guest" };
 
     let csv = `Quiz Report - ${
-      quiz.config["Quiz Settings Title"] || "Assessment"
+      quiz.config["Quiz Settings Title"] || "Quiz"
     }\n`;
     csv += `Candidate,${user.name}\n`;
     csv += `Date,${new Date(result.endTime).toLocaleString()}\n`;
@@ -1459,13 +1457,13 @@ const PageResult = (() => {
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="width: 44px; height: 44px; background: #0f172a; color: #fff; display: grid; place-items: center; border-radius: 8px; font-weight: 800; font-size: 20px;">Q</div>
                 <div>
-                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Official Assessment Transcript</h1>
-                    <div style="font-size: 14px; color: #64748b; font-weight: 600;">Secure Assessment Engine Diagnostics</div>
+                    <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Official Quiz Transcript</h1>
+                    <div style="font-size: 14px; color: #64748b; font-weight: 600;">Secure Quiz Engine Diagnostics</div>
                 </div>
             </div>
             <div style="text-align: right">
                 <div style="font-size: 14px; font-weight: 800;">${
-                  quiz.config["Quiz Settings Title"] || "Assessment Report"
+                  quiz.config["Quiz Settings Title"] || "Quiz Report"
                 }</div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 4px;">UID: ${endTime.slice(0,10)}</div>
             </div>
@@ -1500,7 +1498,7 @@ const PageResult = (() => {
             </div>
         </div>
 
-        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Adaptive Intelligence Analytics</h3>
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Intelligence Analytics</h3>
         <div style="display: flex; gap: 20px; margin-bottom: 40px; page-break-inside: avoid;">
             <div style="flex:1">
                <div style="font-size:12px; font-weight:700; background:#f8fafc; padding:8px; border-radius:4px; margin-bottom:8px; border:1px solid #e2e8f0;">Difficulty Distribution</div>
@@ -1690,13 +1688,13 @@ const PageResult = (() => {
             <div class="logo-box">
                 <div class="logo-sq">Q</div>
                 <div>
-                    <h1 class="report-title">Assessment Report</h1>
+                    <h1 class="report-title">Quiz Report</h1>
                     <div style="font-size: 14px; color: var(--secondary); font-weight: 600;">System Generated Official Transcript</div>
                 </div>
             </div>
             <div style="text-align: right">
                 <div style="font-size: 14px; font-weight: 800;">${
-                  quiz.config["Quiz Settings Title"] || "Assessment Report"
+                  quiz.config["Quiz Settings Title"] || "Quiz Report"
                 }</div>
                 <div style="font-size: 12px; color: var(--secondary); margin-top: 4px;">UID: ${endTime.slice(
                   0,
@@ -1800,7 +1798,7 @@ const PageResult = (() => {
         </div>
 
         <div class="footer">
-            Preparation Executer Analytics Professional Series • Generated via Localized Assessment Engine • Official Transcript
+            PrepQuick Analytics Professional Series • Generated via Localized Quiz Engine • Official Transcript
         </div>
     </div>
     <script>
@@ -1825,7 +1823,7 @@ const PageResult = (() => {
           text: `I scored ${score.accuracy}% (${score.total.toFixed(1)}/${
             score.maxTotal
           }) on my ${
-            result.quiz.config["Quiz Settings Title"] || "Assessment"
+            result.quiz.config["Quiz Settings Title"] || "Quiz"
           }!`,
           url: window.location.href,
         })
@@ -1835,13 +1833,6 @@ const PageResult = (() => {
     }
   }
 
-  function retakeQuiz() {
-    UI.confirm2(
-      "Are you sure you want to retake this quiz?",
-      "Dashboard.startQuiz"
-    );
-  }
-
   return {
     render,
     switchTab,
@@ -1849,7 +1840,6 @@ const PageResult = (() => {
     downloadCSV,
     openPrintReport,
     shareResult,
-    retakeQuiz,
     applyReviewFilters
   };
 })();
@@ -1859,7 +1849,6 @@ const PageHistory = (() => {
   function render(main) {
     main.innerHTML = `
       <div style="margin:0 auto" class="animate-up">
-        <h1 class="section-title" style="margin-bottom:var(--sp-lg)">📜 Attempt History</h1>
         <div class="card">
           <p class="text-muted text-sm" style="text-align:center;padding:var(--sp-xl)">
             <button class="btn btn-primary btn-sm" style="margin-top:var(--sp-md)" onclick="PageHistory.load()">Load History</button>
@@ -1881,7 +1870,7 @@ const PageHistory = (() => {
     const user = State.get("user");
     if (!user || !user.identifier) {
       body.innerHTML =
-        '<p class="text-warn text-sm" style="text-align:center;padding:var(--sp-lg)">Please initialize your profile to view cloud history.</p>';
+        '<p class="text-warn text-sm" style="text-align:center;padding:var(--sp-lg)">Sign in to view your details from the Home menu</p>';
       return;
     }
 
@@ -1907,6 +1896,22 @@ const PageHistory = (() => {
       </div>`;
     }
   }
+
+
+  function formatDate(dateVal) {
+    if (!dateVal) return "—";
+
+    return new Date(dateVal).toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+  }
+
+
 
   function renderHistoryUI() {
     const body = document.getElementById("history-body");
@@ -1972,36 +1977,61 @@ const PageHistory = (() => {
           <table class="data-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Quiz</th>
-                <th>Topic</th>
-                <th>Score</th>
-                <th>Result</th>
+                <th class="date">Date</th>
+                <th class="result">Time Spent</th>
+                <th class="quiz">Quiz</th>
+                <th class="topic">Topic</th>
+                <th class="score">Score</th>
+                <th class="result hidden">Result</th>
               </tr>
             </thead>
             <tbody>
               ${reversedHistory
                 .map((r) => {
-                  const dateVal = r["End Time"] || r["Start Time"] || "";
-                  const date = dateVal ? new Date(dateVal).toLocaleString() : "Date Unknown";
-                  const score = r["Result Score"] || "—";
-                  const filepath = r.Filepath || r.filepath || r.FILEPATH || r["Filepath"] || "";
-                  
-                  return `
-                  <tr>
-                    <td>${date}</td>
-                    <td><div style="font-weight:700">${r["Quiz Name"] || "—"}</div></td>
-                    <td><span class="badge badge-neutral">${r["Quiz Topic"] || "—"}</span></td>
-                    <td style="font-family:var(--font-mono);font-weight:800">${score}</td>
-                    <td>
-                      ${filepath ? `
-                        <button class="btn btn-ghost btn-sm" onclick="PageHistory.viewCloudAttempt('${filepath}')">
-                          Review →
-                        </button>
-                      ` : '<span class="text-xs text-muted italic">No Detail</span>'}
-                    </td>
-                  </tr>`;
-                })
+
+                  const startTime = r["Start Time"];
+                  const endTime = r["End Time"];
+                  const startFormatted = formatDate(startTime);
+                  const endFormatted = formatDate(endTime);
+
+
+
+                    const dateVal = r["End Time"] || r["Start Time"] || "";
+                    const date = dateVal ? new Date(dateVal).toLocaleString() : "Date Unknown";
+                    const score = r["Result Score"] || "—";
+                    const filepath = r.Filepath || r.filepath || r.FILEPATH || r["Filepath"] || "";
+                    // time spent
+                    const start = r["Start Time"] ? new Date(r["Start Time"]) : null;
+                    const end = r["End Time"] ? new Date(r["End Time"]) : null;
+
+                    let timeSpent = "QUIT TEST";
+                    if (start && end) {
+                      const diffMs = end - start;
+                      const totalSeconds = Math.floor(diffMs / 1000);
+                      const minutes = Math.floor(totalSeconds / 60);
+                      const seconds = totalSeconds % 60;
+                      timeSpent = `${minutes}m ${seconds}s`;
+                    }
+                    return `
+                    <tr>
+                      <td class="date">${startFormatted}</td>
+                      <td class="time" style="font-family:var(--font-mono)">
+                        ${timeSpent}
+                      </td>
+                      <td class="quiz"><div style="font-weight:700">${r["Quiz Name"] || "—"}</div></td>
+                      <td class="topic"><span class="badge badge-neutral">${r["Quiz Topic"] || "—"}</span></td>
+                      <td class="score" style="font-family:var(--font-mono);font-weight:800">
+                        ${isNaN(Number(score)) ? "N/A" : Number(score).toFixed(2)}
+                      </td>
+                      <td class="result hidden">
+                        ${filepath ? `
+                          <button class="btn btn-ghost btn-sm" onclick="PageHistory.viewCloudAttempt('${filepath}')">
+                            Review →
+                          </button>
+                        ` : '<span class="text-xs text-muted italic">No Detail</span>'}
+                      </td>
+                    </tr>`;
+                  })
                 .join("")}
                ${reversedHistory.length === 0 ? `<tr><td colspan="5" style="text-align:center; padding:var(--sp-xl)">No attempts found for this topic filter.</td></tr>` : ""}
             </tbody>

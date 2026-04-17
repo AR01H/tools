@@ -145,53 +145,6 @@ const PageQuiz = (() => {
           </div>
         </div>`;
     }
-    // ──────────────────────────────────────────────────────────
-    // 3. MODERN EDITORIAL (Image 3) — Right sidebar list
-    // ──────────────────────────────────────────────────────────
-    // ──────────────────────────────────────────────────────────
-    // 3. MODERN EDITORIAL (Image 3) — Right sidebar list
-    // ──────────────────────────────────────────────────────────
-    else if (tmpl === "editorial") {
-      layoutHtml = `
-        <div class="layout-editorial">
-          <div class="ed-header">
-             <div>
-                <p class="ed-meta">${quiz.config.category || ""} • ${quiz.config.subCategory || ""}</p>
-                <h1 class="ed-title">${quiz.config.title || "Test Session"}</h1>
-             </div>
-             <div class="ed-time-wrap">
-                <div class="ed-time" id="total-timer-ed">00:00</div>
-                <p class="ed-time-label">TIME REMAINING</p>
-             </div>
-          </div>
-          <div class="ed-body">
-             <div class="ed-main">
-                <div class="ed-q-meta">QUESTION <span id="q-idx">1</span> OF ${
-                  qs.length
-                } • DIFFICULTY: MEDIUM</div>
-                <div id="question-panel" class="ed-panel"></div>
-                <div class="ed-actions">
-                   <button class="btn btn-ghost" id="btn-prev" onclick="QuizEngine.prev()" ${
-                     !allowBack ? "disabled" : ""
-                   }>← Back</button>
-                   ${actionsHTML}
-                   <button class="btn btn-secondary" onclick="QuizEngine.confirmSubmit()">Submit</button>
-                   <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()">Next →</button>
-                </div>
-             </div>
-             <div class="ed-sidebar">
-                <p class="ed-sb-title">ALL QUESTIONS</p>
-                <div id="q-nav" class="ed-q-nav"></div>
-                <div class="ed-sb-footer">
-                   <div class="flex items-center gap-md text-xs">
-                      <span class="flex items-center gap-xs"><div class="dot done"></div> Answered</span>
-                      <span class="flex items-center gap-xs"><div class="dot flagged"></div> Flagged</span>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </div>`;
-    }
     // ──────────────────────────────────────────
     // 4. STUDY MODE (Flashcard)
     // ──────────────────────────────────────────
@@ -309,36 +262,7 @@ const PageQuiz = (() => {
           }
         </style>
       `;
-    // ──────────────────────────────────────────
-    // 4. VIBRANT (Image 4) — Gamified
-    // ──────────────────────────────────────────
-    }else if (tmpl === "vibrant") {
-      layoutHtml = `
-        <div class="layout-vibrant">
-          <div class="vib-header">
-             <button class="vib-back" onclick="QuizEngine.confirmSubmit()">←</button>
-             <div class="vib-topic-badge">${setup.topics.join(", ")}</div>
-             <div class="vib-timer" id="total-timer-vib">00:00</div>
-          </div>
-          <div class="vib-progress-wrap">
-             <div class="progress-bar"><div class="progress-fill" id="quiz-progress"></div></div>
-             <div class="vib-q-indicator"><span id="q-idx">1</span>/${qs.length}</div>
-          </div>
-          
-          <div class="vib-content">
-             <div id="question-panel"></div>
-             <div id="q-nav" class="vib-q-nav"></div>
-          </div>
-          
-          <div class="vib-footer">
-             <button class="vib-action-btn skip" onclick="QuizEngine.next()">Skip</button>
-             <button class="vib-action-btn next" id="btn-next" onclick="QuizEngine.next()">Next →</button>
-          </div>
-        </div>`;
     }
-    // ──────────────────────────────────────────────────────────
-    // 5. DEFAULT
-    // ──────────────────────────────────────────────────────────
     else {
       layoutHtml = `
         <div style="max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:var(--sp-md)">
@@ -376,7 +300,6 @@ const PageQuiz = (() => {
       <style>
         [data-theme="editorial"] #question-panel { font-family: var(--font-content, serif); }
         [data-theme="editorial"] .mcq-option { border: none !important; border-bottom: 1px solid var(--border-color) !important; border-radius: 0 !important; padding: 10px 0 !important; background: transparent !important; }
-        [data-theme="vibrant"] .mcq-option { border-radius: 12px !important; margin-bottom: 6px; padding: 12px !important; border: 2px solid var(--border-color) !important; font-size: 0.95rem; }
         [data-theme="quizpro-dark"] .mcq-option { border-radius: 6px !important; border-width: 1px !important; background: var(--bg-elevated) !important; padding: 10px 14px !important; margin-bottom: 8px; }
 
         /* ── SAT Style ── */
@@ -384,7 +307,7 @@ const PageQuiz = (() => {
         .sat-sidebar { width:200px; display:flex; flex-direction:column; border-right:1px solid var(--border-color); background:var(--bg-surface); }
         .sat-sidebar-header { padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .sat-sidebar-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
-        .sat-q-nav { padding: 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; overflow-y: auto; }
+        .sat-q-nav { padding: 6px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; overflow-y: auto; justify-items: center; }
         .sat-sidebar-legend { padding: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; gap: 4px; font-size: 0.6rem; color: var(--text-secondary); }
         .section-stats { display: flex; font-size: x-small; flex-wrap: wrap; gap: 11px; justify-content: center; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
@@ -394,11 +317,11 @@ const PageQuiz = (() => {
         .dot.flagged { background: var(--color-warn); border-color: var(--color-warn); }
         .sat-sidebar-footer { padding: 10px; background: var(--bg-elevated); border-top: 1px solid var(--border-color); font-size: 0.65rem;width:100%; }
         .sat-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-        .sat-header { padding: 6px 16px; height: 44px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); flex-wrap: wrap; }
+        .sat-header { padding: 6px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); flex-wrap: wrap; }
         .sat-badge { background: var(--text-primary); color: var(--bg-surface); padding: 2px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 800; }
         .sat-q-counter { font-size: 0.75rem; font-weight: 700; color: var(--text-primary); }
         .sat-progress-wrap { flex: 1; max-width: 280px; margin: 0 20px; }
-        .sat-content { flex: 1; overflow-y: auto; padding: 15px 6%; display: flex; flex-direction: column; }
+        .sat-content { flex: 1; overflow-y: auto; padding: 0px 1% 0px 1%; display: flex; flex-direction: column; justify-content: space-between; }
         .sat-actions { display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); margin-top: 20px; }
 
         /* ── QuizPro Dark ── */
@@ -412,7 +335,7 @@ const PageQuiz = (() => {
         .qp-passage { flex: 1; border-right: 1px solid var(--border-color); padding: 16px; overflow-y: auto; background: var(--bg-surface); }
         .qp-passage-header { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 10px; }
         .qp-passage-content { font-size: 0.95rem; line-height: 1.5; opacity: 0.9; }
-        .qp-question { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; }
+        .qp-question { flex: 1; padding: 10px 10px 0px 10px; overflow-y: auto; display: flex; flex-direction: column; }
         .qp-q-header { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; }
         .qp-mini-nav { display: flex; gap: 3px; overflow-x:auto; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); }
         .quizpro-footer { height: 52px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--bg-surface); }
@@ -437,23 +360,6 @@ const PageQuiz = (() => {
         .ed-q-row.active { background: var(--text-primary); color: var(--bg-base); }
         .ed-main {padding: 0 10px;}
 
-        /* ── Vibrant ── */
-        .layout-vibrant { max-width: 460px; margin: 0 auto; background: var(--bg-base); min-height: 100vh; display: flex; flex-direction: column; }
-        .vib-header { padding: 15px; display: flex; align-items: center; justify-content: space-between; }
-        .vib-back { width: 36px; height: 36px; border-radius: 10px; background: var(--accent-primary); color: #fff; display: grid; place-items: center; font-size: 1.1rem; }
-        .vib-topic-badge { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; }
-        .vib-timer { background: #fee2e2; color: #ef4444; padding: 4px 10px; border-radius: 99px; font-weight: 700; font-size: 0.75rem; }
-        .vib-progress-wrap { padding: 0 15px 15px 15px; position: relative; }
-        .vib-q-indicator { position: absolute; right: 22px; top: -6px; background: #334155; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; }
-        .vib-content { flex: 1; padding: 15px; background: var(--bg-surface); border-radius: 4px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
-        .vib-tag { background: var(--bg-elevated); padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; color: var(--text-secondary); border: 1px solid var(--border-color); }
-        .vib-score-tag { background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 0.7rem; }
-        .vib-q-nav { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color); }
-        .vib-footer { display: flex; gap: 12px; background: var(--bg-surface); }
-        .vib-action-btn { flex: 1; height: 48px; border-radius: 4px; font-weight: 800; font-size: 0.9rem; transition: 0.2s; }
-        .vib-action-btn.skip { background: var(--bg-base); color: var(--text-primary); }
-        .vib-action-btn.next { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; box-shadow: 0 10px 20px rgba(234,88,12,0.3); }
-
         /* ── DSAT / ACT Mode ── */
         .layout-dsat { display:flex; flex-direction:column; height:calc(100vh - 52px); overflow:hidden; }
         .dsat-header { display:flex; align-items:center; justify-content:space-between; padding:var(--sp-sm) var(--sp-lg); border-bottom:1px solid var(--border-color); background:var(--bg-surface); flex-shrink:0; }
@@ -470,6 +376,7 @@ const PageQuiz = (() => {
           .sat-sidebar, .dsat-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
           .sat-q-nav, .dsat-sidebar-nav { grid-template-columns: repeat(12, 1fr) !important; max-height: 120px; width: 100%; overflow-y: auto;display:flex; }
           .sat-main, .dsat-main { overflow: visible; }
+          .sat-header-right {     justify-content: space-between; flex-wrap: wrap; width: 100%; }
           
           .quizpro-body { flex-direction: column; overflow: visible; }
           .qp-passage { border-right: none; border-bottom: 1px solid var(--border-color); max-height: 30vh; }

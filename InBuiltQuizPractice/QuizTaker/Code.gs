@@ -300,6 +300,11 @@ function getQuestions(folderId, params) {
       if (!file.getName().endsWith(".csv")) continue;
       var rows = readCsvFile(file);
       rows.forEach(function(r) {
+        
+        var passage = (r["Passage"] || "").trim();
+        // ❌ Skip rows where Passage has data
+        if (passage !== "") return;
+        
         r._topic = f.getName();
         r._file  = file.getName();
       });

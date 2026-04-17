@@ -116,9 +116,13 @@ const UI = (() => {
   
   // ── Page navigation ───────────────────────────────────────
   function navigate(page, data) {
+    debugger;
     State.set("page", page);
     renderPage(page, data);
     updateNav(page);
+    if(page && page == 'history') {
+      PageHistory.load();
+    }
   }
 
   function renderPage(page, data) {
@@ -134,6 +138,7 @@ const UI = (() => {
       quiz: PageQuiz.render,
       result: PageResult.render,
       history: PageHistory.render,
+
     };
     if (pages[page]) pages[page](main, data);
     else main.innerHTML = `<p class="text-muted">Page not found: ${page}</p>`;
@@ -158,8 +163,6 @@ const UI = (() => {
       "midnight",
       "sat",
       "quizpro-dark",
-      "editorial",
-      "vibrant",
     ];
     const curTheme = State.get("theme");
 
@@ -306,7 +309,7 @@ const UI = (() => {
   }
 
   function backBtn(label = "Back") {
-    return `<button class="btn btn-ghost btn-sm" style="margin-bottom:var(--sp-lg)" onclick="UI.goBack()">← ${label}</button>`;
+    return `<button class="btn btn-ghost btn-sm" onclick="UI.goBack()">← ${label}</button>`;
   }
 
   // ── Step navigator HTML ───────────────────────────────────

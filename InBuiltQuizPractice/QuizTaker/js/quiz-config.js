@@ -12,18 +12,15 @@ const PageSetupConfig = (() => {
       label: "Section Order",
       type: "select",
       opts: ["Fixed", "Random"],
+      classnanme: "hidden"
     },
     {
       key: "Adaptive Mode",
       label: "Adaptive Mode",
       type: "select",
       opts: ["On", "Off"],
-    },
-    {
-      key: "Random Options",
-      label: "Random Options",
-      type: "select",
-      opts: ["On", "Off"],
+      classnanme: "hidden"
+
     },
     {
       key: "Allow Option Change",
@@ -48,6 +45,7 @@ const PageSetupConfig = (() => {
       label: "Partial Scoring",
       type: "select",
       opts: ["On", "Off"],
+      classnanme: "hidden"
     },
     {
       key: "Question Navigation",
@@ -96,19 +94,7 @@ const PageSetupConfig = (() => {
       label: "Show Hint",
       type: "select",
       opts: ["On", "Off"],
-    },
-    {
-      key: "Final Result",
-      label: "Show Final Result",
-      type: "select",
-      opts: ["On"],
-    },
-    {
-      key: "Question Wise Result",
-      label: "Q-Wise Result",
-      type: "select",
-      opts: ["On", "Off"],
-    },
+    }
   ];
 
   function render(main) {
@@ -155,7 +141,7 @@ const PageSetupConfig = (() => {
         <div class="setup-footer">
           <div class="setup-footer-content">
             <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style=" font-size:1.1rem; border-radius:4px">
-              Initialize Assessment Engine →
+              Select Quiz Template →
             </button>
           </div>
         </div>
@@ -181,7 +167,7 @@ const PageSetupConfig = (() => {
         
         @media (max-width: 768px) {
            .setup-container > div:nth-child(2) { flex-direction: column; align-items: flex-start !important; gap: 15px; }
-           .config-grid { grid-template-columns: repeat(2, 1fr); }
+           .config-grid { grid-template-columns: repeat(1, 1fr); }
            .preset-grid { grid-template-columns: repeat(2, 1fr); }
            .glass-stage { padding: 15px; }
         }
@@ -214,7 +200,7 @@ const PageSetupConfig = (() => {
         <div class="config-grid">
           ${PRESET_FIELDS.map(
             (f) => `
-            <div class="config-item">
+            <div class="config-item ${f.classnanme || ""}">
               <label class="config-label">${f.label}</label>
               ${
                 f.type === "select"
@@ -235,7 +221,7 @@ const PageSetupConfig = (() => {
           ${rows
             .map(
               (f) => `
-            <div class="config-item">
+            <div class="config-item ${f.classnanme || ""}">
               <p class="config-label">${f.label}</p>
               <p class="config-val">${cfg[f.key] || "—"}</p>
             </div>`
@@ -316,25 +302,7 @@ const PageSetupTemplate = (() => {
       name: "QuizPro Studio",
       desc: "Dual-pane dark mode interface with teal highlights and deep focus.",
       icon: "🌃",
-    },
-    {
-      id: "editorial",
-      name: "Modern Editorial",
-      desc: "Elegant serif typography with a minimalist question sidebar.",
-      icon: "📖",
-    },
-    {
-      id: "vibrant",
-      name: "Vibrant Quiz",
-      desc: "Dynamic, colorful mobile-first UI with rounded buttons and soft shadows.",
-      icon: "✨",
-    },
-    {
-      id: "default",
-      name: "Standard Pro",
-      desc: "The classic balanced layout with sticky progress and navigation.",
-      icon: "🎯",
-    },
+    }
   ];
 
   function render(main) {
@@ -351,7 +319,7 @@ const PageSetupTemplate = (() => {
         <div class="setup-header-simple">
            <div class="header-text">
               <h1 class="setup-title">Interface Selection</h1>
-              <p class="setup-subtitle">Calibrate the interaction model for your current assessment</p>
+              <p class="setup-subtitle">Calibrate the interaction model for your current quiz</p>
            </div>
            <div class="header-actions">${UI.backBtn("Config")}</div>
         </div>
@@ -374,7 +342,6 @@ const PageSetupTemplate = (() => {
               <div class="deployment-summary-badge">
                  <div class="badge-icon">⚡</div>
                  <div class="badge-content">
-                    <span class="label">READY FOR DEPLOYMENT</span>
                     <span class="val">${setup.preparedQs.length} Questions</span>
                  </div>
               </div>
@@ -402,10 +369,6 @@ const PageSetupTemplate = (() => {
         <!-- NEW FLOATING LAUNCH CARD -->
         <div class="launch-strip-container">
            <div class="launch-strip">
-              <div class="strip-details">
-                 <p class="strip-meta">READY TO INITIALIZE</p>
-                 <h3 class="strip-title">Platform Architecture: <span style="color:var(--accent-primary)">${TEMPLATES.find(t=>t.id===selected)?.name || 'Standard'}</span></h3>
-              </div>
               <div class="strip-actions">
                  <button class="btn-study-pro" id="study-launch-btn" onclick="PageSetupTemplate.launchQuiz('study')">
                     🧠 Study Mode
@@ -434,7 +397,7 @@ const PageSetupTemplate = (() => {
         .form-control-pro:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 4px var(--accent-primary-transparent); outline: none; }
         .input-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; line-height: 1.4; }
 
-        .deployment-summary-badge { margin-top: 24px; display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--accent-primary-transparent); border-radius: 20px; border: 1px solid var(--accent-primary-transparent); }
+        .deployment-summary-badge { margin-top: 14px; display: flex; align-items: center; gap: 16px; padding: 5px; background: var(--accent-primary-transparent); border-radius: 20px; border: 1px solid var(--accent-primary-transparent); }
         .badge-icon { font-size: 1.8rem; }
         .badge-content { display: flex; flex-direction: column; }
         .badge-content .label { font-size: 0.65rem; font-weight: 900; color: var(--accent-primary); letter-spacing: 1px; }
@@ -456,7 +419,7 @@ const PageSetupTemplate = (() => {
         .card-body .desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
 
         .launch-strip-container { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; padding: 0; pointer-events: none; }
-        .launch-strip { pointer-events: auto; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.2); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .launch-strip { pointer-events: auto; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 16px 32px; display: flex; justify-content:center; align-items: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.2); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         .strip-meta { font-size: 0.65rem; font-weight: 900; color: var(--accent-primary); letter-spacing: 2px; margin: 0; }
         .strip-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 4px 0 0 0; }
         .strip-actions { display: flex; gap: 12px; }
@@ -503,7 +466,7 @@ const PageSetupTemplate = (() => {
       }
 
       const customName = document.getElementById("custom-quiz-name")?.value.trim();
-      const finalQuizName = customName || (config["Quiz Settings Title"] || setup.quizConfig || "Custom Assessment");
+      const finalQuizName = customName || (config["Quiz Settings Title"] || setup.quizConfig || "Custom Quiz");
 
       let fileId = null,
         resultFileId = null,

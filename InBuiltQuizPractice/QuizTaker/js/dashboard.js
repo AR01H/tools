@@ -31,38 +31,38 @@ const PageWelcome = (() => {
                   <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 11c2.209 0 4-1.791 4-4s-1.791-4-4-4-4 1.791-4 4 1.791 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 </div>
                 <div class="header-text">
-                  <h3>Professional Identity</h3>
-                  <p>Securely link session data</p>
+                  <h3>Let's Get Started</h3>
                 </div>
               </div>
 
               <div class="registration-form">
-                <div class="form-group">
-                  <label class="pro-label">FULL NAME</label>
-                  <div class="input-wrapper">
-                    <input type="text" id="reg-name" class="pro-input" placeholder="Type name..." value="${user?.name || ''}">
-                    <div class="input-focus-ring"></div>
-                  </div>
-                </div>
 
                 <div class="form-group">
-                  <label class="pro-label">UNIQUE IDENTIFIER</label>
+                  <label class="pro-label">User ID (Email - Recommended)</label>
                   <div class="input-wrapper">
                     <input type="text" id="reg-identifier" class="pro-input" placeholder="id@domain.com" value="${user?.identifier || ''}">
                     <div class="input-focus-ring"></div>
                   </div>
                 </div>
 
+                <div class="form-group">
+                  <label class="pro-label">YOUR NAME</label>
+                  <div class="input-wrapper">
+                    <input type="text" id="reg-name" class="pro-input" placeholder="Type name..." value="${user?.name || ''}">
+                    <div class="input-focus-ring"></div>
+                  </div>
+                </div>
+
                 <div class="action-stack">
                   <button class="btn-launch-primary" onclick="Dashboard.handleWelcomeAction()">
-                    <span>${user?.name ? 'Continue Assessment →' : 'Initialize Profile →'}</span>
+                    <span>${user?.name ? 'Take Quiz' : 'Login / Signup'}</span>
                   </button>
                   
                   ${user?.name ? `
                     <div class="session-management">
                       <button class="btn-sync" onclick="Dashboard.viewLatestResult()">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        View Latest Result
+                        View Last Result
                       </button>
                       <button class="btn-switch" onclick="Dashboard.changeUser()">Switch Account</button>
                     </div>
@@ -139,16 +139,16 @@ const PageWelcome = (() => {
         .input-focus-ring { position: absolute; inset: -4px; border-radius: 20px; border: 2px solid var(--accent-primary); opacity: 0; pointer-events: none; transition: 0.3s; }
         .pro-input:focus + .input-focus-ring { opacity: 0.15; transform: scale(1); }
         
-        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 12px 24px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; width: 100%; }
+        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 8px; border-radius: 4px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 0px 16px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; width: 100%; }
         .btn-launch-primary:hover { transform: translateY(-4px); filter: brightness(1.1); box-shadow: 0 16px 32px var(--accent-shadow); }
         
-        .session-management { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+        .session-management { display: flex; justify-content: space-between; align-items: center; margin-top: 12px;padding-top:6px; }
         .btn-sync { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 800; color: var(--accent-primary); opacity: 0.8; transition: 0.2s; }
         .btn-sync:hover { opacity: 1; }
         .btn-switch { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
         
         /* Process Steps */
-        .process-steps { display: flex; flex-direction: column; gap: 20px; }
+        .process-steps { display: flex; flex-direction: column; gap: 20px; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
         .process-step { display: flex; gap: 20px; align-items: center; padding: 20px; background: transparent; transition: 0.3s; }
         .step-num-hex { position: relative; width: 44px; height: 44px; display: grid; place-items: center; flex-shrink: 0; }
         .step-num-hex .num { font-weight: 900; font-size: 0.9rem; color: var(--accent-primary); z-index: 1; }
@@ -162,6 +162,7 @@ const PageWelcome = (() => {
         .notice-text p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
         .integration-notice button { margin-left: auto; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 0.75rem; color: var(--color-warn); }
 
+        #daily-insights-widget { display: none; }
         @media (max-width: 1000px) {
            .welcome-hero-container { padding: 16px; }
            .welcome-header { margin-bottom: 10px; }
@@ -250,6 +251,8 @@ const Dashboard = (() => {
         container.style.display = 'none';
         return;
       }
+
+      container.style.display = 'block';
 
       // 1. Calculate Streak
       const uniqueDates = [...new Set(resp.map(r => r["Start Time"]?.split('T')[0]))].sort().reverse();
