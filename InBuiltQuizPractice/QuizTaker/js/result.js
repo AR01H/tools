@@ -401,6 +401,7 @@ const PageResult = (() => {
              })()}
           </div>
            <div class="dash-actions">
+              <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleShare()">🔗 Share Config</button>
               <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadPDF()">📥 PDF</button>
               <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadCSV()">📊 CSV</button>
            </div>
@@ -655,39 +656,187 @@ const PageResult = (() => {
       }
     });
 
-    // Suggestions
+    // Dynamic Insight Engine
     const stepsEl = document.getElementById("adaptive-next-steps");
     if (stepsEl) {
-      const suggestions = [];
-      const worstCat = categories.sort((a,b) => score.categoryMap[a].correct/score.categoryMap[a].total - score.categoryMap[b].correct/score.categoryMap[b].total)[0];
-      if (worstCat) suggestions.push(`🎯 Focus more on <b>${worstCat}</b>.`);
-      if (parseFloat(avgWrong) > parseFloat(avgCorrect) * 1.5) suggestions.push(`⏱️ Don't over-invest in difficult questions; learn to skip.`);
-      stepsEl.innerHTML = suggestions.map(s => `<li>${s}</li>`).join("");
+      const suggestions = generateDynamicInsights(result);
+      stepsEl.innerHTML = suggestions.map(s => `<li style="margin-bottom:12px">${s}</li>`).join("");
     }
+  }
+
+  function generateDynamicInsights(result) {
+    const { score, quiz } = result;
+    const items = score.details;
+    const suggestions = [];
+
+    // 1. Topic Mastery & Strategic Focus
+    const sortedCats = Object.entries(score.categoryMap).sort((a,b) => (a[1].correct/a[1].total) - (b[1].correct/b[1].total));
+    const worstCat = sortedCats[0];
+    const bestCat = sortedCats[sortedCats.length - 1];
+
+    if (worstCat && (worstCat[1].correct / worstCat[1].total) < 0.6) {
+      suggestions.push(`🎯 <b>Strategic Focus:</b> Your accuracy in <b>${worstCat[0]}</b> (${Math.round((worstCat[1].correct/worstCat[1].total)*100)}%) is dragging down your overall precision. Devote your next 2 study hours exclusively to this domain.`);
+    }
+
+    if (bestCat && (bestCat[1].correct / bestCat[1].total) > 0.85) {
+      suggestions.push(`🏆 <b>Domain Dominance:</b> You are exceptionally strong in <b>${bestCat[0]}</b>. Use this subject as a "warm-up" to build momentum during long study sessions.`);
+    }
+
+    // 2. Time Intensive Analysis
+    const catTimes = sortedCats.map(([name, _]) => {
+      const time = items.filter((_, i) => (quiz.questions[i].Category || "General") === name).reduce((a,b) => a + b.timeTaken, 0);
+      return { name, time };
+    }).sort((a,b) => b.time - a.time);
+
+    if (catTimes[0] && catTimes[0].time > score.timeTaken * 0.4 && score.timeTaken > 30) {
+      suggestions.push(`⏳ <b>Time Sink Warning:</b> You invested <b>${Math.round((catTimes[0].time/score.timeTaken)*100)}%</b> of your total time in <b>${catTimes[0].name}</b>. Aim to reduce your deliberation time here to boost overall efficiency.`);
+    }
+
+    // 3. Pacing Efficiency Insight
+    const correctTimes = items.filter(q => q.isCorrect).map(q => q.timeTaken);
+    const wrongTimes = items.filter(q => !q.isCorrect).map(q => q.timeTaken);
+    const avgCorrect = correctTimes.length ? (correctTimes.reduce((a,b) => a+b,0) / correctTimes.length) : 0;
+    const avgWrong = wrongTimes.length ? (wrongTimes.reduce((a,b) => a+b,0) / wrongTimes.length) : 0;
+
+    if (avgWrong > avgCorrect * 1.5 && avgWrong > 10) {
+      suggestions.push(`⏱️ <b>Decision Fatigue:</b> You're spending significantly more time on questions you eventually miss. Practice a "2-minute limit" per question to maintain test momentum.`);
+    }
+
+    // 3. Cognitive Fatigue / Stamina Insight
+    if (items.length >= 10) {
+      const firstHalf = items.slice(0, Math.floor(items.length / 2));
+      const secondHalf = items.slice(Math.floor(items.length / 2));
+      const firstAcc = firstHalf.filter(q => q.isCorrect).length / firstHalf.length;
+      const secondAcc = secondHalf.filter(q => q.isCorrect).length / secondHalf.length;
+
+      if (firstAcc > secondAcc + 0.2) {
+        suggestions.push(`📉 <b>Stamina Warning:</b> Your accuracy dropped by ${Math.round((firstAcc - secondAcc)*100)}% in the second half. This indicates <b>cognitive fatigue</b>. Try taking 30-second "micro-breaks" every 15 minutes.`);
+      }
+    }
+
+    // 4. Format Proficiency Insight
+    const formats = {};
+    quiz.questions.forEach((q, i) => {
+       const type = q["Question Type"] || "Multichoice";
+       if (!formats[type]) formats[type] = { correct: 0, total: 0 };
+       formats[type].total++; if (items[i].isCorrect) formats[type].correct++;
+    });
+    const worstFormat = Object.entries(formats).sort((a,b) => a[1].correct/a[1].total - b[1].correct/b[1].total)[0];
+    if (worstFormat && (worstFormat[1].correct / worstFormat[1].total) < 0.5) {
+      suggestions.push(`🧩 <b>Format hurdle:</b> You struggled with <b>${worstFormat[0]}</b> questions. Review the mechanical logic of this question type to improve your tactical approach.`);
+    }
+
+    // 5. Streak & Consistency Insight
+    let maxStreak = 0, current = 0;
+    items.forEach(i => { if (i.isCorrect) { current++; if (current > maxStreak) maxStreak = current; } else { current = 0; } });
+    if (maxStreak < 3 && items.length > 10 && score.accuracy > 40) {
+      suggestions.push(`🔥 <b>Consistency Gap:</b> Your longest "streak" was only ${maxStreak} questions. Focus on staying present and double-checking "easy" questions to avoid careless errors.`);
+    }
+
+    // Fallback
+    if (suggestions.length === 0) {
+      if (score.accuracy > 85) {
+        suggestions.push("🚀 <b>Elite Performance:</b> You’ve mastered this level. Increase your pacing goals or try a higher difficulty tier to continue growing.");
+      } else {
+        suggestions.push("✅ <b>Solid Baseline:</b> Your pacing and accuracy are balanced. Focus on high-repetition practice to turn your knowledge into intuition.");
+      }
+    }
+
+    return suggestions;
   }
 
   // ── OVERVIEW TAB ──────────────────────────────────────────
   function renderOverview(result) {
     const { score } = result;
+    const items = score.details;
     const pace = score.timeTaken / (result.quiz.questions.length || 1);
     
+    // Performance Grade Logic
+    let grade = 'F';
+    const acc = score.accuracy;
+    if (acc >= 90) grade = 'A+';
+    else if (acc >= 80) grade = 'A';
+    else if (acc >= 70) grade = 'B';
+    else if (acc >= 60) grade = 'C';
+    else if (acc >= 50) grade = 'D';
+
     return `
-      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(600px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
-        <div class="chart-card"><h3 class="chart-label">Success Profile</h3><div class="chart-box"><canvas id="chart-answers"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Topic Mastery</h3><div class="chart-box"><canvas id="chart-categories"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Weakest Knowledge Areas</h3><div class="chart-box"><canvas id="chart-weak-cats"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Critical Sub-Skill Gaps</h3><div class="chart-box"><canvas id="chart-weak-tags"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Difficulty Mastery</h3><div class="chart-box"><canvas id="chart-difficulties"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Time Drain Analysis (Top 8)</h3><div class="chart-box"><canvas id="chart-time-sinks"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Cumulative Time Consumption</h3><div class="chart-box"><canvas id="chart-total-time"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Skill Balance Radar</h3><div class="chart-box"><canvas id="chart-tags"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Time Intensity per Category</h3><div class="chart-box"><canvas id="chart-cat-time"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Question-wise Time Audit</h3><div class="chart-box"><canvas id="chart-q-time"></canvas></div></div>
-        <div class="chart-card"><h3 class="chart-label">Accuracy by Engagement Type</h3><div class="chart-box"><canvas id="chart-q-types"></canvas></div></div>
+      <!-- Executive Summary Cards -->
+      <div class="kpi-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-md); margin-bottom: var(--sp-xl)">
+        <div class="kpi-card">
+          <div class="kpi-icon accent-success">🎯</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Performance Grade</span>
+            <h2 class="kpi-value">${grade}</h2>
+            <p class="kpi-sub">${acc.toFixed(1)}% Precision Rate</p>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon accent-info">⏱️</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Average Pacing</span>
+            <h2 class="kpi-value">${pace.toFixed(1)}s</h2>
+            <p class="kpi-sub">Per Question Average</p>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon accent-warning">🏆</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Peak Domain</span>
+            <h2 class="kpi-value" style="font-size:1.1rem">${Object.entries(score.categoryMap).sort((a,b) => b[1].score - a[1].score)[0]?.[0] || 'N/A'}</h2>
+            <p class="kpi-sub">Highest scoring category</p>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon accent-danger">🔥</div>
+          <div class="kpi-content">
+            <span class="kpi-label">Accuracy Streak</span>
+            <h2 class="kpi-value">${calculateMaxStreak(items)}</h2>
+            <p class="kpi-sub">Consecutive Correct</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(480px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+        <div class="chart-card"><h3 class="chart-label">Success Distribution</h3><div class="chart-box"><canvas id="chart-answers"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Complexity vs Time (Cognitive Workload)</h3><div class="chart-box"><canvas id="chart-cognitive-workload"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Domain Mastery Profile</h3><div class="chart-box"><canvas id="chart-categories"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Critical Knowledge Gaps</h3><div class="chart-box"><canvas id="chart-weak-cats"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Format Proficiency</h3><div class="chart-box"><canvas id="chart-format-mastery"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Difficulty Endurance</h3><div class="chart-box"><canvas id="chart-difficulties"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Knowledge Balance Radar</h3><div class="chart-box"><canvas id="chart-tags"></canvas></div></div>
+        <div class="chart-card"><h3 class="chart-label">Time Intensity Analysis</h3><div class="chart-box"><canvas id="chart-cat-time"></canvas></div></div>
       </div>
       
+      <style>
+        .kpi-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 20px; transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-4px); }
+        .kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; font-size: 1.5rem; background: var(--bg-elevated); }
+        .kpi-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .kpi-value { font-size: 1.8rem; font-weight: 900; color: var(--text-primary); margin: 4px 0; }
+        .kpi-sub { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+        
+        .accent-success { color: #10b981; }
+        .accent-info { color: #3b82f6; }
+        .accent-warning { color: #f59e0b; }
+        .accent-danger { color: #ef4444; }
+      </style>
+
       ${renderHeatmap(score)}
     `;
+  }
+
+  function calculateMaxStreak(items) {
+    let max = 0, current = 0;
+    items.forEach(i => {
+      if (i.isCorrect) {
+        current++;
+        if (current > max) max = current;
+      } else {
+        current = 0;
+      }
+    });
+    return max;
   }
 
   let _activeCharts = [];
@@ -702,281 +851,164 @@ const PageResult = (() => {
     Chart.defaults.font.family = '"Inter", sans-serif';
     const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
     const { score, quiz } = result;
+    const items = score.details;
 
     const createChart = (id, cfg) => {
       const el = document.getElementById(id);
       if (el) _activeCharts.push(new Chart(el, cfg));
     };
 
-    // 1. Answers Doughnut
+    // 1. Success Distribution (Doughnut)
     createChart("chart-answers", {
       type: "doughnut",
       data: {
         labels: ["Correct", "Wrong", "Skipped"],
-        datasets: [{ data: [score.correct, score.wrong, score.skipped], backgroundColor: ["#10b981", "#ef4444", "#f59e0b"], borderWidth: 0 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: "75%", plugins: { legend: { position: 'bottom' } } }
-    });
-
-    // 2. Categories (Mastery)
-    const catLabels = Object.keys(score.categoryMap);
-    createChart("chart-categories", {
-      type: "bar",
-      data: {
-        labels: catLabels,
-        datasets: [{ 
-          label: "Accuracy %", 
-          data: catLabels.map(l => Math.round((score.categoryMap[l].correct / score.categoryMap[l].total) * 100)), 
-          backgroundColor: isDark ? "rgba(59, 130, 246, 0.7)" : "#3b82f6",
-          borderRadius: 6
-        }]
-      },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        plugins: { legend: { display: false } },
-        scales: { 
-          x: { grid: { display: false } },
-          y: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { callback: v => v + '%' } } 
-        } 
-      }
-    });
-
-    // 3. Difficulty Mastery
-    const diffKeys = ["Easy", "Medium", "Hard"];
-    createChart("chart-difficulties", {
-      type: "bar",
-      data: {
-        labels: diffKeys,
-        datasets: [{ 
-          data: diffKeys.map(k => {
-            const d = score.difficultyMap[k] || score.difficultyMap[k.toLowerCase()] || { correct: 0, total: 0 };
-            return d.total ? Math.round((d.correct/d.total)*100) : 0;
-          }), 
-          backgroundColor: ["rgba(16, 185, 129, 0.7)", "rgba(245, 158, 11, 0.7)", "rgba(239, 68, 68, 0.7)"], 
-          borderRadius: 6 
-        }]
-      },
-      options: { 
-        indexAxis: 'y', 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        plugins: { legend: { display:false } },
-        scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { callback: v => v + '%' } }, y: { grid: { display : false } } }
-      }
-    });
-
-    // 5. Skill Balance (Radar)
-    const tagLabels = Object.keys(score.subCategoryMap).slice(0, 12);
-    createChart("chart-tags", {
-      type: "radar",
-      data: {
-        labels: tagLabels,
-        datasets: [{ 
-          label: "Mastery Level",
-          data: tagLabels.map(l => Math.round((score.subCategoryMap[l].correct/score.subCategoryMap[l].total)*100)), 
-          borderColor: "#8b5cf6", 
-          backgroundColor: "rgba(139, 92, 246, 0.2)",
-          pointBackgroundColor: "#8b5cf6",
-          borderWidth: 2
-        }]
-      },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        scales: { r: { grid: { color: gridColor }, angleLines: { color: gridColor }, beginAtZero: true, max: 100, ticks: { display: false } } },
-        plugins: { legend: { display: false } }
-      }
-    });
-
-    // 6. Time Intensity per Category
-    const catKeys = Object.keys(score.categoryMap);
-    createChart("chart-cat-time", {
-      type: "bar",
-      data: {
-        labels: catKeys,
         datasets: [{
-          label: "Avg Time (s)",
-          data: catKeys.map(k => {
-            const items = score.details.filter((_, i) => (quiz.questions[i].Category || "General") === k);
-            return items.length ? Math.round(items.reduce((a,b) => a + b.timeTaken, 0) / items.length) : 0;
-          }),
-          backgroundColor: "rgba(59, 130, 246, 0.6)",
-          borderRadius: 6
+          data: [score.correct, score.wrong, score.skipped],
+          backgroundColor: ["#10b981", "#ef4444", "#f59e0b"],
+          hoverOffset: 4,
+          borderWidth: 0
         }]
       },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, grid: { color: gridColor } }, y: { grid: { display: false } } }
-      }
+      options: { responsive: true, maintainAspectRatio: false, cutout: "70%", plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } } }
     });
 
-    // 7. Weakest Categories
-    const weakCats = Object.entries(score.categoryMap)
-      .map(([name, d]) => ({ 
-        name, 
-        acc: Math.round((d.correct / d.total) * 100) 
-      }))
-      .sort((a,b) => a.acc - b.acc)
-      .slice(0, 5);
+    // 2. Cognitive Workload (Bubble)
+    const diffMap = { Easy: 1, Medium: 2, Hard: 3, General: 2 };
+    const workloadData = items.map(i => ({
+      x: i.timeTaken,
+      y: diffMap[i.difficulty] || 2,
+      r: Math.max((i.score || 1) * 5, 5)
+    }));
 
-    createChart("chart-weak-cats", {
-      type: "bar",
+    createChart("chart-cognitive-workload", {
+      type: "bubble",
       data: {
-        labels: weakCats.map(c => c.name),
         datasets: [{
-          label: "Accuracy %",
-          data: weakCats.map(c => c.acc),
-          backgroundColor: "rgba(239, 68, 68, 0.7)",
-          borderRadius: 6
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor } }, y: { grid: { display: false } } }
-      }
-    });
-
-    // 8. Weakest Sub-Skills (Tags)
-    const weakTags = Object.entries(score.subCategoryMap)
-      .map(([name, d]) => ({ 
-        name, 
-        acc: Math.round((d.correct / d.total) * 100) 
-      }))
-      .sort((a,b) => a.acc - b.acc)
-      .slice(0, 8);
-
-    createChart("chart-weak-tags", {
-      type: "bar",
-      data: {
-        labels: weakTags.map(c => c.name),
-        datasets: [{
-          label: "Accuracy %",
-          data: weakTags.map(c => c.acc),
-          backgroundColor: "rgba(245, 158, 11, 0.7)",
-          borderRadius: 6
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor } }, y: { grid: { display: false } } }
-      }
-    });
-
-    // 9. Time Drain Analysis (Time Sinks)
-    const timeSinks = score.details
-      .map((d, i) => ({ id: `Q${i+1}`, time: d.timeTaken, corr: d.isCorrect }))
-      .sort((a,b) => b.time - a.time)
-      .slice(0, 8);
-
-    createChart("chart-time-sinks", {
-      type: "bar",
-      data: {
-        labels: timeSinks.map(t => t.id),
-        datasets: [{
-          label: "Time Spent (s)",
-          data: timeSinks.map(t => t.time),
-          backgroundColor: timeSinks.map(t => t.corr ? "rgba(59, 130, 246, 0.6)" : "rgba(239, 68, 68, 0.6)"),
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => `${ctx.raw} seconds` } }
-        },
-        scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } }
-      }
-    });
-
-    // 10. Question-wise Time (Audit)
-    createChart("chart-q-time", {
-      type: "bar",
-      data: {
-        labels: quiz.questions.map((_, i) => "Q" + (i + 1)),
-        datasets: [{
-          label: "Time Taken (s)",
-          data: score.details.map(d => d.timeTaken),
-          backgroundColor: score.details.map(d => d.isCorrect ? "rgba(16, 185, 129, 0.4)" : "rgba(239, 68, 68, 0.4)"),
-          borderColor: score.details.map(d => d.isCorrect ? "#10b981" : "#ef4444"),
+          label: "Performance",
+          data: workloadData,
+          backgroundColor: items.map(i => i.isCorrect ? "rgba(16, 185, 129, 0.5)" : "rgba(239, 68, 68, 0.5)"),
+          borderColor: items.map(i => i.isCorrect ? "#10b981" : "#ef4444"),
           borderWidth: 1
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { 
-          x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-          y: { beginAtZero: true, grid: { color: gridColor }, title: { display: true, text: 'Seconds' } }
-        }
+        scales: {
+          x: { title: { display: true, text: 'Time Expended (s)' }, grid: { color: gridColor } },
+          y: { title: { display: true, text: 'Difficulty Level' }, min: 0.5, max: 3.5, grid: { color: gridColor }, ticks: { stepSize: 1, callback: v => Object.keys(diffMap).find(k => diffMap[k] === v) || '' } }
+        },
+        plugins: { legend: { display: false } }
       }
     });
 
-    // 11. Accuracy by Question Type
-    const typeLabels = Object.keys(score.typeMap);
-    createChart("chart-q-types", {
+    // 3. Domain Mastery Profile (Bar)
+    const catLabels = Object.keys(score.categoryMap);
+    createChart("chart-categories", {
       type: "bar",
       data: {
-        labels: typeLabels,
+        labels: catLabels,
         datasets: [{
           label: "Accuracy %",
-          data: typeLabels.map(l => Math.round((score.typeMap[l].correct/score.typeMap[l].total)*100)),
-          backgroundColor: "#8b5cf6",
-          borderRadius: 6
+          data: catLabels.map(l => Math.round((score.categoryMap[l].correct / score.categoryMap[l].total) * 100)),
+          backgroundColor: "rgba(59, 130, 246, 0.6)",
+          borderRadius: 8
         }]
       },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { beginAtZero: true, max: 100, grid: { color: gridColor }, ticks: { callback: v => v + '%' } },
-          y: { grid: { display: false } }
-        }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: gridColor } }, x: { grid: { display: false } } } }
     });
 
-    // 12. Cumulative Time Consumption
-    let totalTimeRun = 0;
-    createChart("chart-total-time", {
-      type: "line",
+    // 4. Critical Knowledge Gaps (Horizontal Bar)
+    const weakCats = Object.entries(score.categoryMap)
+      .map(([name, d]) => ({ name, acc: Math.round((d.correct / d.total) * 100) }))
+      .sort((a,b) => a.acc - b.acc).slice(0, 5);
+      
+    createChart("chart-weak-cats", {
+      type: "bar",
       data: {
-        labels: quiz.questions.map((_, i) => "Q" + (i + 1)),
+        labels: weakCats.map(c => c.name),
         datasets: [{
-          label: "Total Seconds",
-          data: score.details.map(d => {
-            totalTimeRun += d.timeTaken;
-            return totalTimeRun;
-          }),
-          borderColor: "#f59e0b",
-          backgroundColor: "rgba(245, 158, 11, 0.1)",
-          fill: true,
-          tension: 0.1,
-          pointRadius: 2
+          data: weakCats.map(c => c.acc),
+          backgroundColor: "rgba(239, 68, 68, 0.6)",
+          borderRadius: 8
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { 
-          x: { grid: { display: false } }, 
-          y: { beginAtZero: true, grid: { color: gridColor }, title: { display: true, text: 'Total Seconds' } } 
-        }
-      }
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor } }, y: { grid: { display : false } } } }
+    });
+
+    // 5. Format Mastery (Polar Area)
+    const formats = {};
+    quiz.questions.forEach((q, i) => {
+       const type = q["Question Type"] || "Multichoice";
+       if (!formats[type]) formats[type] = { correct: 0, total: 0 };
+       formats[type].total++;
+       if (items[i] && items[i].isCorrect) formats[type].correct++;
+    });
+    const formatLabels = Object.keys(formats);
+    createChart("chart-format-mastery", {
+      type: "polarArea",
+      data: {
+        labels: formatLabels,
+        datasets: [{
+          data: formatLabels.map(l => Math.round((formats[l].correct / formats[l].total) * 100)),
+          backgroundColor: ["rgba(59, 130, 246, 0.5)", "rgba(16, 185, 129, 0.5)", "rgba(245, 158, 11, 0.5)", "rgba(239, 68, 68, 0.5)"]
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: gridColor }, ticks: { display: false } } } }
+    });
+
+    // 6. Difficulty Endurance (Horizontal Bar)
+    const dKeys = ["Easy", "Medium", "Hard"];
+    createChart("chart-difficulties", {
+      type: "bar",
+      data: {
+        labels: dKeys,
+        datasets: [{
+          data: dKeys.map(k => {
+            const d = score.difficultyMap[k] || { correct: 0, total: 0 };
+            return d.total ? Math.round((d.correct/d.total)*100) : 0;
+          }),
+          backgroundColor: ["rgba(16, 185, 129, 0.6)", "rgba(245, 158, 11, 0.6)", "rgba(239, 68, 68, 0.6)"],
+          borderRadius: 8
+        }]
+      },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, max: 100, grid: { color: gridColor } }, y: { grid: { display: false } } } }
+    });
+
+    // 7. Knowledge Balance (Radar)
+    const subLabels = Object.keys(score.subCategoryMap).slice(0, 10);
+    createChart("chart-tags", {
+      type: "radar",
+      data: {
+        labels: subLabels,
+        datasets: [{
+          label: "Proficiency %",
+          data: subLabels.map(l => Math.round((score.subCategoryMap[l].correct/score.subCategoryMap[l].total)*100)),
+          borderColor: "#8b5cf6",
+          backgroundColor: "rgba(139, 92, 246, 0.2)",
+          borderWidth: 2
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: gridColor }, angleLines: { color: gridColor }, beginAtZero: true, max: 100, ticks: { display: false } } }, plugins: { legend: { display: false } } }
+    });
+
+    // 8. Time Intensity Analysis (Bar)
+    createChart("chart-cat-time", {
+      type: "bar",
+      data: {
+        labels: catLabels,
+        datasets: [{
+          label: "Avg Time (s)",
+          data: catLabels.map(k => {
+            const catItems = items.filter((_, i) => (quiz.questions[i].Category || "General") === k);
+            return catItems.length ? Math.round(catItems.reduce((a,b) => a + b.timeTaken, 0) / catItems.length) : 0;
+          }),
+          backgroundColor: "rgba(139, 92, 246, 0.6)",
+          borderRadius: 8
+        }]
+      },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: gridColor } }, y: { grid: { display: false } } } }
     });
   }
 

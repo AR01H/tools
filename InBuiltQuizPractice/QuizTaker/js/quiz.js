@@ -54,7 +54,14 @@ const PageQuiz = (() => {
       ? `<button class="btn btn-ghost btn-sm" id="pause-btn" onclick="QuizEngine.togglePause()" title="Pause">⏸</button>`
       : "";
 
-    let layout; // ─────────────────────────────────────────────────────────
+    const zenToolbar = `
+      <div style="display:flex; gap:8px; margin-left:var(--sp-md)" class="hidden">
+         <button class="btn btn-ghost btn-sm ${document.body.classList.contains('voice-active') ? 'active' : ''}" id="voice-mode-btn" onclick="QuizEngine.toggleVoice()" title="Toggle Voice Commands">🎙️ Voice</button>
+         <button class="btn btn-ghost btn-sm ${document.body.classList.contains('zen-mode') ? 'active' : ''}" id="zen-mode-btn" onclick="QuizEngine.toggleZen()" title="Zen Focus Mode">🧘 Zen</button>
+      </div>
+    `;
+
+    let layout; 
     // 1. Standard Design (Image 1)
     // ─────────────────────────────────────────────────────────
     if (tmpl === "sat") {
@@ -92,7 +99,7 @@ const PageQuiz = (() => {
                 <div class="progress-bar"><div class="progress-fill" id="quiz-progress"></div></div>
               </div>
               <div class="sat-header-right" style="display:flex;align-items:center;gap:var(--sp-md)">
-                ${timerHTML}${pauseHTML}${submitHTML}
+                ${timerHTML}${pauseHTML}${submitHTML}${zenToolbar}
               </div>
             </div>
             <div class="sat-content">
@@ -139,6 +146,7 @@ const PageQuiz = (() => {
              </div>
              <div style="display:flex;gap:var(--sp-sm)">
                 ${actionsHTML}
+                ${zenToolbar}
                 <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="min-width:140px; background:var(--accent-primary);color:#000">Next →</button>
              </div>
           </div>
@@ -152,9 +160,9 @@ const PageQuiz = (() => {
         <div class="layout-immersive-study">
           <div class="study-nav-header">
              <div class="header-left">
-                <span class="study-badge">STUDY MODE</span>
+                <span class="study-badge">LEARNING MODE</span>
                 <div class="study-id-capsule">
-                   <span class="label">${quiz.config.title || "Test"}</span>
+                   <span class="label">${quiz.config.title || "Subject Mastery"}</span>
                    <span id="q-idx" class="val">1</span>
                    <span class="total">/ ${qs.length}</span>
                 </div>
@@ -164,8 +172,10 @@ const PageQuiz = (() => {
                    <div class="fill" id="quiz-progress"></div>
                 </div>
              </div>
-             <div class="header-right">
-                <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--text-muted); border-radius:8px; padding:8px 16px">CLOSE ×</button>
+             <div class="header-right" style="gap:12px">
+                ${zenToolbar}
+                <button class="btn btn-ghost btn-sm" onclick="QuizEngine.downloadStudyPDF()" title="Download Study Guide">📥 Save as PDF</button>
+                <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--color-error); border-radius:8px">CLOSE ×</button>
              </div>
           </div>
           
@@ -173,96 +183,94 @@ const PageQuiz = (() => {
              <div class="study-content-stack">
                 <div class="study-block question-block">
                    <div class="block-label">PROBLEM STATEMENT</div>
-                   <div id="question-panel"></div>
+                   <div id="question-panel" style="font-size:1.15rem; font-weight:500"></div>
                 </div>
                 
                 <div class="study-block answer-block">
                    <div class="block-header">
                       <div class="block-label">TARGET SOLUTION</div>
-                      <div class="status-marker">VALIDATED</div>
+                      <div class="status-marker">VERIFIED CORRECT</div>
                    </div>
                    <div class="answer-payload">
                       <div id="study-answer-text" class="study-val"></div>
                    </div>
                 </div>
 
-                <div class="study-block explanation-block">
-                   <div class="block-label">DETAILED EXPLANATION & RATIONALE</div>
-                   <div id="study-explanation-text" class="study-desc"></div>
+                <div class="study-block rationale-block">
+                   <div class="block-label">DETAILED STRATEGY & RATIONALE</div>
+                   <div id="study-explanation" class="study-val" style="color:var(--text-secondary)"></div>
                 </div>
              </div>
           </div>
-          
-          <div class="study-persistent-footer">
-             <div class="footer-inner">
-                <button class="btn btn-secondary btn-lg" id="btn-prev" onclick="QuizEngine.prev()" style="min-width:180px">
-                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19L5 12L12 5"/></svg>
-                   PREVIOUS
-                </button>
-                <div id="q-nav" style="display:none"></div>
-                <button class="btn btn-primary btn-lg next-study-pro" id="btn-next" onclick="QuizEngine.next()">
-                   <span class="btn-inner">
-                      <span id="btn-next-text">NEXT</span>
-                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 12H19M12 5L19 12L12 19"/></svg>
-                   </span>
-                </button>
+
+          <div class="study-footer">
+             <div class="footer-wrap">
+               <button class="btn btn-secondary" onclick="QuizEngine.prev()" id="btn-prev" style="min-width:140px">← Previous</button>
+               
+               <div class="footer-center" style="display:flex; gap:16px; align-items:center">
+                 <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="padding:12px 40px; border-radius:12px">Next Concept →</button>
+                 <button class="btn btn-primary btn-outline" id="study-test-trigger" onclick="QuizEngine.startActiveTest()" style="display:none; color:var(--accent-primary); border:2px solid var(--accent-primary); border-radius:12px; font-weight:900; padding:10px 24px">⚡ Start Recall Test</button>
+               </div>
              </div>
           </div>
         </div>
+        
         <style>
-          .layout-immersive-study { height:92vh; overflow:hidden; display:flex; flex-direction:column; background:var(--bg-base); color:var(--text-primary); }
+          .layout-immersive-study { height: 100vh; background: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
+          .study-nav-header { height: 64px; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); display: flex; align-items:center; justify-content:space-between; padding: 0 32px; flex-shrink:0; position:relative; z-index:100; }
+          .study-badge { font-size: 0.65rem; font-weight: 900; color: var(--accent-primary); background: var(--accent-primary-transparent); padding: 4px 12px; border-radius: 99px; letter-spacing: 0.1em; }
+          .study-id-capsule { display:flex; align-items:baseline; gap:6px; font-weight:800; }
+          .study-id-capsule .val { color: var(--accent-primary); }
+          .study-id-capsule .total { color: var(--text-muted); font-size: 0.9rem; }
           
-          .study-nav-header { height:64px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; padding:0 32px; background:var(--bg-surface); z-index:10; }
-          .study-badge { font-size:0.65rem; font-weight:900; color:var(--accent-primary); background:var(--accent-primary-transparent); padding:4px 10px; border-radius:99px; letter-spacing:0.05em; }
-          .study-id-capsule { display:flex; align-items:baseline; gap:6px; font-weight:900; }
-          .study-id-capsule .label { font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-right:4px; }
-          .study-id-capsule .val {color:var(--accent-primary); }
-          .study-id-capsule .total { font-size:0.9rem; color:var(--text-muted); opacity:0.5; }
+          .study-viewport { flex: 1; overflow-y: auto; padding: 40px 20px; background: radial-gradient(circle at 50% 0%, var(--bg-elevated) 0%, var(--bg-main) 100%); user-select: text !important; -webkit-user-select: text !important; }
+          .study-content-stack { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; padding-bottom: 40px; }
           
-          .study-progress-track { width:240px; height:6px; background:var(--bg-elevated); border-radius:3px; overflow:hidden; }
-          .study-progress-track .fill { height:100%; width:0%; background:var(--accent-primary); transition: width 0.4s var(--ease); box-shadow:0 0 10px var(--accent-shadow); }
+          /* Zen Mode Styles - Aggressive Suppression */
+          body.zen-mode #topbar, 
+          body.zen-mode #sidebar, 
+          body.zen-mode .study-nav-header, 
+          body.zen-mode .study-footer, 
+          body.zen-mode .progress-track,
+          body.zen-mode .sat-sidebar,
+          body.zen-mode .sat-header,
+          body.zen-mode .quizpro-topbar,
+          body.zen-mode .quizpro-footer,
+          body.zen-mode .study-id-capsule { display: none !important; }
 
-          .study-viewport { flex:1; overflow-y:auto; padding:40px 0; background:radial-gradient(circle at 50% 0%, var(--bg-elevated) 0%, var(--bg-base) 100%); }
-          .study-content-stack { width:100%; max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:24px; padding:0 32px; }
+          body.zen-mode .study-viewport { padding: 40px 20px; height: 100vh; display: flex; align-items: center; }
+          body.zen-mode .sat-main { padding: 40px 0; max-width: 900px; margin: 0 auto; }
+          body.zen-mode #main-content { padding: 0 !important; }
+          body.zen-mode #app { display: block; overflow: hidden; }
           
-          .study-block { background:var(--bg-surface); border:1px solid var(--border-color); border-radius:4px; padding:6px; box-shadow:0 10px 30px rgba(0,0,0,0.05); }
-          .block-label { font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-          .block-label::before { content:''; width:8px; height:8px; background:var(--accent-primary); border-radius:50%; }
+          .zen-toggle-fixed { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; gap: 8px; }
+          .zen-btn { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 16px; border-radius: 99px; font-size: 0.75rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); }
+          .zen-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: var(--accent-primary-transparent); }
           
-          .question-block { border-left:6px solid var(--accent-primary); }
-          .answer-block { border-left:6px solid var(--color-success); background:rgba(34,197,94,0.03); }
-          .answer-block .block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-          .answer-block .status-marker { font-size:0.6rem; font-weight:900; color:var(--color-success); border:1px solid var(--color-success); padding:2px 8px; border-radius:4px; }
-          .answer-payload { font-size:1.3rem; font-weight:900; color:var(--text-primary); line-height:1.4; }
+          .study-block, .study-val, .option-card, .option-label, #question-panel { user-select: text !important; -webkit-user-select: text !important; }
+          .study-block { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 24px; padding: 32px; box-shadow: var(--shadow-sm); }
+          .block-label { font-size: 0.75rem; font-weight: 900; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+          .block-label::before { content: ""; width: 10px; height: 10px; background: var(--accent-primary); border-radius: 3px; rotate: 45deg; }
+          .question-block { border-top: 5px solid var(--accent-primary); }
+          .answer-block { border-left: 6px solid #10b981; background: rgba(16, 185, 129, 0.02); }
+          .rationale-block { background: var(--bg-elevated); border-style: dashed; border-width: 2px; }
+          .study-val { font-size: 1.15rem; line-height: 1.8; color: var(--text-primary); font-weight: 500; white-space: pre-line; }
+          .study-footer { height: 100px; background: var(--bg-surface); border-top: 1px solid var(--border-color); display: flex; align-items:center; padding: 0 40px; flex-shrink:0 }
+          .footer-wrap { max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center; }
+          .status-marker { background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; border:1px solid #10b981; }
+          .block-header { display: flex; justify-content: space-between; margin-bottom: 16px; align-items: center; }
+          .study-progress-track { width: 240px; height: 6px; background: var(--bg-elevated); border-radius: 3px; overflow: hidden; }
+          .study-progress-track .fill { height: 100%; width: 0%; background: var(--accent-primary); transition: width 0.4s var(--ease); }
           
-          .explanation-block { border-left:6px solid var(--text-muted); }
-          .study-desc { font-size:1.05rem; line-height:1.8; color:var(--text-secondary); white-space:pre-line; }
-          
-          .study-persistent-footer { height:56px; border-top:1px solid var(--border-color); background:var(--bg-surface); display:flex; align-items:center; justify-content:center; }
-          .footer-inner { width:100%; max-width:900px; display:flex; justify-content:space-between; padding:0 32px; gap:20px; }
-          
-          .next-study-pro { min-width:240px; border-radius:4px; background:var(--accent-primary); box-shadow:0 10px 25px var(--accent-shadow); }
-          .next-study-pro .btn-inner { display:flex; align-items:center; gap:12px; font-weight:900; letter-spacing:0.02em; }
-          .next-study-pro:hover { transform: translateY(-3px) scale(1.02); }
-            .study-nav-header { padding:0 16px; }
-            .header-center { display:none; }
-            .study-content-stack { padding:0 16px; }
-            .study-viewport { padding:24px 0; }
-            .footer-inner { padding:0 16px; }
-            .footer-inner button { flex:1; min-width:0 !important; }
-          }
           @media (max-width: 768px) {
-            .study-nav-header { height:30px; padding:0 16px; }
-            .header-center { display:none; }
-            .study-content-stack { padding:0 16px; }
-            .study-viewport { padding:24px 0; }
-            .footer-inner { padding:0 16px; }
-            .footer-inner button { flex:1; min-width:0 !important; }
+            .header-center { display: none; }
+            .study-nav-header { padding: 0 16px; }
+            .study-footer { padding: 0 20px; height: 80px; }
+            .study-block { padding: 24px; }
           }
         </style>
       `;
-    }
-    else {
+    } else {
       layoutHtml = `
         <div style="max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:var(--sp-md)">
           <div style="display:flex;align-items:center;gap:var(--sp-md);padding:var(--sp-sm) 0;border-bottom:1px solid var(--border-color)">
@@ -407,6 +415,7 @@ const QuizEngine = (() => {
   let _qStartTime = 0;
 
   function init() {
+    VoiceEngine.init();
     const quiz = State.get("quiz");
     const currentIdx = quiz.currentIdx || 0;
     
@@ -575,12 +584,13 @@ const QuizEngine = (() => {
     
     if (quiz.template === 'study') {
       const ansText = document.getElementById('study-answer-text');
-      const expText = document.getElementById('study-explanation-text');
+      const expText = document.getElementById('study-explanation');
       if (ansText) ansText.innerHTML = Results.getCorrectAnswer(q);
-      if (expText) expText.innerHTML = q.Explanation || q.Solution || "No learning insight provided for this entry.";
+      if (expText) expText.innerHTML = q.Explanation || q.Solution || "Strategic approach for this concept is currently being finalized.";
       
-      const nextBtnText = document.getElementById('btn-next-text');
-      if (nextBtnText) nextBtnText.textContent = isLast ? "FINISH" : "NEXT";
+      const testTrigger = document.getElementById('study-test-trigger');
+      if (testTrigger) testTrigger.style.display = isLast ? 'flex' : 'none';
+      if (nextBtn) nextBtn.style.display = isLast ? 'none' : 'flex';
     } else {
       if (nextBtn) nextBtn.textContent = isLast ? "✓ Finish" : "Next →";
     }
@@ -649,6 +659,7 @@ const QuizEngine = (() => {
   }
 
   function next() {
+    UI.stopSpeaking();
     saveCurrentAnswer();
     const quiz = State.get("quiz");
     const cfg = quiz.config;
@@ -706,6 +717,7 @@ const QuizEngine = (() => {
   }
 
   function prev() {
+    UI.stopSpeaking();
     saveCurrentAnswer();
     const quiz = State.get("quiz");
     if (quiz.currentIdx > 0) {
@@ -715,6 +727,7 @@ const QuizEngine = (() => {
   }
 
   function jumpTo(idx) {
+    UI.stopSpeaking();
     const quiz = State.get("quiz");
     const cfg = quiz.config;
     
@@ -900,6 +913,91 @@ const QuizEngine = (() => {
     submit();
   }
 
+  function startActiveTest() {
+    const quiz = State.get("quiz");
+    
+    UI.modal(`
+      <div style="text-align:center; padding: 32px 24px">
+        <div style="font-size:4rem; margin-bottom:24px; filter: drop-shadow(0 0 15px var(--accent-shadow))">⚡</div>
+        <h2 style="font-size:2rem; font-weight:900; margin-bottom:16px; color:var(--text-primary); letter-spacing:-0.02em">Enter Recall Challenge?</h2>
+        <p style="color:var(--text-muted); margin-bottom:40px; line-height:1.7; font-size:1.05rem; max-width:400px; margin-left:auto; margin-right:auto">
+          You have completed the reading phase. The following session will be <b>graded</b> and <b>timed</b>. Solutions will be hidden until the end.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:12px; align-items:stretch; max-width:320px; margin:0 auto">
+           <button class="btn btn-primary btn-lg" id="confirm-active-test" style="padding:16px; border-radius:16px; font-weight:900; font-size:1.1rem; box-shadow:0 12px 24px var(--accent-shadow); transform: scale(1.02)">
+              Start Active Session →
+           </button>
+           <button class="btn btn-ghost" onclick="UI.closeModal()" style="font-weight:700; color:var(--text-muted)">
+              Not yet, keep studying
+           </button>
+        </div>
+      </div>
+    `);
+
+    document.getElementById('confirm-active-test').onclick = () => {
+      UI.closeModal();
+      
+      // Upgrade to active test
+      quiz.template = "sat"; 
+      quiz.answers = {};
+      quiz.currentIdx = 0;
+      quiz.startTime = Date.now();
+      
+      const timeLimit = parseInt(quiz.config["Quiz Time"] || 0);
+      _totalSec = timeLimit > 0 ? timeLimit : 1; // Ensure timer starts
+
+      State.set("quiz", quiz);
+      UI.pushPage("quiz");
+      UI.toast("Recall Session Initiated", "success");
+    };
+  }
+
+  function downloadStudyPDF() {
+    const quiz = State.get("quiz");
+    const doc = window.open("", "_blank");
+    let html = `
+      <style>
+        body { font-family: sans-serif; padding: 40px; line-height: 1.6; color: #333; }
+        .q-wrap { margin-bottom: 60px; page-break-inside: avoid; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .q-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; }
+        .a-text { color: #10b981; font-weight: bold; margin-bottom: 10px; }
+        .exp-text { background: #f9f9f9; padding: 15px; border-left: 4px solid #3b82f6; font-style: italic; }
+        .header { text-align: center; margin-bottom: 50px; }
+      </style>
+      <div class="header">
+        <h1>Study Guide: ${quiz.config.title || "Subject Mastery"}</h1>
+        <p>${quiz.questions.length} Concepts & Rationales</p>
+      </div>
+    `;
+
+    quiz.questions.forEach((q, i) => {
+      html += `
+        <div class="q-wrap">
+          <div class="q-text">Topic ${i + 1}: ${q.Question || q.text}</div>
+          <div class="a-text">Correct Solution: ${Results.getCorrectAnswer(q)}</div>
+          <div class="exp-text"><b>Rationale:</b> ${q.Explanation || q.Solution || "No additional strategy provided."}</div>
+        </div>
+      `;
+    });
+
+    doc.document.write(html);
+    doc.document.close();
+    doc.print();
+  }
+
+  function toggleZen() {
+    const active = document.body.classList.toggle('zen-mode');
+    const btn = document.getElementById('zen-mode-btn');
+    if (btn) btn.classList.toggle('active', active);
+    UI.toast(active ? "Zen Focus Mode Active" : "Zen Focus Mode Deactivated", "info");
+  }
+
+  function toggleVoice() {
+    const active = VoiceEngine.toggle();
+    const btn = document.getElementById('voice-mode-btn');
+    if (btn) btn.classList.toggle('active', active);
+  }
+
   return {
     init,
     next,
@@ -910,6 +1008,10 @@ const QuizEngine = (() => {
     togglePause,
     confirmSubmit,
     submit,
+    startActiveTest,
+    downloadStudyPDF,
+    toggleZen,
+    toggleVoice
   };
 })();
 

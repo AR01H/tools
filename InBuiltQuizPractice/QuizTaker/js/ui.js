@@ -71,6 +71,10 @@ const UI = (() => {
     }
   }
 
+  function stopSpeaking() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
   // ── Speech ────────────────────────────────────────────────
   function speak(text) {
     if (!window.speechSynthesis) {
@@ -78,8 +82,7 @@ const UI = (() => {
       return;
     }
 
-    // Stop any ongoing speech
-    window.speechSynthesis.cancel();
+    stopSpeaking();
 
     try {
       // 1. Decode HTML entities
@@ -457,6 +460,7 @@ const UI = (() => {
     toggleNavMenu,
     updateGroupLabel,
     speak,
+    stopSpeaking,
     confetti
   };
 })();

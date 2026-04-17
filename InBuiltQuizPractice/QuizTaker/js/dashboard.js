@@ -28,7 +28,12 @@ const PageWelcome = (() => {
 
     main.innerHTML = `
       <div class="animate-up welcome-hero-container">
-        <div class="welcome-header">
+        <div class="welcome-header" style="position:relative">
+           <div style="position:absolute; top:-10px; right:0; display:flex; gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="Dashboard.sharePlatform()" style="border:1px solid var(--border-color); border-radius:12px; font-weight:800; padding:8px 16px">
+                 ✉️ Invite Link
+              </button>
+           </div>
            <h4 class="welcome-super-title">${superTitle}</h4>
            <h1 class="welcome-main-title">${headerTitle}</h1>
            <p class="welcome-lead">${headerSub}</p>
@@ -82,6 +87,9 @@ const PageWelcome = (() => {
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         Last Performance
                       </button>
+                      ${State.get("setup")?.selectedTopics?.length ? `
+                        <button class="btn-sync" onclick="Dashboard.handleShare()" style="color:var(--text-muted)">🔗 Share Config</button>
+                      ` : ''}
                       <button class="btn-switch" onclick="Dashboard.changeUser()">Switch User</button>
                     </div>
                   ` : ''}
@@ -237,21 +245,27 @@ const Dashboard = (() => {
     Dashboard.startQuiz();
   }
 
-  async function startQuiz() {
+  async function startQuiz(isShared = false) {
     if (!State.get("scriptUrl")) {
       UI.toast("Configure your Google Script URL in Settings first", "warn");
       UI.openSettings();
       return;
     }
-    UI.setLoading(true, "Loading topics…");
+    UI.setLoading(true, isShared ? "Syncing shared quiz..." : "Loading topics…");
     try {
       const topics = await API.getTopics();
       State.set("topics", topics);
       const configs = await API.getQuizConfigs();
       State.set("quizConfigs", configs);
       UI.setLoading(false);
-      State.reset("setup");
-      UI.pushPage("setup-topics");
+      
+      if (isShared) {
+        // Shared link already set up the "setup" state, so we just go to setup-topics
+        UI.pushPage("setup-topics");
+      } else {
+        State.reset("setup");
+        UI.pushPage("setup-topics");
+      }
     } catch (e) {
       UI.setLoading(false);
       UI.toast("Failed to load: " + e.message, "error");
@@ -340,11 +354,128 @@ const Dashboard = (() => {
     }
   }
 
+  function sharePlatform() {
+    const url = window.location.origin + window.location.pathname;
+    showShareModal(url, "PrepQuick — Mastery Platform", "Check out this advanced quiz platform for mastering your topics!");
+  }
+
   function changeUser() {
     UI.confirm2(
       "Switch to a different user? (Current session will end)",
       "Dashboard.resetUser"
     );
+  }
+
+  function handleShare() {
+    const setup = State.get("setup");
+    if (!setup.selectedTopics || !setup.selectedTopics.length) {
+      UI.toast("No configuration found to share", "warn");
+      return;
+    }
+    
+    // Create sharing payload
+    const data = {
+      t: setup.selectedTopics,
+      c: setup.finalConfig,
+      tm: setup.template || "default"
+    };
+    
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      const url = `${window.location.origin}${window.location.pathname}#share=${encoded}`;
+      showShareModal(url, "Shared Quiz Configuration", "Ready for a challenge? Try this custom quiz configuration on PrepQuick!");
+    } catch (e) {
+      UI.toast("Failed to generate share link", "error");
+    }
+  }
+
+  function showShareModal(url, title, text) {
+    const encodedUrl = encodeURIComponent(url);
+    const encodedText = encodeURIComponent(text + " " + url);
+    
+    UI.modal(`
+      <div style="padding: 10px; text-align:center">
+        <h3 style="font-size:1.4rem; font-weight:900; margin-bottom:var(--sp-md); color:var(--text-primary)">Share with Friends</h3>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:var(--sp-xl)">Spread the knowledge across your network</p>
+        
+        <div class="share-grid">
+           <div class="share-item" onclick="Dashboard.copyToClipboard('${url}')">
+              <div class="share-icon" style="background:var(--bg-elevated)">📋</div>
+              <span>Copy</span>
+           </div>
+           <a class="share-item" href="https://wa.me/?text=${encodedText}" target="_blank">
+              <div class="share-icon" style="background:#25d36622; color:#25d366">📱</div>
+              <span>WhatsApp</span>
+           </a>
+           <a class="share-item" href="https://t.me/share/url?url=${encodedUrl}&text=${encodedText}" target="_blank">
+              <div class="share-icon" style="background:#0088cc22; color:#0088cc">✈️</div>
+              <span>Telegram</span>
+           </a>
+           <a class="share-item" href="mailto:?subject=${encodeURIComponent(title)}&body=${encodedText}">
+              <div class="share-icon" style="background:var(--accent-primary-transparent); color:var(--accent-primary)">✉️</div>
+              <span>Email</span>
+           </a>
+           ${navigator.share ? `
+           <div class="share-item" onclick="Dashboard.systemShare('${url}', '${title}', '${text}')">
+              <div class="share-icon" style="background:var(--bg-elevated)">🔗</div>
+              <span>More</span>
+           </div>` : ''}
+        </div>
+        
+        <div style="margin-top:var(--sp-xl); padding-top:var(--sp-md); border-top:1px solid var(--border-color)">
+           <input type="text" value="${url}" readonly style="width:100%; height:44px; padding:0 12px; font-family:var(--font-mono); font-size:0.75rem; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-color); color:var(--text-secondary); text-overflow:ellipsis">
+        </div>
+      </div>
+      
+      <style>
+        .share-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 10px; }
+        .share-item { display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; transition: 0.3s var(--ease); }
+        .share-item:hover { transform: translateY(-4px); }
+        .share-icon { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; font-size: 1.4rem; border: 1px solid var(--border-color); }
+        .share-item span { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        @media (max-width: 480px) { .share-grid { grid-template-columns: repeat(2, 1fr); } }
+      </style>
+    `);
+  }
+
+  function copyToClipboard(val) {
+    navigator.clipboard.writeText(val).then(() => {
+       UI.toast("Link copied to clipboard!", "success");
+    });
+  }
+
+  function systemShare(url, title, text) {
+    if (navigator.share) {
+      navigator.share({ title, text, url }).catch(() => {});
+    }
+  }
+
+  function checkDeepLink() {
+    const hash = window.location.hash;
+    if (hash.startsWith("#share=")) {
+      const encoded = hash.substring(7);
+      try {
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+        if (decoded.t && Array.isArray(decoded.t)) {
+          State.merge("setup", {
+            selectedTopics: decoded.t,
+            finalConfig: decoded.c || {},
+            template: decoded.tm || "sat"
+          });
+          
+          // Clear hash
+          window.history.replaceState(null, null, window.location.pathname);
+          
+          UI.toast("🎯 Shared Quiz Configuration Loaded!", "success", 5000);
+          
+          // If we have topics, we can jump straight to config or launch
+          // But better let user see topics first to confirm
+          Dashboard.startQuiz(true); 
+        }
+      } catch (e) {
+        console.warn("Invalid shared link:", e);
+      }
+    }
   }
 
   function resetUser() {
@@ -399,6 +530,12 @@ const Dashboard = (() => {
     viewLatestResult, 
     loadUserInsights, 
     changeUser, 
-    resetUser 
+    resetUser,
+    handleShare,
+    sharePlatform,
+    showShareModal,
+    copyToClipboard,
+    systemShare,
+    checkDeepLink
   };
 })();
