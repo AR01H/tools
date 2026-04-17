@@ -77,13 +77,43 @@ const UI = (() => {
       toast("Speech not supported in this browser", "warn");
       return;
     }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    window.speechSynthesis.speak(utterance);
-  }
 
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+
+    try {
+      // 1. Decode HTML entities
+      const textarea = document.createElement("textarea");
+      textarea.innerHTML = text;
+      let decoded = textarea.value;
+
+      // 2. Remove HTML tags
+      const div = document.createElement("div");
+      div.innerHTML = decoded;
+      let cleanText = div.textContent || div.innerText || "";
+
+      // 3. Improve readability (pauses, spacing)
+      cleanText = cleanText
+        .replace(/\s+/g, ' ')          // remove extra spaces
+        .replace(/,/g, ', ')          // slight pause at commas
+        .replace(/\./g, '. ')         // pause at full stop
+        .replace(/\?/g, '? ')         // pause at question
+        .replace(/!/g, '! ')          // pause at exclamation
+        .trim();
+
+      // 4. Speak
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.lang = "en-US"; // change if needed
+
+      window.speechSynthesis.speak(utterance);
+
+    } catch (e) {
+      console.error("Speech error:", e);
+    }
+  }
+  
   // ── Page navigation ───────────────────────────────────────
   function navigate(page, data) {
     State.set("page", page);

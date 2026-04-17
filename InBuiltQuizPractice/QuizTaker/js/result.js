@@ -1075,6 +1075,18 @@ const PageResult = (() => {
       </div>`;
   }
 
+  function escapeAttr(str) {
+    return String(str)
+      .replace(/\\/g, '\\\\')   // escape backslash
+      .replace(/'/g, "\\'")     // escape single quote (for JS string)
+      .replace(/"/g, '&quot;')  // escape double quote (for HTML safety)
+      .replace(/</g, '&lt;')    // prevent HTML tags
+      .replace(/>/g, '&gt;')
+      .replace(/&/g, '&amp;')   // escape &
+      .replace(/\n/g, ' ')      // remove new lines
+      .replace(/\r/g, ' ');
+  }
+
   function renderQuestions(result) {
     const { quiz } = result;
     return `
@@ -1114,7 +1126,7 @@ const PageResult = (() => {
                     <div class="q-num">Q ${i + 1}</div>
                      <div class="q-status-badge">${status.toUpperCase()}</div>
                      <div class="q-time-badge ${timeClass}">${ans.timeTaken || 0}s</div>
-                      <button class="btn btn-ghost btn-sm" onclick="UI.speak('${q.Question.replace(/'/g, "\\'")}')" title="Read Question" style="padding:4px 10px; border-radius:12px; height:28px; display:flex; align-items:center; gap:6px; background:var(--bg-elevated); border:1px solid var(--border-color); font-size:0.7rem; font-weight:700">
+                      <button class="btn btn-ghost btn-sm" onclick="UI.speakSafe('${escapeAttr(q.Question)}')" title="Read Question" style="padding:4px 10px; border-radius:12px; height:28px; display:flex; align-items:center; gap:6px; background:var(--bg-elevated); border:1px solid var(--border-color); font-size:0.7rem; font-weight:700">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M11 5L6 9H2V15H6L11 19V5Z"/><path d="M15.54 8.46C16.47 9.4 17 10.63 17 12s-.53 2.6-1.46 3.54M19 5a10 10 0 010 14"/></svg>
                       </button>
                   </div>
