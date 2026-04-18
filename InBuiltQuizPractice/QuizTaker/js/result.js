@@ -540,7 +540,7 @@ const PageResult = (() => {
 
   function renderAdaptive(result) {
     return `
-      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(480px, 1fr));gap:var(--sp-lg);margin-bottom:var(--sp-xl)">
+      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(580px, 1fr));gap:var(--sp-lg);margin-bottom:var(--sp-xl)">
         <div class="chart-card">
           <div class="chart-header">
             <h3 class="chart-label">Domain Mastery Analysis</h3>
