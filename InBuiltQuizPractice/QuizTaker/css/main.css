@@ -465,7 +465,7 @@ select.form-control {
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs);
   font-size: .68rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1019,8 +1019,8 @@ select.form-control {
 }
 
 .dash-tab-btn {
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
   font-weight: 700;
   font-size: 0.85rem;
   color: var(--text-secondary);
@@ -1814,7 +1814,7 @@ select.form-control {
 .chart-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xs);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -2123,7 +2123,7 @@ select.form-control {
   background: rgba(var(--bg-base-rgb, 15, 23, 42), 0.8);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--border-color);
-  padding: var(--sp-lg) 0;
+  padding: var(--sp-md) 0;
   z-index: 1000;
   display: flex;
   justify-content: center;

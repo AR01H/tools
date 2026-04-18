@@ -127,12 +127,12 @@ const ICON_MAP = {
         
         <div class="setup-header-area">
            <div class="setup-header-text">
-              <h1 class="setup-main-title">Quiz Domains</h1>
-              <p class="setup-sub-title">Select specialized subjects to build your quiz.</p>
+              <h1 class="setup-main-title">All Topics</h1>
+              <p class="setup-sub-title">Select specialized topic to build your quiz.</p>
            </div>
            <div class="setup-header-actions">
               <div class="search-wrap">
-                 <input type="text" id="topic-search" class="form-control" placeholder="Search domains..." oninput="PageSetupTopics.filter(this.value)">
+                 <input type="text" id="topic-search" class="form-control" placeholder="Search topics..." oninput="PageSetupTopics.filter(this.value)">
               </div>
               <button class="btn btn-secondary btn-sm" onclick="selectAllTopics()">
                 Select All
@@ -161,7 +161,7 @@ const ICON_MAP = {
 
         <div class="setup-footer">
           <div class="setup-footer-content">
-            <button class="btn btn-primary btn-lg" id="topics-next" onclick="topicsNext()">
+            <button class="btn btn-primary btn-md" id="topics-next" onclick="topicsNext()">
               Initialize Question Pool →
             </button>
           </div>
@@ -214,7 +214,7 @@ const ICON_MAP = {
 
         @media (max-width: 480px) {
            .topic-grid { grid-template-columns: 1fr; }
-           .topic-card { flex-direction: row; text-align: left; padding: 16px; justify-content: flex-start; }
+           .topic-card { flex-direction: row; text-align: left; padding: 6px; justify-content: flex-start; }
            .topic-card .topic-icon { font-size: 2rem; }
            .selected-badge { right: 16px; top: 50%; transform: translateY(-50%) scale(0.5); }
            .topic-card.selected .selected-badge { transform: translateY(-50%) scale(1); }
@@ -308,7 +308,7 @@ const PageSetupFilters = (() => {
            
            <div class="grid-2" style="gap:20px">
               <!-- Category Filter -->
-              <div class="setup-compact-section" style="padding:16px">
+              <div class="setup-compact-section" style="padding:10px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
                   <span class="filter-label" style="font-size:0.85rem">Categories</span>
                   <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('cat-chips', this.value)">
@@ -318,7 +318,7 @@ const PageSetupFilters = (() => {
               </div>
   
               <!-- Sub-category Filter -->
-              <div class="setup-compact-section" style="padding:16px">
+              <div class="setup-compact-section" style="padding:10px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap">
                   <span class="filter-label" style="font-size:0.85rem">Specializations</span>
                   <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('subcat-chips', this.value)">
@@ -330,17 +330,17 @@ const PageSetupFilters = (() => {
 
            <!-- Meta Filters -->
            <div class="meta-filter-grid">
-             <div class="setup-compact-section" style="padding:16px">
+             <div class="setup-compact-section" style="padding:10px">
                <span class="filter-label" style="font-size:0.85rem; margin-bottom:12px">Difficulty Level</span>
                <div id="diff-chips" class="chip-container compact"></div>
              </div>
-             <div class="setup-compact-section" style="padding:16px">
+             <div class="setup-compact-section" style="padding:10px">
                <span class="filter-label" style="font-size:0.85rem; margin-bottom:12px">Question Format</span>
                <div id="type-chips" class="chip-container compact"></div>
              </div>
-             <div class="setup-compact-section" style="padding:16px">
+             <div class="setup-compact-section" style="padding:10px">
                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:12px;flex-wrap:wrap">
-                  <span class="filter-label" style="font-size:0.85rem">Advanced Tags</span>
+                  <span class="filter-label" style="font-size:0.85rem">Tags</span>
                   <input type="text" placeholder="Search..." class="form-control" style="font-size:10px; padding:4px 8px; height:24px; flex:1" oninput="PageSetupFilters.filterChips('tag-chips', this.value)">
                   <button class="btn btn-ghost btn-sm" onclick="clearAllChips('tag-chips')" style="font-size:10px">Clear</button>
                </div>
@@ -355,7 +355,7 @@ const PageSetupFilters = (() => {
                 <div class="magnitude-header">
                   <div class="magnitude-titles">
                     <span class="filter-label-small" style="margin-bottom:4px; color:var(--accent-primary)">Selected</span>
-                    <div style="display:flex; align-items:baseline; gap:12px">
+                    <div style="display:flex; align-items:baseline; gap:6px">
                        <h2 id="q-count-val" class="magnitude-display">${setup.questionCount}</h2>
                        <span style="font-size:1.1rem; color:var(--text-muted); font-weight:700">/ <span id="pool-total">0</span> Available</span>
                     </div>

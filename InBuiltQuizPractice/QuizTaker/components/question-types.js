@@ -63,8 +63,7 @@ const QuestionRenderer = (() => {
       medium: "var(--color-warn)",
       hard: "var(--color-error)",
     };
-    const dc =
-      diffColor[(q.Difficulty || "").toLowerCase()] || "var(--text-muted)";
+    const dc = diffColor[(q.Difficulty || "").toLowerCase()] || "var(--text-muted)";
 
     panel.innerHTML = `
       <div class="q-left-panel" style="display:${
@@ -604,7 +603,7 @@ const QuestionRenderer = (() => {
       const plainText = tmp.textContent || tmp.innerText || "";
 
       // Animate plain text, then replace with real HTML on completion
-      UI.typewriter(qEl, plainText, 12, () => {
+      UI.typewriter(qEl, plainText, 6, () => {
         qEl.innerHTML = fullHtml; // Swap to full HTML once typing is done
       });
     }
@@ -862,9 +861,7 @@ const QuestionRenderer = (() => {
       const correctArr = (_currentQ["Correct Answer"] || "").split("|").map(s => s.trim());
       const selectedVal = el.dataset.val;
       if (correctArr.includes(selectedVal)) {
-        setTimeout(() => PageQuiz.next(), 800);
-      } else {
-        UI.toast("Review the solution before continuing", "info");
+        // setTimeout(() => PageQuiz.next(), 800);
       }
     }
   }
@@ -901,9 +898,7 @@ const QuestionRenderer = (() => {
     if (!revealed) {
        return `
          <div style="margin-top:20px; text-align:center">
-           <button class="btn btn-primary" onclick="QuestionRenderer.revealAnswer()" style="width:100%; border-radius:12px; height:48px; font-weight:800; background:var(--accent-primary); color:#fff">
-             🔍 SHOW SOLUTION & CORRECT ANSWER
-           </button>
+
          </div>
        `;
     }
@@ -913,10 +908,9 @@ const QuestionRenderer = (() => {
     const correctVal = Results.getCorrectAnswer(q);
 
     return `
-      <div class="animate-up" style="margin-top:24px; padding:20px; background:var(--bg-elevated); border:1px dashed var(--accent-primary); border-radius:12px; border-left:4px solid var(--accent-primary)">
+      <div class="animate-up" style="margin-top:24px; padding:6px; background:var(--bg-elevated); border:1px dashed var(--accent-primary); border-radius:4px; border-left:4px solid var(--accent-primary)">
         <div style="display:flex;flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:12px">
-           <span style="font-size:0.75rem; font-weight:900; color:var(--accent-primary); letter-spacing:0.05em">STRATEGY & SOLUTION</span>
-           <span class="badge badge-success" style="font-size:0.65rem">CORRECT: ${correctVal}</span>
+           <span class="badge badge-success" style="font-size:0.65rem;border-radius: 4px;">CORRECT: ${correctVal}</span>
         </div>
         <div style="font-size:0.95rem; line-height:1.6; color:var(--text-secondary)">
            ${explanation || "Detailed rationale for this concept is being finalized."}

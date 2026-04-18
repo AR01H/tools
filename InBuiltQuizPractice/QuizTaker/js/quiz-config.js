@@ -118,9 +118,8 @@ const PageSetupConfig = (() => {
         
         <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:var(--sp-lg)">
            <div>
-              <h4 style="font-size:0.7rem; font-weight:900; color:var(--accent-primary); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">Engine Parameters</h4>
-              <h1 style="font-size:2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Session Configuration</h1>
-              <p style="color:var(--text-muted); font-size:0.95rem; margin-top:4px"><strong>${filtered.length}</strong> questions ready.</p>
+              <h1 style="font-size:2rem; font-weight:900; color:var(--text-primary); letter-spacing:-0.03em; margin:0">Quiz Configuration</h1>
+              <p style="color:var(--text-muted); font-size:0.95rem; margin-top:4px"><strong style = "font-size:1.2rem; font-weight:900;color:var(--accent-primary);">${filtered.length}</strong> questions ready.</p>
            </div>
            <div>${UI.backBtn("Filters")}</div>
         </div>
@@ -146,7 +145,7 @@ const PageSetupConfig = (() => {
 
         <div class="setup-footer">
           <div class="setup-footer-content">
-            <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" disabled style=" font-size:1.1rem; border-radius:4px">
+            <button class="btn btn-primary btn-sm" id="start-btn" onclick="startQuiz()" disabled style=" font-size:1.1rem; border-radius:4px">
               Select Quiz Template →
             </button>
           </div>
@@ -211,7 +210,7 @@ const PageSetupConfig = (() => {
         <div class="config-grid">
           ${PRESET_FIELDS.map(
             (f) => `
-            <div class="config-item ${f.classnanme || ""}" id="item-${f.key.replace(/\s+/g,'')}">
+            <div class="config-item ${f.className || ""}" id="item-${f.key.replace(/\s+/g,'')}">
               <label class="config-label">${f.label}</label>
               ${
                 f.type === "select"
@@ -249,7 +248,7 @@ const PageSetupConfig = (() => {
           ${rows
             .map(
               (f) => `
-            <div class="config-item ${f.classnanme || ""}">
+            <div class="config-item ${f.className || ""}">
               <p class="config-label">${f.label}</p>
               <p class="config-val">${cfg[f.key] || "—"}</p>
             </div>`
@@ -458,8 +457,8 @@ const PageSetupTemplate = (() => {
         .strip-title { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 4px 0 0 0; }
         .strip-actions { display: flex; gap: 12px; }
         
-        .btn-study-pro { background: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary); padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; transition: 0.3s; }
-        .btn-launch-pro { background: var(--accent-primary); border: none; color: #fff; padding: 14px 40px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 10px 20px var(--accent-shadow); transition: 0.3s; }
+        .btn-study-pro { background: var(--bg-elevated); border: 1px solid var(--border-color); color: var(--text-primary); padding: 6px 8px; border-radius: 4px; font-weight: 800; font-size: 0.9rem; transition: 0.3s; }
+        .btn-launch-pro { background: var(--accent-primary); border: none; color: #fff; padding: 6px 10px; border-radius: 4px; font-weight: 800; font-size: 1rem; box-shadow: 0 10px 20px var(--accent-shadow); transition: 0.3s; }
         .btn-study-pro:hover, .btn-launch-pro:hover { transform: translateY(-4px); filter: brightness(1.1); }
         
         .spinner { border: 3px solid rgba(255,255,255,0.1); border-left-color: #fff; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.8s linear infinite; }

@@ -44,7 +44,7 @@ const PageWelcome = (() => {
       <div class="animate-up welcome-hero-container">
         <div class="welcome-header" style="position:relative">
            <div style="position:absolute; top:-10px; right:0; display:flex; gap:8px">
-              <button class="btn btn-ghost btn-sm" onclick="Dashboard.sharePlatform()" style="border:1px solid var(--border-color); border-radius:12px; font-weight:800; padding:8px 16px">
+              <button class="btn btn-ghost btn-sm" onclick="Dashboard.sharePlatform()" style="border:1px solid var(--border-color); border-radius:4px; font-weight:800; padding:8px 16px; background: #80808021;">
                  ✉️ Invite
               </button>
            </div>
@@ -166,7 +166,7 @@ const PageWelcome = (() => {
         .welcome-layout { display: grid; grid-template-columns: 1fr 400px; gap: 64px; align-items: start; }
         
         /* Identity Card */
-        .identity-glass-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; position: relative; overflow: hidden; box-shadow: var(--shadow-xl); }
+        .identity-glass-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xs); padding: 24px; position: relative; overflow: hidden; box-shadow: var(--shadow-xl); }
         .card-glow { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: var(--accent-primary-transparent); filter: blur(40px); border-radius: 50%; pointer-events: none; }
         
         .identity-header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
@@ -195,7 +195,7 @@ const PageWelcome = (() => {
         .welcome-features-title { font-size: 0.73rem; text-transform: uppercase; letter-spacing: 2.5px; color: var(--accent-primary); font-weight: 900; white-space: nowrap; }
         .welcome-features-line { height: 1.5px; flex: 1; background: linear-gradient(90deg, var(--border-color), transparent); }
         .features-grid { display: flex; flex-direction: column; gap: 14px; }
-        .feature-card { display: flex; gap: 18px; align-items: flex-start; padding: 20px; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-lg); transition: all 0.3s cubic-bezier(.34,1.56,.64,1); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .feature-card { display: flex; gap: 18px; align-items: flex-start; padding: 20px; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-xs); transition: all 0.3s cubic-bezier(.34,1.56,.64,1); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .feature-card:hover { transform: translateY(-4px) scale(1.02); border-color: var(--accent-primary-transparent); box-shadow: 0 16px 40px rgba(0,0,0,0.3); background: rgba(255,255,255,0.03); }
         .feat-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; font-size: 1.4rem; flex-shrink: 0; transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
         .feature-card:hover .feat-icon { transform: scale(1.15) rotate(-6deg); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }

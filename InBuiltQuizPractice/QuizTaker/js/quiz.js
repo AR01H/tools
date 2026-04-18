@@ -54,12 +54,12 @@ const PageQuiz = (() => {
       <div style="display:flex;gap:4px">
         ${
           showHint
-            ? `<button class="btn btn-ghost btn-sm" id="hint-btn" onclick="PageQuiz.showHint()" title="Hint">💡 Hint</button>`
+            ? `<button class="btn btn-ghost btn-sm" id="hint-btn" onclick="PageQuiz.showHint()" title="Hint">💡</button>`
             : ""
         }
         ${
           markReview
-            ? `<button class="btn btn-ghost btn-sm" id="mark-btn" onclick="PageQuiz.toggleMark()" title="Mark for Review">🚩 Mark</button>`
+            ? `<button class="btn btn-ghost btn-sm" id="mark-btn" onclick="PageQuiz.toggleMark()" title="Mark for Review">🚩</button>`
             : ""
         }
       </div>`;
@@ -71,12 +71,10 @@ const PageQuiz = (() => {
     const showInstant = (cfg["Instant Answer"] || "Off") === "On";
     const revealBtnHTML = (showInstant && tmpl !== 'study')
        ? `<button class="btn btn-warning btn-sm" id="btn-reveal" onclick="QuestionRenderer.revealAnswer()" 
-                  style="border-radius:6px; font-weight:800; background:#f59e0b; color:#fff; border:none; padding:8px 16px; box-shadow:0 4px 15px rgba(245,158,11,0.3); display:none; align-items:center; gap:8px">🔍 REVEAL</button>`
+                  style="border-radius:4px; font-weight:800; background:#f59e0b; color:#fff; border:none; box-shadow:0 4px 15px rgba(245,158,11,0.3); display:none; align-items:center; gap:8px">🔍 REVEAL</button>`
        : "";
 
     let layoutHtml; 
-    // 1. Standard Design (Image 1)
-    // ─────────────────────────────────────────────────────────
     if (tmpl === "sat") {
       layoutHtml = `
         <div class="layout-sat">
@@ -120,10 +118,10 @@ const PageQuiz = (() => {
                <div id="question-panel"></div>
             </div>
             
-            <div class="sat-footer" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; height: max-content !important; z-index: 999999 !important; background: #0c0d19 !important; border-top: 1px solid rgba(255,255,255,0.1) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important;">
+            <div class="sat-footer" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; height: max-content !important; z-index: 999999 !important; background: #0c0d19 !important; border-top: 1px solid rgba(255,255,255,0.1) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 5px 2px;">
                <div class="footer-wrap" style="display: flex !important; flex-wrap: wrap; width: 100% !important; max-width: 1400px !important; align-items: center !important;justify-content: space-around;">
                   <div class="grid-left" style="display: flex !important; justify-content: flex-start !important;">
-                    <button class="btn btn-ghost" id="btn-prev" onclick="PageQuiz.prev()" ${!allowBack ? "disabled" : ""} style="color:rgba(255,255,255,0.6) !important">← BACK</button>
+                    <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="PageQuiz.prev()" ${!allowBack ? "disabled" : ""} style="color:rgba(255,255,255,0.6) !important;background:#7c4dff">← BACK</button>
                   </div>
                   <div class="grid-center hide-mobile" style="display: flex !important; justify-content: center !important; flex-direction:column; gap:8px; align-items:center">
                      <div class="cli-bar-wrap" id="cli-wrap-sat">
@@ -133,16 +131,13 @@ const PageQuiz = (() => {
                   <div class="grid-right" style="display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 20px !important;">
                      ${actionsHTML}
                      ${revealBtnHTML}
-                     <button class="btn btn-primary btn-lg" id="btn-next" onclick="PageQuiz.next()" style=" border-radius:4px !important; font-weight:900 !important; background: #7c4dff !important; color: #fff !important; box-shadow: 0 8px 30px rgba(124, 77, 255, 0.4) !important; border: none !important;">NEXT QUESTION →</button>
+                     <button class="btn btn-primary btn-sm" id="btn-next" onclick="PageQuiz.next()" style=" border-radius:4px !important; font-weight:900 !important; background: #7c4dff !important; color: #fff !important; box-shadow: 0 8px 30px rgba(124, 77, 255, 0.4) !important; border: none !important;">NEXT →</button>
                   </div>
                </div>
             </div>
           </div>
         </div>`;
     }
-    // ──────────────────────────────────────────────────────────
-    // 2. QUIZPRO DARK (Image 2) — Split view with passage
-    // ──────────────────────────────────────────────────────────
     else if (tmpl === "quizpro-dark") {
       layoutHtml = `
         <div class="layout-quizpro">
@@ -176,15 +171,12 @@ const PageQuiz = (() => {
               <div class="grid-right" style="display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 20px !important;">
                  ${actionsHTML}
                  ${revealBtnHTML}
-                 <button class="btn btn-primary btn-lg" id="btn-next" onclick="PageQuiz.next()" style="background:var(--accent-primary) !important; color:#000 !important; font-weight:900 !important; border:none !important; border-radius:10px !important;">NEXT →</button>
+                 <button class="btn btn-primary btn-xs" id="btn-next" onclick="PageQuiz.next()" style="background:var(--accent-primary) !important; color:#000 !important; font-weight:900 !important; border:none !important; border-radius:10px !important;">NEXT →</button>
               </div>
              </div>
           </div>
         </div>`;
     }
-    // ──────────────────────────────────────────
-    // 4. STUDY MODE (Flashcard)
-    // ──────────────────────────────────────────
     else if (tmpl === "study") {
       layoutHtml = `
         <div class="layout-immersive-study">
@@ -192,7 +184,7 @@ const PageQuiz = (() => {
              <div class="header-left">
                 <span class="study-badge">LEARNING MODE</span>
                 <div class="study-id-capsule" onclick="PageQuiz.showJumpMenu()" style="cursor:pointer; background:rgba(255,255,255,0.03); padding:4px 12px; border-radius:8px; border:1px solid transparent; transition:0.3s" onmouseover="this.style.borderColor='var(--accent-primary-transparent)'" onmouseout="this.style.borderColor='transparent'">
-                   <span class="label" style="opacity:0.7">${quiz.config.title || "Subject"}</span>
+                   <span class="label" style="opacity:0.7">${quiz.config.title || "Topic"}</span>
                    <span id="q-idx" class="val" style="margin-left:8px">1</span>
                    <span class="total">/ ${qs.length} <span style="font-size:0.7rem; margin-left:4px">▼</span></span>
                 </div>
@@ -204,7 +196,7 @@ const PageQuiz = (() => {
              </div>
              <div class="header-right" style="gap:12px">
                  <button class="btn btn-ghost btn-sm" onclick="PageQuiz.downloadStudyPDF()" title="Download Study Guide">📥 PDF</button>
-                <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--color-error); border-radius:8px">CLOSE ×</button>
+                <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--color-error); border-radius:8px">×</button>
              </div>
           </div>
           
@@ -215,7 +207,7 @@ const PageQuiz = (() => {
                    <div id="question-panel"></div>
                 </div>
                 
-                <div class="study-block answer-block">
+                <div class="study-block answer-block hidden">
                    <div class="block-label">STRATEGIC EXPLANATION</div>
                    <div id="study-explanation" class="study-val">Identifying the optimal approach...</div>
                 </div>
@@ -235,7 +227,7 @@ const PageQuiz = (() => {
                 </div>
                 
                 <div class="grid-right">
-                    <button class="btn btn-primary btn-sm" id="btn-next" onclick="PageQuiz.next()" style=" border-radius:4px; font-weight:900; background:var(--accent-primary) !important; color:#000 !important; border:none !important; box-shadow:0 8px 20px var(--accent-shadow)">NEXT →</button>
+                    <button class="btn btn-primary btn-sm" id="btn-next" onclick="PageQuiz.next()" style=" border-radius:4px; font-weight:900; background:var(--accent-primary) !important; border:none !important; box-shadow:0 8px 20px var(--accent-shadow);padding:6px 10px !important">NEXT →</button>
                 </div>
              </div>
           </div>
@@ -249,7 +241,7 @@ const PageQuiz = (() => {
           .study-id-capsule .val { color: var(--accent-primary); }
           .study-id-capsule .total { color: var(--text-muted); font-size: 0.9rem; }
           
-          .study-viewport { flex: 1; overflow-y: auto; padding: 40px 20px; background: radial-gradient(circle at 50% 0%, var(--bg-elevated) 0%, var(--bg-main) 100%); user-select: text !important; -webkit-user-select: text !important; }
+          .study-viewport { flex: 1; overflow-y: auto; padding: 22px 8px; background: radial-gradient(circle at 50% 0%, var(--bg-elevated) 0%, var(--bg-main) 100%); user-select: text !important; -webkit-user-select: text !important; }
           .study-content-stack { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; padding-bottom: 40px; }
           
           .study-footer { 
@@ -296,7 +288,7 @@ const PageQuiz = (() => {
             .btn-lg { padding: 12px 25px !important; font-size: 0.85rem !important; }
           }
           .study-block { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px; box-shadow: var(--shadow-sm); }
-          .block-label { font-size: 0.75rem; font-weight: 900; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+          .block-label { font-size: 0.75rem; font-weight: 900; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
           .block-label::before { content: ""; width: 10px; height: 10px; background: var(--accent-primary); border-radius: 3px; rotate: 45deg; }
           .question-block { border-top: 5px solid var(--accent-primary); }
           .answer-block { border-left: 6px solid #10b981; background: rgba(16, 185, 129, 0.02); }
@@ -312,7 +304,7 @@ const PageQuiz = (() => {
           @media (max-width: 768px) {
             .header-center { display: none; }
             .study-nav-header { padding: 0 16px; }
-            .study-footer { padding: 3px;}
+            .study-footer { padding: 9px; 6px;}
             .study-block { padding: 4px; }
           }
         </style>
@@ -814,7 +806,7 @@ const PageQuiz = (() => {
           color:${isActive ? "#fff" : "var(--text-secondary)"};
           transition:all .15s;
         `;
-        if (ans.flagged) btn.style.borderColor = "var(--color-warn)";
+        if (ans.flagged) btn.style.backgroundColor = "var(--color-warn)";
         btn.onclick = () => jumpTo(i);
         nav.appendChild(btn);
       }
@@ -1044,7 +1036,7 @@ const PageQuiz = (() => {
              <p style="margin:4px 0 0 0; font-size:20px; font-weight:800;">${qs.length}</p>
            </div>
            <div style="text-align:center; border-left:1px solid #e2e8f0; border-right:1px solid #e2e8f0;">
-             <p style="margin:0; font-size:10px; color:#64748b; text-transform:uppercase; font-weight:700;">Subject</p>
+             <p style="margin:0; font-size:10px; color:#64748b; text-transform:uppercase; font-weight:700;">Topic</p>
              <p style="margin:4px 0 0 0; font-size:14px; font-weight:700;">${quiz.config?.category || "General"}</p>
            </div>
            <div style="text-align:center;">
@@ -1082,7 +1074,7 @@ const PageQuiz = (() => {
                 `}
               </div>
 
-              ${explanation ? `<div style="margin:15px 0 0 40px; font-size:12px; color:#475569; background:#fffbeb; border:1px dashed #f59e0b; padding:10px; border-radius:6px;"><b>Strategy & Solution:</b> ${explanation}</div>` : ""}
+              ${explanation ? `<div style="margin:15px 0 0 40px; font-size:12px; color:#475569; background:#fffbeb; border:1px dashed #f59e0b; padding:10px; border-radius:6px;"><b>Solution:</b> ${explanation}</div>` : ""}
             </div>
           `;
         }).join("")}
@@ -1130,9 +1122,9 @@ const PageQuiz = (() => {
   function startActiveTest() {
      const quiz = State.get("quiz");
      const qs = [...quiz.questions];
-     const title = (quiz.config.title || "Subject Test") + " (Post-Study)";
+     const title = (quiz.config.title || "Topic Test") + " (Post-Study)";
      
-     UI.setLoading(true, "Launching Testing Session...");
+     UI.setLoading(true, "Launching Memory Session...");
      
      // Deep reset but keep questions
      State.set("quiz", {
@@ -1150,7 +1142,7 @@ const PageQuiz = (() => {
         _navigating = false;
         UI.pushPage("quiz");
         UI.setLoading(false);
-        UI.toast(`Testing Session: ${title}`, "success");
+        UI.toast(`Memory Session: ${title}`, "success");
      }, 1000);
   }
 

@@ -276,7 +276,7 @@ const PageResult = (() => {
     };
 
     return `
-      <div class="card" style="padding:var(--sp-lg); margin-top:var(--sp-lg); border-radius:16px; border:1px solid var(--border-color); background:var(--bg-elevated)">
+      <div class="card" style="padding:var(--sp-xs); margin-top:var(--sp-lg); border-radius:4px; border:1px solid var(--border-color); background:var(--bg-elevated)">
         <h3 class="chart-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-size:0.9rem; letter-spacing:1px">
           <span>🕒 TIME-WARP HEATMAP</span>
           <span style="font-size:0.7rem; font-weight:500; opacity:0.6">Analysis of question-wise cognitive load</span>
@@ -363,7 +363,7 @@ const PageResult = (() => {
               </div>
 
               <div style="margin-top:24px; display:flex; gap:12px;flex-wrap: wrap;justify-content: center;">
-                 <button class="btn btn-primary btn-sm" onclick="PageResult.downloadReport()" style="background:var(--accent-primary); color:#000; border:none; font-weight:800; border-radius:12px; padding:10px 20px">
+                 <button class="btn btn-primary btn-sm" onclick="PageResult.downloadReport()" style="background:var(--accent-primary); border:none; font-weight:800; border-radius:4px; padding:10px 20px">
                    📥 Download Report
                  </button>
                </div>
@@ -438,6 +438,13 @@ const PageResult = (() => {
            </div>
         </div>
 
+        <div class="dash-actions" style="display:flex;justify-content:center;">
+           <button class="btn btn-primary btn-sm" onclick="PageResult.challengeFriend()">⚔️ Challenge</button>
+           <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleShare()">🔗 Share</button>
+           <button class="btn btn-ghost btn-sm hidden" onclick="PageResult.downloadPDF()">📥 PDF</button>
+           <button class="btn btn-ghost btn-sm hidden" onclick="PageResult.downloadCSV()">📊 CSV</button>
+        </div>
+
         <!-- ── TABS NAVIGATION ── -->
         <div class="dash-nav-with-actions">
           <div class="dash-tabs" id="result-tabs">
@@ -458,12 +465,6 @@ const PageResult = (() => {
                     </button>
                   `).join("");
              })()}
-           </div>
-           <div class="dash-actions">
-              <button class="btn btn-primary btn-sm" onclick="PageResult.challengeFriend()">⚔️ Challenge</button>
-              <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleShare()">🔗 Share</button>
-              <button class="btn btn-ghost btn-sm hidden" onclick="PageResult.downloadPDF()">📥 PDF</button>
-              <button class="btn btn-ghost btn-sm hidden" onclick="PageResult.downloadCSV()">📊 CSV</button>
            </div>
         </div>
 
@@ -857,7 +858,7 @@ const PageResult = (() => {
         </div>
       </div>
 
-      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(480px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
+      <div class="dash-charts-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(580px, 1fr));gap:var(--sp-md);margin-bottom:var(--sp-lg)">
         <div class="chart-card"><h3 class="chart-label">Success Distribution</h3><div class="chart-box"><canvas id="chart-answers"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Complexity vs Time (Cognitive Workload)</h3><div class="chart-box"><canvas id="chart-cognitive-workload"></canvas></div></div>
         <div class="chart-card"><h3 class="chart-label">Domain Mastery Profile</h3><div class="chart-box"><canvas id="chart-categories"></canvas></div></div>
@@ -1990,7 +1991,6 @@ const PageResult = (() => {
     const title = quiz.config?.title || "PrepQuick Results";
     
     UI.setLoading(true, "Generating Performance Report...");
-
     const html = `
       <div style="padding:40px; font-family:'Sora', sans-serif; color:#1a202c; background:#fff;">
         <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:3px solid #7c4dff; padding-bottom:20px; margin-bottom:40px;">
@@ -2004,7 +2004,7 @@ const PageResult = (() => {
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-bottom:40px;">
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:15px; margin-bottom:40px;">
            <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center; border:1px solid #e2e8f0;">
              <p style="margin:0; font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Score</p>
              <p style="margin:4px 0 0 0; font-size:24px; font-weight:900; color:#7c4dff;">${score.accuracy}%</p>
@@ -2017,6 +2017,10 @@ const PageResult = (() => {
              <p style="margin:0; font-size:10px; color:#991b1b; font-weight:800; text-transform:uppercase;">Wrong</p>
              <p style="margin:4px 0 0 0; font-size:24px; font-weight:900; color:#dc2626;">${score.wrong}</p>
            </div>
+           <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center; border:1px solid #e2e8f0;">
+            <p style="margin:0; font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Skipped</p>
+            <p style="margin:4px 0 0 0; font-size:24px; font-weight:900; color:#7c4dff;">${score.skipped}%</p>
+          </div>
            <div style="background:#f1f5f9; padding:15px; border-radius:12px; text-align:center; border:1px solid #e2e8f0;">
              <p style="margin:0; font-size:10px; color:#475569; font-weight:800; text-transform:uppercase;">Time</p>
              <p style="margin:4px 0 0 0; font-size:20px; font-weight:900;">${Math.floor(score.timeTaken/60)}m ${score.timeTaken%60}s</p>
@@ -2035,13 +2039,14 @@ const PageResult = (() => {
             <div style="margin-bottom:32px; page-break-inside:avoid; border-left:4px solid ${isCorrect ? "#22c55e" : "#ef4444"}; padding-left:16px;">
               <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                  <div style="font-size:14px; font-weight:700;">Question ${i+1}</div>
-                 <div style="font-size:11px; font-weight:800; color:${isCorrect ? "#16a34a" : "#dc2626"}; text-transform:uppercase;">${isCorrect ? "Correct" : "Incorrect"}</div>
+                 <div style="font-size:11px; font-weight:800; color:${isCorrect ? "#16a34a" : "#dc2626"}; text-transform:uppercase;">${isCorrect ? "Correct" : " "}</div>
               </div>
               <div style="font-size:14px; margin-bottom:12px;">${q.Question}</div>
               
               <div style="font-size:12px; margin-bottom:10px; color:#64748b;">
                  <b>Your Answer:</b> ${ua || "Skipped"} <br/>
-                 <b>Correct Answer:</b> ${correctVal}
+                 <b>Correct Answer:</b> ${correctVal} <br/><hr/>
+                 <b>Way to Solver:</b>  ${q.Solution}
               </div>
 
               ${q.Explanation ? `<div style="font-size:11px; color:#475569; background:#f8fafc; padding:8px; border-radius:4px; margin-top:10px;"><b>Explanation:</b> ${q.Explanation}</div>` : ""}
@@ -2053,6 +2058,7 @@ const PageResult = (() => {
           Generated exclusively for PrepQuick Users. Performance tracking enabled.
         </div>
       </div>
+      <br/><br/><br/><br/><br/><br/>
     `;
 
     const opt = {
@@ -2060,7 +2066,7 @@ const PageResult = (() => {
       filename: `Report_${title.replace(/\s+/g, '_')}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
     };
 
     html2pdf().set(opt).from(html).save().then(() => {
