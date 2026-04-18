@@ -272,7 +272,7 @@ ol {
 .card-elevated {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xs);
   padding: var(--sp-md);
   box-shadow: var(--shadow-sm);
 }
@@ -678,7 +678,7 @@ select.form-control {
   display: flex;
   flex-direction: column;
   gap: var(--sp-sm);
-  z-index: 99999;
+  z-index: 999999;
   max-width: 320px;
 }
 
@@ -1265,7 +1265,7 @@ select.form-control {
   background: var(--bg-elevated);
   padding: 9px 14px;
   text-align: left;
-  font-size: 1.3rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: .07em;
   text-transform: uppercase;
@@ -2545,4 +2545,5 @@ body button.q-nav-dot {
   background-color: unset !important;
   padding: 10px !important;
   font-size: 0.9rem !important;
+  overflow-x: auto;
 }

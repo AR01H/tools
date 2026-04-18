@@ -12,7 +12,13 @@ const UI = (() => {
     el.innerHTML = `<span style="font-size:1.1rem">${
       icons[type] || "ℹ"
     }</span><span class="toast-msg">${msg}</span>`;
-    document.getElementById("toast-container").appendChild(el);
+    let container = document.getElementById("toast-container");
+    if (!container) {
+       container = document.createElement("div");
+       container.id = "toast-container";
+       document.body.appendChild(container);
+    }
+    container.appendChild(el);
     setTimeout(() => (el.style.opacity = "0"), duration);
     setTimeout(() => el.remove(), duration + 300);
   }
@@ -365,14 +371,24 @@ const UI = (() => {
     if (!menu) return;
     
     const activeId = State.get('folderId');
-    const activeGroup = ENV.folders.find(f => f.id === activeId) || ENV.folders[0];
+    const groups = State.get('groups');
+    const activeGroup = groups.find(f => f.id === activeId) || groups[0];
     if (label) label.textContent = activeGroup.name;
 
-    menu.innerHTML = ENV.folders.map(f => `
+    let html = groups.map(f => `
       <div class="menu-item ${f.id === activeId ? 'active' : ''}" onclick="UI.changeGroup('${f.id}')">
         ${f.name}
       </div>
     `).join('');
+
+    html += `
+      <div class="menu-divider" style="height:1px; background:var(--border-color); margin:8px 0"></div>
+      <div class="menu-item" style="color:var(--accent-primary); font-weight:800; text-align:center" onclick="UI.openGroupManager()">
+        ⚙ MANAGE SETS
+      </div>
+    `;
+
+    menu.innerHTML = html;
   }
 
   function toggleGroupMenu(e) {
@@ -388,8 +404,19 @@ const UI = (() => {
   }
 
   function changeGroup(folderId) {
+    const groups = State.get('groups');
+    const group = groups.find(g => g.id === folderId);
+    
     State.set('folderId', folderId);
-    toast('Group switched! Syncing...', 'info', 1000);
+    if (group && group.scriptUrl) {
+       State.set('scriptUrl', group.scriptUrl);
+       toast('Custom Script Active for this Set!', 'success', 2000);
+    } else {
+       // Reset to global default if no override
+       State.set('scriptUrl', localStorage.getItem('prepquiz_quiz_scriptUrl') || ENV.scriptUrl);
+    }
+
+    toast('Group switched! Syncing content...', 'info', 1000);
     setTimeout(() => location.reload(), 1000);
   }
 
@@ -397,8 +424,107 @@ const UI = (() => {
     const label = document.getElementById('active-group-label');
     if (!label) return;
     const activeId = State.get('folderId');
-    const activeGroup = ENV.folders.find(f => f.id === activeId) || ENV.folders[0];
+    const groups = State.get('groups');
+    const activeGroup = groups.find(f => f.id === activeId) || groups[0];
     if (activeGroup) label.textContent = activeGroup.name;
+  }
+
+  // ── Group Manager ──────────────────────────────────────────
+  function openGroupManager() {
+    const groups = State.get('groups');
+    const html = `
+      <div style="padding: 10px">
+        <h3 style="font-size:1.4rem; font-weight:900; margin-bottom:12px">Manage Choice Sets</h3>
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:20px">Add or edit your Google Script Folder IDs and optional Script URL overrides.</p>
+        
+        <div id="group-list-m" style="display:flex; flex-direction:column; gap:12px; max-height:350px; overflow-y:auto; margin-bottom:20px; padding-right:5px">
+          ${groups.map((g, i) => `
+            <div class="card-elevated" style="padding:6px; position:relative; border:1px solid var(--border-color); background:var(--bg-surface)">
+               <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px">
+                  <div style="font-weight:900; font-size:0.95rem; color:var(--accent-primary)">${g.name}</div>
+                  <button class="icon-btn btn-sm" onclick="UI.removeGroup(${i})" style="color:var(--color-error); padding:4px">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+               </div>
+               <div style="font-size:0.7rem; font-family:var(--font-mono); opacity:0.6; overflow:hidden; text-overflow:ellipsis">FOLDER: ${g.id}</div>
+               ${g.scriptUrl ? ` <div style="font-size:0.6rem; color:var(--color-success); margin-top:6px; font-weight:800; display:flex; align-items:center; gap:4px">
+                  <svg width="10" height="10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  CUSTOM SCRIPT OVERRIDE ACTIVE
+               </div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+
+        <button class="btn btn-primary btn-outline btn-sm" onclick="UI.showAddGroupForm()" style="width:100%; border-style:dashed; margin-bottom:24px; border-radius:12px; height:44px; font-weight:800">+ Add New Location</button>
+
+        <div style="text-align:right">
+          <button class="btn btn-secondary" onclick="UI.closeModal()">Close</button>
+        </div>
+      </div>
+    `;
+    modal(html);
+  }
+
+  function showAddGroupForm() {
+    const html = `
+      <div style="padding: 10px">
+        <h3 style="font-size:1.4rem; font-weight:900; margin-bottom:12px">Add New Set</h3>
+        
+        <div class="form-group" style="margin-bottom:16px">
+           <label class="pro-label">SET NAME</label>
+           <input type="text" id="new-g-name" class="pro-input" placeholder="e.g. Science Mastery">
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px">
+           <label class="pro-label">FOLDER ID</label>
+           <input type="text" id="new-g-id" class="pro-input" placeholder="Google Drive Folder ID">
+        </div>
+
+        <div class="form-group" style="margin-bottom:24px">
+           <label class="pro-label">CUSTOM SCRIPT URL (OPTIONAL)</label>
+           <input type="text" id="new-g-script" class="pro-input" placeholder="Leave blank to use global default">
+           <p style="font-size:0.65rem; color:var(--text-muted); margin-top:8px">Use this if this particular folder requires a different processing script.</p>
+        </div>
+
+        <div style="display:flex; gap:12px; justify-content:flex-end">
+          <button class="btn btn-secondary" onclick="UI.openGroupManager()">Cancel</button>
+          <button class="btn btn-primary" onclick="UI.addGroup()">Save Location</button>
+        </div>
+      </div>
+    `;
+    modal(html);
+  }
+
+  function addGroup() {
+    const name = document.getElementById('new-g-name').value.trim();
+    const id = document.getElementById('new-g-id').value.trim();
+    const scriptUrl = document.getElementById('new-g-script').value.trim();
+
+    if (!name || !id) {
+       toast('Name and Folder ID are required', 'warn');
+       return;
+    }
+
+    const groups = State.get('groups');
+    groups.push({ name, id, scriptUrl: scriptUrl || undefined });
+    State.set('groups', groups);
+
+    toast('New location added!', 'success');
+    openGroupManager();
+    populateGroupSelect();
+  }
+
+  function removeGroup(idx) {
+    const groups = State.get('groups');
+    if (groups.length <= 1) {
+       toast('At least one location is required', 'warn');
+       return;
+    }
+    
+    groups.splice(idx, 1);
+    State.set('groups', groups);
+    openGroupManager();
+    populateGroupSelect();
   }
 
   // Global click management
@@ -479,6 +605,10 @@ const UI = (() => {
     toggleGroupMenu,
     toggleNavMenu,
     updateGroupLabel,
+    openGroupManager,
+    showAddGroupForm,
+    addGroup,
+    removeGroup,
     speak,
     stopSpeaking,
     typewriter,

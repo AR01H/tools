@@ -68,7 +68,13 @@ const PageQuiz = (() => {
       ? `<button class="btn btn-ghost btn-sm" id="pause-btn" onclick="PageQuiz.togglePause()" title="Pause">⏸</button>`
       : "";
 
-    let layout; 
+    const showInstant = (cfg["Instant Answer"] || "Off") === "On";
+    const revealBtnHTML = (showInstant && tmpl !== 'study')
+       ? `<button class="btn btn-warning btn-sm" id="btn-reveal" onclick="QuestionRenderer.revealAnswer()" 
+                  style="border-radius:6px; font-weight:800; background:#f59e0b; color:#fff; border:none; padding:8px 16px; box-shadow:0 4px 15px rgba(245,158,11,0.3); display:none; align-items:center; gap:8px">🔍 REVEAL ANSWER</button>`
+       : "";
+
+    let layoutHtml; 
     // 1. Standard Design (Image 1)
     // ─────────────────────────────────────────────────────────
     if (tmpl === "sat") {
@@ -126,6 +132,7 @@ const PageQuiz = (() => {
                   </div>
                   <div class="grid-right" style="display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 20px !important;">
                      ${actionsHTML}
+                     ${revealBtnHTML}
                      <button class="btn btn-primary btn-lg" id="btn-next" onclick="PageQuiz.next()" style=" border-radius:4px !important; font-weight:900 !important; background: #7c4dff !important; color: #fff !important; box-shadow: 0 8px 30px rgba(124, 77, 255, 0.4) !important; border: none !important;">NEXT QUESTION →</button>
                   </div>
                </div>
@@ -156,7 +163,7 @@ const PageQuiz = (() => {
                <div id="q-nav" class="qp-mini-nav"></div>
             </div>
           </div>
-          <div class="quizpro-footer" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; height: 100px !important; z-index: 999999 !important; background: var(--bg-surface) !important; border-top: 1px solid var(--border-color) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important;">
+          <div class="quizpro-footer" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 999999 !important; background: var(--bg-surface) !important; border-top: 1px solid var(--border-color) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important;">
              <div class="footer-wrap" style="display: grid !important; grid-template-columns: 1fr auto 1fr !important; width: 100% !important; max-width: 1400px !important; padding: 0 5px !important; align-items: center !important;">
               <div class="grid-left" style="display: flex !important; justify-content: flex-start !important;">
                 <button class="btn btn-secondary btn-sm" id="btn-prev" onclick="PageQuiz.prev()" ${ !allowBack ? "disabled" : ""}>← PREVIOUS</button>
@@ -168,7 +175,8 @@ const PageQuiz = (() => {
               </div>
               <div class="grid-right" style="display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 20px !important;">
                  ${actionsHTML}
-                 <button class="btn btn-primary btn-lg" id="btn-next" onclick="PageQuiz.next()" style="min-width:160px !important; background:var(--accent-primary) !important; color:#000 !important; font-weight:900 !important; border:none !important; border-radius:10px !important;">NEXT →</button>
+                 ${revealBtnHTML}
+                 <button class="btn btn-primary btn-lg" id="btn-next" onclick="PageQuiz.next()" style="background:var(--accent-primary) !important; color:#000 !important; font-weight:900 !important; border:none !important; border-radius:10px !important;">NEXT →</button>
               </div>
              </div>
           </div>
@@ -205,10 +213,6 @@ const PageQuiz = (() => {
                 <div class="study-block question-block">
                    <div class="block-label">PROBLEM STATEMENT</div>
                    <div id="question-panel" style="font-size:1.15rem; font-weight:500"></div>
-                </div>
-                <div class="study-block rationale-block">
-                   <div class="block-label">DETAILED STRATEGY & RATIONALE</div>
-                   <div id="study-explanation" class="study-val" style="color:var(--text-secondary)"></div>
                 </div>
              </div>
           </div>
@@ -326,7 +330,7 @@ const PageQuiz = (() => {
             <button class="btn btn-ghost btn-sm" id="btn-prev" onclick="PageQuiz.prev()" ${
               !allowBack ? "disabled" : ""
             }>← Back</button>
-            <div style="display:flex;gap:var(--sp-sm)">${actionsHTML}<button class="btn btn-primary btn-sm" id="btn-next" onclick="PageQuiz.next()">Next →</button></div>
+            <div style="display:flex;gap:var(--sp-sm)">${actionsHTML}${revealBtnHTML}<button class="btn btn-primary btn-sm" id="btn-next" onclick="PageQuiz.next()">Next →</button></div>
           </div>
         </div>`;
     }
@@ -568,6 +572,9 @@ const PageQuiz = (() => {
     const q = quiz.questions[quiz.currentIdx];
     if (!q) return;
 
+    const nextBtn = document.getElementById("btn-next");
+    const prevBtn = document.getElementById("btn-prev");
+
     // --- Voice Constraint Logic ---
     const qType = (q["Question Type"] || "Multichoice").trim();
     const isVoiceSupported = ["Multichoice", "Multi Multichoice", "Multichoice Anycorrect", "True/False"].includes(qType) && quiz.template !== 'study';
@@ -638,14 +645,22 @@ const PageQuiz = (() => {
     const qpAns = document.getElementById("qp-ans-count");
     if (qpAns) qpAns.textContent = totalAns;
 
-    // Mark/flag UI
-    const ans = quiz.answers[quiz.currentIdx] || {};
-    const markBtn = document.getElementById("mark-btn");
-    if (markBtn) markBtn.style.color = ans.flagged ? "var(--color-warn)" : "";
+    if (nextBtn && quiz.template === 'study') {
+       const isLast = quiz.currentIdx === quiz.questions.length - 1;
+       nextBtn.innerHTML = isLast ? "TAKE TEST 🚀" : "NEXT →";
+       nextBtn.className = isLast ? "btn btn-primary btn-lg pulse-highlight" : "btn btn-primary btn-lg";
+    }
 
     if (quiz.template === 'study') {
+       // Mark as revealed automatically for Study Mode
+       if (!quiz.revealedIdxs) quiz.revealedIdxs = {};
+       quiz.revealedIdxs[quiz.currentIdx] = true;
+
        // Auto-populate correct answers for Learning Mode
-       if (!quiz.answers[quiz.currentIdx]) {
+       const curAn = (quiz.answers || {})[quiz.currentIdx];
+       const isEmp = !curAn || !curAn.userAnswer || curAn.userAnswer === "{}" || (Array.isArray(curAn.userAnswer) && curAn.userAnswer.length === 0);
+       
+       if (isEmp) {
          const correctVal = Results.getCorrectAnswer(q);
          const type = (q["Question Type"] || "").trim();
          
@@ -666,6 +681,22 @@ const PageQuiz = (() => {
              });
              processed = JSON.stringify(map);
            } catch(e) {}
+         } else if (type === "Drag & Drop" && typeof correctVal === 'string') {
+            const map = {};
+            correctVal.split("|").forEach(p => {
+               const parts = p.split(/[:\-\u2192]/);
+               if (parts.length >= 2) {
+                  const label = parts[0].trim();
+                  const cat = parts[1].trim();
+                  if (!map[cat]) map[cat] = [];
+                  map[cat].push(`${label}-${cat}`);
+               }
+            });
+            processed = JSON.stringify(map);
+         } else if (type === "Matching") {
+            processed = correctVal || "";
+         } else if (type === "Sequence") {
+            processed = typeof correctVal === 'string' ? correctVal.split("|").map(s => s.trim()) : correctVal;
          }
          
          quiz.answers[quiz.currentIdx] = {
@@ -676,6 +707,22 @@ const PageQuiz = (() => {
        }
     }
 
+    const revealBtn = document.getElementById("btn-reveal");
+    if (revealBtn) {
+       const showInstant = (quiz.config["Instant Answer"] || "Off") === "On";
+       const isRevealed = !!(quiz.revealedIdxs || {})[quiz.currentIdx];
+       revealBtn.style.display = (showInstant && quiz.template !== 'study') ? "inline-flex" : "none";
+       revealBtn.disabled = isRevealed;
+       revealBtn.style.opacity = isRevealed ? "0.5" : "1";
+       revealBtn.innerHTML = isRevealed ? "✓ REVEALED" : "🔍 REVEAL ANSWER";
+    }
+
+    // Mark/flag UI
+    const markBtn = document.getElementById("mark-btn");
+    const qAns = quiz.answers[quiz.currentIdx] || {};
+    if (markBtn) markBtn.style.color = qAns.flagged ? "var(--color-warn)" : "";
+
+    // Render question content
     // Render question content
     const el = document.getElementById("question-panel");
     if (el) el.innerHTML = `<div class="p-xl text-center"><div class="spinner"></div></div>`;
@@ -683,10 +730,8 @@ const PageQuiz = (() => {
     // Reset navigation lock on render completion with a small debounce
     setTimeout(() => {
        _navigating = false;
-       const nextBtn = document.getElementById("btn-next");
-       const prevBtn = document.getElementById("btn-prev");
        if (nextBtn) nextBtn.disabled = false;
-       if (prevBtn) prevBtn.disabled = (quiz.currentIdx === 0 && !quiz.isAdaptive);
+       if (prevBtn) prevBtn.disabled = (quiz.currentIdx === 0 && !quiz.isAdaptive || (quiz.config["Allow Back"] === "Off"));
     }, 600);
 
     QuestionRenderer.render(el, q, quiz.currentIdx);
@@ -697,8 +742,6 @@ const PageQuiz = (() => {
     // Navigation state
     const cfg = quiz.config;
     const allowBack = (cfg["Allow Back"] || "On") === "On";
-    const prevBtn = document.getElementById("btn-prev");
-    const nextBtn = document.getElementById("btn-next");
     if (prevBtn) prevBtn.disabled = !allowBack || quiz.currentIdx === 0;
     const isLast = quiz.currentIdx === quiz.questions.length - 1;
     
@@ -796,11 +839,20 @@ const PageQuiz = (() => {
         UI.toast("Answer is mandatory before proceeding", "warn");
         _navigating = false;
         if (nextBtn) nextBtn.disabled = false;
-        if (prevBtn) prevBtn.disabled = false;
+        if (prevBtn) prevBtn.disabled = (quiz.currentIdx === 0 && !quiz.isAdaptive);
         return;
       }
     }
 
+    // Lock the current question before moving away
+    if ((cfg["Allow Option Change"] || "On") === "Off") {
+       if (!quiz.lockedIdxs) quiz.lockedIdxs = {};
+       quiz.lockedIdxs[quiz.currentIdx] = true;
+    }
+
+    // Navigation and Scoring
+    UI.stopSpeaking();
+    
     if (quiz.isAdaptive && quiz.currentIdx === quiz.questions.length - 1) {
        if (quiz.adaptivePool && quiz.adaptivePool.length > quiz.questions.length) {
           const lastAns = quiz.answers[quiz.currentIdx];
@@ -825,6 +877,10 @@ const PageQuiz = (() => {
     }
 
     if (quiz.currentIdx >= quiz.questions.length - 1) {
+      if (quiz.template === 'study') {
+         startActiveTest();
+         return;
+      }
       if ((cfg["Auto Submit"] || "Off") === "On") submit();
       else confirmSubmit();
     } else {
@@ -860,6 +916,13 @@ const PageQuiz = (() => {
        return;
     }
     saveCurrentAnswer();
+    
+    // Lock current index before jumping away
+    if ((cfg["Allow Option Change"] || "On") === "Off") {
+       if (!quiz.lockedIdxs) quiz.lockedIdxs = {};
+       quiz.lockedIdxs[quiz.currentIdx] = true;
+    }
+
     State.merge("quiz", { currentIdx: idx });
     renderQuestion();
   }
@@ -1058,8 +1121,30 @@ const PageQuiz = (() => {
   }
 
   function startActiveTest() {
-     UI.toast("Switching to active test mode...", "info");
-     // Implementation pending
+     const quiz = State.get("quiz");
+     const qs = [...quiz.questions];
+     const title = (quiz.config.title || "Subject Test") + " (Post-Study)";
+     
+     UI.setLoading(true, "Launching Testing Session...");
+     
+     // Deep reset but keep questions
+     State.set("quiz", {
+       ...quiz,
+       questions: qs,
+       answers: {},
+       revealedIdxs: {},
+       currentIdx: 0,
+       startTime: Date.now(),
+       config: { ...quiz.config, "Instant Answer": "Off", "Instant Verification": "Off", "Auto Next": "Off" },
+       template: "sat" 
+     });
+     
+     setTimeout(() => {
+        _navigating = false;
+        render(document.getElementById("app"));
+        UI.setLoading(false);
+        UI.toast(`Testing Session: ${title}`, "success");
+     }, 1000);
   }
 
   function showJumpMenu() {
@@ -1158,7 +1243,7 @@ const PageQuiz = (() => {
     }
   }
 
-  return { render, init, next, prev, jumpTo, showJumpMenu, toggleMark, showHint, togglePause, confirmSubmit, submit, downloadStudyPDF, toggleVoice, startActiveTest, handleConsoleCommand, toggleConsole };
+  return { render, init, next, prev, jumpTo, showJumpMenu, toggleMark, showHint, togglePause, confirmSubmit, submit, downloadStudyPDF, toggleVoice, startActiveTest, handleConsoleCommand, toggleConsole, saveCurrentAnswer };
 })();
 
 function fmtTime(sec) {

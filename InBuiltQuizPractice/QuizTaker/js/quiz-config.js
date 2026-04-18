@@ -60,6 +60,12 @@ const PageSetupConfig = (() => {
       opts: ["On", "Off"],
     },
     {
+      key: "Instant Answer",
+      label: "Instant Feedback",
+      type: "select",
+      opts: ["Off", "On"],
+    },
+    {
       key: "Mark for Review",
       label: "Mark for Review",
       type: "select",
@@ -185,7 +191,12 @@ const PageSetupConfig = (() => {
     document
       .querySelectorAll("#preset-chips .preset-card")
       .forEach((c) => c.classList.remove("selected"));
-    el.classList.add("selected");
+    el.classList.toggle("selected");
+    
+    // Hard save for Sticky state
+    if (typeof PageQuiz !== 'undefined' && PageQuiz.saveCurrentAnswer) {
+       PageQuiz.saveCurrentAnswer();
+    }
     State.merge("setup", { quizConfig: name });
     renderConfigDetail(name);
     document.getElementById("start-btn").disabled = false;
@@ -200,11 +211,12 @@ const PageSetupConfig = (() => {
         <div class="config-grid">
           ${PRESET_FIELDS.map(
             (f) => `
-            <div class="config-item ${f.classnanme || ""}">
+            <div class="config-item ${f.classnanme || ""}" id="item-${f.key.replace(/\s+/g,'')}">
               <label class="config-label">${f.label}</label>
               ${
                 f.type === "select"
-                  ? `<select id="cfg-${f.key.replace(/\s+/g, '')}" class="form-control" style="background:none; border:none; padding:0; font-weight:900; font-size:1.1rem">
+                  ? `<select id="cfg-${f.key.replace(/\s+/g, '')}" class="form-control" style="background:none; border:none; padding:0; font-weight:900; font-size:1.1rem"
+                      onchange="ConfigManager.handleFieldChange('${f.key}')">
                      ${f.opts.map((o) => `<option>${o}</option>`).join("")}
                    </select>`
                   : `<input id="cfg-${f.key.replace(/\s+/g, '')}" class="form-control" type="${f.type}" value="0" style="background:none; border:none; padding:0; font-weight:900; font-size:1.1rem">`
@@ -212,6 +224,22 @@ const PageSetupConfig = (() => {
             </div>`
           ).join("")}
         </div>
+        <script>
+          window.ConfigManager = {
+            handleFieldChange(key) {
+               if (key === "Instant Answer") {
+                  const val = document.getElementById("cfg-InstantAnswer").value;
+                  const autoNext = document.getElementById("item-AutoNextQuestion");
+                  if (val === "On") {
+                     document.getElementById("cfg-AutoNextQuestion").value = "Off";
+                     if (autoNext) autoNext.style.opacity = "0.4";
+                  } else {
+                     if (autoNext) autoNext.style.opacity = "1";
+                  }
+               }
+            }
+          }
+        </script>
       `;
     } else {
       const cfg = configs.find((c) => c["Quiz Settings Title"] === name) || {};
@@ -380,7 +408,7 @@ const PageSetupTemplate = (() => {
                     🧠 Study Mode
                  </button>
                  <button class="btn-launch-pro" id="launch-btn" onclick="PageSetupTemplate.launchQuiz()">
-                    🚀 Launch Session
+                    🚀 Launch Quiz
                  </button>
               </div>
            </div>

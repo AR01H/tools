@@ -4,15 +4,27 @@
 // ============================================================
 
 const State = (() => {
+  // ── Migration ──
+  const OLD_P = 'quiz_';
+  const NEW_P = 'prepquiz_quiz_';
+  ['scriptUrl','folderId','theme','personalFields','groups'].forEach(k => {
+    const old = localStorage.getItem(OLD_P + k);
+    if (old !== null && localStorage.getItem(NEW_P + k) === null) {
+      localStorage.setItem(NEW_P + k, old);
+      localStorage.removeItem(OLD_P + k);
+    }
+  });
+
   const _state = {
     // ── Config ─────────────────────────
-    scriptUrl: localStorage.getItem('quiz_scriptUrl') || ENV.scriptUrl,
-    folderId:  localStorage.getItem('quiz_folderId')  || ENV.folders[0].id,
-    theme:     localStorage.getItem('quiz_theme')     || 'dark',
-    personalFields: JSON.parse(localStorage.getItem('quiz_personalFields') || '["name","dob","email"]'),
+    scriptUrl: localStorage.getItem(NEW_P + 'scriptUrl') || ENV.scriptUrl,
+    folderId:  localStorage.getItem(NEW_P + 'folderId')  || ENV.folders[0].id,
+    theme:     localStorage.getItem(NEW_P + 'theme')     || 'dark',
+    personalFields: JSON.parse(localStorage.getItem(NEW_P + 'personalFields') || '["name","dob","email"]'),
+    groups:         JSON.parse(localStorage.getItem(NEW_P + 'groups') || JSON.stringify(ENV.folders)),
 
     // ── User Session ───────────────────
-    user: JSON.parse(sessionStorage.getItem('quiz_user') || 'null'),
+    user: JSON.parse(sessionStorage.getItem(NEW_P + 'user') || 'null'),
 
     // ── Data ───────────────────────────
     topics:      [],
@@ -66,11 +78,11 @@ const State = (() => {
     const prev = _state[key];
     _state[key] = value;
     // Persist certain keys
-    if (['scriptUrl','folderId','theme','personalFields'].includes(key)) {
-      localStorage.setItem('quiz_' + key, typeof value === 'string' ? value : JSON.stringify(value));
+    if (['scriptUrl','folderId','theme','personalFields','groups'].includes(key)) {
+      localStorage.setItem('prepquiz_quiz_' + key, typeof value === 'string' ? value : JSON.stringify(value));
     }
     if (key === 'user') {
-      sessionStorage.setItem('quiz_user', JSON.stringify(value));
+      sessionStorage.setItem('prepquiz_quiz_' + key, JSON.stringify(value));
     }
     (_listeners[key] || []).forEach(fn => fn(value, prev));
     (_listeners['*'] || []).forEach(fn => fn(key, value, prev));
@@ -92,6 +104,7 @@ const State = (() => {
         active:false, questions:[], currentIdx:0, answers:{},
         startTime:null, pauseTime:null, totalPaused:0,
         attemptId:null, fileId:null, resultFileId:null, config:{},
+        revealedIdxs: {},
       });
     }
     if (key === 'setup') {

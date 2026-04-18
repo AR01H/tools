@@ -109,11 +109,46 @@ const Results = (() => {
   }
 
   function getCorrectAnswer(q) {
-    const keys = ["Correct Answer", "Correct Key", "Answer", "True Answer", "Solution Key"];
-    for (let k of Object.keys(q)) {
-      if (keys.some(v => v.toLowerCase() === k.toLowerCase())) return q[k];
+    const type = (q["Question Type"] || "").trim();
+    const rawCorrect = q["Correct Answer"] || "";
+    const choices = Results.getChoices(q);
+
+    // 1. If we have a real answer string that isn't just a placeholder
+    if (rawCorrect && !rawCorrect.toLowerCase().includes("all correct")) {
+       return rawCorrect;
     }
-    return q["Correct Answer"] || "";
+
+    // 2. Fallback for Multi Matching
+    if (type === "Multi Matching") {
+      const map = {};
+      choices.forEach(c => {
+         const parts = c.split(/[:\-\u2192]/);
+         if (parts.length >= 2) {
+            const left = parts[0].trim();
+            const tags = parts.slice(1).map(p => p.trim());
+            map[left] = tags;
+         }
+      });
+      return JSON.stringify(map);
+    }
+
+    // 3. Fallback for Matching / Drag & Drop / Categorization
+    if (type === "Matching" || type === "Drag & Drop" || type === "Categorization") {
+      // Check if choices contain pairs: "A - B"
+      const pairs = choices.filter(c => c.includes("-") || c.includes(":") || c.includes("\u2192"));
+      if (pairs.length > 0) return pairs.join("|");
+
+      // Check for even-odd pairs: choice1 = left, choice2 = right
+      if (choices.length >= 2 && choices.length % 2 === 0) {
+        const built = [];
+        for (let i = 0; i < choices.length; i += 2) {
+          built.push(`${choices[i]}-${choices[i+1]}`);
+        }
+        return built.join("|");
+      }
+    }
+
+    return rawCorrect;
   }
 
   function getQuestionScore(q, userAnswer, cfg) {
