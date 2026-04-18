@@ -55,7 +55,7 @@ const PageQuiz = (() => {
       : "";
 
     const zenToolbar = `
-      <div style="display:flex; gap:8px; margin-left:var(--sp-md)" class="hidden">
+      <div style="display:flex; gap:8px; margin-left:var(--sp-md)" class="">
          <button class="btn btn-ghost btn-sm ${document.body.classList.contains('voice-active') ? 'active' : ''}" id="voice-mode-btn" onclick="QuizEngine.toggleVoice()" title="Toggle Voice Commands">🎙️ Voice</button>
          <button class="btn btn-ghost btn-sm ${document.body.classList.contains('zen-mode') ? 'active' : ''}" id="zen-mode-btn" onclick="QuizEngine.toggleZen()" title="Zen Focus Mode">🧘 Zen</button>
       </div>
