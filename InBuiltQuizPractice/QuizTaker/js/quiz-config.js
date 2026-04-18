@@ -6,7 +6,7 @@
 const PageSetupConfig = (() => {
   const PRESET_FIELDS = [
     { key: "Quiz Time", label: "Total Time (sec)", type: "number" },
-    { key: "Question Time", label: "Per Question Time", type: "number" },
+    { key: "Question Time", label: "Per Question Time", type: "number", className: "hidden" },
     {
       key: "Section Order",
       label: "Section Order",
@@ -292,14 +292,20 @@ const PageSetupConfig = (() => {
 const PageSetupTemplate = (() => {
   const TEMPLATES = [
     {
+      id: "simple",
+      name: "Simple ",
+      desc: "Simple and clean interface for quick quizzes.",
+      icon: "📄",
+    },
+    {
       id: "sat",
-      name: "Standard Design",
-      desc: "Clean academic layout with left question map and purple accents.",
+      name: " Hybrid Standard Design",
+      desc: "Clean academic layout with left question map and purple accents with 🎙️ .",
       icon: "🎓",
     },
     {
       id: "quizpro-dark",
-      name: "QuizPro Studio",
+      name: "Quiz Studio",
       desc: "Dual-pane dark mode interface with teal highlights and deep focus.",
       icon: "🌃",
     }
@@ -307,7 +313,7 @@ const PageSetupTemplate = (() => {
 
   function render(main) {
     const setup = State.get("setup");
-    const selected = setup.template || "default";
+    const selected = setup.template || "sat";
 
     main.innerHTML = `
       <div class="animate-up setup-container" style="max-width:1200px; margin:0 auto; padding: var(--sp-2xl) var(--sp-lg)">
@@ -388,12 +394,12 @@ const PageSetupTemplate = (() => {
 
         .config-grid-layout { display: grid; grid-template-columns: 320px 1fr; gap: 40px; margin-bottom: 120px; }
         
-        .setup-compact-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-sm); }
+        .setup-compact-card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; box-shadow: var(--shadow-sm); }
         .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
         .card-header .dot { width: 8px; height: 8px; background: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-shadow); }
         .card-header h3 { font-size: 0.8rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
         
-        .form-control-pro { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; font-size: 1rem; font-weight: 700; color: var(--text-primary); transition: 0.3s var(--ease); }
+        .form-control-pro { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; font-size: 1rem; font-weight: 700; color: var(--text-primary); transition: 0.3s var(--ease); }
         .form-control-pro:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 4px var(--accent-primary-transparent); outline: none; }
         .input-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; line-height: 1.4; }
 
@@ -456,12 +462,20 @@ const PageSetupTemplate = (() => {
 
       const btn = document.getElementById("launch-btn");
       const studyBtn = document.getElementById("study-launch-btn");
-      
+
+      // Disable both buttons to prevent cross-triggering
+      [btn, studyBtn].forEach(b => {
+        if (b) {
+          b.disabled = true;
+          b.style.opacity = "0.5";
+          b.style.pointerEvents = "none";
+          b.style.cursor = "not-allowed";
+        }
+      });
+
       if (mode === 'study' && studyBtn) {
-         studyBtn.disabled = true;
          studyBtn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Preparing Study Mode...</span>`;
       } else if (btn) {
-         btn.disabled = true;
          btn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Launching Quiz...</span>`;
       }
 
@@ -503,7 +517,7 @@ const PageSetupTemplate = (() => {
         fileId,
         resultFileId,
         config,
-        template: mode === 'study' ? 'study' : (setup.template || "default"),
+        template: mode === 'study' ? 'study' : (setup.template || "sat"),
       });
 
       UI.pushPage("quiz");

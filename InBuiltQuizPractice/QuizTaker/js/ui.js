@@ -76,6 +76,26 @@ const UI = (() => {
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }
 
+  // ── Typewriter Effect ────────────────────────────────────
+  // NOTE: `text` must be plain text (no HTML). For HTML content, animate
+  // plain text then swap innerHTML in the onComplete callback.
+  function typewriter(el, text, speed = 15, onComplete) {
+    if (!el) return;
+    el.textContent = "";
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        el.textContent += text.charAt(i);
+        i++;
+        if (el.scrollHeight > el.clientHeight) el.scrollTop = el.scrollHeight;
+      } else {
+        clearInterval(interval);
+        if (onComplete) onComplete();
+      }
+    }, speed);
+    return interval;
+  }
+
   // ── Speech ────────────────────────────────────────────────
   function speak(text) {
     if (!window.speechSynthesis) {
@@ -120,7 +140,6 @@ const UI = (() => {
   
   // ── Page navigation ───────────────────────────────────────
   function navigate(page, data) {
-    debugger;
     State.set("page", page);
     renderPage(page, data);
     updateNav(page);
@@ -462,6 +481,7 @@ const UI = (() => {
     updateGroupLabel,
     speak,
     stopSpeaking,
+    typewriter,
     confetti
   };
 })();

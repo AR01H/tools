@@ -108,7 +108,7 @@ const QuestionRenderer = (() => {
         </div>
 
         <!-- Question text -->
-        <div style="font-size:1.05rem;font-weight:600;line-height:1.6;color:var(--text-primary)">
+        <div id="q-text-live" style="font-size:1.05rem;font-weight:600;line-height:1.6;color:var(--text-primary)">
           ${renderQuestionText(q)}
         </div>
 
@@ -532,8 +532,25 @@ const QuestionRenderer = (() => {
       </div>`;
   }
 
-  // ── Post render inits ─────────────────────────────────────
+  // ── Post render inits ───────────────────────────────────
   function postRenderInit(q, saved) {
+    // ── Live Typing (Question Text) with HTML-safe rendering ──
+    const qEl = document.getElementById("q-text-live");
+    if (qEl) {
+      const fullHtml = renderQuestionText(q); // full HTML (may contain <b>, <code>, etc.)
+
+      // Extract plain text for animation (so HTML tags don't appear as literals)
+      const tmp = document.createElement("div");
+      tmp.innerHTML = fullHtml;
+      const plainText = tmp.textContent || tmp.innerText || "";
+
+      // Animate plain text, then replace with real HTML on completion
+      UI.typewriter(qEl, plainText, 12, () => {
+        qEl.innerHTML = fullHtml; // Swap to full HTML once typing is done
+      });
+    }
+
+    // ── Original Post-Render Logic ──
     // Instant answer feedback wiring already in renderMCQ
   }
 
@@ -778,7 +795,7 @@ const QuestionRenderer = (() => {
 
     // Auto next
     if ((cfg["Auto Next Question"] || "Off") === "On" && !multi) {
-      setTimeout(() => QuizEngine.next(), 800);
+      setTimeout(() => PageQuiz.next(), 800);
     }
   }
 

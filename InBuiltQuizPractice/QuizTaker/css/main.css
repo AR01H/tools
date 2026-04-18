@@ -1785,7 +1785,7 @@ select.form-control {
   pointer-events: none;
 }
 
-.dash-hero-info { position: relative; z-index: 1; flex: 1.2; }
+.dash-hero-info { position: relative; z-index: 1; flex: 1.2;    text-align: center;    width: 100%; }
 .dash-hero-stats-new { position: relative; z-index: 1; display: flex; align-items: center; gap: 40px; flex: 2; flex-wrap: nowrap; }
 
 .hero-ring-container { flex-shrink: 0; }
@@ -2385,6 +2385,7 @@ select.form-control {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: var(--sp-md);
+  justify-content: center;
 }
 .achievement-badge {
   background: var(--bg-elevated);

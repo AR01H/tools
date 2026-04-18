@@ -20,11 +20,25 @@ const PageWelcome = (() => {
     else if (hour < 17) timeGroup = "afternoon";
     
     const randomGreet = greetings[timeGroup][Math.floor(Math.random() * greetings[timeGroup].length)];
-    const superTitle = user?.name ? `WELCOME BACK • ${timeGroup.toUpperCase()}` : "GET STARTED • JOIN US";
+    const superTitle = user?.name ? `WELCOME BACK` : "GET STARTED • JOIN US";
     const headerTitle = user?.name ? `${randomGreet}, <span class="text-gradient">${user.name.split(' ')[0]}</span>!` : `Welcome to <span class="text-gradient">PrepQuick</span>`;
-    const headerSub = user?.name 
+    const pendingSetup = State.get("setup")?.selectedTopics?.length;
+    const activeChallenge = State.get("activeChallenge");
+
+    let headerSub = user?.name 
       ? "It's great to see you again. Ready to crush your goals today?" 
       : "Launch high-yield practice simulations and master your knowledge.";
+    
+    if (pendingSetup) {
+       headerSub = activeChallenge 
+         ? `<span style="color:var(--accent-primary); font-weight:800">⚔️ Challenge Pending:</span> Beat ${activeChallenge.score}% by ${activeChallenge.challenger}.`
+         : `<span style="color:var(--accent-primary); font-weight:800">🎯 Shared Config:</span> A custom quiz is ready for you to launch.`;
+    }
+
+    let btnText = user?.name ? 'Start Mock Test' : 'Sign In / Register';
+    if (pendingSetup) {
+       btnText = activeChallenge ? '⚔️ Accept Challenge' : '🚀 Launch Shared Quiz';
+    }
 
     main.innerHTML = `
       <div class="animate-up welcome-hero-container">
@@ -63,7 +77,7 @@ const PageWelcome = (() => {
                 <div class="form-group">
                   <label class="pro-label">EMAIL ADDRESS</label>
                   <div class="input-wrapper">
-                    <input type="text" id="reg-identifier" class="pro-input" placeholder="you@example.com" value="${user?.identifier || ''}">
+                    <input type="text" id="reg-identifier" class="pro-input" placeholder="you@example.com" value="${user?.identifier || ''}" onkeydown="if(event.key==='Enter') Dashboard.handleWelcomeAction()">
                     <div class="input-focus-ring"></div>
                   </div>
                 </div>
@@ -71,22 +85,18 @@ const PageWelcome = (() => {
                 <div class="form-group">
                   <label class="pro-label">FULL NAME</label>
                   <div class="input-wrapper">
-                    <input type="text" id="reg-name" class="pro-input" placeholder="Enter your name" value="${user?.name || ''}">
+                    <input type="text" id="reg-name" class="pro-input" placeholder="Enter your name" value="${user?.name || ''}" onkeydown="if(event.key==='Enter') Dashboard.handleWelcomeAction()">
                     <div class="input-focus-ring"></div>
                   </div>
                 </div>
 
                 <div class="action-stack">
                   <button class="btn-launch-primary" onclick="Dashboard.handleWelcomeAction()">
-                    <span>${user?.name ? 'Start Mock Test' : 'Sign In / Register'}</span>
+                    <span>${btnText}</span>
                   </button>
                   
                   ${user?.name ? `
                     <div class="session-management">
-                      <button class="btn-sync" onclick="Dashboard.viewLatestResult()">
-                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Last Performance
-                      </button>
                       ${State.get("setup")?.selectedTopics?.length ? `
                         <button class="btn-sync" onclick="Dashboard.handleShare()" style="color:var(--text-muted)">🔗 Share Config</button>
                       ` : ''}
@@ -98,29 +108,44 @@ const PageWelcome = (() => {
             </div>
           </div>
 
-          <!-- RIGHT: Process Visual -->
+          <!-- RIGHT: Features Highlights -->
           <div class="process-panel">
-            <div class="process-steps">
-               <div class="process-step">
-                  <div class="step-num-hex">
-                    <span class="num">01</span>
-                    <div class="hex-bg"></div>
-                  </div>
-                  <div class="step-content">
-                    <h4>Profile</h4>
-                    <p>Register your session for historical tracking.</p>
-                  </div>
+            <div class="welcome-features-header">
+              <span class="welcome-features-title">Platform Capabilities</span>
+              <div class="welcome-features-line"></div>
+            </div>
+            
+            <div class="features-grid">
+               <div class="feature-card">
+                 <div class="feat-icon" style="background:rgba(139,92,246,0.15); color:#a78bfa">🎙️</div>
+                 <div class="feat-text">
+                   <h4>Voice Control Engine</h4>
+                   <p>Command the quiz hands-free. Features option elimination, playback speeds, and contextual selection logic.</p>
+                 </div>
+               </div>
+
+               <div class="feature-card">
+                 <div class="feat-icon" style="background:rgba(236,72,153,0.15); color:#f472b6">⚡</div>
+                 <div class="feat-text">
+                   <h4>13+ Assessed Formats</h4>
+                   <p>Broadest coverage ranging from standard Multiple Choice to advanced Sequence, Matching, and Drag & Drop widgets.</p>
+                 </div>
                </div>
                
-               <div class="process-step">
-                  <div class="step-num-hex">
-                    <span class="num">02</span>
-                    <div class="hex-bg"></div>
-                  </div>
-                  <div class="step-content">
-                    <h4>Practice</h4>
-                    <p>Select your domain and difficulty tier.</p>
-                  </div>
+               <div class="feature-card">
+                 <div class="feat-icon" style="background:rgba(16,185,129,0.15); color:#34d399">🎯</div>
+                 <div class="feat-text">
+                   <h4>Strategic Practice</h4>
+                   <p>Switch seamlessly between high-stress Active Testing protocols and relaxed Study Modes with auto-grading.</p>
+                 </div>
+               </div>
+
+               <div class="feature-card" style="margin-bottom:12px;">
+                 <div class="feat-icon" style="background:rgba(6,182,212,0.15); color:#22d3ee">📊</div>
+                 <div class="feat-text">
+                   <h4>Deep Insight Analytics</h4>
+                   <p>Visual historical footprint tracking your domain mastery, completion times, and overall progression matrix.</p>
+                 </div>
                </div>
             </div>
 
@@ -165,7 +190,7 @@ const PageWelcome = (() => {
         .input-focus-ring { position: absolute; inset: -4px; border-radius: var(--radius-lg); border: 2px solid var(--accent-primary); opacity: 0; pointer-events: none; transition: 0.3s; }
         .pro-input:focus + .input-focus-ring { opacity: 0.15; transform: scale(1); }
         
-        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 18px; border-radius: var(--radius-md); font-weight: 900; font-size: 1.1rem; box-shadow: 0 8px 16px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; width: 100%; }00%; }
+        .btn-launch-primary { background: var(--accent-primary); color: #fff; border: none; padding: 8px; border-radius: var(--radius-sm); font-weight: 900; font-size: 1.1rem; box-shadow: 0 8px 16px var(--accent-shadow); transform: translateY(0); transition: 0.3s var(--ease); cursor: pointer; width: 100%; }00%; }
         .btn-launch-primary:hover { transform: translateY(-4px); filter: brightness(1.1); box-shadow: 0 16px 32px var(--accent-shadow); }
         
         .session-management { display: flex; justify-content: space-between; align-items: center; margin-top: 12px;padding-top:6px; }
@@ -173,14 +198,17 @@ const PageWelcome = (() => {
         .btn-sync:hover { opacity: 1; }
         .btn-switch { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); }
         
-        /* Process Steps */
-        .process-steps { display: flex; flex-direction: column; gap: 20px; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; }
-        .process-step { display: flex; gap: 20px; align-items: center; padding: 20px; background: transparent; transition: 0.3s; }
-        .step-num-hex { position: relative; width: 44px; height: 44px; display: grid; place-items: center; flex-shrink: 0; }
-        .step-num-hex .num { font-weight: 900; font-size: 0.9rem; color: var(--accent-primary); z-index: 1; }
-        .step-num-hex .hex-bg { position: absolute; inset: 0; background: var(--accent-primary-transparent); transform: rotate(45deg); border-radius: 12px; border: 1px solid var(--accent-primary-transparent); }
-        .step-content h4 { font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0; font-size: 1rem; }
-        .step-content p { font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.4; }
+        /* Process Steps & Features */
+        .welcome-features-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .welcome-features-title { font-size: 0.73rem; text-transform: uppercase; letter-spacing: 2.5px; color: var(--accent-primary); font-weight: 900; white-space: nowrap; }
+        .welcome-features-line { height: 1.5px; flex: 1; background: linear-gradient(90deg, var(--border-color), transparent); }
+        .features-grid { display: flex; flex-direction: column; gap: 14px; }
+        .feature-card { display: flex; gap: 18px; align-items: flex-start; padding: 20px; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-lg); transition: all 0.3s cubic-bezier(.34,1.56,.64,1); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .feature-card:hover { transform: translateY(-4px) scale(1.02); border-color: var(--accent-primary-transparent); box-shadow: 0 16px 40px rgba(0,0,0,0.3); background: rgba(255,255,255,0.03); }
+        .feat-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; font-size: 1.4rem; flex-shrink: 0; transition: transform 0.4s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
+        .feature-card:hover .feat-icon { transform: scale(1.15) rotate(-6deg); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+        .feat-text h4 { margin: 0 0 6px 0; font-weight: 800; font-size: 1.05rem; color: var(--text-primary); letter-spacing: -0.01em; }
+        .feat-text p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
         
         .integration-notice { margin-top: 40px; padding: 24px; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: 20px; display: flex; align-items: center; gap: 16px; border-left: 5px solid var(--color-warn); }
         .notice-icon { font-size: 1.5rem; }
@@ -203,11 +231,11 @@ const PageWelcome = (() => {
            
            .pro-input { padding: 14px 16px; border-radius: 4px; }
            .btn-launch-primary { padding: 8px; font-size: 1rem; }
-           
-           .process-steps { gap: 12px; }
-           .process-step { padding: 12px; }
-           .step-num-hex { width: 36px; height: 36px; }
-           .step-num-hex .num { font-size: 0.75rem; }
+           .features-grid { gap: 12px; margin-top: 0; }
+           .feature-card { padding: 16px; gap: 14px; }
+           .feat-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+           .feat-text h4 { font-size: 0.95rem; }
+           .feat-text p { font-size: 0.8rem; }
            
            .integration-notice { padding: 16px; border-radius: 16px; margin-top: 24px; }
         }
@@ -229,6 +257,7 @@ const Dashboard = (() => {
   async function handleWelcomeAction() {
     const nameEl = document.getElementById("reg-name");
     const idEl = document.getElementById("reg-identifier");
+    const launchBtn = document.querySelector(".btn-launch-primary");
 
     if (!nameEl.value.trim() || !idEl.value.trim()) {
       if (!nameEl.value.trim()) nameEl.style.borderColor = "var(--color-error)";
@@ -237,12 +266,96 @@ const Dashboard = (() => {
       return;
     }
 
+    // Disable button to prevent double-clicks
+    if (launchBtn) {
+      launchBtn.disabled = true;
+      launchBtn.style.opacity = "0.7";
+      launchBtn.innerHTML = `<span><div class="spinner" style="display:inline-block; margin-right:8px; width:14px; height:14px; border-width:2px"></div> Processing...</span>`;
+    }
+
     const user = {
       name: nameEl.value.trim(),
       identifier: idEl.value.trim(),
     };
     State.set("user", user);
-    Dashboard.startQuiz();
+    
+    // If accepting a share/challenge, jump straight to quiz after registration
+    if (State.get("setup")?.selectedTopics?.length) {
+       Dashboard.launchImmediateQuiz();
+    } else {
+       Dashboard.startQuiz();
+    }
+  }
+
+  async function launchImmediateQuiz() {
+    const activeChallenge = State.get("activeChallenge");
+    const setup = State.get("setup");
+    if (!setup || !setup.selectedTopics || setup.selectedTopics.length === 0) {
+       Dashboard.startQuiz();
+       return;
+    }
+
+    if (!State.get("scriptUrl")) {
+       UI.toast("Configure your Google Script URL in Settings first", "warn");
+       UI.openSettings();
+       return;
+    }
+
+    const msg = activeChallenge 
+        ? `⚔️ Launching Challenge from ${activeChallenge.challenger || 'Friend'}...`
+        : `⚡ Launching Shared Configuration...`;
+
+    UI.setLoading(true, msg);
+    try {
+      // 1. Fetch all topics to check existence
+      const allTopics = await API.getTopics();
+      State.set("topics", allTopics);
+      
+      // 2. Resolve the target topics from the share
+      const targetTopicNames = setup.selectedTopics.map(t => t.name || t); 
+      const selectedTopics = allTopics.filter(t => targetTopicNames.includes(t.name));
+      
+      if (selectedTopics.length === 0) {
+         throw new Error("Specified topics no longer exist or are inaccessible.");
+      }
+
+      // 3. Fetch the actual question pool
+      const rawQuestions = await API.getQuestions(targetTopicNames);
+      State.set("questions", rawQuestions);
+
+      // 4. Apply Filters & Prepare Quiz Data
+      const finalConfig = setup.finalConfig || {};
+      const filtered = Filters.applyFilters(rawQuestions, setup);
+      
+      // Section/Option Shuffling
+      let finalQs = [...filtered];
+      if (finalConfig["Section Order"] === "Random") {
+         finalQs = Filters.shuffle(finalQs);
+      }
+      
+      const randomOpts = (finalConfig["Random Options"] || "On") === "On";
+      const preparedQs = finalQs.map(q => {
+         if (!randomOpts) return q;
+         const choices = ["Choice 1","Choice 2","Choice 3","Choice 4","Choice 5","Choice 6"]
+            .map(k => q[k] || q[k.replace(' ', '')]).filter(Boolean);
+         const shuffled = Filters.shuffle([...choices]);
+         const newQ = { ...q };
+         shuffled.forEach((c, i) => { newQ["Choice" + (i + 1)] = c; });
+         return newQ;
+      });
+
+      // 5. Store preparation in state
+      State.merge("setup", { preparedQs, finalConfig, selectedTopics });
+
+      // 6. Delegate to the official launch runner (handles cloud sync/attempt IDs)
+      UI.setLoading(false);
+      PageSetupTemplate.launchQuiz();
+      
+    } catch (e) {
+      UI.setLoading(false);
+      UI.toast("Failed to launch: " + e.message, "error");
+      Dashboard.startQuiz(); // fallback to normal setup
+    }
   }
 
   async function startQuiz(isShared = false) {
@@ -264,6 +377,7 @@ const Dashboard = (() => {
         UI.pushPage("setup-topics");
       } else {
         State.reset("setup");
+        State.set("activeChallenge", null);
         UI.pushPage("setup-topics");
       }
     } catch (e) {
@@ -377,7 +491,7 @@ const Dashboard = (() => {
     const data = {
       t: setup.selectedTopics,
       c: setup.finalConfig,
-      tm: setup.template || "default"
+      tm: setup.template || "sat"
     };
     
     try {
@@ -462,15 +576,25 @@ const Dashboard = (() => {
             finalConfig: decoded.c || {},
             template: decoded.tm || "sat"
           });
-          
-          // Clear hash
+          if (decoded.ch) {
+             State.set("activeChallenge", decoded.ch);
+             UI.toast(`⚔️ Challenge accepted! You must beat ${decoded.ch.score}% by ${decoded.ch.challenger}.`, "success", 8000);
+          } else {
+             State.set("activeChallenge", null);
+             UI.toast("🎯 Shared Quiz Configuration Loaded!", "success", 5000);
+          }
+
+          // Clear hash for clean URL
           window.history.replaceState(null, null, window.location.pathname);
           
-          UI.toast("🎯 Shared Quiz Configuration Loaded!", "success", 5000);
-          
-          // If we have topics, we can jump straight to config or launch
-          // But better let user see topics first to confirm
-          Dashboard.startQuiz(true); 
+          // Check if user should login first or jump straight to start
+          const user = State.get("user");
+          if (!user || !user.identifier) {
+             UI.toast("Please sign in or register to accept this shared quiz.", "info");
+             UI.navigate("welcome");
+          } else {
+             Dashboard.launchImmediateQuiz();
+          }
         }
       } catch (e) {
         console.warn("Invalid shared link:", e);
@@ -527,6 +651,7 @@ const Dashboard = (() => {
   return { 
     handleWelcomeAction, 
     startQuiz, 
+    launchImmediateQuiz,
     viewLatestResult, 
     loadUserInsights, 
     changeUser, 

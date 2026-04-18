@@ -288,9 +288,27 @@ const PageResult = (() => {
 
     const qWise = (cfg["Question Wise Result"] || "On") === "On";
 
+    const activeChallenge = State.get("activeChallenge");
+    let challengeBannerHtml = "";
+    if (activeChallenge) {
+       const won = score.accuracy > activeChallenge.score || (score.accuracy === activeChallenge.score && score.timeTaken < activeChallenge.time);
+       
+       challengeBannerHtml = `
+         <div style="background:${won ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; border:1px solid ${won ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; border-radius:12px; padding:16px; margin-bottom: 24px; text-align:center;">
+           <span style="font-size:1.5rem; margin-bottom:8px; display:block;">${won ? "🏆 CHALLENGE WON!" : "💔 CHALLENGE LOST!"}</span>
+           <p style="margin:0; font-size:1rem; color:var(--text-primary)">
+             You needed to beat <strong>${activeChallenge.score}%</strong> by <strong>${activeChallenge.challenger}</strong>.
+             <br/>
+             <span style="font-size:0.85rem; color:var(--text-muted)">Your Score: ${score.accuracy}% | Their Score: ${activeChallenge.score}%</span>
+           </p>
+         </div>
+       `;
+    }
+
     main.innerHTML = `
            <div class="dash-hero">
-           <div class="dash-hero-info">
+              ${challengeBannerHtml}
+              <div class="dash-hero-info">
               <span class="dash-badge">${
                 quiz.config["Quiz Settings Title"] || "Quiz REPORT"
               }</span>
@@ -308,6 +326,12 @@ const PageResult = (() => {
                 `).join('')}
                 ${score.accuracy >= 70 ? '<div class="achievement-badge success">🌟 Top Tier Performance</div>' : ''}
               </div>
+
+              <div style="margin-top:24px; display:flex; gap:12px;flex-wrap: wrap;justify-content: center;">
+                 <button class="btn btn-primary btn-sm" onclick="PageResult.downloadReport()" style="background:var(--accent-primary); color:#000; border:none; font-weight:800; border-radius:12px; padding:10px 20px">
+                   📥 Download Report
+                 </button>
+               </div>
            </div>
            
            <div class="dash-hero-stats-new">
@@ -399,11 +423,12 @@ const PageResult = (() => {
                     </button>
                   `).join("");
              })()}
-          </div>
+           </div>
            <div class="dash-actions">
-              <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleShare()">🔗 Share Config</button>
-              <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadPDF()">📥 PDF</button>
-              <button class="btn btn-ghost btn-sm" onclick="PageResult.downloadCSV()">📊 CSV</button>
+              <button class="btn btn-primary btn-sm" onclick="PageResult.challengeFriend()">⚔️ Challenge</button>
+              <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleShare()">🔗 Share</button>
+              <button class="btn btn-ghost btn-sm hidden" onclick="PageResult.downloadPDF()">📥 PDF</button>
+              <button class="btn btn-ghost btn-sm hidden" onclick="PageResult.downloadCSV()">📊 CSV</button>
            </div>
         </div>
 
@@ -1889,14 +1914,142 @@ const PageResult = (() => {
     }
   }
 
+  function challengeFriend() {
+    const result = State.get("result");
+    const user = State.get("user");
+    const setup = State.get("setup");
+    if (!result || !setup) {
+       UI.toast("Missing data to generate challenge", "error");
+       return;
+    }
+    
+    const payload = {
+       t: (setup.selectedTopics || []).map(topic => topic.name || topic),
+       c: setup.finalConfig || {},
+       tm: setup.template || "sat",
+       ch: {
+          score: result.score.accuracy || 0,
+          time: result.score.timeTaken || 0,
+          challenger: user?.name || "A friend"
+       }
+    };
+    
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const url = `${window.location.origin}${window.location.pathname}#share=${encoded}`;
+    
+    if (navigator.clipboard && window.isSecureContext) {
+       navigator.clipboard.writeText(url).then(() => {
+          UI.toast("⚔️ Challenge link copied to clipboard!", "success");
+       }).catch(() => {
+          UI.modal(`<div style="text-align:center"><p style="margin-bottom:12px;font-weight:800">Copy this link to challenge friends:</p><input type="text" value="${url}" readonly class="pro-input" onclick="this.select()"></div>`);
+       });
+    } else {
+       UI.modal(`<div style="text-align:center"><p style="margin-bottom:12px;font-weight:800">Copy this link to challenge friends:</p><input type="text" value="${url}" readonly class="pro-input" onclick="this.select()"></div>`);
+    }
+  }
+
+  async function downloadReport() {
+    const res = State.get("result");
+    const quiz = res.quiz;
+    const score = res.score;
+    const title = quiz.config?.title || "PrepQuick Results";
+    
+    UI.setLoading(true, "Generating Performance Report...");
+
+    const html = `
+      <div style="padding:40px; font-family:'Sora', sans-serif; color:#1a202c; background:#fff;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:3px solid #7c4dff; padding-bottom:20px; margin-bottom:40px;">
+          <div>
+            <h1 style="margin:0; color:#7c4dff; font-size:28px; font-weight:800;">PrepQuick</h1>
+            <p style="margin:5px 0 0 0; color:#64748b; font-size:14px; text-transform:uppercase; letter-spacing:1px;">Official Performance Report</p>
+          </div>
+          <div style="text-align:right">
+            <h2 style="margin:0; font-size:18px; font-weight:700;">${title}</h2>
+            <p style="margin:5px 0 0 0; color:#64748b; font-size:12px;">Completed on ${new Date(res.endTime).toLocaleString()}</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-bottom:40px;">
+           <div style="background:#f8fafc; padding:15px; border-radius:12px; text-align:center; border:1px solid #e2e8f0;">
+             <p style="margin:0; font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Score</p>
+             <p style="margin:4px 0 0 0; font-size:24px; font-weight:900; color:#7c4dff;">${score.accuracy}%</p>
+           </div>
+           <div style="background:#f0fdf4; padding:15px; border-radius:12px; text-align:center; border:1px solid #dcfce7;">
+             <p style="margin:0; font-size:10px; color:#166534; font-weight:800; text-transform:uppercase;">Correct</p>
+             <p style="margin:4px 0 0 0; font-size:24px; font-weight:900; color:#16a34a;">${score.correct}</p>
+           </div>
+           <div style="background:#fef2f2; padding:15px; border-radius:12px; text-align:center; border:1px solid #fee2e2;">
+             <p style="margin:0; font-size:10px; color:#991b1b; font-weight:800; text-transform:uppercase;">Wrong</p>
+             <p style="margin:4px 0 0 0; font-size:24px; font-weight:900; color:#dc2626;">${score.wrong}</p>
+           </div>
+           <div style="background:#f1f5f9; padding:15px; border-radius:12px; text-align:center; border:1px solid #e2e8f0;">
+             <p style="margin:0; font-size:10px; color:#475569; font-weight:800; text-transform:uppercase;">Time</p>
+             <p style="margin:4px 0 0 0; font-size:20px; font-weight:900;">${Math.floor(score.timeTaken/60)}m ${score.timeTaken%60}s</p>
+           </div>
+        </div>
+
+        <h3 style="font-size:16px; font-weight:800; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:20px;">Detailed Review</h3>
+
+        ${quiz.questions.map((q, i) => {
+          const detail = score.details[i];
+          const isCorrect = detail.isCorrect;
+          const correctVal = Results.getCorrectAnswer(q);
+          const ua = quiz.answers[i]?.userAnswer;
+
+          return `
+            <div style="margin-bottom:32px; page-break-inside:avoid; border-left:4px solid ${isCorrect ? "#22c55e" : "#ef4444"}; padding-left:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                 <div style="font-size:14px; font-weight:700;">Question ${i+1}</div>
+                 <div style="font-size:11px; font-weight:800; color:${isCorrect ? "#16a34a" : "#dc2626"}; text-transform:uppercase;">${isCorrect ? "Correct" : "Incorrect"}</div>
+              </div>
+              <div style="font-size:14px; margin-bottom:12px;">${q.Question}</div>
+              
+              <div style="font-size:12px; margin-bottom:10px; color:#64748b;">
+                 <b>Your Answer:</b> ${ua || "Skipped"} <br/>
+                 <b>Correct Answer:</b> ${correctVal}
+              </div>
+
+              ${q.Explanation ? `<div style="font-size:11px; color:#475569; background:#f8fafc; padding:8px; border-radius:4px; margin-top:10px;"><b>Explanation:</b> ${q.Explanation}</div>` : ""}
+            </div>
+          `;
+        }).join("")}
+
+        <div style="margin-top:60px; text-align:center; color:#94a3b8; font-size:10px; border-top:1px solid #e2e8f0; padding-top:20px;">
+          Generated exclusively for PrepQuick Users. Performance tracking enabled.
+        </div>
+      </div>
+    `;
+
+    const opt = {
+      margin: 0,
+      filename: `Report_${title.replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(html).save().then(() => {
+      UI.setLoading(false);
+      UI.toast("Performance report saved!", "success");
+    }).catch(err => {
+      UI.setLoading(false);
+      UI.toast("Export failed: " + err.message, "error");
+    });
+  }
+
+  function downloadPDF() { downloadReport(); }
+  function downloadCSV() { UI.toast("CSV Export is coming soon!", "info"); }
+
   return {
     render,
     switchTab,
     downloadPDF,
+    downloadReport,
     downloadCSV,
     openPrintReport,
     shareResult,
-    applyReviewFilters
+    applyReviewFilters,
+    challengeFriend
   };
 })();
 
