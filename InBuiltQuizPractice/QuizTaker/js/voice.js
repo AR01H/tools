@@ -952,7 +952,8 @@ const VoiceEngine = (() => {
 
   // ── Global Event Listeners (Push-to-Talk) ─────────────────
   document.addEventListener('keydown', (e) => {
-    if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat && !_active) {
+    // Prevent triggering if other modifiers (Win, Ctrl, Alt) are held - fixes conflicts with Win+Shift+S etc.
+    if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat && !_active && !e.metaKey && !e.ctrlKey && !e.altKey) {
       const tag = (e.target.tagName || '').toLowerCase();
       if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
         // Enforce supported question types for Push-to-Talk

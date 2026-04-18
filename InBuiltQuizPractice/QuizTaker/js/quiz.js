@@ -985,7 +985,9 @@ const PageQuiz = (() => {
 
         ${qs.map((q, i) => {
           const choices = QuestionRenderer.getChoices(q);
-          const correct = (q["Correct Answer"] || "").split("|");
+          const correctVal = Results.getCorrectAnswer(q);
+          const explanation = q.Explanation || q.Solution || q.Rationale || "";
+
           return `
             <div style="margin-bottom:32px; page-break-inside:avoid;">
               <div style="display:flex; gap:12px; margin-bottom:12px;">
@@ -995,17 +997,22 @@ const PageQuiz = (() => {
               
               ${q.Passage ? `<div style="margin:10px 0 15px 40px; padding:12px; background:#f1f5f9; border-left:4px solid #cbd5e1; font-size:13px; font-style:italic; line-height:1.6;">${q.Passage}</div>` : ""}
 
-              <div style="margin-left:40px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                ${choices.map((c, j) => {
+              <div style="margin-left:40px; display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                ${choices.length > 0 ? choices.map((c, j) => {
                   const label = ["A", "B", "C", "D", "E", "F"][j];
-                  const isCorrect = correct.includes(c);
+                  const rawCorrect = (q["Correct Answer"] || "").split("|").map(s=>s.trim());
+                  const isCorrect = rawCorrect.includes(c);
                   return `<div style="padding:10px; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; display:flex; gap:8px; ${isCorrect ? "background:#f0fdf4; border-color:#22c55e;" : ""}">
                     <b style="color:#64748b;">${label}.</b> <span>${c}</span> ${isCorrect ? "<b style='color:#22c55e; margin-left:auto;'>✓</b>" : ""}
                   </div>`;
-                }).join("")}
+                }).join("") : `
+                  <div style="grid-column: span 2; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; color:#475569;">
+                    <b>Correct Answer:</b> ${correctVal}
+                  </div>
+                `}
               </div>
 
-              ${q.Explanation ? `<div style="margin:15px 0 0 40px; font-size:12px; color:#475569; background:#fffbeb; border:1px dashed #f59e0b; padding:10px; border-radius:6px;"><b>Insight:</b> ${q.Explanation}</div>` : ""}
+              ${explanation ? `<div style="margin:15px 0 0 40px; font-size:12px; color:#475569; background:#fffbeb; border:1px dashed #f59e0b; padding:10px; border-radius:6px;"><b>Strategy & Solution:</b> ${explanation}</div>` : ""}
             </div>
           `;
         }).join("")}

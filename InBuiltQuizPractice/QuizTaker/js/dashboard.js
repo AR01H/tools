@@ -123,14 +123,6 @@ const PageWelcome = (() => {
                    <p>Command the quiz hands-free. Features option elimination, playback speeds, and contextual selection logic.</p>
                  </div>
                </div>
-
-               <div class="feature-card">
-                 <div class="feat-icon" style="background:rgba(236,72,153,0.15); color:#f472b6">⚡</div>
-                 <div class="feat-text">
-                   <h4>13+ Assessed Formats</h4>
-                   <p>Broadest coverage ranging from standard Multiple Choice to advanced Sequence, Matching, and Drag & Drop widgets.</p>
-                 </div>
-               </div>
                
                <div class="feature-card">
                  <div class="feat-icon" style="background:rgba(16,185,129,0.15); color:#34d399">🎯</div>
