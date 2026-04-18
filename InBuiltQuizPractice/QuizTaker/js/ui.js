@@ -54,10 +54,11 @@ const UI = (() => {
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           z-index: 100000; font-family: var(--font-ui); color: #fff;
           transition: opacity 0.3s var(--ease);
+          text-align: center;
         `;
         el.innerHTML = `
           <div class="spinner" style="width:50px; height:50px; border-width:4px; border-top-color:var(--accent-primary); margin-bottom:20px"></div>
-          <p style="font-size:1.1rem; font-weight:800; letter-spacing:0.5px; margin:0; text-transform:uppercase">${msg}</p>
+          <p style="font-size:1.1rem; font-weight:800; letter-spacing:0.5px; margin:0; text-transform:uppercase; text-align: center;">${msg}</p>
           <div style="margin-top:12px; font-size:0.75rem; opacity:0.6; font-weight:700">STAY ON THIS PAGE</div>
         `;
         document.body.appendChild(el);

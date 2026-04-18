@@ -6,6 +6,7 @@
 const VoiceEngine = (() => {
   let _recognition = null;
   let _active = false;
+  let _isStarted = false;
   let _isLearning = false;
 
   const COMMANDS = {
@@ -42,11 +43,14 @@ const VoiceEngine = (() => {
     };
 
     _recognition.onstart = () => {
+      _isStarted = true;
       updateStatusDisplay("Listening...", true);
     };
 
     _recognition.onerror = (event) => {
       console.error("Speech Recognition Error:", event.error);
+      if (event.error === 'no-speech') return; // Ignore silent periods
+      
       updateStatusDisplay("Error: " + event.error, false);
       if (event.error === 'not-allowed') {
         _active = false;
@@ -56,8 +60,17 @@ const VoiceEngine = (() => {
     };
 
     _recognition.onend = () => {
-      if (_active) _recognition.start(); 
-      else hideStatusBar();
+      _isStarted = false;
+      if (_active) {
+        // Delay restart slightly to let browser breathe
+        setTimeout(() => {
+          if (_active && !_isStarted) {
+            try { _recognition.start(); } catch(e) {}
+          }
+        }, 300);
+      } else {
+        hideStatusBar();
+      }
     };
   }
 
@@ -69,19 +82,33 @@ const VoiceEngine = (() => {
 
     _active = !_active;
     if (_active) {
-      _recognition.start();
+      if (window.location.protocol === 'file:') {
+        UI.toast("Running locally (file://). Chrome will prompt for Mic each session. Use a local server for persistent access.", "info", 6000);
+      }
+      
+      if (!_isStarted) {
+        try {
+          _recognition.start();
+        } catch(e) {
+          console.warn("Recognition already started");
+        }
+      }
       showStatusBar();
       UI.toast("Voice Mode Active", "success");
       document.body.classList.add('voice-active');
     } else {
-      _active = false;
-      _recognition.stop();
-      hideStatusBar();
-      UI.stopSpeaking();
+      stop();
       UI.toast("Voice Mode Deactivated", "info");
-      document.body.classList.remove('voice-active');
     }
     return _active;
+  }
+
+  function stop() {
+    _active = false;
+    try { _recognition.stop(); } catch(e) {}
+    hideStatusBar();
+    UI.stopSpeaking();
+    document.body.classList.remove('voice-active');
   }
 
   function showStatusBar() {
@@ -100,7 +127,6 @@ const VoiceEngine = (() => {
               <p id="voice-transcript">Waiting for command...</p>
            </div>
            <div class="voice-actions">
-              <button class="stop-btn" onclick="UI.stopSpeaking()" title="Stop Speaking">🛑 STOP</button>
               <button class="close-btn" onclick="QuizEngine.toggleVoice()">×</button>
            </div>
         </div>
@@ -170,6 +196,57 @@ const VoiceEngine = (() => {
       UI.speak(q.Question || q.text || "");
     } else if (match(text, COMMANDS.TYPE)) {
       handleTypeCommand(text);
+    } else {
+      // DYNAMIC CLICKER: If no command matches, search for text in UI
+      clickElementByText(text);
+    }
+  }
+
+  function clickElementByText(text) {
+    if (!text || text.length < 2) return;
+    
+    // Find all clickable-like elements
+    const selectors = 'button, a, .option-card, .nav-item, .btn, .sat-q-box, label, option';
+    const elements = document.querySelectorAll(selectors);
+    
+    let bestMatch = null;
+    let maxMatch = 0;
+
+    for (const el of elements) {
+      if (el.offsetParent === null) continue; // Skip hidden
+      
+      const elText = el.innerText.toLowerCase().trim();
+      const val = el.dataset.val ? el.dataset.val.toLowerCase().trim() : "";
+      
+      if (elText === text || val === text) {
+        bestMatch = el;
+        break; // Exact match found
+      }
+      
+      if (elText.length > 2 && (elText.includes(text) || text.includes(elText))) {
+        if (elText.length > maxMatch) {
+          maxMatch = elText.length;
+          bestMatch = el;
+        }
+      }
+    }
+
+    if (bestMatch) {
+      if (bestMatch.tagName === 'LABEL') {
+         const input = document.getElementById(bestMatch.htmlFor) || bestMatch.querySelector('input');
+         if (input) input.click();
+      } else if (bestMatch.tagName === 'OPTION') {
+         const select = bestMatch.parentNode;
+         if (select && select.tagName === 'SELECT') {
+            select.value = bestMatch.value;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+         }
+      } else {
+         bestMatch.click();
+      }
+      
+      updateStatusDisplay(`Clicked: "${bestMatch.innerText.substring(0, 20)}..."`);
+      UI.toast(`Clicked: ${bestMatch.innerText.substring(0, 15)}`, "info");
     }
   }
 
@@ -233,5 +310,5 @@ const VoiceEngine = (() => {
     UI.toast("Option not found", "warn");
   }
 
-  return { init, toggle, isActive: () => _active };
+  return { init, toggle, stop, isActive: () => _active };
 })();

@@ -31,7 +31,7 @@ const PageWelcome = (() => {
         <div class="welcome-header" style="position:relative">
            <div style="position:absolute; top:-10px; right:0; display:flex; gap:8px">
               <button class="btn btn-ghost btn-sm" onclick="Dashboard.sharePlatform()" style="border:1px solid var(--border-color); border-radius:12px; font-weight:800; padding:8px 16px">
-                 ✉️ Invite Link
+                 ✉️ Invite
               </button>
            </div>
            <h4 class="welcome-super-title">${superTitle}</h4>

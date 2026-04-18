@@ -459,10 +459,10 @@ const PageSetupTemplate = (() => {
       
       if (mode === 'study' && studyBtn) {
          studyBtn.disabled = true;
-         studyBtn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Entering Study Mode...</span>`;
+         studyBtn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Preparing Study Mode...</span>`;
       } else if (btn) {
          btn.disabled = true;
-         btn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Launching Engine...</span>`;
+         btn.innerHTML = `<span class="flex items-center gap-sm justify-center"><div class="spinner"></div> Launching Quiz...</span>`;
       }
 
       const customName = document.getElementById("custom-quiz-name")?.value.trim();

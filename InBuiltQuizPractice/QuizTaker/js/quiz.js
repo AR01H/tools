@@ -54,13 +54,6 @@ const PageQuiz = (() => {
       ? `<button class="btn btn-ghost btn-sm" id="pause-btn" onclick="QuizEngine.togglePause()" title="Pause">⏸</button>`
       : "";
 
-    const zenToolbar = `
-      <div style="display:flex; gap:8px; margin-left:var(--sp-md)" class="">
-         <button class="btn btn-ghost btn-sm ${document.body.classList.contains('voice-active') ? 'active' : ''}" id="voice-mode-btn" onclick="QuizEngine.toggleVoice()" title="Toggle Voice Commands">🎙️ Voice</button>
-         <button class="btn btn-ghost btn-sm ${document.body.classList.contains('zen-mode') ? 'active' : ''}" id="zen-mode-btn" onclick="QuizEngine.toggleZen()" title="Zen Focus Mode">🧘 Zen</button>
-      </div>
-    `;
-
     let layout; 
     // 1. Standard Design (Image 1)
     // ─────────────────────────────────────────────────────────
@@ -99,17 +92,27 @@ const PageQuiz = (() => {
                 <div class="progress-bar"><div class="progress-fill" id="quiz-progress"></div></div>
               </div>
               <div class="sat-header-right" style="display:flex;align-items:center;gap:var(--sp-md)">
-                ${timerHTML}${pauseHTML}${submitHTML}${zenToolbar}
+                ${timerHTML}${pauseHTML}${submitHTML}
+                <button class="btn btn-ghost btn-sm ${document.body.classList.contains('voice-active') ? 'active' : ''}" id="voice-mode-btn" onclick="QuizEngine.toggleVoice()" title="Toggle Voice Commands">🎙️ Voice</button>
               </div>
             </div>
-            <div class="sat-content">
-              <div id="question-panel"></div>
-              <div class="sat-actions">
-                <button class="btn btn-ghost" id="btn-prev" onclick="QuizEngine.prev()" ${
-                  !allowBack ? "disabled" : ""
-                }>← Back</button>
-                <div class="flex gap-md">${actionsHTML}<button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()">Next →</button></div>
-              </div>
+            <div class="sat-content" style="padding-bottom: 120px;">
+               <div id="question-panel"></div>
+            </div>
+            
+            <div class="sat-footer" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; height: 100px !important; z-index: 999999 !important; background: #0c0d19 !important; border-top: 1px solid rgba(255,255,255,0.1) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important;">
+               <div class="footer-wrap" style="display: grid !important; grid-template-columns: 1fr auto 1fr !important; width: 100% !important; max-width: 1400px !important; padding: 0 40px !important; align-items: center !important;">
+                  <div class="grid-left" style="display: flex !important; justify-content: flex-start !important;">
+                    <button class="btn btn-ghost" id="btn-prev" onclick="QuizEngine.prev()" ${!allowBack ? "disabled" : ""} style="color:rgba(255,255,255,0.6) !important">← BACK</button>
+                  </div>
+                  <div class="grid-center hide-mobile" style="display: flex !important; justify-content: center !important;">
+                     <span style="font-size: 0.75rem !important; font-weight: 800 !important; opacity: 0.6 !important; color: #fff !important; letter-spacing: 0.5px !important;"><span id="stat-ans">0</span> ANSWERED • <span id="stat-rem">${qs.length}</span> REMAINING</span>
+                  </div>
+                  <div class="grid-right" style="display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 20px !important;">
+                     ${actionsHTML}
+                     <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="padding:14px 44px !important; border-radius:12px !important; font-weight:900 !important; background: #7c4dff !important; color: #fff !important; box-shadow: 0 8px 30px rgba(124, 77, 255, 0.4) !important; border: none !important;">NEXT QUESTION →</button>
+                  </div>
+               </div>
             </div>
           </div>
         </div>`;
@@ -137,17 +140,18 @@ const PageQuiz = (() => {
                <div id="q-nav" class="qp-mini-nav"></div>
             </div>
           </div>
-          <div class="quizpro-footer">
-             <button class="btn btn-secondary btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${
-               !allowBack ? "disabled" : ""
-             }>← Back</button>
-             <div class="qp-footer-center">
-                <span class="text-xs"><span id="qp-ans-count">0</span> answered • <span id="qp-flag-count">0</span> flagged</span>
-             </div>
-             <div style="display:flex;gap:var(--sp-sm)">
-                ${actionsHTML}
-                ${zenToolbar}
-                <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="min-width:140px; background:var(--accent-primary);color:#000">Next →</button>
+          <div class="quizpro-footer" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; height: 100px !important; z-index: 999999 !important; background: var(--bg-surface) !important; border-top: 1px solid var(--border-color) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important;">
+             <div class="footer-wrap" style="display: grid !important; grid-template-columns: 1fr auto 1fr !important; width: 100% !important; max-width: 1400px !important; padding: 0 40px !important; align-items: center !important;">
+              <div class="grid-left" style="display: flex !important; justify-content: flex-start !important;">
+                <button class="btn btn-secondary btn-sm" id="btn-prev" onclick="QuizEngine.prev()" ${ !allowBack ? "disabled" : ""}>← PREVIOUS</button>
+              </div>
+              <div class="grid-center hide-mobile" style="display: flex !important; justify-content: center !important;">
+                 <span class="text-xs font-bold opacity-60"><span id="qp-ans-count">0</span> ANSWERED • <span id="qp-flag-count">0</span> FLAGGED</span>
+              </div>
+              <div class="grid-right" style="display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 20px !important;">
+                 ${actionsHTML}
+                 <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="min-width:160px !important; background:var(--accent-primary) !important; color:#000 !important; font-weight:900 !important; border:none !important; border-radius:10px !important; padding: 12px 30px !important;">NEXT →</button>
+              </div>
              </div>
           </div>
         </div>`;
@@ -173,8 +177,8 @@ const PageQuiz = (() => {
                 </div>
              </div>
              <div class="header-right" style="gap:12px">
-                ${zenToolbar}
-                <button class="btn btn-ghost btn-sm" onclick="QuizEngine.downloadStudyPDF()" title="Download Study Guide">📥 Save as PDF</button>
+                 <button class="btn btn-ghost btn-sm ${document.body.classList.contains('voice-active') ? 'active' : ''}" id="voice-mode-btn" onclick="QuizEngine.toggleVoice()" title="Toggle Voice Commands">🎙️ Voice</button>
+                 <button class="btn btn-ghost btn-sm" onclick="QuizEngine.downloadStudyPDF()" title="Download Study Guide">📥 Save as PDF</button>
                 <button class="btn btn-ghost btn-sm" onclick="location.reload()" style="font-weight:800; color:var(--color-error); border-radius:8px">CLOSE ×</button>
              </div>
           </div>
@@ -185,17 +189,6 @@ const PageQuiz = (() => {
                    <div class="block-label">PROBLEM STATEMENT</div>
                    <div id="question-panel" style="font-size:1.15rem; font-weight:500"></div>
                 </div>
-                
-                <div class="study-block answer-block">
-                   <div class="block-header">
-                      <div class="block-label">TARGET SOLUTION</div>
-                      <div class="status-marker">VERIFIED CORRECT</div>
-                   </div>
-                   <div class="answer-payload">
-                      <div id="study-answer-text" class="study-val"></div>
-                   </div>
-                </div>
-
                 <div class="study-block rationale-block">
                    <div class="block-label">DETAILED STRATEGY & RATIONALE</div>
                    <div id="study-explanation" class="study-val" style="color:var(--text-secondary)"></div>
@@ -205,12 +198,14 @@ const PageQuiz = (() => {
 
           <div class="study-footer">
              <div class="footer-wrap">
-               <button class="btn btn-secondary" onclick="QuizEngine.prev()" id="btn-prev" style="min-width:140px">← Previous</button>
-               
-               <div class="footer-center" style="display:flex; gap:16px; align-items:center">
-                 <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="padding:12px 40px; border-radius:12px">Next Concept →</button>
-                 <button class="btn btn-primary btn-outline" id="study-test-trigger" onclick="QuizEngine.startActiveTest()" style="display:none; color:var(--accent-primary); border:2px solid var(--accent-primary); border-radius:12px; font-weight:900; padding:10px 24px">⚡ Start Recall Test</button>
-               </div>
+                <button class="btn btn-secondary btn-ghost" onclick="QuizEngine.prev()" id="btn-prev" style="min-width:110px; font-weight:800">← PREVIOUS</button>
+                
+                <div class="footer-center" style="display:flex; gap:16px; align-items:center">
+                  <button class="btn btn-primary btn-lg" id="btn-next" onclick="QuizEngine.next()" style="padding:14px 44px; border-radius:12px; font-weight:900; box-shadow:0 8px 20px var(--accent-shadow)">NEXT CONCEPT →</button>
+                  <button class="btn btn-primary btn-outline" id="study-test-trigger" onclick="QuizEngine.startActiveTest()" style="display:none; color:var(--accent-primary); border:2px solid var(--accent-primary); border-radius:12px; font-weight:900; padding:12px 28px; background:var(--bg-surface); box-shadow:0 8px 20px var(--accent-shadow)">⚡ START RECALL TEST</button>
+                </div>
+                
+                <div class="hide-mobile" style="min-width:110px"></div>
              </div>
           </div>
         </div>
@@ -226,28 +221,49 @@ const PageQuiz = (() => {
           .study-viewport { flex: 1; overflow-y: auto; padding: 40px 20px; background: radial-gradient(circle at 50% 0%, var(--bg-elevated) 0%, var(--bg-main) 100%); user-select: text !important; -webkit-user-select: text !important; }
           .study-content-stack { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; padding-bottom: 40px; }
           
-          /* Zen Mode Styles - Aggressive Suppression */
-          body.zen-mode #topbar, 
-          body.zen-mode #sidebar, 
-          body.zen-mode .study-nav-header, 
-          body.zen-mode .study-footer, 
-          body.zen-mode .progress-track,
-          body.zen-mode .sat-sidebar,
-          body.zen-mode .sat-header,
-          body.zen-mode .quizpro-topbar,
-          body.zen-mode .quizpro-footer,
-          body.zen-mode .study-id-capsule { display: none !important; }
-
-          body.zen-mode .study-viewport { padding: 40px 20px; height: 100vh; display: flex; align-items: center; }
-          body.zen-mode .sat-main { padding: 40px 0; max-width: 900px; margin: 0 auto; }
-          body.zen-mode #main-content { padding: 0 !important; }
-          body.zen-mode #app { display: block; overflow: hidden; }
+          .study-footer { 
+            position: sticky; bottom: 0; z-index: 1000;
+            height: 90px; background: var(--bg-surface); 
+            border-top: 1px solid var(--border-color); 
+            display: flex; align-items: center; justify-content: center; 
+            flex-shrink: 0; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+          }
+          .footer-wrap { width: 100%; max-width: 1100px; padding: 0 32px; display: flex; justify-content: space-between; align-items: center; }
+          
+          /* Zen Mode Removed */
+          body #app { display: block; }
           
           .zen-toggle-fixed { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; gap: 8px; }
           .zen-btn { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px 16px; border-radius: 99px; font-size: 0.75rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); }
           .zen-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: var(--accent-primary-transparent); }
           
           .study-block, .study-val, .option-card, .option-label, #question-panel { user-select: text !important; -webkit-user-select: text !important; }
+          
+          .sat-footer, .quizpro-footer, .study-footer {
+            position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; z-index: 1000 !important;
+            background: var(--bg-surface) !important; border-top: 1px solid var(--border-color) !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            height: 95px !important; width: 100vw !important;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.3) !important;
+          }
+          
+          .footer-wrap { 
+            width: 100% !important; max-width: 1400px !important; padding: 0 40px !important; 
+            display: grid !important; grid-template-columns: 1fr auto 1fr !important; align-items: center !important; 
+          }
+          .grid-left { display: flex; justify-content: flex-start; }
+          .grid-center { display: flex; justify-content: center; }
+          .grid-right { display: flex; justify-content: flex-end; gap: 20px; align-items: center; }
+
+          @media (max-width: 768px) {
+            .study-footer, .sat-footer, .quizpro-footer { height: 85px !important; }
+            .footer-wrap { padding: 0 15px !important; grid-template-columns: 1fr 1fr !important; }
+            .grid-center { display: none !important; }
+            .grid-right { gap: 10px; }
+            .btn-lg { padding: 12px 25px !important; font-size: 0.85rem !important; }
+          }
           .study-block { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 24px; padding: 32px; box-shadow: var(--shadow-sm); }
           .block-label { font-size: 0.75rem; font-weight: 900; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
           .block-label::before { content: ""; width: 10px; height: 10px; background: var(--accent-primary); border-radius: 3px; rotate: 45deg; }
@@ -566,6 +582,42 @@ const QuizEngine = (() => {
     const ans = quiz.answers[quiz.currentIdx] || {};
     const markBtn = document.getElementById("mark-btn");
     if (markBtn) markBtn.style.color = ans.flagged ? "var(--color-warn)" : "";
+
+    if (quiz.template === 'study') {
+       // Auto-populate correct answers for Learning Mode
+       if (!quiz.answers[quiz.currentIdx]) {
+         const correctVal = Results.getCorrectAnswer(q);
+         const type = (q["Question Type"] || "").trim();
+         
+         let processed = correctVal;
+         // Special handling for types that expect complex formats
+         if (type === "Multi Multichoice" || type === "Multichoice Anycorrect") {
+           processed = typeof correctVal === 'string' ? correctVal.split("|").map(s => s.trim()) : correctVal;
+         } else if (type === "Multi Matching" && typeof correctVal === 'string' && !correctVal.startsWith("{")) {
+           // Basic string to JSON for multi-matching if needed (rare in raw data)
+           try {
+             const map = {};
+             correctVal.split("|").forEach(p => {
+               const pts = p.split(/[:\-\u2192]/);
+               if(pts.length >= 2) {
+                 const l = pts[0].trim();
+                 const r = pts[1].trim();
+                 if(!map[l]) map[l] = [];
+                 map[l].push(r);
+               }
+             });
+             processed = JSON.stringify(map);
+           } catch(e) {}
+         }
+         
+         quiz.answers[quiz.currentIdx] = {
+           userAnswer: processed,
+           timeTaken: 0,
+           flagged: false
+         };
+         // Don't trigger full State.set here as we are in the middle of a render
+       }
+    }
 
     // Render question content
     const panel = document.getElementById("question-panel");
@@ -985,13 +1037,6 @@ const QuizEngine = (() => {
     doc.print();
   }
 
-  function toggleZen() {
-    const active = document.body.classList.toggle('zen-mode');
-    const btn = document.getElementById('zen-mode-btn');
-    if (btn) btn.classList.toggle('active', active);
-    UI.toast(active ? "Zen Focus Mode Active" : "Zen Focus Mode Deactivated", "info");
-  }
-
   function toggleVoice() {
     const active = VoiceEngine.toggle();
     const btn = document.getElementById('voice-mode-btn');
@@ -1010,7 +1055,6 @@ const QuizEngine = (() => {
     submit,
     startActiveTest,
     downloadStudyPDF,
-    toggleZen,
     toggleVoice
   };
 })();
