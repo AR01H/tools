@@ -546,6 +546,7 @@ const PageSetupTemplate = (() => {
         resultFileId,
         config,
         template: mode === 'study' ? 'study' : (setup.template || "sat"),
+        originalTemplate: setup.template || "sat"
       });
 
       UI.pushPage("quiz");

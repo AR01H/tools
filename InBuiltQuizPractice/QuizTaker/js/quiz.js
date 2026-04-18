@@ -71,7 +71,7 @@ const PageQuiz = (() => {
     const showInstant = (cfg["Instant Answer"] || "Off") === "On";
     const revealBtnHTML = (showInstant && tmpl !== 'study')
        ? `<button class="btn btn-warning btn-sm" id="btn-reveal" onclick="QuestionRenderer.revealAnswer()" 
-                  style="border-radius:6px; font-weight:800; background:#f59e0b; color:#fff; border:none; padding:8px 16px; box-shadow:0 4px 15px rgba(245,158,11,0.3); display:none; align-items:center; gap:8px">🔍 REVEAL ANSWER</button>`
+                  style="border-radius:6px; font-weight:800; background:#f59e0b; color:#fff; border:none; padding:8px 16px; box-shadow:0 4px 15px rgba(245,158,11,0.3); display:none; align-items:center; gap:8px">🔍 REVEAL</button>`
        : "";
 
     let layoutHtml; 
@@ -212,7 +212,12 @@ const PageQuiz = (() => {
              <div class="study-content-stack">
                 <div class="study-block question-block">
                    <div class="block-label">PROBLEM STATEMENT</div>
-                   <div id="question-panel" style="font-size:1.15rem; font-weight:500"></div>
+                   <div id="question-panel"></div>
+                </div>
+                
+                <div class="study-block answer-block">
+                   <div class="block-label">STRATEGIC EXPLANATION</div>
+                   <div id="study-explanation" class="study-val">Identifying the optimal approach...</div>
                 </div>
              </div>
           </div>
@@ -237,7 +242,7 @@ const PageQuiz = (() => {
         </div>
         
         <style>
-          .layout-immersive-study { height: 100vh; background: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
+          .layout-immersive-study { height: calc(100vh - 52px); background: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
           .study-nav-header { height: 64px; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); display: flex; align-items:center; justify-content:space-between; padding: 0 32px; flex-shrink:0; position:relative; z-index:100; }
           .study-badge { font-size: 0.65rem; font-weight: 900; color: var(--accent-primary); background: var(--accent-primary-transparent); padding: 4px 12px; border-radius: 99px; letter-spacing: 0.1em; }
           .study-id-capsule { display:flex; align-items:baseline; gap:6px; font-weight:800; }
@@ -714,7 +719,7 @@ const PageQuiz = (() => {
        revealBtn.style.display = (showInstant && quiz.template !== 'study') ? "inline-flex" : "none";
        revealBtn.disabled = isRevealed;
        revealBtn.style.opacity = isRevealed ? "0.5" : "1";
-       revealBtn.innerHTML = isRevealed ? "✓ REVEALED" : "🔍 REVEAL ANSWER";
+       revealBtn.innerHTML = isRevealed ? "✓ REVEALED" : "🔍 REVEAL";
     }
 
     // Mark/flag UI
@@ -722,7 +727,6 @@ const PageQuiz = (() => {
     const qAns = quiz.answers[quiz.currentIdx] || {};
     if (markBtn) markBtn.style.color = qAns.flagged ? "var(--color-warn)" : "";
 
-    // Render question content
     // Render question content
     const el = document.getElementById("question-panel");
     if (el) el.innerHTML = `<div class="p-xl text-center"><div class="spinner"></div></div>`;
@@ -749,10 +753,13 @@ const PageQuiz = (() => {
       const expText = document.getElementById('study-explanation');
       if (expText) expText.innerHTML = q.Explanation || q.Solution || "Strategic approach for this concept is currently being finalized.";
     }
-
+    
     if (nextBtn) {
        nextBtn.style.display = 'flex';
-       nextBtn.textContent = isLast ? "✓ Finish Session" : (quiz.template === 'study' ? "NEXT →" : "Next →");
+       // Only set textContent if we haven't already set high-fidelity innerHTML above
+       if (quiz.template !== 'study') {
+         nextBtn.textContent = isLast ? "✓ Finish" : "Next →";
+       }
     }
   }
 
@@ -1136,12 +1143,12 @@ const PageQuiz = (() => {
        currentIdx: 0,
        startTime: Date.now(),
        config: { ...quiz.config, "Instant Answer": "Off", "Instant Verification": "Off", "Auto Next": "Off" },
-       template: "sat" 
+       template: quiz.originalTemplate || "sat"
      });
      
      setTimeout(() => {
         _navigating = false;
-        render(document.getElementById("app"));
+        UI.pushPage("quiz");
         UI.setLoading(false);
         UI.toast(`Testing Session: ${title}`, "success");
      }, 1000);
@@ -1202,6 +1209,7 @@ const PageQuiz = (() => {
     if (cmd === "back" || cmd === "b" || cmd === "prev") { prev(); return; }
     if (cmd === "flag" || cmd === "f" || cmd === "mark") { toggleMark(); return; }
     if (cmd === "submit" || cmd === "s") { confirmSubmit(); return; }
+    if (cmd === "finish" || cmd === "take" || cmd === "start") { next(); return; }
     if (cmd === "hint" || cmd === "h") { showHint(); return; }
     
     if (cmd === "a" || cmd === "select a") { selectOption(0); return; }
