@@ -1017,8 +1017,8 @@ const PageQuiz = (() => {
             PartialScore: q["Partial Score"] || 0,
           };
         });
-        await API.saveAttemptDetail(quiz.fileId, rows);
-        await API.endAttempt({
+        API.saveAttemptDetail(quiz.fileId, rows);
+        API.endAttempt({
           fileId: quiz.fileId,
           endTime,
           score: score.total,
