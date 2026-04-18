@@ -1021,7 +1021,7 @@ const PageQuiz = (() => {
         API.endAttempt({
           fileId: quiz.fileId,
           endTime,
-          score: score.total,
+          score: score.accuracy,
         });
       }
     } catch (e) {
