@@ -993,6 +993,41 @@ const PageQuiz = (() => {
     const endTime = new Date().toISOString();
     const score = Results.calculateScore(quiz);
 
+    // Save to Drive
+    try {
+      if (quiz.fileId) {
+        const rows = quiz.questions.map((q, i) => {
+          const ans = quiz.answers[i] || {};
+          const correct = Results.isCorrect(q, ans.userAnswer);
+          return {
+            QuestionIndex: i + 1,
+            QuestionText: q.Question,
+            UserAnswer: Array.isArray(ans.userAnswer)
+              ? ans.userAnswer.join("|")
+              : ans.userAnswer || "",
+            CorrectAnswer: q["Correct Answer"],
+            IsCorrect: correct ? "TRUE" : "FALSE",
+            TimeTaken: ans.timeTaken || 0,
+            Category: q.Category || "",
+            SubCategory: q["Sub Category"] || "",
+            Difficulty: q.Difficulty || "",
+            QuestionType: q["Question Type"] || "",
+            Score: q.Score || 1,
+            NegScore: q["Negative Score"] || 0,
+            PartialScore: q["Partial Score"] || 0,
+          };
+        });
+        await API.saveAttemptDetail(quiz.fileId, rows);
+        await API.endAttempt({
+          fileId: quiz.fileId,
+          endTime,
+          score: score.total,
+        });
+      }
+    } catch (e) {
+      console.warn("Could not save results:", e.message);
+    }
+
     State.set("result", {
       quiz,
       score,
