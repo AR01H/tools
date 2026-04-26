@@ -15,6 +15,7 @@ const DataVault = (function ($) {
   let state = { sections: [], items: [] };
   let activeSectionId = null;
   let currentView = "card"; // card | table | list
+  let compactMode = false;
   let reorderMode = false;
   let dragSrcId = null;
   let editItemId = null;
@@ -64,6 +65,19 @@ const DataVault = (function ($) {
   function today() {
     return new Date().toISOString().slice(0, 10);
   }
+  function isUrl(s) {
+    if (!s) return false;
+    return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("www.");
+  }
+  function getUrl(s) {
+    if (s.startsWith("www.")) return "https://" + s;
+    return s;
+  }
+  function highlight(text, query) {
+    if (!query) return esc(text);
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    return esc(text).replace(regex, "<mark>$1</mark>");
+  }
 
   function expiryStatus(d) {
     if (!d) return null;
@@ -97,6 +111,12 @@ const DataVault = (function ($) {
         document.body.removeChild(el);
         toast("Copied", "success");
       });
+  }
+
+  function refreshIcons() {
+    if (window.lucide) {
+      lucide.createIcons();
+    }
   }
 
   // ── GETTERS ───────────────────────────────────────────────────────────────────
@@ -233,6 +253,7 @@ const DataVault = (function ($) {
         <li data-sec-id="${esc(sec.id)}" class="${
         sec.id === activeSectionId ? "active" : ""
       }">
+          <div class="sec-drag-handle"><i data-lucide="grip-vertical"></i></div>
           <button class="section-nav-btn" data-sec-id="${esc(sec.id)}">
             <span class="sec-icon">${esc(sec.icon || "◈")}</span>
             <span class="sec-name">${esc(sec.name)}</span>
@@ -241,14 +262,15 @@ const DataVault = (function ($) {
           <div class="section-actions">
             <button class="edit-sec" data-sec-id="${esc(
               sec.id
-            )}" title="Rename">✎</button>
+            )}" title="Rename"><i data-lucide="pencil"></i></button>
             <button class="del-sec"  data-sec-id="${esc(
               sec.id
-            )}" title="Delete">✕</button>
+            )}" title="Delete"><i data-lucide="trash-2"></i></button>
           </div>
         </li>`);
     });
     updateExportScope();
+    attachSectionDrag();
   }
 
   // ── RENDER ITEMS ──────────────────────────────────────────────────────────────
@@ -263,9 +285,9 @@ const DataVault = (function ($) {
       `${items.length} item${items.length !== 1 ? "s" : ""}`
     );
 
-    if (currentView === "card") renderCardView(items, globalSearch);
-    else if (currentView === "table") renderTableView(items);
-    else renderListView(items);
+    const q = $("#global-search").val().trim() || $("#section-search").val().trim();
+    if (currentView === "card") renderCardView(items, globalSearch, q);
+    else renderTableView(items, q);
 
     if (items.length === 0) {
       $("#empty-state").removeClass("hidden");
@@ -275,12 +297,15 @@ const DataVault = (function ($) {
 
     renderExpiryBanner();
     updateFilterBadge();
+    $("body").toggleClass("compact-mode", compactMode);
+    if (reorderMode) attachDrag();
+    refreshIcons();
   }
 
   // ── CARD VIEW ─────────────────────────────────────────────────────────────────
-  function renderCardView(items, globalSearch) {
+  function renderCardView(items, globalSearch, q) {
     $("#items-grid").show().empty();
-    $("#items-table-wrap, #items-list").hide();
+    $("#items-table-wrap").hide();
 
     if (globalSearch) {
       const grouped = {};
@@ -295,16 +320,16 @@ const DataVault = (function ($) {
             s ? s.icon + " " + s.name : "Unknown"
           )}</div>`
         );
-        grp.forEach((item) => $("#items-grid").append(buildCard(item)));
+        grp.forEach((item) => $("#items-grid").append(buildCard(item, q)));
       });
     } else {
-      items.forEach((item) => $("#items-grid").append(buildCard(item)));
+      items.forEach((item) => $("#items-grid").append(buildCard(item, q)));
     }
 
     if (reorderMode) attachDrag();
   }
 
-  function buildCard(item) {
+  function buildCard(item, q) {
     const status = expiryStatus(item.expiry);
     const cls = [
       "item-card",
@@ -322,10 +347,11 @@ const DataVault = (function ($) {
           <span class="field-key">${esc(f.key)}</span>
           <span class="field-val ${
             f.sensitive ? "masked" : ""
-          }" data-raw="${esc(f.value)}">${esc(f.value)}</span>
+          }" data-raw="${esc(f.value)}">${highlight(f.value, q)}</span>
+          ${isUrl(f.value) ? `<a href="${getUrl(f.value)}" target="_blank" class="link-btn" title="Open Link"><i data-lucide="external-link"></i></a>` : ""}
           <span class="copy-icon" data-copy="${esc(
             f.value
-          )}" title="Copy">⊕</span>
+          )}" title="Copy"><i data-lucide="clipboard"></i></span>
         </div>`;
     });
 
@@ -341,27 +367,28 @@ const DataVault = (function ($) {
 
     return `
       <div class="${cls}" data-item-id="${esc(item.id)}" draggable="false">
-        <div class="drag-handle">⣿</div>
+        <div class="drag-handle"><i data-lucide="grip-vertical"></i></div>
         <div class="card-header">
           <div class="card-title-wrap">
-            ${item.pinned ? '<span class="pin-dot">▲</span>' : ""}
-            <span class="card-title">${esc(item.title)}</span>
+            ${item.pinned ? '<span class="pin-dot"><i data-lucide="pin"></i></span>' : ""}
+            <span class="card-title">${highlight(item.title, q)}</span>
           </div>
           <div class="card-actions">
+            <button class="card-action-btn view-btn-item" data-id="${esc(item.id)}" title="View Details"><i data-lucide="eye"></i></button>
             <button class="card-action-btn pin-btn ${
               item.pinned ? "on" : ""
             }" data-id="${esc(item.id)}" title="${
       item.pinned ? "Unpin" : "Pin"
-    }">▲</button>
+    }"><i data-lucide="pin"></i></button>
             <button class="card-action-btn dup-btn" data-id="${esc(
               item.id
-            )}" title="Duplicate">⧉</button>
+            )}" title="Duplicate"><i data-lucide="copy"></i></button>
             <button class="card-action-btn edit-btn" data-id="${esc(
               item.id
-            )}" title="Edit">✎</button>
+            )}" title="Edit"><i data-lucide="pencil"></i></button>
             <button class="card-action-btn del-btn" data-id="${esc(
               item.id
-            )}" title="Delete">✕</button>
+            )}" title="Delete"><i data-lucide="trash-2"></i></button>
           </div>
         </div>
         <div class="card-fields">${fieldsHtml}</div>
@@ -374,9 +401,8 @@ const DataVault = (function ($) {
   }
 
   // ── TABLE VIEW ────────────────────────────────────────────────────────────────
-  function renderTableView(items) {
+  function renderTableView(items, q) {
     $("#items-grid").hide();
-    $("#items-list").hide();
     $("#items-table-wrap").show();
     const $tb = $("#items-tbody").empty();
     items.forEach((item) => {
@@ -396,7 +422,8 @@ const DataVault = (function ($) {
           <span class="td-key">${esc(f.key)}</span>
           <span class="td-val ${f.sensitive ? "masked" : ""}" data-raw="${esc(
             f.value
-          )}">${esc(f.value)}</span>
+          )}">${highlight(f.value, q)}</span>
+          ${isUrl(f.value) ? `<a href="${getUrl(f.value)}" target="_blank" class="link-btn" title="Open"><i data-lucide="external-link"></i></a>` : ""}
         </div>`
         )
         .join("");
@@ -408,78 +435,29 @@ const DataVault = (function ($) {
         : "—";
       $tb.append(`
         <tr class="${cls}" data-item-id="${esc(item.id)}">
-          <td class="td-pin">${item.pinned ? "▲" : ""}</td>
-          <td class="td-title">${esc(item.title)}</td>
+          <td class="td-pin">${item.pinned ? '<i data-lucide="pin" style="width:12px;height:12px"></i>' : ""}</td>
+          <td class="td-title">${highlight(item.title, q)}</td>
           <td class="td-fields">${fieldsHtml}</td>
           <td><div class="td-tags">${tagsHtml}</div></td>
           <td class="td-expiry">${expiryHtml}</td>
           <td>
             <div class="td-actions">
+              <button class="tbl-action-btn view-btn-item" data-id="${esc(item.id)}" title="View"><i data-lucide="eye"></i></button>
               <button class="tbl-action-btn pin-btn ${
                 item.pinned ? "on" : ""
-              }" data-id="${esc(item.id)}" title="Pin">▲</button>
+              }" data-id="${esc(item.id)}" title="Pin"><i data-lucide="pin"></i></button>
               <button class="tbl-action-btn dup-btn" data-id="${esc(
                 item.id
-              )}" title="Duplicate">⧉</button>
+              )}" title="Duplicate"><i data-lucide="copy"></i></button>
               <button class="tbl-action-btn edit-btn" data-id="${esc(
                 item.id
-              )}" title="Edit">✎</button>
+              )}" title="Edit"><i data-lucide="pencil"></i></button>
               <button class="tbl-action-btn del-btn" data-id="${esc(
                 item.id
-              )}" title="Delete">✕</button>
+              )}" title="Delete"><i data-lucide="trash-2"></i></button>
             </div>
           </td>
         </tr>`);
-    });
-  }
-
-  // ── LIST VIEW ─────────────────────────────────────────────────────────────────
-  function renderListView(items) {
-    $("#items-grid").hide();
-    $("#items-table-wrap").hide();
-    const $list = $("#items-list").show().empty();
-    items.forEach((item) => {
-      const status = expiryStatus(item.expiry);
-      const cls = [
-        "list-item",
-        item.pinned ? "pinned" : "",
-        status?.cls === "expired" ? "expired" : "",
-        status?.cls === "warn" ? "expiry-warn" : "",
-      ]
-        .filter(Boolean)
-        .join(" ");
-      const preview = (item.fields || [])
-        .slice(0, 2)
-        .map((f) => `${f.key}: ${f.value}`)
-        .join(" · ");
-      const tagsHtml = (item.tags || [])
-        .map((t) => `<span class="tag">${esc(t)}</span>`)
-        .join("");
-      const expiryHtml = status
-        ? `<span class="expiry-pill ${status.cls}">${esc(status.label)}</span>`
-        : "";
-      $list.append(`
-        <div class="${cls}" data-item-id="${esc(item.id)}">
-          ${item.pinned ? '<span class="li-pin">▲</span>' : ""}
-          <span class="li-title">${esc(item.title)}</span>
-          <span class="li-preview">${esc(preview)}</span>
-          <div class="li-tags">${tagsHtml}</div>
-          <div class="li-expiry">${expiryHtml}</div>
-          <div class="li-actions">
-            <button class="li-action-btn pin-btn ${
-              item.pinned ? "on" : ""
-            }" data-id="${esc(item.id)}" title="Pin">▲</button>
-            <button class="li-action-btn dup-btn" data-id="${esc(
-              item.id
-            )}" title="Duplicate">⧉</button>
-            <button class="li-action-btn edit-btn" data-id="${esc(
-              item.id
-            )}" title="Edit">✎</button>
-            <button class="li-action-btn del-btn" data-id="${esc(
-              item.id
-            )}" title="Delete">✕</button>
-          </div>
-        </div>`);
     });
   }
 
@@ -493,16 +471,17 @@ const DataVault = (function ($) {
     ).length;
     const $b = $("#expiry-banner");
     const parts = [];
-    if (exp) parts.push(`⚑ ${exp} expired`);
-    if (warn) parts.push(`⚐ ${warn} expiring soon`);
+    if (exp) parts.push(`<i data-lucide="flag" class="banner-icon expired"></i> ${exp} expired`);
+    if (warn) parts.push(`<i data-lucide="flag" class="banner-icon warn"></i> ${warn} expiring soon`);
     parts.length
-      ? $b.text(parts.join("  ·  ")).removeClass("hidden")
+      ? $b.html(parts.join("  &nbsp;·&nbsp;  ")).removeClass("hidden")
       : $b.addClass("hidden");
+    refreshIcons();
   }
 
   // ── DRAG & DROP REORDER ────────────────────────────────────────────────────────
   function attachDrag() {
-    $("#items-grid .item-card").each(function () {
+    $("#items-grid .item-card, #items-tbody tr").each(function () {
       this.draggable = true;
       $(this).on("dragstart", function (e) {
         dragSrcId = $(this).data("item-id");
@@ -515,7 +494,7 @@ const DataVault = (function ($) {
       $(this).on("dragover", function (e) {
         e.preventDefault();
         e.originalEvent.dataTransfer.dropEffect = "move";
-        $("#items-grid .item-card").removeClass("drag-over");
+        $(".item-card, #items-tbody tr").removeClass("drag-over");
         $(this).addClass("drag-over");
       });
       $(this).on("dragleave", function () {
@@ -539,10 +518,12 @@ const DataVault = (function ($) {
     if (ai < 0 || bi < 0) return;
     [state.items[ai], state.items[bi]] = [state.items[bi], state.items[ai]];
     saveData();
+    renderSidebar();
     renderItems();
+    if (window.lucide) lucide.createIcons();
   }
 
-  // ── SECTION MODAL ─────────────────────────────────────────────────────────────
+  // ── RENDER ITEMS ──────────────────────────────────────────────────────────────
   function openSectionModal(secId = null) {
     editSectionId = secId;
     const sec = secId ? secById(secId) : null;
@@ -606,8 +587,13 @@ const DataVault = (function ($) {
           }>
           mask
         </label>
-        <button class="remove-dyn-btn" data-row="${id}">✕</button>
+        <div class="field-move-btns">
+          <button class="move-fld-btn" data-dir="up" data-row="${id}" title="Move Up"><i data-lucide="chevron-up"></i></button>
+          <button class="move-fld-btn" data-dir="down" data-row="${id}" title="Move Down"><i data-lucide="chevron-down"></i></button>
+        </div>
+        <button class="remove-dyn-btn" data-row="${id}"><i data-lucide="trash-2"></i></button>
       </div>`);
+    refreshIcons();
   }
 
   function openItemModal(itemId = null) {
@@ -691,7 +677,7 @@ const DataVault = (function ($) {
         <td><input type="text" class="bulk-input b-fv2" placeholder="Value"></td>
         <td><input type="text" class="bulk-input b-tags" placeholder="tag1, tag2"></td>
         <td><input type="text" class="bulk-input b-notes" placeholder="Notes"></td>
-        <td><button class="bulk-del-btn" data-row="${id}">✕</button></td>
+        <td><button class="bulk-del-btn" data-row="${id}"><i data-lucide="trash-2"></i></button></td>
       </tr>`);
   }
 
@@ -748,6 +734,63 @@ const DataVault = (function ($) {
     toast(`${added} item${added !== 1 ? "s" : ""} added`, "success");
   }
 
+  // ── VIEW DETAILS ─────────────────────────────────────────────────────────────
+  function viewItemDetails(id) {
+    const item = state.items.find((i) => i.id === id);
+    if (!item) return;
+
+    $("#details-modal-title").text(item.title);
+    $("#details-badge-wrap").empty();
+    const status = expiryStatus(item.expiry);
+    if (status) {
+      $("#details-badge-wrap").append(`<span class="expiry-pill ${status.cls}">${esc(status.label)}</span>`);
+    }
+    if (item.pinned) {
+      $("#details-badge-wrap").append(`<span class="badge" style="background:var(--accent-dim);color:var(--accent)">PINNED</span>`);
+    }
+
+    const $grid = $("#details-fields-grid").empty();
+    (item.fields || []).forEach(f => {
+      $grid.append(`
+        <div class="details-item">
+          <div class="details-label-row">
+            <span class="details-label">${esc(f.key)}</span>
+            <span class="copy-icon mini" data-copy="${esc(f.key)}" title="Copy Label"><i data-lucide="clipboard"></i></span>
+          </div>
+          <div class="details-value">
+            <span class="${f.sensitive ? "masked" : ""}" data-raw="${esc(f.value)}">${esc(f.value)}</span>
+            ${isUrl(f.value) ? `<a href="${getUrl(f.value)}" target="_blank" class="link-btn" title="Open Link"><i data-lucide="external-link"></i></a>` : ""}
+            <span class="copy-icon" data-copy="${esc(f.value)}" title="Copy Value"><i data-lucide="clipboard"></i></span>
+          </div>
+        </div>
+      `);
+    });
+
+    if (item.notes) {
+      $("#details-notes-section").removeClass("hidden");
+      $("#details-notes-content").text(item.notes);
+    } else {
+      $("#details-notes-section").addClass("hidden");
+    }
+
+    if (item.tags && item.tags.length) {
+      $("#details-tags-section").removeClass("hidden");
+      $("#details-tags-content").empty().append(
+        item.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")
+      );
+    } else {
+      $("#details-tags-section").addClass("hidden");
+    }
+
+    $("#details-edit-btn").off("click").on("click", () => {
+      closeModals();
+      openItemModal(id);
+    });
+
+    $("#details-modal").removeClass("hidden");
+    refreshIcons();
+  }
+
   // ── ITEM ACTIONS ──────────────────────────────────────────────────────────────
   function deleteItem(id) {
     showConfirm("Delete Item", "Permanently delete this item?", () => {
@@ -779,6 +822,39 @@ const DataVault = (function ($) {
     item.pinned = !item.pinned;
     saveData();
     renderItems();
+  }
+
+  function attachSectionDrag() {
+    $("#section-list li").each(function () {
+      this.draggable = true;
+      $(this).on("dragstart", function (e) {
+        dragSrcId = $(this).data("sec-id");
+        e.originalEvent.dataTransfer.effectAllowed = "move";
+      });
+      $(this).on("dragover", function (e) {
+        e.preventDefault();
+        $(this).addClass("drag-over-sec");
+      });
+      $(this).on("dragleave", function () {
+        $(this).removeClass("drag-over-sec");
+      });
+      $(this).on("drop", function (e) {
+        e.preventDefault();
+        $(this).removeClass("drag-over-sec");
+        const targetId = $(this).data("sec-id");
+        if (dragSrcId && targetId && dragSrcId !== targetId) {
+          const ai = state.sections.findIndex(s => s.id === dragSrcId);
+          const bi = state.sections.findIndex(s => s.id === targetId);
+          if (ai >= 0 && bi >= 0) {
+            const [moved] = state.sections.splice(ai, 1);
+            state.sections.splice(bi, 0, moved);
+            saveData();
+            renderSidebar();
+          }
+        }
+        dragSrcId = null;
+      });
+    });
   }
 
   // ── DELETE SECTION ────────────────────────────────────────────────────────────
@@ -1124,6 +1200,13 @@ const DataVault = (function ($) {
   // ── THEME ─────────────────────────────────────────────────────────────────────
   function applyTheme(t) {
     $("html").attr("data-theme", t);
+    const $btn = $("#theme-toggle");
+    if (t === "dark") {
+      $btn.html('<i data-lucide="sun"></i>');
+    } else {
+      $btn.html('<i data-lucide="moon"></i>');
+    }
+    refreshIcons();
     try {
       localStorage.setItem(THEME_KEY, t);
     } catch (e) {}
@@ -1135,7 +1218,12 @@ const DataVault = (function ($) {
     $("#sidebar-collapse-btn, #sidebar-tab").on("click", () => {
       $("body").toggleClass("sidebar-collapsed");
       const collapsed = $("body").hasClass("sidebar-collapsed");
-      $("#sidebar-tab").text(collapsed ? "›" : "‹");
+      $("#sidebar-tab, #sidebar-collapse-btn").html(
+        collapsed
+          ? '<i data-lucide="chevron-right"></i>'
+          : '<i data-lucide="chevron-left"></i>'
+      );
+      refreshIcons();
     });
 
     // Section nav
@@ -1185,7 +1273,18 @@ const DataVault = (function ($) {
     });
     $("#bulk-save-btn").on("click", saveBulkItems);
 
+    // Compact toggle
+    $("#compact-toggle").on("click", function() {
+      compactMode = !compactMode;
+      $(this).toggleClass("active", compactMode);
+      renderItems();
+    });
+
     // Item actions (card / table / list)
+    $(document).on("click", ".view-btn-item", function (e) {
+      e.stopPropagation();
+      viewItemDetails($(this).data("id"));
+    });
     $(document).on("click", ".edit-btn", function (e) {
       e.stopPropagation();
       openItemModal($(this).data("id"));
@@ -1206,8 +1305,18 @@ const DataVault = (function ($) {
       e.stopPropagation();
       copyText($(this).data("copy"));
     });
-    $(document).on("click", ".field-val.masked, .td-val.masked", function () {
+    $(document).on("click", ".masked", function () {
       $(this).toggleClass("revealed");
+    });
+    $(document).on("click", ".move-fld-btn", function() {
+      const id = $(this).data("row");
+      const dir = $(this).data("dir");
+      const $row = $(`#dfr-${id}`);
+      if (dir === "up") {
+        $row.prev(".dyn-field-row").before($row);
+      } else {
+        $row.next(".dyn-field-row").after($row);
+      }
     });
 
     // View switcher
@@ -1345,6 +1454,7 @@ const DataVault = (function ($) {
     renderSidebar();
     renderItems();
     renderTagChips();
+    refreshIcons();
   }
 
   return { init };

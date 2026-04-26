@@ -1,325 +1,366 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Info & Storage</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Info & Storage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<!-- SIDEBAR TOGGLE TAB -->
-<button id="sidebar-tab" title="Toggle sidebar">‹</button>
+  <!-- SIDEBAR TOGGLE TAB -->
+  <button id="sidebar-tab" title="Toggle sidebar"><i data-lucide="chevron-left"></i></button>
 
-<!-- SIDEBAR -->
-<aside id="sidebar">
-  <div id="sidebar-header">
-    <div id="logo">
-      <span class="logo-icon">◈</span>
-      <span class="logo-text">Info & Storage</span>
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <div id="logo">
+        <span class="logo-icon"><i data-lucide="database"></i></span>
+        <span class="logo-text">Info & Storage</span>
+      </div>
+      <div style="display:flex;gap:4px;align-items:center">
+        <button id="theme-toggle" title="Toggle theme"><i data-lucide="sun"></i></button>
+        <button id="sidebar-collapse-btn" title="Collapse sidebar"><i data-lucide="chevron-left"></i></button>
+      </div>
     </div>
-    <div style="display:flex;gap:4px;align-items:center">
-      <button id="theme-toggle" title="Toggle theme">◐</button>
-      <button id="sidebar-collapse-btn" title="Collapse sidebar">‹</button>
+
+    <div id="sidebar-search-wrap">
+      <input type="text" id="global-search" placeholder="/ search all…" autocomplete="off">
     </div>
-  </div>
 
-  <div id="sidebar-search-wrap">
-    <input type="text" id="global-search" placeholder="/ search all…" autocomplete="off">
-  </div>
+    <nav id="section-nav">
+      <div class="nav-label">SECTIONS</div>
+      <ul id="section-list"></ul>
+      <button id="add-section-btn"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i> New
+        Section</button>
+    </nav>
 
-  <nav id="section-nav">
-    <div class="nav-label">SECTIONS</div>
-    <ul id="section-list"></ul>
-    <button id="add-section-btn">+ New Section</button>
-  </nav>
-
-  <div id="sidebar-footer">
-    <button class="footer-btn" id="import-btn">↑ Import</button>
-    <button class="footer-btn" id="export-btn">↓ Export</button>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<main id="main">
-  <header id="topbar">
-    <div id="topbar-left">
-      <h1 id="section-title">—</h1>
-      <span id="item-count" class="badge">0 items</span>
+    <div id="sidebar-footer">
+      <button class="footer-btn" id="import-btn"><i data-lucide="upload"
+          style="width:11px;height:11px;margin-right:4px"></i> Import</button>
+      <button class="footer-btn" id="export-btn"><i data-lucide="download"
+          style="width:11px;height:11px;margin-right:4px"></i> Export</button>
     </div>
-    <div id="topbar-controls">
+  </aside>
 
-      <!-- Search + Advanced Filters -->
-      <div id="filter-wrap">
-        <div id="filter-row1">
-          <input type="text" id="section-search" placeholder="Filter…" autocomplete="off">
-          <button id="advanced-filter-btn" class="btn-filter" title="Advanced filters">
-            ⊞ Filters <span id="filter-active-count" class="filter-badge hidden">0</span>
-          </button>
-        </div>
-        <div id="advanced-filters" >
+  <!-- MAIN -->
+  <main id="main">
+    <header id="topbar">
+      <div id="topbar-left">
+        <h1 id="section-title">—</h1>
+        <span id="item-count" class="badge">0 items</span>
+      </div>
+      <div id="topbar-controls">
 
-          <div class="adv-filter-sel">
-            <span class="adv-label">Pinned:</span>
-            <select id="pinned-filter">
-              <option value="">Any</option>
-              <option value="yes">Pinned only</option>
-              <option value="no">Unpinned</option>
-            </select>
+        <!-- Search + Advanced Filters -->
+        <div id="filter-wrap">
+          <div id="filter-row1">
+            <input type="text" id="section-search" placeholder="Filter…" autocomplete="off">
+            <button id="advanced-filter-btn" class="btn-filter" title="Advanced filters">
+              <i data-lucide="filter" style="width:13px;height:13px"></i> Filters <span id="filter-active-count"
+                class="filter-badge hidden">0</span>
+            </button>
           </div>
-          <button id="clear-all-filters" class="btn-ghost btn-xs">Clear</button>
+          <div id="advanced-filters">
+
+            <div class="adv-filter-sel">
+              <span class="adv-label">Pinned:</span>
+              <select id="pinned-filter">
+                <option value="">Any</option>
+                <option value="yes">Pinned only</option>
+                <option value="no">Unpinned</option>
+              </select>
+            </div>
+            <button id="clear-all-filters" class="btn-ghost btn-xs">Clear</button>
+          </div>
         </div>
+
+        <select id="sort-select">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="alpha-asc">A→Z</option>
+          <option value="alpha-desc">Z→A</option>
+          <option value="pinned">Pinned first</option>
+        </select>
+
+        <!-- View switcher -->
+        <div id="view-switcher">
+          <button class="view-btn active" data-view="card" title="Card view"><i data-lucide="layout-grid"></i></button>
+          <button class="view-btn" data-view="table" title="Table view"><i data-lucide="table"></i></button>
+        </div>
+
+        <button id="reorder-btn" class="btn-icon" title="Toggle drag-reorder"><i
+            data-lucide="arrow-up-down"></i></button>
+
+        <!-- Add buttons -->
+        <div class="add-group">
+          <button id="add-item-btn" class="btn-primary">+ Add</button>
+          <button id="bulk-add-btn" class="btn-primary-split" title="Bulk add">▾</button>
+        </div>
+
       </div>
+    </header>
 
-      <select id="sort-select">
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-        <option value="alpha-asc">A→Z</option>
-        <option value="alpha-desc">Z→A</option>
-        <option value="pinned">Pinned first</option>
-      </select>
+    <div id="expiry-banner" class=""></div>
 
-      <!-- View switcher -->
-      <div id="view-switcher">
-        <button class="view-btn active" data-view="card" title="Card view">⊞</button>
-        <button class="view-btn" data-view="table" title="Table view">▤</button>
-        <button class="view-btn" data-view="list" title="List view">☰</button>
+    <div id="items-area">
+      <!-- CARD VIEW -->
+      <div id="items-grid"></div>
+
+      <!-- TABLE VIEW -->
+      <div id="items-table-wrap" class="hidden">
+        <table id="items-table">
+          <thead>
+            <tr>
+              <th style="width:28px"></th>
+              <th class="sortable" data-col="title">Title</th>
+              <th>Fields</th>
+              <th>Tags</th>
+              <th class="sortable" data-col="expiry">Expiry</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
       </div>
-
-      <button id="reorder-btn" class="btn-icon" title="Toggle drag-reorder">⇅</button>
-
-      <!-- Add buttons -->
-      <div class="add-group">
-        <button id="add-item-btn" class="btn-primary">+ Add</button>
-        <button id="bulk-add-btn" class="btn-primary-split" title="Bulk add">▾</button>
-      </div>
-
     </div>
-  </header>
 
-  <div id="expiry-banner" class=""></div>
-
-  <div id="items-area">
-    <!-- CARD VIEW -->
-    <div id="items-grid"></div>
-
-    <!-- TABLE VIEW -->
-    <div id="items-table-wrap" class="hidden">
-      <table id="items-table">
-        <thead>
-          <tr>
-            <th style="width:28px"></th>
-            <th class="sortable" data-col="title">Title</th>
-            <th>Fields</th>
-            <th>Tags</th>
-            <th class="sortable" data-col="expiry">Expiry</th>
-            <th style="width:80px"></th>
-          </tr>
-        </thead>
-        <tbody id="items-tbody"></tbody>
-      </table>
+    <div id="empty-state" class="hidden">
+      <div class="empty-icon"><i data-lucide="inbox"></i></div>
+      <p>No items here yet.</p>
+      <button class="btn-primary" id="empty-add-btn">+ Add First Item</button>
     </div>
+  </main>
 
-    <!-- LIST VIEW -->
-    <div id="items-list" class="hidden"></div>
-  </div>
-
-  <div id="empty-state" class="hidden">
-    <div class="empty-icon">◈</div>
-    <p>No items here yet.</p>
-    <button class="btn-primary" id="empty-add-btn">+ Add First Item</button>
-  </div>
-</main>
-
-<!-- ============================================================
+  <!-- ============================================================
      MODALS
      ============================================================ -->
 
-<!-- ITEM MODAL (no expiry date field) -->
-<div id="item-modal" class="modal hidden">
-  <div class="modal-overlay"></div>
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2 id="item-modal-title">New Item</h2>
-      <button class="modal-close">✕</button>
+  <!-- VIEW DETAILS MODAL -->
+  <div id="details-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box modal-large">
+      <div class="modal-header">
+        <h2 id="details-modal-title">Item Details</h2>
+        <button class="modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="details-header-info">
+          <div id="details-badge-wrap"></div>
+        </div>
+        <div id="details-content">
+          <div class="details-grid" id="details-fields-grid"></div>
+          <div id="details-notes-section" class="hidden">
+            <span class="details-label">Notes</span>
+            <div id="details-notes-content" class="details-notes-box"></div>
+          </div>
+          <div id="details-tags-section" class="hidden">
+            <span class="details-label">Tags</span>
+            <div id="details-tags-content" class="details-tags-wrap"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary standalone" id="details-edit-btn">Edit Item</button>
+        <button class="btn-ghost modal-cancel">Close</button>
+      </div>
     </div>
-    <div class="modal-body">
-      <div class="form-row-2">
+  </div>
+
+  <!-- ITEM MODAL (no expiry date field) -->
+  <div id="item-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="item-modal-title">New Item</h2>
+        <button class="modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row-2">
+          <div class="field-group">
+            <label>Title *</label>
+            <input type="text" id="item-title-input" placeholder="e.g. Gmail Account">
+          </div>
+          <div class="field-group">
+            <label>Section</label>
+            <select id="item-section-select"></select>
+          </div>
+        </div>
+
+        <div id="dynamic-fields"></div>
+        <button id="add-field-btn" class="btn-ghost btn-sm">+ Add Field</button>
+
+        <div class="form-row-2">
+          <div class="field-group">
+            <label>Tags <span class="label-hint">comma-separated</span></label>
+            <input type="text" id="item-tags-input" placeholder="work, finance…">
+          </div>
+          <div class="field-group">
+            <label>Notes</label>
+            <input type="text" id="item-notes-input" placeholder="Optional notes">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost modal-cancel">Cancel</button>
+        <button class="btn-primary" id="item-save-btn">Save Item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK ADD MODAL -->
+  <div id="bulk-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box modal-xl">
+      <div class="modal-header">
+        <h2>Bulk Add Items</h2>
+        <button class="modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row-2" style="max-width:360px">
+          <div class="field-group">
+            <label>Section for all items</label>
+            <select id="bulk-section-select"></select>
+          </div>
+        </div>
+        <p class="hint-text" style="margin-bottom:10px">Fill rows below. Each row becomes one item. Leave blank rows —
+          they'll be skipped.</p>
+        <div id="bulk-table-wrap">
+          <table id="bulk-table">
+            <thead>
+              <tr>
+                <th style="width:28px">#</th>
+                <th>Title *</th>
+                <th>Field 1 Key</th>
+                <th>Field 1 Value</th>
+                <th>Field 2 Key</th>
+                <th>Field 2 Value</th>
+                <th>Tags</th>
+                <th>Notes</th>
+                <th style="width:28px"></th>
+              </tr>
+            </thead>
+            <tbody id="bulk-rows"></tbody>
+          </table>
+        </div>
+        <button id="add-bulk-row-btn" class="btn-ghost btn-sm" style="margin-top:8px">+ Add Row</button>
+      </div>
+      <div class="modal-footer">
+        <span id="bulk-status" class="hint-text"></span>
+        <button class="btn-ghost modal-cancel">Cancel</button>
+        <button class="btn-primary" id="bulk-save-btn">Add All Items</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION MODAL -->
+  <div id="section-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box modal-sm">
+      <div class="modal-header">
+        <h2 id="section-modal-title">New Section</h2>
+        <button class="modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
         <div class="field-group">
-          <label>Title *</label>
-          <input type="text" id="item-title-input" placeholder="e.g. Gmail Account">
+          <label>Section Name *</label>
+          <input type="text" id="section-name-input" placeholder="e.g. Banking">
         </div>
         <div class="field-group">
-          <label>Section</label>
-          <select id="item-section-select"></select>
+          <label>Icon</label>
+          <input type="text" id="section-icon-input" placeholder="◆ or 💳" maxlength="4">
         </div>
       </div>
+      <div class="modal-footer">
+        <button class="btn-ghost modal-cancel">Cancel</button>
+        <button class="btn-primary" id="section-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
 
-      <div id="dynamic-fields"></div>
-      <button id="add-field-btn" class="btn-ghost btn-sm">+ Add Field</button>
-
-      <div class="form-row-2">
+  <!-- EXPORT MODAL -->
+  <div id="export-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box modal-sm">
+      <div class="modal-header">
+        <h2>Export Data</h2>
+        <button class="modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
         <div class="field-group">
-          <label>Tags <span class="label-hint">comma-separated</span></label>
-          <input type="text" id="item-tags-input" placeholder="work, finance…">
+          <label>Scope</label>
+          <select id="export-scope">
+            <option value="all">All Sections</option>
+          </select>
         </div>
         <div class="field-group">
-          <label>Notes</label>
-          <input type="text" id="item-notes-input" placeholder="Optional notes">
+          <label>Format</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="export-fmt" value="json" checked> JSON</label>
+            <label class="radio-label"><input type="radio" name="export-fmt" value="csv"> CSV</label>
+            <label class="radio-label"><input type="radio" name="export-fmt" value="pdf"> Print / PDF</label>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost modal-cancel">Cancel</button>
-      <button class="btn-primary" id="item-save-btn">Save Item</button>
+      <div class="modal-footer">
+        <button class="btn-ghost modal-cancel">Cancel</button>
+        <button class="btn-primary" id="do-export-btn">Export</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- BULK ADD MODAL -->
-<div id="bulk-modal" class="modal hidden">
-  <div class="modal-overlay"></div>
-  <div class="modal-box modal-xl">
-    <div class="modal-header">
-      <h2>Bulk Add Items</h2>
-      <button class="modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-row-2" style="max-width:360px">
-        <div class="field-group">
-          <label>Section for all items</label>
-          <select id="bulk-section-select"></select>
+  <!-- IMPORT MODAL -->
+  <div id="import-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box modal-sm">
+      <div class="modal-header">
+        <h2>Import Data</h2>
+        <button class="modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="hint-text">Accepts JSON or CSV exported from DataVault. Data is merged.</p>
+        <div class="file-drop-zone" id="file-drop-zone">
+          <div class="drop-icon"><i data-lucide="upload-cloud"></i></div>
+          <span>Drop file here or click to browse</span>
+          <input type="file" id="import-file-input" accept=".json,.csv" style="display:none">
         </div>
+        <div id="import-preview" class="hidden"></div>
       </div>
-      <p class="hint-text" style="margin-bottom:10px">Fill rows below. Each row becomes one item. Leave blank rows — they'll be skipped.</p>
-      <div id="bulk-table-wrap">
-        <table id="bulk-table">
-          <thead>
-            <tr>
-              <th style="width:28px">#</th>
-              <th>Title *</th>
-              <th>Field 1 Key</th>
-              <th>Field 1 Value</th>
-              <th>Field 2 Key</th>
-              <th>Field 2 Value</th>
-              <th>Tags</th>
-              <th>Notes</th>
-              <th style="width:28px"></th>
-            </tr>
-          </thead>
-          <tbody id="bulk-rows"></tbody>
-        </table>
+      <div class="modal-footer">
+        <button class="btn-ghost modal-cancel">Cancel</button>
+        <button class="btn-primary" id="do-import-btn" disabled>Import</button>
       </div>
-      <button id="add-bulk-row-btn" class="btn-ghost btn-sm" style="margin-top:8px">+ Add Row</button>
-    </div>
-    <div class="modal-footer">
-      <span id="bulk-status" class="hint-text"></span>
-      <button class="btn-ghost modal-cancel">Cancel</button>
-      <button class="btn-primary" id="bulk-save-btn">Add All Items</button>
     </div>
   </div>
-</div>
 
-<!-- SECTION MODAL -->
-<div id="section-modal" class="modal hidden">
-  <div class="modal-overlay"></div>
-  <div class="modal-box modal-sm">
-    <div class="modal-header">
-      <h2 id="section-modal-title">New Section</h2>
-      <button class="modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field-group">
-        <label>Section Name *</label>
-        <input type="text" id="section-name-input" placeholder="e.g. Banking">
+  <!-- CONFIRM MODAL -->
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box modal-sm">
+      <div class="modal-header">
+        <h2 id="confirm-title">Confirm</h2>
+        <button class="modal-close"><i data-lucide="x"></i></button>
       </div>
-      <div class="field-group">
-        <label>Icon</label>
-        <input type="text" id="section-icon-input" placeholder="◆ or 💳" maxlength="4">
+      <div class="modal-body">
+        <p id="confirm-message" class="hint-text"></p>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost modal-cancel">Cancel</button>
-      <button class="btn-primary" id="section-save-btn">Save</button>
+      <div class="modal-footer">
+        <button class="btn-ghost modal-cancel">Cancel</button>
+        <button class="btn-danger" id="confirm-ok-btn">Delete</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- EXPORT MODAL -->
-<div id="export-modal" class="modal hidden">
-  <div class="modal-overlay"></div>
-  <div class="modal-box modal-sm">
-    <div class="modal-header">
-      <h2>Export Data</h2>
-      <button class="modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field-group">
-        <label>Scope</label>
-        <select id="export-scope"><option value="all">All Sections</option></select>
-      </div>
-      <div class="field-group">
-        <label>Format</label>
-        <div class="radio-group">
-          <label class="radio-label"><input type="radio" name="export-fmt" value="json" checked> JSON</label>
-          <label class="radio-label"><input type="radio" name="export-fmt" value="csv"> CSV</label>
-          <label class="radio-label"><input type="radio" name="export-fmt" value="pdf"> Print / PDF</label>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost modal-cancel">Cancel</button>
-      <button class="btn-primary" id="do-export-btn">Export</button>
-    </div>
-  </div>
-</div>
-
-<!-- IMPORT MODAL -->
-<div id="import-modal" class="modal hidden">
-  <div class="modal-overlay"></div>
-  <div class="modal-box modal-sm">
-    <div class="modal-header">
-      <h2>Import Data</h2>
-      <button class="modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <p class="hint-text">Accepts JSON or CSV exported from DataVault. Data is merged.</p>
-      <div class="file-drop-zone" id="file-drop-zone">
-        <div class="drop-icon">⬆</div>
-        <span>Drop file here or click to browse</span>
-        <input type="file" id="import-file-input" accept=".json,.csv" style="display:none">
-      </div>
-      <div id="import-preview" class="hidden"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost modal-cancel">Cancel</button>
-      <button class="btn-primary" id="do-import-btn" disabled>Import</button>
-    </div>
-  </div>
-</div>
-
-<!-- CONFIRM MODAL -->
-<div id="confirm-modal" class="modal hidden">
-  <div class="modal-overlay"></div>
-  <div class="modal-box modal-sm">
-    <div class="modal-header">
-      <h2 id="confirm-title">Confirm</h2>
-      <button class="modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <p id="confirm-message" class="hint-text"></p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-ghost modal-cancel">Cancel</button>
-      <button class="btn-danger" id="confirm-ok-btn">Delete</button>
-    </div>
-  </div>
-</div>
-
-<div id="toast-container"></div>
-<script src="app.js"></script>
+  <div id="toast-container"></div>
+  <script src="app.js"></script>
 </body>
+
 </html>
